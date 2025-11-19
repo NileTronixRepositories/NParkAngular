@@ -66,8 +66,8 @@
           <div class="col-12 col-md-6 mb-3">
             <label class="form-label">{{ 'gateType' | t }}</label>
             <select class="form-select" formControlName="gateType">
-              <option [ngValue]="0">{{ 'entryGate' | t }}</option>
-              <option [ngValue]="1">{{ 'exitGate' | t }}</option>
+              <option [ngValue]="GateType.Entrance">{{ 'entryGate' | t }}</option>
+              <option [ngValue]="GateType.Exit">{{ 'exitGate' | t }}</option>
             </select>
             <div
               class="invalid-feedback d-block"

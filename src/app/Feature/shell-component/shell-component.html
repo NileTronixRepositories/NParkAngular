@@ -6,7 +6,9 @@
     </a>
 
     <nav class="nav flex-column gap-1">
+      <!-- Overview — Admin فقط -->
       <a
+        *ngIf="isAdmin"
         class="nav-link text-light d-flex align-items-center gap-2"
         routerLink="/overview"
         routerLinkActive="active"
@@ -15,12 +17,16 @@
         <i class="bi bi-house"></i> {{ t('overview') }}
       </a>
 
-      <div class="text-secondary small mt-3 mb-1 text-uppercase">
+      <!-- Parking section — Admin + الكاشير -->
+      <div
+        class="text-secondary small mt-3 mb-1 text-uppercase"
+        *ngIf="isAdmin || isEntranceCashier || isExitCashier"
+      >
         {{ t('parking') }}
       </div>
 
       <!-- Gate with submenu -->
-      <div class="nav-item">
+      <div class="nav-item" *ngIf="isAdmin || isEntranceCashier || isExitCashier">
         <button
           class="nav-link text-light d-flex align-items-center gap-2 btn-toggle"
           type="button"
@@ -34,16 +40,21 @@
         </button>
 
         <div class="submenu" *ngIf="gateOpen">
+          <!-- Entry Gate — Admin + EntranceCashier -->
           <a
+            *ngIf="isAdmin || isEntranceCashier"
             class="nav-link text-light d-flex align-items-center gap-2 ps-4"
-            routerLink="/tickets"
+            routerLink="/tickets/entry"
             routerLinkActive="active"
           >
             <i class="bi bi-arrow-right-circle"></i> {{ t('entryGate') }}
           </a>
+
+          <!-- Exit Gate — Admin + ExitCashier -->
           <a
+            *ngIf="isAdmin || isExitCashier"
             class="nav-link text-light d-flex align-items-center gap-2 ps-4"
-            routerLink="/exitgate"
+            routerLink="/tickets/exit"
             routerLinkActive="active"
           >
             <i class="bi bi-box-arrow-right"></i> {{ t('exitGate') }}
@@ -51,7 +62,9 @@
         </div>
       </div>
 
+      <!-- Visitor — Admin فقط -->
       <a
+        *ngIf="isAdmin"
         class="nav-link text-light d-flex align-items-center gap-2"
         routerLink="/visitor"
         routerLinkActive="active"
@@ -60,8 +73,9 @@
         {{ t('visitor') }}
       </a>
 
-      <!-- existing links -->
+      <!-- Altaeriffa — Admin فقط -->
       <a
+        *ngIf="isAdmin"
         class="nav-link text-light d-flex align-items-center gap-2"
         routerLink="/subscription"
         routerLinkActive="active"
@@ -69,7 +83,10 @@
         <i class="bi bi-credit-card"></i>
         {{ t('altaeriffa') }}
       </a>
+
+      <!-- Subscription (registration) — Admin فقط -->
       <a
+        *ngIf="isAdmin"
         class="nav-link text-light d-flex align-items-center gap-2"
         routerLink="/registration"
         routerLinkActive="active"
@@ -78,17 +95,22 @@
         {{ t('subscription') }}
       </a>
 
-      <div class="text-secondary small mt-3 mb-1 text-uppercase">
+      <!-- Management section — Admin فقط -->
+      <div class="text-secondary small mt-3 mb-1 text-uppercase" *ngIf="isAdmin">
         {{ t('management') }}
       </div>
+
       <a
+        *ngIf="isAdmin"
         class="nav-link text-light d-flex align-items-center gap-2"
         routerLink="/users"
         routerLinkActive="active"
       >
         <i class="bi bi-people"></i> {{ t('users') }}
       </a>
+
       <a
+        *ngIf="isAdmin"
         class="nav-link text-light d-flex align-items-center gap-2"
         routerLink="/configuration"
         routerLinkActive="active"
@@ -97,6 +119,7 @@
       </a>
 
       <a
+        *ngIf="isAdmin"
         class="nav-link text-light d-flex align-items-center gap-2"
         routerLink="/parking-guidance-diagram"
         routerLinkActive="active"
@@ -114,9 +137,6 @@
 
       <div class="d-flex align-items-center gap-2">
         <div class="text-muted small">{{ t('welcome') }}</div>
-        <!-- <button class="btn btn-outline-secondary btn-sm" (click)="switchLang()">
-          {{ t('langButton') }}
-        </button> -->
       </div>
     </header>
 

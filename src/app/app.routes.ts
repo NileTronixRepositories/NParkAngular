@@ -17,25 +17,21 @@ export const routes: Routes = [
       import('./Feature/shell-component/shell-component').then((m) => m.ShellComponent),
     children: [
       {
-        path: 'dashboard',
-        loadComponent: () =>
-          import('./Feature/dashboard-component/dashboard-component').then(
-            (m) => m.DashboardComponent
-          ),
-      },
-      {
         path: 'overview',
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/overview-component/overview-component').then(
             (m) => m.OverviewComponent
           ),
       },
+
       {
         path: 'users',
+        canActivate: [authGuard],
+        data: { roles: ['Admin'] },
         loadComponent: () => import('./Feature/users/users').then((m) => m.Users),
       },
 
-      // ✅ Tickets parent with sub-routes
       {
         path: 'tickets',
         canActivate: [authGuard],
@@ -47,13 +43,21 @@ export const routes: Routes = [
           },
           {
             path: 'entry',
-            data: { mode: 'entry' },
+            data: {
+              mode: 'entry',
+              roles: ['Admin', 'EntranceCashier'],
+            },
+            canActivate: [authGuard],
             loadComponent: () =>
               import('./Feature/ticket-component/ticket-component').then((m) => m.TicketComponent),
           },
           {
             path: 'exit',
-            data: { mode: 'exit' },
+            data: {
+              mode: 'exit',
+              roles: ['Admin', 'ExitCashier'],
+            },
+            canActivate: [authGuard],
             loadComponent: () =>
               import('./Feature/ticket-component/ticket-component').then((m) => m.TicketComponent),
           },
@@ -63,6 +67,7 @@ export const routes: Routes = [
       {
         path: 'subscription',
         canActivate: [authGuard],
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/subscription-component/subscription-component').then(
             (m) => m.SubscriptionComponent
@@ -71,6 +76,7 @@ export const routes: Routes = [
       {
         path: 'parking-guidance-diagram',
         canActivate: [authGuard],
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import(
             './Feature/parking-guidance-diagram-component/parking-guidance-diagram-component'
@@ -79,6 +85,7 @@ export const routes: Routes = [
       {
         path: 'configuration',
         canActivate: [authGuard],
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/configuration-component/configuration-component').then(
             (m) => m.ConfigurationComponent
@@ -87,6 +94,7 @@ export const routes: Routes = [
       {
         path: 'registration',
         canActivate: [authGuard],
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/Registration-component/registration-component').then(
             (m) => m.RegistrationComponent
@@ -95,6 +103,7 @@ export const routes: Routes = [
       {
         path: 'exitgate',
         canActivate: [authGuard],
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/exitgate-component/exitgate-component').then(
             (m) => m.ExitgateComponent
@@ -103,6 +112,7 @@ export const routes: Routes = [
       {
         path: 'visitor',
         canActivate: [authGuard],
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/visitor-component/visitor-component').then((m) => m.VisitorComponent),
       },

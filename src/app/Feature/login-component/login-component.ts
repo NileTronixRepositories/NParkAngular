@@ -106,6 +106,7 @@ export class LoginComponent {
   showPassword = false;
   changeError: string | null = null;
   errorToast: string | null = null;
+  GateType = GateType;
 
   private firstUserName: string | null = null;
   private firstPassword: string | null = null;
@@ -241,8 +242,25 @@ export class LoginComponent {
   }
 
   private navigateAfterLogin() {
-    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl') || '/overview';
-    this.router.navigateByUrl(returnUrl);
+    const role = this.auth.role;
+
+    if (role === 'EntranceCashier') {
+      this.router.navigate(['/tickets/entry']);
+      return;
+    }
+
+    if (role === 'ExitCashier') {
+      this.router.navigate(['/tickets/exit']);
+      return;
+    }
+
+    const returnUrl = this.route.snapshot.queryParamMap.get('returnUrl');
+    if (returnUrl) {
+      this.router.navigateByUrl(returnUrl);
+      return;
+    }
+
+    this.router.navigate(['/overview']);
   }
 
   private t(key: string) {

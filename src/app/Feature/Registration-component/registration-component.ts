@@ -467,7 +467,10 @@ export class RegistrationComponent implements OnInit {
     this.svc.addMembership(fd).subscribe({
       next: () => {
         alert('تم حفظ الاشتراك بنجاح ✅');
+
         this.reset();
+
+        this.load();
       },
       error: (err) => {
         console.error(err);

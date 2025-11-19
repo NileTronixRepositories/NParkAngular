@@ -5,6 +5,7 @@ import { PanelMenuModule } from 'primeng/panelmenu';
 import { Subscription } from 'rxjs';
 
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
+import { AuthService } from '../../Services/Auth/auth-service';
 
 @Component({
   selector: 'app-shell-component',
@@ -17,6 +18,7 @@ export class ShellComponent implements OnDestroy {
   // ===== DI =====
   private router = inject(Router);
   public i18n = inject(LanguageService);
+  private auth = inject(AuthService);
 
   private dict: Record<AppLang, Record<string, string>> = {
     ar: {
@@ -74,19 +76,22 @@ export class ShellComponent implements OnDestroy {
     });
   }
 
-  items = [
-    { label: 'Overview', routerLink: ['/'], icon: 'pi pi-home' },
-    {
-      label: 'Parking',
-      items: [
-        { label: 'Dashboard', routerLink: ['/'], icon: 'pi pi-chart-line' },
-        { label: 'Tickets', routerLink: ['/tickets'], icon: 'pi pi-ticket' },
-      ],
-    },
-    { label: 'Users', routerLink: ['/users'], icon: 'pi pi-users' },
-    { separator: true },
-    { label: 'Settings', routerLink: ['/settings'], icon: 'pi pi-cog' },
-  ];
+  // ===== Roles helpers =====
+  get role(): string | null {
+    return this.auth.role;
+  }
+
+  get isAdmin(): boolean {
+    return this.role === 'Admin';
+  }
+
+  get isEntranceCashier(): boolean {
+    return this.role === 'EntranceCashier';
+  }
+
+  get isExitCashier(): boolean {
+    return this.role === 'ExitCashier';
+  }
 
   toggleGate() {
     this.gateOpen = !this.gateOpen;
