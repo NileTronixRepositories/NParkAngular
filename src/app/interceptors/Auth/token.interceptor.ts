@@ -8,7 +8,6 @@ export const tokenInterceptor: HttpInterceptorFn = (req, next) => {
   const token = auth.token;
 
   const isApiCall = req.url.startsWith(environment.baseUrl);
-
   const isAuthCall =
     req.url.includes('/api/auth/login') || req.url.includes('/api/auth/loginfirsttime');
 

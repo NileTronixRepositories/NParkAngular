@@ -142,33 +142,26 @@ export class LoginComponent {
       remember: !!this.form.value.remember,
     };
 
-    if (this.roleIsGateCashier()) {
-      this.router.navigate(['/gate-selection']);
-    } else {
-      this.auth.login(dto).subscribe({
-        next: () => {
-          this.loading = false;
-          this.toast?.success?.(this.t('successLogin'));
-          this.navigateAfterLogin();
-        },
-        error: (err) => {
-          this.loading = false;
-          this.toast?.fromProblem?.(err);
-        },
-      });
-    }
+    // تسجيل الدخول باستخدام auth.login
+    this.auth.login(dto).subscribe({
+      next: () => {
+        this.loading = false;
+        this.toast?.success?.(this.t('successLogin'));
+        this.navigateAfterLogin(); // بعد النجاح، توجيه المستخدم بناءً على الدور
+      },
+      error: (err) => {
+        this.loading = false;
+        this.toast?.fromProblem?.(err);
+      },
+    });
   }
 
-  navigateAfterLogin() {
+navigateAfterLogin() {
     const role = this.auth.role;
 
-    if (role === 'EntranceCashier') {
-      this.router.navigate(['/tickets/entry']);
-      return;
-    }
-
-    if (role === 'ExitCashier') {
-      this.router.navigate(['/tickets/exit']);
+    // التوجيه إلى gate-selection للمستخدمين ذوي الأدوار المحددة
+    if (role === 'EntranceCashier' || role === 'ExitCashier') {
+      this.router.navigate(['/gate-selection']); // التوجيه إلى صفحة تحديد البوابة
       return;
     }
 
@@ -179,7 +172,7 @@ export class LoginComponent {
     }
 
     this.router.navigate(['/overview']);
-  }
+}
 
   private t(key: string) {
     return (this as any).dict?.[this.lang.current]?.[key] ?? key;

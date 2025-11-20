@@ -1,8 +1,26 @@
-<div class="col-12 col-md-6 mb-3">
-  <label class="form-label">Gate</label>
-  <select class="form-select" formControlName="gateId" [(ngModel)]="selectedGate">
-    <option *ngFor="let gate of gates" [value]="gate.gateId">
-      {{ gate.gateName }}
-    </option>
-  </select>
-</div>
+<form>
+  <div class="col-12 col-md-6 mb-3">
+    <label class="form-label">Gate Type</label>
+    <select 
+      class="form-select" 
+      [(ngModel)]="gateType" 
+      (change)="onGateTypeChange(gateType)"
+      name="gateType"> <!-- Add the name attribute -->
+      <option [ngValue]="GateType.Entrance">Entrance</option>
+      <option [ngValue]="GateType.Exit">Exit</option>
+    </select>
+  </div>
+
+  <div class="col-12 col-md-6 mb-3">
+    <label class="form-label">Gate</label>
+    <select 
+      class="form-select" 
+      [(ngModel)]="selectedGate" 
+      (change)="onGateSelect()"
+      name="gateId"> <!-- Add the name attribute -->
+      <option *ngFor="let gate of gates" [value]="gate.gateId">
+        {{ gate.gateName }}
+      </option>
+    </select>
+  </div>
+</form>

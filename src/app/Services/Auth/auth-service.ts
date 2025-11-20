@@ -24,6 +24,8 @@ export interface StoredUser {
 export class AuthService {
   private http = inject(HttpClient);
 
+  private gateData: any = null; // إضافة خاصية gateData لتخزين بيانات البوابة
+
   private storage(remember: boolean) {
     return remember ? localStorage : sessionStorage;
   }
@@ -56,7 +58,7 @@ export class AuthService {
     return roles.includes(r);
   }
 
-  private saveSession(resp: LoginResponse, remember: boolean) {
+  saveSession(resp: LoginResponse, remember: boolean) {
     if (!resp?.token) throw new Error('No token in response');
 
     const store = this.storage(remember);
@@ -122,5 +124,16 @@ export class AuthService {
   updateToken(token: string): Observable<any> {
     localStorage.setItem('token', token);
     return of({ token }); // إرجاع Observable لضمان أن الدالة تُعيد قيمة يمكن الاشتراك عليها.
+  }
+
+  // دالة لتحديث بيانات الـ Gate
+  updateGateData(gateData: any): void {
+    this.gateData = gateData; // تخزين بيانات الـ Gate في الذاكرة
+    localStorage.setItem('gate_data', JSON.stringify(gateData)); // حفظ بيانات الـ Gate في Local Storage
+  }
+
+  // دالة للحصول على بيانات الـ Gate من الذاكرة أو Local Storage
+  getGateData(): any {
+    return this.gateData || JSON.parse(localStorage.getItem('gate_data') || '{}');
   }
 }

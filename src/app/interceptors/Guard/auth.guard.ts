@@ -22,13 +22,8 @@ export const authGuard: CanActivateFn = (route, state) => {
     return true;
   }
 
-  if (userRole === 'EntranceCashier') {
-    router.navigate(['/tickets/entry']);
-  } else if (userRole === 'ExitCashier') {
-    router.navigate(['/tickets/exit']);
-  } else {
-    router.navigate(['/overview']);
-  }
-
+  // قم بإزالة التوجيه التلقائي في الـ authGuard هنا
+  router.navigate(['/overview']);
   return false;
 };
+
