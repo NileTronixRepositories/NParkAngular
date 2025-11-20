@@ -4,7 +4,6 @@
   border-radius: 12px;
 }
 
-/* لمسة خلفية لطيفة تدل على الـ Entry */
 .glass-entry {
   background: radial-gradient(900px 420px at -10% -20%, #ecfdf5 0%, transparent 60%) no-repeat,
     radial-gradient(740px 460px at 110% 10%, #eff6ff 0%, transparent 60%) no-repeat, #ffffff;
@@ -16,6 +15,7 @@
   max-width: 360px;
   display: grid;
   place-items: center;
+  cursor: default;
 }
 
 .qr-preview .placeholder {

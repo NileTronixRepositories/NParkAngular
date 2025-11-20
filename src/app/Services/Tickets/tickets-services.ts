@@ -5,6 +5,8 @@ import {
   TicketDto,
   IssuedTicketResponse,
   TicketDetailsDto,
+  TicketEntryDto,
+  TicketAction,
 } from '../../Domain/tickets/tickets.model';
 import { environment } from '../../Shared/environment/environment';
 
@@ -20,8 +22,8 @@ export class TicketsServices {
       map((rows) =>
         (rows ?? []).map((r) => ({
           id: r.id ?? r.Id,
-          plate: r.plate ?? r.Plate,
-          action: r.action ?? r.Action,
+          plate: r.plate ?? r.Plate ?? '',
+          action: (r.action ?? r.Action ?? '') as TicketDto['action'],
           time: (r.time ?? r.Time ?? r.dateTime ?? r.DateTime) as string,
           gate: r.gate ?? r.Gate ?? '',
         }))
@@ -52,6 +54,7 @@ export class TicketsServices {
 
   getTicketByQr(code: string): Observable<TicketDetailsDto> {
     const params = new HttpParams().set('code', code);
+
     return this.http.get<any>(`${this.base}/Ticket/GetByQr`, { params }).pipe(
       map((res) => {
         const dateTime =
@@ -81,13 +84,62 @@ export class TicketsServices {
     );
   }
 
-  collect(id: number): Observable<boolean> {
-    return this.http.post<any>(`${this.base}/Ticket/Collect/${id}`, {}).pipe(
+  collect(id: number | string): Observable<boolean> {
+    const realId = Number(id);
+    return this.http.post<any>(`${this.base}/Ticket/Collect/${realId}`, {}).pipe(
       map(() => true),
       catchError((err) => {
         console.error('POST /Ticket/Collect/{id} failed', err);
         return of(false);
       })
     );
+  }
+
+  getTicketsForEntry(startDate: string, ticketNumber: string = ''): Observable<TicketDto[]> {
+    return this.http
+      .get<TicketEntryDto[]>(`${this.base}/Ticket/GetTicketForEntry`, {
+        params: { startDate, ticketNumber },
+      })
+      .pipe(
+        map((rows): TicketDto[] =>
+          (rows ?? []).map(
+            (r): TicketDto => ({
+              id: r.ticketNumber,
+              plate: '',
+              action: '' as TicketDto['action'],
+              time: r.startDate,
+              gate: '',
+            })
+          )
+        ),
+        catchError((err) => {
+          console.error('GET /Ticket/GetTicketForEntry failed', err);
+          return of([] as TicketDto[]);
+        })
+      );
+  }
+
+  getTicketsForExit(startDate: string, ticketNumber: string = ''): Observable<TicketDto[]> {
+    return this.http
+      .get<TicketEntryDto[]>(`${this.base}/Ticket/GetTicketForExit`, {
+        params: { startDate, ticketNumber },
+      })
+      .pipe(
+        map((rows): TicketDto[] =>
+          (rows ?? []).map(
+            (r): TicketDto => ({
+              id: r.ticketNumber,
+              plate: '',
+              action: 'OUT' as TicketAction,
+              time: r.startDate,
+              gate: '',
+            })
+          )
+        ),
+        catchError((err) => {
+          console.error('GET /Ticket/GetTicketForExit failed', err);
+          return of([] as TicketDto[]);
+        })
+      );
   }
 }

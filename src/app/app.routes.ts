@@ -16,6 +16,7 @@ export const routes: Routes = [
     loadComponent: () =>
       import('./Feature/shell-component/shell-component').then((m) => m.ShellComponent),
     children: [
+      // Overview
       {
         path: 'overview',
         data: { roles: ['Admin'] },
@@ -25,6 +26,7 @@ export const routes: Routes = [
           ),
       },
 
+      // Users
       {
         path: 'users',
         canActivate: [authGuard],
@@ -32,6 +34,7 @@ export const routes: Routes = [
         loadComponent: () => import('./Feature/users/users').then((m) => m.Users),
       },
 
+      // Tickets (Entry / Exit)
       {
         path: 'tickets',
         canActivate: [authGuard],
@@ -49,7 +52,7 @@ export const routes: Routes = [
             },
             canActivate: [authGuard],
             loadComponent: () =>
-              import('./Feature/ticket-component/ticket-component').then((m) => m.TicketComponent),
+              import('./Feature/Entry-Component/ticket-component').then((m) => m.TicketComponent),
           },
           {
             path: 'exit',
@@ -59,11 +62,14 @@ export const routes: Routes = [
             },
             canActivate: [authGuard],
             loadComponent: () =>
-              import('./Feature/ticket-component/ticket-component').then((m) => m.TicketComponent),
+              import('./Feature/exitgate-component/exitgate-component').then(
+                (m) => m.ExitgateComponent
+              ),
           },
         ],
       },
 
+      // Subscription (Altaeriffa)
       {
         path: 'subscription',
         canActivate: [authGuard],
@@ -73,6 +79,8 @@ export const routes: Routes = [
             (m) => m.SubscriptionComponent
           ),
       },
+
+      // Parking Guidance Diagram
       {
         path: 'parking-guidance-diagram',
         canActivate: [authGuard],
@@ -82,6 +90,8 @@ export const routes: Routes = [
             './Feature/parking-guidance-diagram-component/parking-guidance-diagram-component'
           ).then((m) => m.ParkingGuidanceDiagramComponent),
       },
+
+      // Configuration
       {
         path: 'configuration',
         canActivate: [authGuard],
@@ -91,6 +101,8 @@ export const routes: Routes = [
             (m) => m.ConfigurationComponent
           ),
       },
+
+      // Registration
       {
         path: 'registration',
         canActivate: [authGuard],
@@ -100,15 +112,8 @@ export const routes: Routes = [
             (m) => m.RegistrationComponent
           ),
       },
-      {
-        path: 'exitgate',
-        canActivate: [authGuard],
-        data: { roles: ['Admin'] },
-        loadComponent: () =>
-          import('./Feature/exitgate-component/exitgate-component').then(
-            (m) => m.ExitgateComponent
-          ),
-      },
+
+      // Visitor
       {
         path: 'visitor',
         canActivate: [authGuard],

@@ -119,10 +119,17 @@ export class ExitgateComponent {
   @ViewChild('scanBox') scanBox?: ElementRef<HTMLInputElement>;
 
   ngOnInit(): void {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
     this.loading = true;
-    this.svc.getAll().subscribe({
+    this.svc.getTicketsForExit(startOfDay.toISOString()).subscribe({
       next: (list) => {
-        this.tickets = list.filter((t) => t.action === 'OUT').sort((a, b) => b.id - a.id);
+        this.tickets = list
+          .filter((t) => t.action === 'OUT')
+          .sort(
+            (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime()
+          );
         this.applyFilters();
       },
       complete: () => (this.loading = false),
@@ -168,10 +175,17 @@ export class ExitgateComponent {
 
   // ===== List =====
   reloadList() {
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
     this.loading = true;
-    this.svc.getAll().subscribe({
+    this.svc.getTicketsForExit(startOfDay.toISOString()).subscribe({
       next: (list) => {
-        this.tickets = list.filter((x) => x.action === 'OUT').sort((a, b) => b.id - a.id);
+        this.tickets = list
+          .filter((x) => x.action === 'OUT')
+          .sort(
+            (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime()
+          );
         this.applyFilters();
       },
       complete: () => (this.loading = false),

@@ -1,8 +1,35 @@
 export type UserRole = 'Admin' | 'User';
+
+export interface UserSystemResponse {
+  id: string;
+  userName?: string;
+  username?: string;
+  email: string;
+  roleId: string;
+  roleName: string;
+}
+
 export interface UserDto {
-  id: number;
+  id: string;
+  userName: string;
+  email: string;
+  roleId: string;
+  roleName: string;
+}
+
+export interface UserUpdateDto {
+  id: string;
+  userName: string;
+  email: string;
+  roleId: string;
+}
+
+export interface UserCreateDto {
   name: string;
   email: string;
-  role: UserRole;
-  active: boolean;
+  userName: string;
+  password: string;
+  phoneNumber: string;
+  nationalId: string;
+  roleId: string;
 }

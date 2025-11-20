@@ -1,7 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { UserDto, UserRole } from '../../Domain/Users/user.model';
+import { UserDto, UserCreateDto, UserUpdateDto } from '../../Domain/Users/user.model';
 import { UsersServices } from '../../Services/Users/users-services';
 
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
@@ -30,8 +30,6 @@ export class Users {
       actions: 'إجراءات',
       admin: 'مشرف',
       user: 'مستخدم',
-      active: 'نشط',
-      inactive: 'غير نشط',
       edit: 'تعديل',
       no_users: 'لا يوجد مستخدمون',
       close: 'إغلاق',
@@ -48,6 +46,12 @@ export class Users {
       updated_ok: 'تم الحفظ بنجاح',
       failed_load: 'فشل تحميل المستخدمين',
       failed_save: 'تعذر الحفظ',
+      add_not_supported: 'إضافة مستخدم جديد تتم من خلال النظام الداخلي، يمكن تعديل البريد فقط.',
+      password: 'كلمة المرور',
+      phone: 'الجوال',
+      nationalId: 'الهوية الوطنية',
+      roleId: 'معرّف الدور',
+      role_hint: 'أدخل معرف الدور كما هو في النظام.',
     },
     en: {
       users: 'Users',
@@ -60,8 +64,6 @@ export class Users {
       actions: 'Actions',
       admin: 'Admin',
       user: 'User',
-      active: 'Active',
-      inactive: 'Inactive',
       edit: 'Edit',
       no_users: 'No users',
       close: 'Close',
@@ -78,8 +80,15 @@ export class Users {
       updated_ok: 'Saved successfully',
       failed_load: 'Failed to load users',
       failed_save: 'Failed to save',
+      add_not_supported: 'Creating users is managed from the backend. You can edit email only.',
+      password: 'Password',
+      phone: 'Phone',
+      nationalId: 'National ID',
+      roleId: 'Role Id',
+      role_hint: 'Enter the role ID as configured in the system.',
     },
   };
+
   t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
   dir = () => this.i18n.dir();
   isRTL = () => this.i18n.isRTL();
@@ -91,9 +100,17 @@ export class Users {
 
   showForm = false;
   isEdit = false;
-  model: Partial<UserDto> = { name: '', email: '', role: 'User', active: true };
 
-  roles: UserRole[] = ['User', 'Admin'];
+  model: Partial<UserDto & UserCreateDto> = {
+    id: undefined as any,
+    userName: '',
+    email: '',
+    roleId: '',
+    roleName: '',
+    password: '',
+    phoneNumber: '',
+    nationalId: '',
+  };
 
   constructor() {
     this.reload();
@@ -117,13 +134,32 @@ export class Users {
 
   openAdd() {
     this.isEdit = false;
-    this.model = { name: '', email: '', role: 'User', active: true };
+    this.model = {
+      id: undefined as any,
+      userName: '',
+      email: '',
+      roleId: '',
+      roleName: '',
+      password: '',
+      phoneNumber: '',
+      nationalId: '',
+    };
     this.showForm = true;
   }
 
   openEdit(u: UserDto) {
     this.isEdit = true;
-    this.model = { ...u };
+    this.model = {
+      id: u.id,
+      userName: u.userName,
+      email: u.email,
+      roleId: u.roleId,
+      roleName: u.roleName,
+
+      password: '',
+      phoneNumber: '',
+      nationalId: '',
+    };
     this.showForm = true;
   }
 
@@ -140,12 +176,10 @@ export class Users {
   save() {
     if (this.saving) return;
 
-    const name = (this.model.name ?? '').trim();
+    const userName = (this.model.userName ?? '').trim();
     const email = (this.model.email ?? '').trim();
-    const role = (this.model.role as UserRole) ?? 'User';
-    const active = !!this.model.active;
 
-    if (!name) {
+    if (!userName) {
       alert(`${this.t('name')}: ${this.t('required')}`);
       return;
     }
@@ -154,16 +188,21 @@ export class Users {
       return;
     }
 
-    this.saving = true;
-
     if (this.isEdit) {
-      const payload: UserDto = {
-        ...(this.model as UserDto),
-        name,
+      // ======== UPDATE ========
+      if (!this.model.id || !this.model.roleId) {
+        alert(this.t('failed_save'));
+        return;
+      }
+
+      const payload: UserUpdateDto = {
+        id: this.model.id,
+        userName,
         email,
-        role,
-        active,
+        roleId: this.model.roleId,
       };
+
+      this.saving = true;
       this.svc.update(payload).subscribe({
         next: () => {
           alert(this.t('updated_ok'));
@@ -171,22 +210,79 @@ export class Users {
           this.reload();
           this.saving = false;
         },
-        error: () => {
+        error: (err) => {
           this.saving = false;
-          alert(this.t('failed_save'));
+
+          if (err?.status === 400 && err.error) {
+            if (Array.isArray(err.error.errors)) {
+              const msg = err.error.errors.map((e: any) => e.message ?? e).join('\n');
+              alert(msg);
+            } else if (typeof err.error === 'string') {
+              alert(err.error);
+            } else if (err.error.title) {
+              alert(err.error.title);
+            } else {
+              alert(this.t('failed_save'));
+            }
+          } else if (err?.status === 422 && err.error?.errors?.length) {
+            const msg = err.error.errors.map((e: any) => e.message).join('\n');
+            alert(msg);
+          } else {
+            alert(this.t('failed_save'));
+          }
         },
       });
     } else {
-      this.svc.add({ name, email, role, active }).subscribe({
+      // ======== ADD ========
+      const password = (this.model.password ?? '').trim();
+      const phoneNumber = (this.model.phoneNumber ?? '').trim();
+      const nationalId = (this.model.nationalId ?? '').trim();
+      const roleId = (this.model.roleId ?? '').trim();
+
+      if (!password) {
+        alert(`${this.t('password')}: ${this.t('required')}`);
+        return;
+      }
+      if (!phoneNumber) {
+        alert(`${this.t('phone')}: ${this.t('required')}`);
+        return;
+      }
+      if (!nationalId) {
+        alert(`${this.t('nationalId')}: ${this.t('required')}`);
+        return;
+      }
+      if (!roleId) {
+        alert(`${this.t('role')}: ${this.t('required')}`);
+        return;
+      }
+
+      const payload: UserCreateDto = {
+        name: userName,
+        userName,
+        email,
+        password,
+        phoneNumber,
+        nationalId,
+        roleId,
+      };
+
+      this.saving = true;
+      this.svc.add(payload).subscribe({
         next: () => {
           alert(this.t('created_ok'));
           this.showForm = false;
           this.reload();
           this.saving = false;
         },
-        error: () => {
+        error: (err) => {
           this.saving = false;
-          alert(this.t('failed_save'));
+
+          if (err?.status === 422 && err.error?.errors?.length) {
+            const msg = err.error.errors.map((e: any) => e.message).join('\n');
+            alert(msg);
+          } else {
+            alert(this.t('failed_save'));
+          }
         },
       });
     }

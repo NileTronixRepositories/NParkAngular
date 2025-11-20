@@ -60,6 +60,7 @@ export class TicketComponent {
       admit_done: 'تم التحصيل بنجاح',
       chip_entry: 'دخول',
       focus_to_scan: 'ضع المؤشر هنا ثم امسح...',
+      ticket_number: 'رقم التذكرة',
     },
     en: {
       issue_ticket: 'Issue Ticket',
@@ -98,6 +99,7 @@ export class TicketComponent {
       admit_done: 'Collected successfully',
       chip_entry: 'ENTRY',
       focus_to_scan: 'Focus here then scan...',
+      ticket_number: 'Ticket Number',
     },
   };
   t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
@@ -129,12 +131,7 @@ export class TicketComponent {
   @ViewChild('scanBox') scanBox?: ElementRef<HTMLInputElement>;
 
   ngOnInit(): void {
-    this.loading = true;
-    this.svc.getAll().subscribe((list) => {
-      this.tickets = list.sort((a, b) => b.id - a.id);
-      this.applyFilters();
-      this.loading = false;
-    });
+    this.loadTicketsForEntry();
   }
 
   addNewTicket() {
@@ -239,6 +236,7 @@ export class TicketComponent {
     this.svc.collect(t.id).subscribe({
       next: () => {
         alert(this.t('admit_done'));
+        this.loadTicketsForEntry();
       },
       complete: () => (this.collecting = false),
       error: () => (this.collecting = false),
@@ -281,5 +279,28 @@ export class TicketComponent {
       return `data:image/png;base64,${clean}`;
     }
     return null;
+  }
+
+  private loadTicketsForEntry(ticketNumber: string = '') {
+    this.loading = true;
+
+    const startOfDay = new Date();
+    startOfDay.setHours(0, 0, 0, 0);
+
+    this.svc.getTicketsForEntry(startOfDay.toISOString(), ticketNumber).subscribe({
+      next: (list: TicketDto[]) => {
+        this.tickets = list.sort(
+          (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime()
+        );
+        this.applyFilters();
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('loadTicketsForEntry error', err);
+        this.tickets = [];
+        this.applyFilters();
+        this.loading = false;
+      },
+    });
   }
 }
