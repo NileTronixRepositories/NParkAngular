@@ -1,5 +1,7 @@
 export type UserRole = 'Admin' | 'User';
 
+// ===== Users =====
+
 export interface UserSystemResponse {
   id: string;
   userName?: string;
@@ -32,4 +34,16 @@ export interface UserCreateDto {
   phoneNumber: string;
   nationalId: string;
   roleId: string;
+}
+
+// ===== Roles =====
+
+export interface RoleSystemResponse {
+  roleId: string;
+  roleName: string;
+}
+
+export interface RoleDto {
+  id: string;
+  name: string;
 }

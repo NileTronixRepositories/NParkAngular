@@ -22,3 +22,17 @@ export interface LoginResponse {
   token: string;
   roleName: string;
 }
+
+export interface GateDevicePeripheral {
+  pcIp: string;
+  lprIp: string;
+  hasPc: boolean;
+  hasLpr: boolean;
+}
+
+export interface LoginResponse {
+  token: string;
+  roleName: string;
+  permissions?: string[];
+  gateDevicePeripheral?: GateDevicePeripheral | null;
+}

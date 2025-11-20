@@ -8,6 +8,9 @@ import { TicketsServices } from '../../Services/Tickets/tickets-services';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
+import { GateServices, GateDto } from '../../Services/Gate/gate-services';
+import { AuthService } from '../../Services/Auth/auth-service';
+import { GateType } from '../../Domain/Auth/auth.models';
 
 @Component({
   selector: 'app-exitgate-component',
@@ -97,6 +100,13 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 })
 export class ExitgateComponent {
   private svc = inject(TicketsServices);
+  private gateSvc = inject(GateServices);
+  private auth = inject(AuthService);
+
+  gatesList: GateDto[] = [];
+  selectedGateId: number | null = null;
+  gateLoading = false;
+  gateSaving = false;
   constructor(public lang: LanguageService, @Inject(I18N_DICT) private dict: I18nDict) {}
 
   tickets: TicketDto[] = [];
@@ -121,6 +131,7 @@ export class ExitgateComponent {
   ngOnInit(): void {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
+    this.loadExitGates();
 
     this.loading = true;
     this.svc.getTicketsForExit(startOfDay.toISOString()).subscribe({
@@ -134,6 +145,38 @@ export class ExitgateComponent {
       },
       complete: () => (this.loading = false),
       error: () => (this.loading = false),
+    });
+  }
+
+  private loadExitGates() {
+    this.gateLoading = true;
+    this.gateSvc.getAll().subscribe({
+      next: (all) => {
+        this.gatesList = (all ?? []).filter((g) => g.gateType === GateType.Exit);
+        this.gateLoading = false;
+      },
+      error: (err) => {
+        console.error('Gate/GetAll error', err);
+        this.gateLoading = false;
+      },
+    });
+  }
+
+  confirmGateSelection() {
+    if (!this.selectedGateId) return;
+    const gate = this.gatesList.find((g) => g.id === this.selectedGateId);
+    if (!gate) return;
+
+    this.gateSaving = true;
+    this.auth.selectGate(gate.id, GateType.Exit).subscribe({
+      next: () => {
+        this.gateSaving = false;
+        alert(`Selected exit gate #${gate.gateNumber}`);
+      },
+      error: (err) => {
+        console.error('selectGate error', err);
+        this.gateSaving = false;
+      },
     });
   }
 

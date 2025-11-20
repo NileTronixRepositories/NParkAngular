@@ -1,8 +1,14 @@
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { tap } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
-import { LoginRequest, LoginResponse, LoginFirstTimeRequest } from '../../Domain/Auth/auth.models';
+import {
+  LoginRequest,
+  LoginResponse,
+  LoginFirstTimeRequest,
+  GateDevicePeripheral,
+  GateType,
+} from '../../Domain/Auth/auth.models';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
@@ -10,6 +16,8 @@ const API_BASE = 'http://192.168.1.6:80/api/auth';
 
 export interface StoredUser {
   role: string;
+  permissions?: string[];
+  gateDevicePeripheral?: GateDevicePeripheral | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -53,11 +61,14 @@ export class AuthService {
 
     const store = this.storage(remember);
     store.setItem(TOKEN_KEY, resp.token);
+
     store.setItem(
       USER_KEY,
-      JSON.stringify({
+      JSON.stringify(<StoredUser>{
         role: resp.roleName || 'User',
-      } as StoredUser)
+        permissions: resp.permissions ?? [],
+        gateDevicePeripheral: resp.gateDevicePeripheral ?? null,
+      })
     );
 
     const other = remember ? sessionStorage : localStorage;
@@ -90,5 +101,26 @@ export class AuthService {
     localStorage.removeItem(USER_KEY);
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
+  }
+
+  private currentRemember(): boolean {
+    return !!localStorage.getItem(TOKEN_KEY);
+  }
+
+  selectGate(gateId: number, gateType: GateType) {
+    const remember = this.currentRemember();
+
+    return this.http
+      .post<LoginResponse>(`${API_BASE}/selectgate`, { gateId, gateType })
+      .pipe(tap((resp) => this.saveSession(resp, remember)));
+  }
+
+  checkGate(gateNumber: number) {
+    return this.http.post<any>('http://192.168.1.6/api/auth/CheckGate', { gateNumber });
+  }
+
+  updateToken(token: string): Observable<any> {
+    localStorage.setItem('token', token);
+    return of({ token }); // إرجاع Observable لضمان أن الدالة تُعيد قيمة يمكن الاشتراك عليها.
   }
 }

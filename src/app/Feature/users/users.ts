@@ -1,10 +1,10 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { UserDto, UserCreateDto, UserUpdateDto } from '../../Domain/Users/user.model';
+import { UserDto, UserCreateDto, UserUpdateDto, RoleDto } from '../../Domain/Users/user.model';
 import { UsersServices } from '../../Services/Users/users-services';
-
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
+import { ToastServices } from '../../Services/Toster/toast-services';
 
 @Component({
   selector: 'app-users',
@@ -15,9 +15,9 @@ import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 })
 export class Users {
   private svc = inject(UsersServices);
+  private toast = inject(ToastServices);
   i18n = inject(LanguageService);
 
-  // i18n
   private dict: Record<AppLang, Record<string, string>> = {
     ar: {
       users: 'المستخدمون',
@@ -46,12 +46,12 @@ export class Users {
       updated_ok: 'تم الحفظ بنجاح',
       failed_load: 'فشل تحميل المستخدمين',
       failed_save: 'تعذر الحفظ',
-      add_not_supported: 'إضافة مستخدم جديد تتم من خلال النظام الداخلي، يمكن تعديل البريد فقط.',
       password: 'كلمة المرور',
       phone: 'الجوال',
       nationalId: 'الهوية الوطنية',
       roleId: 'معرّف الدور',
       role_hint: 'أدخل معرف الدور كما هو في النظام.',
+      select_role: 'اختر الدور',
     },
     en: {
       users: 'Users',
@@ -80,12 +80,12 @@ export class Users {
       updated_ok: 'Saved successfully',
       failed_load: 'Failed to load users',
       failed_save: 'Failed to save',
-      add_not_supported: 'Creating users is managed from the backend. You can edit email only.',
       password: 'Password',
       phone: 'Phone',
       nationalId: 'National ID',
       roleId: 'Role Id',
       role_hint: 'Enter the role ID as configured in the system.',
+      select_role: 'Select role',
     },
   };
 
@@ -93,13 +93,15 @@ export class Users {
   dir = () => this.i18n.dir();
   isRTL = () => this.i18n.isRTL();
 
-  // state
   users: UserDto[] = [];
   loading = false;
   saving = false;
 
   showForm = false;
   isEdit = false;
+
+  roles: RoleDto[] = [];
+  rolesLoading = false;
 
   model: Partial<UserDto & UserCreateDto> = {
     id: undefined as any,
@@ -114,6 +116,7 @@ export class Users {
 
   constructor() {
     this.reload();
+    this.loadRoles();
   }
 
   trackById = (_: number, u: UserDto) => u.id;
@@ -127,7 +130,21 @@ export class Users {
       },
       error: () => {
         this.loading = false;
-        alert(this.t('failed_load'));
+        this.toast.error(this.t('failed_load'));
+      },
+    });
+  }
+
+  loadRoles() {
+    this.rolesLoading = true;
+    this.svc.getRoles().subscribe({
+      next: (list) => {
+        this.roles = list ?? [];
+        this.rolesLoading = false;
+      },
+      error: () => {
+        this.rolesLoading = false;
+        this.toast.error(this.t('failed_load'));
       },
     });
   }
@@ -155,7 +172,6 @@ export class Users {
       email: u.email,
       roleId: u.roleId,
       roleName: u.roleName,
-
       password: '',
       phoneNumber: '',
       nationalId: '',
@@ -178,57 +194,70 @@ export class Users {
 
     const userName = (this.model.userName ?? '').trim();
     const email = (this.model.email ?? '').trim();
+    const roleId = (this.model.roleId ?? '').trim();
 
     if (!userName) {
-      alert(`${this.t('name')}: ${this.t('required')}`);
+      this.toast.warn(`${this.t('name')}: ${this.t('required')}`);
       return;
     }
     if (!email || !this.isValidEmail(email)) {
-      alert(`${this.t('email')}: ${this.t('invalid_email')}`);
+      this.toast.warn(`${this.t('email')}: ${this.t('invalid_email')}`);
+      return;
+    }
+    if (!roleId) {
+      this.toast.warn(`${this.t('role')}: ${this.t('required')}`);
       return;
     }
 
     if (this.isEdit) {
       // ======== UPDATE ========
-      if (!this.model.id || !this.model.roleId) {
-        alert(this.t('failed_save'));
-        return;
-      }
-
+      const id = this.model.id as string;
       const payload: UserUpdateDto = {
-        id: this.model.id,
+        id,
         userName,
         email,
-        roleId: this.model.roleId,
+        roleId,
       };
+
+      console.log('Saving user update', payload);
 
       this.saving = true;
       this.svc.update(payload).subscribe({
         next: () => {
-          alert(this.t('updated_ok'));
+          const idx = this.users.findIndex((u) => u.id === id);
+          if (idx !== -1) {
+            const old = this.users[idx];
+            const roleName = this.roles.find((r) => r.id === roleId)?.name || old.roleName;
+
+            this.users[idx] = {
+              ...old,
+              userName,
+              email,
+              roleId,
+              roleName,
+            };
+          }
+
+          this.toast.success(this.t('updated_ok'));
           this.showForm = false;
-          this.reload();
           this.saving = false;
         },
         error: (err) => {
           this.saving = false;
 
-          if (err?.status === 400 && err.error) {
-            if (Array.isArray(err.error.errors)) {
-              const msg = err.error.errors.map((e: any) => e.message ?? e).join('\n');
-              alert(msg);
-            } else if (typeof err.error === 'string') {
-              alert(err.error);
-            } else if (err.error.title) {
-              alert(err.error.title);
+          const pd = err?.error;
+          if (err?.status === 422 && pd) {
+            if (Array.isArray(pd.errors) && pd.errors.length) {
+              for (const e of pd.errors) {
+                this.toast.error(e.message || e.code || this.t('failed_save'), pd.title || 'Error');
+              }
+            } else if (pd.detail) {
+              this.toast.error(pd.detail, pd.title || 'Error');
             } else {
-              alert(this.t('failed_save'));
+              this.toast.error(this.t('failed_save'));
             }
-          } else if (err?.status === 422 && err.error?.errors?.length) {
-            const msg = err.error.errors.map((e: any) => e.message).join('\n');
-            alert(msg);
           } else {
-            alert(this.t('failed_save'));
+            this.toast.fromProblem(err);
           }
         },
       });
@@ -237,22 +266,17 @@ export class Users {
       const password = (this.model.password ?? '').trim();
       const phoneNumber = (this.model.phoneNumber ?? '').trim();
       const nationalId = (this.model.nationalId ?? '').trim();
-      const roleId = (this.model.roleId ?? '').trim();
 
       if (!password) {
-        alert(`${this.t('password')}: ${this.t('required')}`);
+        this.toast.warn(`${this.t('password')}: ${this.t('required')}`);
         return;
       }
       if (!phoneNumber) {
-        alert(`${this.t('phone')}: ${this.t('required')}`);
+        this.toast.warn(`${this.t('phone')}: ${this.t('required')}`);
         return;
       }
       if (!nationalId) {
-        alert(`${this.t('nationalId')}: ${this.t('required')}`);
-        return;
-      }
-      if (!roleId) {
-        alert(`${this.t('role')}: ${this.t('required')}`);
+        this.toast.warn(`${this.t('nationalId')}: ${this.t('required')}`);
         return;
       }
 
@@ -266,23 +290,35 @@ export class Users {
         roleId,
       };
 
+      console.log('Saving new user', payload);
+
       this.saving = true;
       this.svc.add(payload).subscribe({
-        next: () => {
-          alert(this.t('created_ok'));
+        next: (created: any) => {
+          if (created && created.id) {
+            const roleName =
+              this.roles.find((r) => r.id === created.roleId)?.name || created.roleName;
+
+            const newUser: UserDto = {
+              id: created.id,
+              userName: created.userName,
+              email: created.email,
+              roleId: created.roleId,
+              roleName,
+            };
+
+            this.users = [...this.users, newUser];
+          } else {
+            this.reload();
+          }
+
+          this.toast.success(this.t('created_ok'));
           this.showForm = false;
-          this.reload();
           this.saving = false;
         },
         error: (err) => {
           this.saving = false;
-
-          if (err?.status === 422 && err.error?.errors?.length) {
-            const msg = err.error.errors.map((e: any) => e.message).join('\n');
-            alert(msg);
-          } else {
-            alert(this.t('failed_save'));
-          }
+          this.toast.fromProblem(err);
         },
       });
     }

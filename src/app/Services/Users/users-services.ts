@@ -8,6 +8,8 @@ import {
   UserCreateDto,
   UserUpdateDto,
   UserSystemResponse,
+  RoleDto,
+  RoleSystemResponse,
 } from '../../Domain/Users/user.model';
 import { environment } from '../../Shared/environment/environment';
 
@@ -28,7 +30,7 @@ export class UsersServices {
     };
   }
 
-  // ========= GET =========
+  // ========= GET USERS =========
   getAll(): Observable<UserDto[]> {
     return this.http.get<UserSystemResponse[]>(`${this.base}/User/GetUserSystem`).pipe(
       map((rows) => (rows ?? []).map((r) => this.mapSystemToDto(r))),
@@ -39,8 +41,24 @@ export class UsersServices {
     );
   }
 
+  // ========= GET ROLES =========
+  getRoles(): Observable<RoleDto[]> {
+    return this.http.get<RoleSystemResponse[]>(`${this.base}/Role/GetAll`).pipe(
+      map((rows) =>
+        (rows ?? []).map((r) => ({
+          id: r.roleId,
+          name: r.roleName,
+        }))
+      ),
+      catchError((err) => {
+        console.error('GET /Role/GetAll failed', err);
+        return of([] as RoleDto[]);
+      })
+    );
+  }
+
   // ========= ADD =========
-  add(u: UserCreateDto): Observable<UserDto> {
+  add(u: UserCreateDto): Observable<UserDto | null> {
     const body = {
       name: u.name,
       email: u.email,
@@ -51,8 +69,8 @@ export class UsersServices {
       roleId: u.roleId,
     };
 
-    return this.http.post<UserSystemResponse>(`${this.base}/User/Create`, body).pipe(
-      map((r) => this.mapSystemToDto(r)),
+    return this.http.post<UserSystemResponse | null>(`${this.base}/User/Create`, body).pipe(
+      map((r) => (r ? this.mapSystemToDto(r) : null)),
       catchError((err) => {
         console.error('POST /User/Create failed', err);
         console.error('Server error body:', err?.error);
@@ -62,24 +80,21 @@ export class UsersServices {
   }
 
   // ========= UPDATE =========
-  update(u: UserUpdateDto): Observable<UserDto> {
+  update(u: UserUpdateDto): Observable<UserUpdateDto> {
     const body = {
-      id: u.id,
-      userName: u.userName,
       email: u.email,
+      userName: u.userName,
       roleId: u.roleId,
+      id: u.id,
     };
 
+    console.log('Update payload', body);
+
     return this.http.put<any>(`${this.base}/User/update`, body).pipe(
-      map(() => ({
-        id: u.id,
-        userName: u.userName,
-        email: u.email,
-        roleId: u.roleId,
-        roleName: '',
-      })),
+      map(() => u),
       catchError((err) => {
         console.error('PUT /User/update failed', err);
+        console.error('Server error body:', err?.error);
         return throwError(() => err);
       })
     );

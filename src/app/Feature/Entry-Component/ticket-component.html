@@ -1,7 +1,6 @@
 <div class="tickets-theme container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- Split layout -->
   <div class="row g-3 mb-3">
-    <!-- Left: QR & actions -->
     <div class="col-12 col-lg-6">
       <div class="card h-100 shadow-soft glass-entry">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -14,14 +13,12 @@
         <div class="card-body d-flex flex-column align-items-center justify-content-center">
           <div class="qr-preview">
             <ng-container *ngIf="currentIssuedQr; else noQr">
-              <!-- API returns Base64/URL image -->
               <img
                 *ngIf="currentIssuedQrType === 'image'"
                 [src]="currentIssuedQr"
                 alt="Ticket QR"
                 class="img-fluid rounded border"
               />
-              <!-- API returns text QR -> convert to data url -->
               <img
                 *ngIf="currentIssuedQrType === 'text'"
                 [src]="qrDataUrl(currentIssuedQr!)"
@@ -60,7 +57,6 @@
       </div>
     </div>
 
-    <!-- Right: Scanner & details -->
     <div class="col-12 col-lg-6">
       <div class="card h-100 shadow-soft">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -83,13 +79,10 @@
             autofocus
           />
 
-          <!-- Loading state -->
           <div *ngIf="scanning" class="mt-3">
             <span class="spinner-border spinner-border-sm"></span>
             <span class="ms-2">{{ t('fetching_details') }}</span>
           </div>
-
-          <!-- Ticket details -->
           <div *ngIf="scannedTicket as tkt" class="mt-3">
             <div class="card border-0 shadow-sm soft-entry">
               <div class="card-body">
@@ -137,7 +130,6 @@
             </div>
           </div>
 
-          <!-- Empty state -->
           <div *ngIf="!scannedTicket && !scanning" class="text-muted mt-3">
             {{ t('scan_label') }}
           </div>
@@ -146,40 +138,34 @@
     </div>
   </div>
 
-  <!-- Filters + table -->
-  <!-- <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0 fw-bold d-flex align-items-center gap-2">
-      <i class="bi bi-arrow-right-circle"></i> {{ t('tickets_entry_title') }}
-    </h4>
-    <div class="d-flex gap-2">
-      <input
-        class="form-control form-control-sm"
-        style="width: 220px"
-        [placeholder]="t('search_id_plate')"
-        [(ngModel)]="q"
-        (ngModelChange)="applyFilters()"
-      />
-      <select
-        class="form-select form-select-sm"
-        style="width: 140px"
-        [(ngModel)]="action"
-        (ngModelChange)="applyFilters()"
+  <div class="card shadow-soft mb-3">
+    <div class="card-body d-flex flex-wrap align-items-end gap-3">
+      <div class="flex-grow-1" style="max-width: 260px">
+        <label class="form-label small mb-1">{{ t('gate') }}</label>
+        <select
+          class="form-select form-select-sm"
+          [(ngModel)]="selectedGateId"
+          [disabled]="gateLoading || gateSaving"
+        >
+          <option [ngValue]="null" disabled>{{ t('all_gates') }}</option>
+          <option *ngFor="let g of gatesList" [ngValue]="g.id">
+            {{ t('gate') }} {{ g.gateNumber }}
+          </option>
+        </select>
+      </div>
+
+      <button
+        class="btn btn-sm btn-primary"
+        (click)="confirmGateSelection()"
+        [disabled]="!selectedGateId || gateSaving"
       >
-        <option value="">{{ t('all_actions') }}</option>
-        <option value="IN">{{ t('action_in') }}</option>
-        <option value="OUT">{{ t('action_out') }}</option>
-      </select>
-      <select
-        class="form-select form-select-sm"
-        style="width: 120px"
-        [(ngModel)]="gate"
-        (ngModelChange)="applyFilters()"
-      >
-        <option value="">{{ t('all_gates') }}</option>
-        <option *ngFor="let g of gates()" [value]="g">{{ g }}</option>
-      </select>
+        <span *ngIf="!gateSaving">
+          <i class="bi bi-check2-circle me-1"></i>{{ t('confirm_gate') || 'تأكيد البوابة' }}
+        </span>
+        <span *ngIf="gateSaving" class="spinner-border spinner-border-sm"></span>
+      </button>
     </div>
-  </div> -->
+  </div>
 
   <div class="card shadow-soft">
     <div class="table-responsive">
@@ -202,7 +188,6 @@
       </table>
     </div>
 
-    <!-- Pagination -->
     <div class="d-flex justify-content-between align-items-center p-2 border-top">
       <div class="small text-muted">
         {{ t('showing') }}

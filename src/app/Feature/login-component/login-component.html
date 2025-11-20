@@ -6,7 +6,6 @@
 >
   <div class="card shadow border-0 login-card">
     <div class="card-body p-4 p-md-5">
-      <!-- Brand / Subtitle -->
       <div class="text-center mb-4">
         <div class="brand fs-2 fw-bold">
           <span class="text-danger">N</span
@@ -15,9 +14,7 @@
         <div class="text-muted">{{ 'signInToContinue' | t }}</div>
       </div>
 
-      <!-- Login Form -->
       <form [formGroup]="form" (ngSubmit)="submit()">
-        <!-- Username -->
         <div class="mb-3">
           <label class="form-label">{{ 'username' | t }}</label>
           <input
@@ -34,7 +31,6 @@
           </div>
         </div>
 
-        <!-- Password with show/hide -->
         <div class="mb-3">
           <label class="form-label">{{ 'password' | t }}</label>
           <div class="input-group">
@@ -61,8 +57,7 @@
           </div>
         </div>
 
-        <!-- Gate selection (type + number) -->
-        <div class="row">
+        <div *ngIf="roleIsGateCashier()" class="row">
           <div class="col-12 col-md-6 mb-3">
             <label class="form-label">{{ 'gateType' | t }}</label>
             <select class="form-select" formControlName="gateType">
@@ -95,7 +90,6 @@
           </div>
         </div>
 
-        <!-- Remember + Forgot -->
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div class="form-check">
             <input
@@ -111,13 +105,11 @@
           }}</a>
         </div>
 
-        <!-- Submit -->
         <button class="btn btn-danger w-100" [disabled]="loading">
           <span *ngIf="!loading">{{ 'signIn' | t }}</span>
           <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
         </button>
 
-        <!-- Any error toast shown inline (fallback) -->
         <div *ngIf="errorToast" class="alert alert-danger mt-3 mb-0">
           {{ errorToast }}
         </div>
@@ -125,13 +117,6 @@
     </div>
   </div>
 </div>
-
-<!-- Backdrop -->
-<div
-  class="modal-backdrop"
-  *ngIf="showChangeModal"
-  style="position: fixed; inset: 0; z-index: 1050; background: rgba(0, 0, 0, 0.45)"
-></div>
 
 <!-- First-time change modal -->
 <div
@@ -146,10 +131,7 @@
       <div class="modal-header">
         <h5 class="modal-title">{{ 'changeAdminCreds' | t }}</h5>
       </div>
-
       <div class="modal-body">
-        <p class="small text-muted">{{ 'tempPasswordNotice' | t }}</p>
-
         <form [formGroup]="changeForm" (ngSubmit)="saveNewCredentials()">
           <div class="mb-2">
             <label class="form-label small">{{ 'newPassword' | t }}</label>
@@ -158,14 +140,6 @@
               type="password"
               formControlName="newPassword"
             />
-            <div
-              class="text-danger small mt-1"
-              *ngIf="
-                changeForm.controls.newPassword.touched && changeForm.controls.newPassword.invalid
-              "
-            >
-              {{ 'pwdMin' | t }}
-            </div>
           </div>
 
           <div class="mb-2">
@@ -175,12 +149,6 @@
               type="password"
               formControlName="confirmPassword"
             />
-            <div
-              class="text-danger small mt-1"
-              *ngIf="changeForm.errors?.['mismatch'] && changeForm.touched"
-            >
-              {{ 'pwdMismatch' | t }}
-            </div>
           </div>
 
           <div *ngIf="changeError" class="alert alert-danger small">{{ changeError }}</div>

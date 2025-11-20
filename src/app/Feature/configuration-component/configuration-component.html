@@ -1,17 +1,18 @@
 <div
-  class="container"
+  class="container-fluid"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
 >
   <div class="layout">
+    <!-- ===================== WIZARD ===================== -->
     <mat-card class="main">
       <mat-horizontal-stepper
         [linear]="true"
         [selectedIndex]="stepIndex"
         (selectionChange)="stepIndex = $event.selectedIndex"
       >
-        <!-- Step 1 -->
+        <!-- ===================== STEP 1 ===================== -->
         <mat-step [stepControl]="step1Form" [label]="'basics' | t">
           <form [formGroup]="step1Form" class="grid">
             <mat-form-field appearance="outline">
@@ -47,6 +48,7 @@
               <button
                 mat-flat-button
                 color="primary"
+                type="button"
                 (click)="goNext()"
                 [disabled]="step1Form.invalid"
               >
@@ -56,156 +58,222 @@
           </form>
         </mat-step>
 
-        <!-- Step 2 -->
+        <!-- ===================== STEP 2 ===================== -->
         <mat-step [stepControl]="step2Form" [label]="'modeAndSettings' | t">
           <form [formGroup]="step2Form">
-            <div class="section">
-              <label class="section-title">{{ 'mode' | t }}</label>
-              <mat-radio-group [formControl]="modeCtrl" class="row">
-                <mat-radio-button value="entry">{{ 'entry' | t }}</mat-radio-button>
-                <mat-radio-button value="exit">{{ 'exit' | t }}</mat-radio-button>
-              </mat-radio-group>
-            </div>
+            <!-- ===== Settings (Mode / Capture / Print / Options / Pricing) ===== -->
+            <div class="settings-grid">
+              <!-- MODE -->
+              <div class="settings-group">
+                <span class="settings-title">{{ 'Price Type' | t }}</span>
+                <div class="row-inline">
+                  <mat-checkbox
+                    [checked]="modeCtrl.value === 'entry'"
+                    (change)="modeCtrl.setValue('entry')"
+                  >
+                    {{ 'entry' | t }}
+                  </mat-checkbox>
 
-            <mat-divider></mat-divider>
-
-            <label class="section-title">{{ 'vehiclePassenger' | t }}</label>
-            <div class="grid">
-              <mat-form-field appearance="outline">
-                <mat-label>{{ 'captureMode' | t }}</mat-label>
-                <mat-select formControlName="captureMode" required>
-                  <mat-option value="LPR">{{ 'lpr' | t }}</mat-option>
-                  <mat-option value="SCANNER">{{ 'scanner' | t }}</mat-option>
-                </mat-select>
-              </mat-form-field>
-
-              <mat-form-field appearance="outline">
-                <mat-label>{{ 'printType' | t }}</mat-label>
-                <mat-select formControlName="printType" required>
-                  <mat-option value="QR">{{ 'qr' | t }}</mat-option>
-                  <mat-option value="RFID">{{ 'rfid' | t }}</mat-option>
-                </mat-select>
-              </mat-form-field>
-            </div>
-
-            <mat-divider class="my-3"></mat-divider>
-
-            <!-- Entry Gates -->
-            <div class="horizontal-accordion">
-              <div class="main-accordion">
-                <mat-expansion-panel>
-                  <mat-expansion-panel-header>
-                    <div class="accordion-header">
-                      <mat-panel-title>
-                        <mat-icon class="gate-icon">door_front</mat-icon>
-                        {{ 'entryGates' | t }}
-                      </mat-panel-title>
-                      <span class="gate-count">{{ entryGatesControls.length }}</span>
-                    </div>
-                  </mat-expansion-panel-header>
-
-                  <div class="gates-grid" formArrayName="entryGates">
-                    <div
-                      class="gate-accordion"
-                      *ngFor="let g of entryGatesControls; let i = index"
-                      [formGroupName]="i"
-                    >
-                      <mat-expansion-panel>
-                        <mat-expansion-panel-header>
-                          <mat-panel-title>
-                            <mat-icon class="gate-icon">door_front</mat-icon>
-                            {{ 'gate' | t }} {{ g.get('gateNumber')?.value }}
-                          </mat-panel-title>
-                        </mat-expansion-panel-header>
-
-                        <div class="gate-details">
-                          <div class="gate-info">
-                            <div class="gate-number">
-                              <mat-icon class="gate-icon">numbers</mat-icon>
-                              {{ 'gate' | t }}: {{ g.get('gateNumber')?.value }}
-                            </div>
-
-                            <div class="device-name">
-                              <mat-icon class="device-icon">devices</mat-icon>
-                              {{ 'device' | t }}: {{ g.get('lprIp')?.value || ('notSet' | t) }}
-                            </div>
-
-                            <div class="ip-input-container">
-                              <label class="ip-label">{{ 'ipLabel' | t }}</label>
-                              <input
-                                class="ip-address"
-                                type="text"
-                                formControlName="lprIp"
-                                [placeholder]="'ipPlaceholder' | t"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </mat-expansion-panel>
-                    </div>
-                  </div>
-                </mat-expansion-panel>
+                  <mat-checkbox
+                    [checked]="modeCtrl.value === 'exit'"
+                    (change)="modeCtrl.setValue('exit')"
+                  >
+                    {{ 'exit' | t }}
+                  </mat-checkbox>
+                </div>
               </div>
 
-              <!-- Exit Gates -->
-              <div class="main-accordion">
-                <mat-expansion-panel>
-                  <mat-expansion-panel-header>
-                    <div class="accordion-header">
-                      <mat-panel-title>
-                        <mat-icon class="gate-icon">exit_to_app</mat-icon>
-                        {{ 'exitGates' | t }}
-                      </mat-panel-title>
-                      <span class="gate-count">{{ exitGatesControls.length }}</span>
-                    </div>
-                  </mat-expansion-panel-header>
+              <!-- CAPTURE MODE -->
+              <div class="settings-group">
+                <span class="settings-title">{{ 'Image Capture Mode' | t }}</span>
+                <mat-radio-group formControlName="captureMode" class="row-inline">
+                  <mat-radio-button value="LPR">{{ 'lpr' | t }}</mat-radio-button>
+                  <mat-radio-button value="SCANNER">{{ 'scanner' | t }}</mat-radio-button>
+                </mat-radio-group>
+              </div>
 
-                  <div class="gates-grid" formArrayName="exitGates">
-                    <div
-                      class="gate-accordion"
-                      *ngFor="let g of exitGatesControls; let i = index"
-                      [formGroupName]="i"
-                    >
-                      <mat-expansion-panel>
-                        <mat-expansion-panel-header>
-                          <mat-panel-title>
-                            <mat-icon class="gate-icon">exit_to_app</mat-icon>
-                            {{ 'gate' | t }} {{ g.get('gateNumber')?.value }}
-                          </mat-panel-title>
-                        </mat-expansion-panel-header>
+              <!-- PRINT TYPE -->
+              <div class="settings-group">
+                <span class="settings-title">{{ 'printType' | t }}</span>
+                <mat-radio-group formControlName="printType" class="row-inline">
+                  <mat-radio-button value="QR">{{ 'qr' | t }}</mat-radio-button>
+                  <mat-radio-button value="RFID">{{ 'rfid' | t }}</mat-radio-button>
+                </mat-radio-group>
+              </div>
 
-                        <div class="gate-details">
-                          <div class="gate-info">
-                            <div class="gate-number">
-                              <mat-icon class="gate-icon">numbers</mat-icon>
-                              {{ 'gate' | t }}: {{ g.get('gateNumber')?.value }}
-                            </div>
+              <!-- OPTIONS -->
+              <div class="settings-group">
+                <span class="settings-title">{{ 'Ticket Options' | t }}</span>
+                <div class="row-inline">
+                  <mat-checkbox formControlName="dateTimeFlag">
+                    {{ 'Date Time' | t }}
+                  </mat-checkbox>
 
-                            <div class="device-name">
-                              <mat-icon class="device-icon">devices</mat-icon>
-                              {{ 'device' | t }}: {{ g.get('lprIp')?.value || ('notSet' | t) }}
-                            </div>
+                  <mat-checkbox formControlName="ticketIdFlag">
+                    {{ 'Ticket ID' | t }}
+                  </mat-checkbox>
 
-                            <div class="ip-input-container">
-                              <label class="ip-label">{{ 'ipLabel' | t }}</label>
-                              <input
-                                class="ip-address"
-                                type="text"
-                                formControlName="lprIp"
-                                [placeholder]="'ipPlaceholder' | t"
-                              />
-                            </div>
-                          </div>
-                        </div>
-                      </mat-expansion-panel>
-                    </div>
-                  </div>
-                </mat-expansion-panel>
+                  <mat-checkbox formControlName="feesFlag">
+                    {{ 'Fees' | t }}
+                  </mat-checkbox>
+                </div>
+              </div>
+
+              <!-- PRICING SCHEMA (ENTRY ONLY) -->
+              <div
+                class="settings-group"
+                *ngIf="modeCtrl.value === 'entry'"
+                style="grid-column: span 2"
+              >
+                <span class="settings-title">{{ 'Pricing Schema' | t }}</span>
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>{{ 'Pricing Schema' | t }}</mat-label>
+                  <mat-select formControlName="pricingSchemaId">
+                    <mat-option *ngFor="let s of pricingSchemas" [value]="s.id">
+                      {{ s.name }}
+                    </mat-option>
+                  </mat-select>
+
+                  <mat-error *ngIf="step2Form.get('pricingSchemaId')?.hasError('required')">
+                    Pricing schema is required
+                  </mat-error>
+                </mat-form-field>
               </div>
             </div>
+
+            <!-- ===== Tabs for Entry / Exit Gates ===== -->
+            <mat-tab-group class="gates-tabs">
+              <!-- ========== Entry Gates TAB ========== -->
+              <mat-tab [label]="'entryGates' | t">
+                <div class="tab-content">
+                  <mat-expansion-panel>
+                    <mat-expansion-panel-header>
+                      <div class="accordion-header">
+                        <mat-panel-title>
+                          <mat-icon class="gate-icon">door_front</mat-icon>
+                          {{ 'entryGates' | t }}
+                        </mat-panel-title>
+                        <span class="gate-count">{{ entryGatesControls.length }}</span>
+                      </div>
+                    </mat-expansion-panel-header>
+
+                    <div class="gates-grid" formArrayName="entryGates">
+                      <div
+                        class="gate-accordion"
+                        *ngFor="let g of entryGatesControls; let i = index"
+                        [formGroupName]="i"
+                      >
+                        <mat-expansion-panel>
+                          <mat-expansion-panel-header>
+                            <mat-panel-title>
+                              <mat-icon class="gate-icon">door_front</mat-icon>
+                              {{ 'gate' | t }} {{ g.get('gateNumber')?.value }}
+                            </mat-panel-title>
+                          </mat-expansion-panel-header>
+
+                          <div class="gate-details">
+                            <div class="gate-info">
+                              <div class="gate-number">
+                                <mat-icon class="gate-icon">numbers</mat-icon>
+                                {{ 'gate' | t }}: {{ g.get('gateNumber')?.value }}
+                              </div>
+
+                              <div class="ip-input-container">
+                                <label class="ip-label">{{ 'pcIpLabel' | t }}</label>
+                                <input
+                                  class="ip-address"
+                                  type="text"
+                                  formControlName="pcIp"
+                                  [placeholder]="'ipPlaceholder' | t"
+                                />
+                              </div>
+
+                              <div class="ip-input-container">
+                                <label class="ip-label">{{ 'deviceIpLabel' | t }}</label>
+                                <input
+                                  class="ip-address"
+                                  type="text"
+                                  formControlName="deviceIp"
+                                  [placeholder]="'ipPlaceholder' | t"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </mat-expansion-panel>
+                      </div>
+                    </div>
+                  </mat-expansion-panel>
+                </div>
+              </mat-tab>
+
+              <!-- ========== Exit Gates TAB ========== -->
+              <mat-tab [label]="'exitGates' | t">
+                <div class="tab-content">
+                  <mat-expansion-panel>
+                    <mat-expansion-panel-header>
+                      <div class="accordion-header">
+                        <mat-panel-title>
+                          <mat-icon class="gate-icon">exit_to_app</mat-icon>
+                          {{ 'exitGates' | t }}
+                        </mat-panel-title>
+                        <span class="gate-count">{{ exitGatesControls.length }}</span>
+                      </div>
+                    </mat-expansion-panel-header>
+
+                    <div class="gates-grid" formArrayName="exitGates">
+                      <div
+                        class="gate-accordion"
+                        *ngFor="let g of exitGatesControls; let i = index"
+                        [formGroupName]="i"
+                      >
+                        <mat-expansion-panel>
+                          <mat-expansion-panel-header>
+                            <mat-panel-title>
+                              <mat-icon class="gate-icon">exit_to_app</mat-icon>
+                              {{ 'gate' | t }} {{ g.get('gateNumber')?.value }}
+                            </mat-panel-title>
+                          </mat-expansion-panel-header>
+
+                          <div class="gate-details">
+                            <div class="gate-info">
+                              <div class="gate-number">
+                                <mat-icon class="gate-icon">numbers</mat-icon>
+                                {{ 'gate' | t }}: {{ g.get('gateNumber')?.value }}
+                              </div>
+
+                              <div class="ip-input-container">
+                                <label class="ip-label">{{ 'pcIpLabel' | t }}</label>
+                                <input
+                                  class="ip-address"
+                                  type="text"
+                                  formControlName="pcIp"
+                                  [placeholder]="'ipPlaceholder' | t"
+                                />
+                              </div>
+
+                              <div class="ip-input-container">
+                                <label class="ip-label">{{ 'deviceIpLabel' | t }}</label>
+                                <input
+                                  class="ip-address"
+                                  type="text"
+                                  formControlName="deviceIp"
+                                  [placeholder]="'ipPlaceholder' | t"
+                                />
+                              </div>
+                            </div>
+                          </div>
+                        </mat-expansion-panel>
+                      </div>
+                    </div>
+                  </mat-expansion-panel>
+                </div>
+              </mat-tab>
+            </mat-tab-group>
 
             <div class="flex-between">
-              <button mat-stroked-button type="button" (click)="goBack()">{{ 'back' | t }}</button>
+              <button mat-stroked-button type="button" (click)="goBack()">
+                {{ 'back' | t }}
+              </button>
               <button mat-flat-button color="primary" type="button" (click)="save()">
                 {{ 'save' | t }}
               </button>
@@ -215,43 +283,52 @@
       </mat-horizontal-stepper>
     </mat-card>
 
-    <!-- Summary -->
+    <!-- ===================== SUMMARY CARD ===================== -->
     <mat-card class="summary mat-elevation-z2">
       <h3 class="sum-title">{{ 'summary' | t }}</h3>
 
       <div class="sum-line">
-        <span class="muted">{{ 'entryGatesCount' | t }}</span
-        ><span class="bold">{{ summaryForView.entryGatesCount }}</span>
+        <span class="muted">{{ 'entryGatesCount' | t }}</span>
+        <span class="bold">{{ summaryForView.entryGatesCount }}</span>
       </div>
+
       <div class="sum-line">
-        <span class="muted">{{ 'exitGatesCount' | t }}</span
-        ><span class="bold">{{ summaryForView.exitGatesCount }}</span>
+        <span class="muted">{{ 'exitGatesCount' | t }}</span>
+        <span class="bold">{{ summaryForView.exitGatesCount }}</span>
       </div>
+
       <div class="sum-line">
-        <span class="muted">{{ 'allowedParkingSlots' | t }}</span
-        ><span class="bold">{{ summaryForView.allowedParkingSlots }}</span>
+        <span class="muted">{{ 'allowedParkingSlots' | t }}</span>
+        <span class="bold">{{ summaryForView.allowedParkingSlots }}</span>
       </div>
+
       <div class="sum-line">
-        <span class="muted">{{ 'gracePeriodMinutes' | t }}</span
-        ><span class="bold">{{ summaryForView.gracePeriodMinutes }}</span>
+        <span class="muted">{{ 'gracePeriodMinutes' | t }}</span>
+        <span class="bold">{{ summaryForView.gracePeriodMinutes }}</span>
       </div>
+
       <div class="sum-line">
-        <span class="muted">{{ 'mode' | t }}</span>
-        <span class="bold">{{
-          summaryForView.mode === 'entry' ? ('entry' | t) : ('exit' | t)
-        }}</span>
+        <span class="muted">{{ 'price Type' | t }}</span>
+        <span class="bold">
+          {{ summaryForView.mode === 'entry' ? ('entry' | t) : ('exit' | t) }}
+        </span>
       </div>
+
       <div class="sum-line">
-        <span class="muted">{{ 'captureMode' | t }}</span
-        ><span class="bold">{{ summaryForView.captureMode }}</span>
+        <span class="muted">{{ 'captureMode' | t }}</span>
+        <span class="bold">{{ summaryForView.captureMode }}</span>
       </div>
+
       <div class="sum-line">
-        <span class="muted">{{ 'printType' | t }}</span
-        ><span class="bold">{{ summaryForView.printType }}</span>
+        <span class="muted">{{ 'printType' | t }}</span>
+        <span class="bold">{{ summaryForView.printType }}</span>
       </div>
+
       <div class="sum-line">
-        <span class="muted">{{ 'startDate' | t }}</span
-        ><span class="bold">{{ summaryForView.ticketCard.startDate | date : 'yyyy-MM-dd' }}</span>
+        <span class="muted">{{ 'startDate' | t }}</span>
+        <span class="bold">
+          {{ summaryForView.ticketCard.startDate | date : 'yyyy-MM-dd' }}
+        </span>
       </div>
     </mat-card>
   </div>

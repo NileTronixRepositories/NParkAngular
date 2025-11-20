@@ -10,6 +10,9 @@ import {
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
 
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
+import { GateServices, GateDto } from '../../Services/Gate/gate-services';
+import { AuthService } from '../../Services/Auth/auth-service';
+import { GateType } from '../../Domain/Auth/auth.models';
 
 @Component({
   selector: 'app-ticket-component',
@@ -20,8 +23,17 @@ import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 })
 export class TicketComponent {
   svc = inject(TicketsServices);
-
   i18n = inject(LanguageService);
+
+  showGateSelectionModal = false;
+  gatesList: GateDto[] = [];
+  selectedGateId: number | null = null;
+  gateLoading = false;
+  gateSaving = false;
+
+  private gateSvc = inject(GateServices);
+  private auth = inject(AuthService);
+
   private dict: Record<AppLang, Record<string, string>> = {
     ar: {
       issue_ticket: 'إصدار تذكرة',
@@ -61,6 +73,11 @@ export class TicketComponent {
       chip_entry: 'دخول',
       focus_to_scan: 'ضع المؤشر هنا ثم امسح...',
       ticket_number: 'رقم التذكرة',
+      select_gate: 'اختيار البوابة',
+      choose_gate: 'اختر البوابة',
+      cancel: 'إلغاء',
+      confirm: 'تأكيد',
+      no_gates_available: 'لا توجد بوابات متاحة',
     },
     en: {
       issue_ticket: 'Issue Ticket',
@@ -90,7 +107,6 @@ export class TicketComponent {
       action_out: 'OUT',
       time: 'Time',
       action: 'Action',
-      gate: 'Gate',
       no_tickets: 'No tickets',
       prev: 'Prev',
       next: 'Next',
@@ -100,6 +116,12 @@ export class TicketComponent {
       chip_entry: 'ENTRY',
       focus_to_scan: 'Focus here then scan...',
       ticket_number: 'Ticket Number',
+      select_gate: 'Select Gate',
+      choose_gate: 'Choose Gate',
+      cancel: 'Cancel',
+      confirm: 'Confirm',
+      no_gates_available: 'No gates available',
+      gate: 'Gate',
     },
   };
   t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
@@ -131,7 +153,78 @@ export class TicketComponent {
   @ViewChild('scanBox') scanBox?: ElementRef<HTMLInputElement>;
 
   ngOnInit(): void {
+    this.loadGates();
+
+    this.loadEntryGates();
     this.loadTicketsForEntry();
+  }
+
+  private loadGates() {
+    this.gateLoading = true;
+    this.gateSvc.getAll().subscribe({
+      next: (all) => {
+        this.gatesList = (all ?? []).filter(
+          (g) => g.gateType === GateType.Entrance || g.gateType === GateType.Exit
+        );
+        this.gateLoading = false;
+        if (this.gatesList.length > 0) {
+          this.showGateSelectionModal = true;
+        }
+      },
+      error: (err) => {
+        console.error('Gate/GetAll error', err);
+        this.gateLoading = false;
+      },
+    });
+  }
+
+  private loadEntryGates() {
+    this.gateLoading = true;
+    this.gateSvc.getAll().subscribe({
+      next: (all) => {
+        this.gatesList = (all ?? []).filter((g) => g.gateType === GateType.Entrance);
+        this.gateLoading = false;
+      },
+      error: (err) => {
+        console.error('Gate/GetAll error', err);
+        this.gateLoading = false;
+      },
+    });
+  }
+  selectGate() {
+    if (!this.selectedGateId) return;
+
+    this.gateSaving = true;
+
+    this.auth.selectGate(this.selectedGateId, GateType.Entrance).subscribe({
+      next: () => {
+        this.gateSaving = false;
+        this.showGateSelectionModal = false;
+        this.loadTicketsForEntry();
+      },
+      error: (err) => {
+        console.error('selectGate error', err);
+        this.gateSaving = false;
+      },
+    });
+  }
+
+  confirmGateSelection() {
+    if (!this.selectedGateId) return;
+    const gate = this.gatesList.find((g) => g.id === this.selectedGateId);
+    if (!gate) return;
+
+    this.gateSaving = true;
+    this.auth.selectGate(gate.id, GateType.Entrance).subscribe({
+      next: () => {
+        this.gateSaving = false;
+        alert(`تم اختيار البوابة رقم ${gate.gateNumber}`);
+      },
+      error: (err) => {
+        console.error('selectGate error', err);
+        this.gateSaving = false;
+      },
+    });
   }
 
   addNewTicket() {

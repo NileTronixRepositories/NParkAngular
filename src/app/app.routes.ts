@@ -121,6 +121,15 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./Feature/visitor-component/visitor-component').then((m) => m.VisitorComponent),
       },
+
+      // Add the Gate Component route here
+      {
+        path: 'gate-selection',
+        canActivate: [authGuard],
+        data: { roles: ['EnterCashier', 'ExitCashier'] },
+        loadComponent: () =>
+          import('./Feature/gate-component/gate-component').then((m) => m.GateComponent),
+      },
     ],
   },
 

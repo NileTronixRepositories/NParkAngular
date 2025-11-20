@@ -4,9 +4,7 @@
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
 >
-  <!-- Split layout -->
   <div class="row g-3 mb-3">
-    <!-- Left: Ticket summary / helper -->
     <div class="col-12 col-lg-6">
       <div class="card h-100 shadow-soft glass">
         <div class="card-header d-flex justify-content-between align-items-center">
@@ -170,38 +168,6 @@
   </div>
 
   <!-- Filters + table (Exit locked to OUT) -->
-  <!-- <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0 fw-bold">{{ 'ticketsExit' | t }}</h4>
-    <div class="d-flex gap-2">
-      <input
-        class="form-control form-control-sm"
-        style="width: 220px"
-        [placeholder]="'searchPlaceholder' | t"
-        [(ngModel)]="q"
-        (ngModelChange)="applyFilters()"
-      />
-      <select
-        class="form-select form-select-sm"
-        style="width: 140px"
-        [(ngModel)]="action"
-        (ngModelChange)="applyFilters()"
-        [disabled]="true"
-        [title]="'outOnlyTitle' | t"
-      >
-        <option value="OUT">OUT</option>
-      </select>
-      <select
-        class="form-select form-select-sm"
-        style="width: 120px"
-        [(ngModel)]="gate"
-        (ngModelChange)="applyFilters()"
-      >
-        <option value="">{{ 'allGates' | t }}</option>
-        <option *ngFor="let g of gates()" [value]="g">{{ g }}</option>
-      </select>
-    </div>
-  </div> -->
-
   <div class="card shadow-soft">
     <div class="table-responsive">
       <table class="table align-middle mb-0">
