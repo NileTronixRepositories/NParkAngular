@@ -18,7 +18,7 @@ import { GateType } from '../../Domain/Auth/auth.models';
   providers: [
     {
       provide: I18N_DICT,
-      useValue: (<I18nDict>{
+      useValue: <I18nDict>{
         ar: {
           brandSuffix: 'Park',
           signInToContinue: 'سجّل الدخول للمتابعة',
@@ -80,7 +80,7 @@ import { GateType } from '../../Domain/Auth/auth.models';
           gateTypeRequired: 'Gate type is required.',
           gateNumberRequired: 'Gate number is required.',
         },
-      }) as I18nDict,
+      },
     },
   ],
 })
@@ -97,6 +97,9 @@ export class LoginComponent {
   errorToast: string | null = null;
   GateType = GateType;
 
+  // ✅ لتخزين رسالة الخطأ في مودال تغيير الباسورد
+  changeError: string | null = null;
+
   form = this.fb.group({
     username: ['', [Validators.required]],
     password: ['', [Validators.required]],
@@ -107,6 +110,7 @@ export class LoginComponent {
 
   showChangeModal = false;
   changeLoading = false;
+
   changeForm = this.fb.group(
     {
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
@@ -114,6 +118,10 @@ export class LoginComponent {
     },
     { validators: this.passwordsMatch }
   );
+
+  constructor(@Inject(I18N_DICT) private dict: I18nDict) {}
+
+  // ------------ Helpers ------------
 
   passwordsMatch(group: any) {
     return group.get('newPassword')?.value === group.get('confirmPassword')?.value
@@ -123,8 +131,15 @@ export class LoginComponent {
 
   roleIsGateCashier(): boolean {
     const role = this.auth.role;
-    return role === 'EnterCashier' || role === 'ExitCashier';
+    // ✅ توحيد اسم الدور مع الـ backend: EntranceCashier / ExitCashier
+    return role === 'EntranceCashier' || role === 'ExitCashier';
   }
+
+  private t(key: string) {
+    return (this as any).dict?.[this.lang.current]?.[key] ?? key;
+  }
+
+  // ------------ Login ------------
 
   submit() {
     if (this.form.invalid) {
@@ -172,29 +187,35 @@ export class LoginComponent {
     this.router.navigate(['/overview']);
   }
 
-  private t(key: string) {
-    return (this as any).dict?.[this.lang.current]?.[key] ?? key;
-  }
+  // ------------ Change Temp Password ------------
 
   saveNewCredentials() {
     if (this.changeForm.invalid) {
       this.changeForm.markAllAsTouched();
       return;
     }
+
     const newPassword = this.changeForm.value.newPassword;
     const confirmPassword = this.changeForm.value.confirmPassword;
+
     if (newPassword && confirmPassword) {
       if (newPassword !== confirmPassword) {
         this.changeError = 'كلمتا المرور غير متطابقتين';
         return;
       }
 
-      this.auth.updateToken(newPassword).subscribe({
+      this.changeError = null;
+      this.changeLoading = true;
+
+      // ✅ call backend لتغيير الباسورد (لازم تكون معرّف changePassword في AuthService)
+      this.auth.changePassword(newPassword).subscribe({
         next: () => {
+          this.changeLoading = false;
           this.toast?.success?.('تم تحديث كلمة المرور بنجاح');
           this.showChangeModal = false;
         },
         error: (err) => {
+          this.changeLoading = false;
           this.toast?.fromProblem?.(err);
         },
       });
@@ -202,7 +223,4 @@ export class LoginComponent {
       this.changeError = 'يرجى إدخال كلمة المرور';
     }
   }
-  changeError: string | null = null;
-
-  constructor(@Inject(I18N_DICT) private dict: I18nDict) {}
 }

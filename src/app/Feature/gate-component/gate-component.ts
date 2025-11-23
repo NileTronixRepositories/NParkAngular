@@ -76,21 +76,20 @@ export class GateComponent {
         )
         .subscribe(
           (response: any) => {
+            // 1) تحديث التوكن الجديد اللي رجع من الـ API
             this.authService.updateToken(response.token);
-            this.authService.updateGateData({
-              gateDevicePeripheral: response.gateDevicePeripheral,
-            });
+
+            // 2) تخزين GateDevicePeripheral كـ قيمة Global
+            this.authService.updateGateData(response.gateDevicePeripheral);
+
             console.log('Gate selected and token updated', response);
 
-            // التوجيه بناءً على الدور بعد التحقق من الـ response
+            // 3) التوجيه بناءً على الدور
             if (response.roleName === 'ExitCashier') {
-              // التوجيه إلى صفحة Exit
               this.router.navigate(['/tickets/exit']);
             } else if (response.roleName === 'EntranceCashier') {
-              // التوجيه إلى صفحة Entry
               this.router.navigate(['/tickets/entry']);
             } else {
-              // في حالة عدم وجود الدور المناسب يمكن توجيه المستخدم إلى صفحة أخرى
               this.router.navigate(['/overview']);
             }
           },

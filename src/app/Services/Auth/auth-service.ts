@@ -24,7 +24,7 @@ export interface StoredUser {
 export class AuthService {
   private http = inject(HttpClient);
 
-  private gateData: any = null;
+private gateData: GateDevicePeripheral | null = null;
 
   private storage(remember: boolean) {
     return remember ? localStorage : sessionStorage;
@@ -121,17 +121,35 @@ export class AuthService {
     return this.http.post<any>('http://192.168.1.6/api/auth/CheckGate', { gateNumber });
   }
 
-  updateToken(token: string): Observable<any> {
-    localStorage.setItem('token', token);
-    return of({ token });
-  }
+updateToken(token: string): void {
+  // نستخدم نفس KEY اللي كل السيستم مبني عليه
+  localStorage.setItem(TOKEN_KEY, token);
+}
 
-  updateGateData(gateData: any): void {
-    this.gateData = gateData;
-    localStorage.setItem('gate_data', JSON.stringify(gateData));
-  }
+updateGateData(gdp: GateDevicePeripheral): void {
+  this.gateData = gdp;
+  localStorage.setItem('gate_device', JSON.stringify(gdp));
+}
 
-  getGateData(): any {
-    return this.gateData || JSON.parse(localStorage.getItem('gate_data') || '{}');
-  }
+getGateData(): GateDevicePeripheral | null {
+  if (this.gateData) return this.gateData;
+
+  const stored = localStorage.getItem('gate_device');
+  return stored ? (JSON.parse(stored) as GateDevicePeripheral) : null;
+} 
+
+changePassword(newPassword: string): Observable<LoginResponse> {
+  return this.http
+    .post<LoginResponse>(`${API_BASE}/change-password`, { newPassword })
+    .pipe(
+      tap((resp) => {
+        if (resp.token) {
+          this.updateToken(resp.token); // نخزن التوكن الجديد
+        }
+      })
+    );
+}
+
+
+
 }
