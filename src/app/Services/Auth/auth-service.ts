@@ -1,21 +1,11 @@
-import { routes } from './../../app.routes';
 import { inject, Injectable } from '@angular/core';
-import { Observable, of } from 'rxjs';
-import { tap, catchError, finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
-import {
-  LoginRequest,
-  LoginResponse,
-  LoginFirstTimeRequest,
-  GateDevicePeripheral,
-  GateType,
-} from '../../Domain/Auth/auth.models';
-import {} from 'rxjs/operators';
-import { Router } from '@angular/router';
+import { Observable, tap } from 'rxjs';
+import { GateDevicePeripheral, GateType } from '../../Domain/Auth/auth.models';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
-const API_BASE = 'http://192.168.1.8:80/api/auth';
+const API_BASE = 'http://192.168.1.8/api/auth';
 
 export interface StoredUser {
   role: string;
@@ -23,21 +13,121 @@ export interface StoredUser {
   gateDevicePeripheral?: GateDevicePeripheral | null;
 }
 
+export interface AuthResponse {
+  token: string;
+  roleName: string;
+  permissions: string[];
+  gateDevicePeripheral?: GateDevicePeripheral | null;
+}
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
-  private routes = inject(Router);
-  private gateData: any = null;
 
-  private storage(remember: boolean) {
+  private gateData: GateDevicePeripheral | null = null;
+
+  private storage(remember: boolean): Storage {
     return remember ? localStorage : sessionStorage;
+  }
+
+  private detectStorage(): Storage {
+    if (localStorage.getItem(TOKEN_KEY)) return localStorage;
+    if (sessionStorage.getItem(TOKEN_KEY)) return sessionStorage;
+    return localStorage;
   }
 
   get token(): string | null {
     return localStorage.getItem(TOKEN_KEY) ?? sessionStorage.getItem(TOKEN_KEY);
   }
 
-  get user(): StoredUser | null {
+  isLoggedIn(): boolean {
+    return !!this.token;
+  }
+
+  // ========== LOGIN ==========
+  // زي ما كنا عاملين قبل كده: بارامتر واحد dto وفيه remember
+  login(body: any): Observable<AuthResponse> {
+    const remember = !!body.remember;
+
+    return this.http.post<AuthResponse>(`${API_BASE}/login`, body).pipe(
+      tap((res) => {
+        const store = this.storage(remember);
+
+        store.setItem(TOKEN_KEY, res.token);
+
+        const user: StoredUser = {
+          role: res.roleName,
+          permissions: res.permissions ?? [],
+          gateDevicePeripheral: res.gateDevicePeripheral ?? null,
+        };
+        store.setItem(USER_KEY, JSON.stringify(user));
+
+        this.gateData = user.gateDevicePeripheral ?? null;
+      })
+    );
+  }
+
+  // لو عندك loginFirstTime خليه زي كده
+  loginFirstTime(newPassword: string): Observable<any> {
+    return this.http.post<any>(`${API_BASE}/loginFirstTime`, { newPassword });
+  }
+
+  // ========== CHECK GATE (من الباك) ==========
+  checkGate(): Observable<AuthResponse> {
+    return this.http.post<AuthResponse>(`${API_BASE}/CheckGate`, {}).pipe(
+      tap((res) => {
+        // حدّث التوكن
+        this.updateToken(res.token);
+
+        // حدّث بيانات اليوزر + الأجهزة
+        const store = this.detectStorage();
+        const current = this.getStoredUser();
+
+        const updated: StoredUser = {
+          role: res.roleName ?? current?.role ?? '',
+          permissions: res.permissions ?? current?.permissions ?? [],
+          gateDevicePeripheral: res.gateDevicePeripheral ?? null,
+        };
+
+        store.setItem(USER_KEY, JSON.stringify(updated));
+        this.gateData = updated.gateDevicePeripheral ?? null;
+      })
+    );
+  }
+
+  // ========== SELECT GATE (اختيار بوابة) ==========
+  // TicketComponent بيناديها بـ (selectedGateId, GateType.Entrance)
+  selectGate(gateId: number, gateType: GateType): Observable<AuthResponse> {
+    const body = { gateId, gateType };
+
+    return this.http.post<AuthResponse>(`${API_BASE}/CheckGate`, body).pipe(
+      tap((res) => {
+        this.updateToken(res.token);
+
+        const store = this.detectStorage();
+        const current = this.getStoredUser();
+
+        const updated: StoredUser = {
+          role: res.roleName ?? current?.role ?? '',
+          permissions: res.permissions ?? current?.permissions ?? [],
+          gateDevicePeripheral: res.gateDevicePeripheral ?? null,
+        };
+
+        store.setItem(USER_KEY, JSON.stringify(updated));
+        this.gateData = updated.gateDevicePeripheral ?? null;
+      })
+    );
+  }
+
+  // ========== TOKEN & USER & GATE DATA ==========
+
+  updateToken(token: string) {
+    if (!token) return;
+    const store = this.detectStorage();
+    store.setItem(TOKEN_KEY, token);
+  }
+
+  getStoredUser(): StoredUser | null {
     const raw = localStorage.getItem(USER_KEY) ?? sessionStorage.getItem(USER_KEY);
     if (!raw) return null;
     try {
@@ -48,128 +138,38 @@ export class AuthService {
   }
 
   get role(): string | null {
-    return this.user?.role ?? null;
+    const user = this.getStoredUser();
+    return user?.role ?? null;
   }
 
-  isLoggedIn(): boolean {
-    return !!this.token;
+  getGateData(): GateDevicePeripheral | null {
+    if (this.gateData) return this.gateData;
+
+    const user = this.getStoredUser();
+    this.gateData = user?.gateDevicePeripheral ?? null;
+    return this.gateData;
   }
 
-  hasRole(...roles: string[]): boolean {
-    const r = this.role;
-    if (!r) return false;
-    return roles.includes(r);
+  updateGateData(gp: GateDevicePeripheral | null) {
+    this.gateData = gp;
+
+    const store = this.detectStorage();
+    const current = this.getStoredUser();
+
+    const updated: StoredUser = {
+      role: current?.role ?? '',
+      permissions: current?.permissions ?? [],
+      gateDevicePeripheral: gp,
+    };
+
+    store.setItem(USER_KEY, JSON.stringify(updated));
   }
 
-  saveSession(resp: LoginResponse, remember: boolean) {
-    if (!resp?.token) throw new Error('No token in response');
-
-    const store = this.storage(remember);
-    store.setItem(TOKEN_KEY, resp.token);
-
-    store.setItem(
-      USER_KEY,
-      JSON.stringify(<StoredUser>{
-        role: resp.roleName || 'User',
-        permissions: resp.permissions ?? [],
-        gateDevicePeripheral: resp.gateDevicePeripheral ?? null,
-      })
-    );
-
-    const other = remember ? sessionStorage : localStorage;
-    other.removeItem(TOKEN_KEY);
-    other.removeItem(USER_KEY);
-  }
-
-  login(dto: LoginRequest & { remember?: boolean }): Observable<LoginResponse> {
-    const remember = !!dto.remember;
-    const payload = { ...dto };
-    delete (payload as any).remember;
-
-    return this.http
-      .post<LoginResponse>(`${API_BASE}/login`, payload)
-      .pipe(tap((resp) => this.saveSession(resp, remember)));
-  }
-
-  loginFirstTime(dto: LoginFirstTimeRequest & { remember?: boolean }): Observable<LoginResponse> {
-    const remember = !!dto.remember;
-    const payload = { ...dto };
-    delete (payload as any).remember;
-
-    return this.http
-      .post<LoginResponse>(`${API_BASE}/loginfirsttime`, payload)
-      .pipe(tap((resp) => this.saveSession(resp, remember)));
-  }
-
-  logout(): Observable<object> {
-    const token = this.token;
-
-    if (!token) {
-      this.clearSession();
-      return of();
-    }
-
-    return this.http.post(`${API_BASE}/Logout`, {}).pipe(
-      tap(() => {
-        this.clearSession();
-      }),
-      catchError((err) => {
-        console.warn('Logout error (ignored):', err);
-        this.routes.navigate(['/login']);
-        return of();
-      }),
-      finalize(() => {
-        this.clearSession();
-      })
-    );
-  }
-  private clearSession() {
+  logout(): void {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
-  }
-
-  private currentRemember(): boolean {
-    return !!localStorage.getItem(TOKEN_KEY);
-  }
-
-  selectGate(gateId: number, gateType: GateType) {
-    const remember = this.currentRemember();
-
-    return this.http
-      .post<LoginResponse>(`${API_BASE}/selectgate`, { gateId, gateType })
-      .pipe(tap((resp) => this.saveSession(resp, remember)));
-  }
-
-  checkGate(gateNumber: number) {
-    return this.http.post<any>('http://192.168.1.8/api/auth/CheckGate', { gateNumber });
-  }
-
-  updateToken(token: string): Observable<any> {
-    const remember = this.currentRemember();
-    const store = remember ? localStorage : sessionStorage;
-
-    store.setItem(TOKEN_KEY, token);
-
-    const user = this.user;
-    if (user) {
-      store.setItem(USER_KEY, JSON.stringify(user));
-    }
-
-    const other = remember ? sessionStorage : localStorage;
-    other.removeItem(TOKEN_KEY);
-    other.removeItem(USER_KEY);
-
-    return of({ token });
-  }
-
-  updateGateData(gateData: any): void {
-    this.gateData = gateData;
-    localStorage.setItem('gate_data', JSON.stringify(gateData));
-  }
-
-  getGateData(): any {
-    return this.gateData || JSON.parse(localStorage.getItem('gate_data') || '{}');
+    this.gateData = null;
   }
 }

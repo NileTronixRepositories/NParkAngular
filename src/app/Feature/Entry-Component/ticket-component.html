@@ -142,6 +142,7 @@
             <span class="mono">{{ cardNumber }}</span>
           </div>
 
+          <!-- Ticket summary + cashier confirm -->
           <div *ngIf="lastIssuedTicketId" class="mt-3 w-100">
             <div class="alert alert-light border d-flex flex-column gap-1">
               <div class="d-flex justify-content-between">
@@ -171,7 +172,7 @@
                   [disabled]="cashierConfirming || lastIssuedCollected"
                 >
                   <span *ngIf="!cashierConfirming">
-                    <i class="bi bi-cash-coin"></i> {{ t('cashier_confirm') }}
+                    <i class="bi bi-cash-coin"></i> {{ t('cashier_confirm_button') }}
                   </span>
                   <span *ngIf="cashierConfirming" class="spinner-border spinner-border-sm"></span>
                 </button>
@@ -179,7 +180,7 @@
             </div>
           </div>
 
-          <!-- زر Create Ticket -->
+          <!--  Create Ticket -->
           <div class="d-flex gap-2 mt-3">
             <button class="btn btn-sm btn-primary" (click)="createTicket()" [disabled]="adding">
               <span *ngIf="!adding" class="d-inline-flex align-items-center gap-1">
@@ -207,18 +208,25 @@
               <thead class="table-head">
                 <tr>
                   <th>{{ t('ticket_number') }}</th>
-                  <th style="width: 160px">{{ t('time') }}</th>
+                  <th style="width: 140px">{{ t('time') }}</th>
+                  <th style="width: 140px">{{ t('fees') }}</th>
                 </tr>
               </thead>
 
               <tbody>
-                <tr *ngFor="let t of pageItems()">
-                  <td>{{ t.id }}</td>
-                  <td>{{ t.time | date : 'short' }}</td>
+                <tr *ngFor="let ticket of pageItems()">
+                  <td>{{ ticket.id }}</td>
+                  <td>{{ ticket.time | date : 'short' }}</td>
+                  <td>
+                    <span class="mono">{{ ticket.price ?? 0 | number : '1.0-2' }}</span>
+                    <span *ngIf="ticket.isCollectedByCashier" class="badge bg-success ms-1">
+                      {{ t('cashier_collected_short') }}
+                    </span>
+                  </td>
                 </tr>
 
                 <tr *ngIf="!pageItems().length && !loading">
-                  <td colspan="2" class="text-center text-muted py-4">
+                  <td colspan="3" class="text-center text-muted py-4">
                     {{ t('no_tickets') }}
                   </td>
                 </tr>

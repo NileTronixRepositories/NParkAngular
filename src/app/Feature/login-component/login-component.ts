@@ -105,9 +105,12 @@ export class LoginComponent {
     gateType: [GateType.Entrance, [Validators.required]],
     gateNumber: [1, [Validators.required, Validators.min(1)]],
   });
-showGatePopup = false
+
+  showGatePopup = false;
   showChangeModal = false;
   changeLoading = false;
+  changeError: string | null = null;
+
   changeForm = this.fb.group(
     {
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
@@ -115,6 +118,12 @@ showGatePopup = false
     },
     { validators: this.passwordsMatch }
   );
+
+  constructor(@Inject(I18N_DICT) private dict: I18nDict) {}
+
+  private t(key: string) {
+    return (this as any).dict?.[this.lang.current]?.[key] ?? key;
+  }
 
   passwordsMatch(group: any) {
     return group.get('newPassword')?.value === group.get('confirmPassword')?.value
@@ -124,7 +133,8 @@ showGatePopup = false
 
   roleIsGateCashier(): boolean {
     const role = this.auth.role;
-    return role === 'EnterCashier' || role === 'ExitCashier';
+    // لو الباك اند بيرجع EntranceCashier / ExitCashier
+    return role === 'EntranceCashier' || role === 'ExitCashier';
   }
 
   submit() {
@@ -149,7 +159,7 @@ showGatePopup = false
         this.toast?.success?.(this.t('successLogin'));
         this.navigateAfterLogin();
       },
-      error: (err) => {
+      error: (err: any) => {
         this.loading = false;
         this.toast?.fromProblem?.(err);
       },
@@ -173,37 +183,39 @@ showGatePopup = false
     this.router.navigate(['/overview']);
   }
 
-  private t(key: string) {
-    return (this as any).dict?.[this.lang.current]?.[key] ?? key;
-  }
-
   saveNewCredentials() {
     if (this.changeForm.invalid) {
       this.changeForm.markAllAsTouched();
       return;
     }
+
     const newPassword = this.changeForm.value.newPassword;
     const confirmPassword = this.changeForm.value.confirmPassword;
-    if (newPassword && confirmPassword) {
-      if (newPassword !== confirmPassword) {
-        this.changeError = 'كلمتا المرور غير متطابقتين';
-        return;
-      }
 
-      this.auth.updateToken(newPassword).subscribe({
-        next: () => {
-          this.toast?.success?.('تم تحديث كلمة المرور بنجاح');
-          this.showChangeModal = false;
-        },
-        error: (err) => {
-          this.toast?.fromProblem?.(err);
-        },
-      });
-    } else {
+    if (!newPassword || !confirmPassword) {
       this.changeError = 'يرجى إدخال كلمة المرور';
+      return;
     }
-  }
-  changeError: string | null = null;
 
-  constructor(@Inject(I18N_DICT) private dict: I18nDict) {}
+    if (newPassword !== confirmPassword) {
+      this.changeError = 'كلمتا المرور غير متطابقتين';
+      return;
+    }
+
+    this.changeError = null;
+    this.changeLoading = true;
+
+    // ✅ CALL loginFirstTime بدل updateToken().subscribe
+    this.auth.loginFirstTime(newPassword).subscribe({
+      next: () => {
+        this.changeLoading = false;
+        this.toast?.success?.('تم تحديث كلمة المرور بنجاح');
+        this.showChangeModal = false;
+      },
+      error: (err: any) => {
+        this.changeLoading = false;
+        this.toast?.fromProblem?.(err);
+      },
+    });
+  }
 }

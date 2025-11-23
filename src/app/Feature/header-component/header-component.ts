@@ -2,10 +2,10 @@ import { Component, inject } from '@angular/core';
 import { AuthService } from '../../Services/Auth/auth-service';
 import { Router } from '@angular/router';
 import { SwitchlanguageComponent } from '../switchlanguage-component/switchlanguage-component';
-import { catchError } from 'rxjs';
 
 @Component({
   selector: 'app-header-component',
+  standalone: true,
   imports: [SwitchlanguageComponent],
   templateUrl: './header-component.html',
   styleUrl: './header-component.css',
@@ -15,17 +15,8 @@ export class HeaderComponent {
   private router = inject(Router);
 
   logout() {
-    this.auth
-      .logout()
-      .pipe(
-        catchError((err) => {
-          console.error('Logout failed:', err); // التعامل مع الأخطاء هنا إن حدثت
-          this.router.navigate(['/login']);
-          return []; // تجاهل الأخطاء بشكل مرن
-        })
-      )
-      .subscribe(() => {
-        this.router.navigate(['/login']); // التوجيه إلى صفحة الـ Login بعد عملية الـ Logout
-      });
+    this.auth.logout();
+
+    this.router.navigate(['/login']);
   }
 }

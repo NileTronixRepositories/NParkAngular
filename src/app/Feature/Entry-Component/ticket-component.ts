@@ -125,7 +125,7 @@ export class TicketComponent {
       admit_done: 'تم التحصيل بنجاح',
       chip_entry: 'دخول',
       focus_to_scan: 'ضع المؤشر هنا ثم امسح...',
-      ticket_number: 'رقم التذكرة',
+      ticket_number: 'التذاكر',
       select_gate: 'اختيار البوابة',
       choose_gate: 'اختر البوابة',
       cancel: 'إلغاء',
@@ -133,23 +133,32 @@ export class TicketComponent {
       no_gates_available: 'لا توجد بوابات متاحة',
       gate_devices: 'أجهزة البوابة',
       devices_status: 'حالة الأجهزة',
-      pc_device: 'كمبيوتر الكشك',
+      pc_device: 'PC',
       lpr_device: 'كاميرا قراءة اللوحات (LPR)',
       device_connected: 'متصل / مفعّل',
       device_not_connected: 'غير متوفر',
       ip_address: 'العنوان',
       no_gate_devices: 'لم يتم ربط أجهزة بهذه البوابة بعد',
 
+      // NFC / card
       cardData: 'بيانات الكارت',
       cardNumber: 'رقم الكارت',
       readCard: 'قراءة الكارت',
       reading: 'جاري القراءة…',
       readCardTitle: 'قراءة UID من القارئ',
 
+      // Cashier summary
       cashier_status: 'حالة التحصيل',
       cashier_collected: 'تم التحصيل من الزائر',
       cashier_not_collected: 'لم يتم التحصيل بعد',
       cashier_confirm_button: 'تأكيد تحصيل الكاشير',
+
+      // إضافات جديدة
+      created_at: 'تاريخ الإنشاء',
+      fees: 'الرسوم',
+      cashier_collected_yes: 'تم التحصيل من الزائر',
+      cashier_collected_no: 'لم يتم التحصيل بعد',
+      cashier_collected_short: 'تم',
     },
     en: {
       issue_ticket: 'Issue Ticket',
@@ -196,7 +205,7 @@ export class TicketComponent {
       no_gates_available: 'No gates available',
       gate_devices: 'Gate Devices',
       devices_status: 'Devices Status',
-      pc_device: 'Kiosk PC',
+      pc_device: 'PC',
       lpr_device: 'LPR Camera',
       device_connected: 'Connected / Enabled',
       device_not_connected: 'Not available',
@@ -215,6 +224,13 @@ export class TicketComponent {
       cashier_collected: 'Cash collected from visitor',
       cashier_not_collected: 'Not collected yet',
       cashier_confirm_button: 'Confirm cashier collection',
+
+      // New
+      created_at: 'Created at',
+      fees: 'Fees',
+      cashier_collected_yes: 'Cash collected from visitor',
+      cashier_collected_no: 'Not collected yet',
+      cashier_collected_short: 'OK',
     },
   };
 
@@ -254,6 +270,20 @@ export class TicketComponent {
     this.loadTicketsForEntry();
 
     this.gatePeripheral = this.auth.getGateData();
+
+    this.auth.checkGate().subscribe({
+      next: (res) => {
+        if (res?.gateDevicePeripheral) {
+          this.gatePeripheral = res.gateDevicePeripheral;
+        } else {
+          this.gatePeripheral = this.auth.getGateData();
+        }
+      },
+      error: (err) => {
+        console.error('CheckGate error', err);
+        this.gatePeripheral = this.auth.getGateData();
+      },
+    });
   }
 
   // ===== Gate loading =====
@@ -296,9 +326,16 @@ export class TicketComponent {
     this.gateSaving = true;
 
     this.auth.selectGate(this.selectedGateId, GateType.Entrance).subscribe({
-      next: () => {
+      next: (res) => {
         this.gateSaving = false;
         this.showGateSelectionModal = false;
+
+        if (res?.gateDevicePeripheral) {
+          this.gatePeripheral = res.gateDevicePeripheral;
+        } else {
+          this.gatePeripheral = this.auth.getGateData();
+        }
+
         this.loadTicketsForEntry();
       },
       error: (err) => {
@@ -309,27 +346,7 @@ export class TicketComponent {
   }
 
   confirmGateSelection() {
-    if (!this.selectedGateId) return;
-    const gate = this.gatesList.find((g) => g.id === this.selectedGateId);
-    if (!gate) return;
-
-    this.gateSaving = true;
-    this.auth.selectGate(gate.id, GateType.Entrance).subscribe({
-      next: (res: any) => {
-        this.gateSaving = false;
-
-        if (res?.gateDevicePeripheral) {
-          this.auth.updateGateData(res.gateDevicePeripheral);
-          this.gatePeripheral = res.gateDevicePeripheral;
-        }
-
-        alert(`تم اختيار البوابة رقم ${gate.gateNumber}`);
-      },
-      error: (err) => {
-        console.error('selectGate error', err);
-        this.gateSaving = false;
-      },
-    });
+    this.selectGate();
   }
 
   // ===== Create ticket (AddTicket + summary + print) =====
@@ -346,9 +363,7 @@ export class TicketComponent {
 
     this.svc.addTicket().subscribe({
       next: (res: IssuedTicketResponse | null) => {
-        if (!res) {
-          return;
-        }
+        if (!res) return;
 
         this.lastIssuedTicketId = res.ticketId;
         this.lastTicketPrice = res.price ?? null;
@@ -453,13 +468,67 @@ export class TicketComponent {
   async readCard() {
     if (this.readingCard()) return;
     this.readingCard.set(true);
+
     try {
       const uid = await this.nfc.readUID();
       const normalized = String(uid).trim().toUpperCase();
 
       this.cardNumber = normalized;
-
       this.scanBuffer = normalized;
+
+      this.svc.getTicketByQr(normalized).subscribe({
+        next: (ticket: TicketDetailsDto | null) => {
+          if (!ticket) {
+            alert('لم يتم العثور على تذكرة مرتبطة بهذا الكارت');
+            return;
+          }
+
+          this.scannedTicket = ticket;
+          this.lastIssuedTicketId = ticket.id;
+          this.lastIssuedPrice = ticket.price ?? null;
+          this.lastIssuedCreatedAt = ticket.dateTime ?? null;
+
+          const row = this.tickets.find((t) => String(t.id) === String(ticket.id));
+          const alreadyCollected = row?.isCollectedByCashier === true;
+
+          this.cashierCollected = alreadyCollected;
+
+          if (!alreadyCollected) {
+            this.collectingCashierCash = true;
+
+            this.svc.collectCashier(String(ticket.id)).subscribe({
+              next: (ok) => {
+                if (ok) {
+                  this.cashierCollected = true;
+
+                  const idx = this.tickets.findIndex((t) => String(t.id) === String(ticket.id));
+                  if (idx !== -1) {
+                    this.tickets[idx] = {
+                      ...this.tickets[idx],
+                      isCollectedByCashier: true,
+                    };
+                    this.applyFilters();
+                  }
+
+                  alert(this.t('cashier_collected'));
+                } else {
+                  alert('CollectCashier failed (Ticket not found or validation error).');
+                }
+              },
+              error: (err) => {
+                console.error('CollectCashier error from card:', err);
+              },
+              complete: () => {
+                this.collectingCashierCash = false;
+              },
+            });
+          }
+        },
+        error: (err) => {
+          console.error('Card → getTicketByQr failed:', err);
+          alert('لم يتم العثور على تذكرة مرتبطة بهذا الكارت');
+        },
+      });
     } catch (err: any) {
       console.error(err);
       alert(err?.message || 'تعذر قراءة الكارت. تأكد من تشغيل قارئ الـ NFC.');
@@ -477,6 +546,18 @@ export class TicketComponent {
       next: (ok) => {
         if (ok) {
           this.cashierCollected = true;
+
+          const idx = this.tickets.findIndex(
+            (t) => String(t.id) === String(this.lastIssuedTicketId)
+          );
+          if (idx !== -1) {
+            this.tickets[idx] = {
+              ...this.tickets[idx],
+              isCollectedByCashier: true,
+            };
+            this.applyFilters();
+          }
+
           alert(this.t('cashier_collected'));
           this.loadTicketsForEntry();
         } else {

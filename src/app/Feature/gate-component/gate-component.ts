@@ -9,13 +9,14 @@ import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-gate-component',
+  standalone: true,
   imports: [ReactiveFormsModule, CommonModule, FormsModule],
   templateUrl: './gate-component.html',
   styleUrls: ['./gate-component.css'],
 })
 export class GateComponent {
   gates: any[] = [];
-  selectedGate: string = '';
+  selectedGate: string = ''; // انايفاي الـ gateId كـ string جاي من الـ select
   gateType: GateType = GateType.Entrance;
 
   GateType = GateType;
@@ -35,7 +36,7 @@ export class GateComponent {
   getGates(): void {
     this.gateService.getAll().subscribe(
       (data) => {
-        this.gates = data;
+        this.gates = data ?? [];
       },
       (error) => {
         console.error('Error fetching gates:', error);
@@ -49,47 +50,57 @@ export class GateComponent {
 
   onGateSelect(): void {
     const selectedGateId = this.selectedGate;
-    const selectedGate = this.gates.find((gate) => gate.gateId === selectedGateId);
 
-    if (selectedGate) {
-      const gateNumber = selectedGate.gateName;
-      const gateType = this.gateType;
+    if (!selectedGateId) return;
 
-      console.log('Sending gateName: ', gateNumber, 'gateType: ', gateType);
+    const selectedGate = this.gates.find((gate) => String(gate.gateId) === String(selectedGateId));
 
-      this.http
-        .post(
-          'http://192.168.1.8/api/auth/CheckGate',
-          {
-            gateNumber: gateNumber,
-            gateType: gateType,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${this.authService.token}`,
-            },
-          }
-        )
-        .subscribe(
-          (response: any) => {
-            this.authService.updateToken(response.token);
-            this.authService.updateGateData({
-              gateDevicePeripheral: response.gateDevicePeripheral,
-            });
-            console.log('Gate selected and token updated', response);
-
-            if (response.roleName === 'ExitCashier') {
-              this.router.navigate(['/tickets/exit']);
-            } else if (response.roleName === 'EntranceCashier') {
-              this.router.navigate(['/tickets/entry']);
-            } else {
-              this.router.navigate(['/overview']);
-            }
-          },
-          (error) => {
-            console.error('Error checking gate:', error);
-          }
-        );
+    if (!selectedGate) {
+      console.warn('Selected gate not found in list');
+      return;
     }
+
+    const gateNumber = selectedGate.gateName;
+    const gateType = this.gateType;
+
+    console.log('Sending gateName: ', gateNumber, 'gateType: ', gateType);
+
+    this.http
+      .post(
+        'http://192.168.1.8/api/auth/CheckGate',
+        {
+          gateNumber: gateNumber,
+          gateType: gateType,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.authService.token}`,
+          },
+        }
+      )
+      .subscribe(
+        (response: any) => {
+          if (response.token) {
+            this.authService.updateToken(response.token);
+          }
+
+          if (response.gateDevicePeripheral) {
+            this.authService.updateGateData(response.gateDevicePeripheral);
+          }
+
+          console.log('Gate selected and token updated', response);
+
+          if (response.roleName === 'ExitCashier') {
+            this.router.navigate(['/tickets/exit']);
+          } else if (response.roleName === 'EntranceCashier') {
+            this.router.navigate(['/tickets/entry']);
+          } else {
+            this.router.navigate(['/overview']);
+          }
+        },
+        (error) => {
+          console.error('Error checking gate:', error);
+        }
+      );
   }
 }

@@ -42,3 +42,10 @@ export interface GateDto {
   gateType: GateType;
   name?: string;
 }
+
+export interface AuthResponse {
+  token: string;
+  roleName: string;
+  permissions: string[];
+  gateDevicePeripheral?: GateDevicePeripheral | null;
+}

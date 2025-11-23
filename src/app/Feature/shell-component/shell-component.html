@@ -1,4 +1,4 @@
-<div class="app-shell d-flex" [attr.dir]="dir()">
+<div class="app-shell d-flex mt-4" [attr.dir]="dir()">
   <!-- Sidebar -->
   <aside class="app-sidebar d-flex flex-column p-3">
     <a class="brand text-decoration-none mb-4" routerLink="/">
@@ -132,13 +132,13 @@
   </aside>
 
   <section class="app-content flex-fill d-flex flex-column">
-    <header class="app-topbar d-flex align-items-center justify-content-between px-4 py-3">
+    <!-- <header class="app-topbar d-flex align-items-center justify-content-between px-4 py-3">
       <div class="fw-semibold">{{ t('dashboard') }}</div>
 
       <div class="d-flex align-items-center gap-2">
         <div class="text-muted small">{{ t('welcome') }}</div>
       </div>
-    </header>
+    </header> -->
 
     <main class="p-4">
       <router-outlet></router-outlet>
