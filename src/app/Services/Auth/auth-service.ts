@@ -104,25 +104,21 @@ export class AuthService {
 
     if (!token) {
       this.clearSession();
-      return of(); // إرجاع Observable<void> بدون قيمة
+      return of();
     }
 
-    return this.http
-      .post(`${API_BASE}/Logout`, {}) // إرسال الطلب إلى الـ API
-      .pipe(
-        tap(() => {
-          // استخدام tap لتنفيذ الإجراء دون التأثير على البيانات
-          this.clearSession(); // مسح الـ Token من التخزين
-        }),
-        catchError((err) => {
-          console.warn('Logout error (ignored):', err);
-          return of(); // إرجاع Observable<void> في حالة الخطأ
-        }),
-        finalize(() => {
-          // التأكد من مسح الـ Token حتى في حالة النجاح أو الفشل
-          this.clearSession();
-        })
-      );
+    return this.http.post(`${API_BASE}/Logout`, {}).pipe(
+      tap(() => {
+        this.clearSession();
+      }),
+      catchError((err) => {
+        console.warn('Logout error (ignored):', err);
+        return of();
+      }),
+      finalize(() => {
+        this.clearSession();
+      })
+    );
   }
   private clearSession() {
     localStorage.removeItem(TOKEN_KEY);

@@ -12,22 +12,23 @@
         </div>
 
         <div class="card-body">
-          <ng-container *ngIf="gatePeripheral; else noGateDevices">
+          <ng-container *ngIf="gatePeripheral as gp; else noGateDevices">
             <!-- PC -->
             <div class="device-row mb-3">
               <div class="d-flex justify-content-between align-items-center mb-1">
                 <span class="fw-semibold">{{ t('pc_device') }}</span>
                 <span
                   class="badge pill"
-                  [class.theme-green]="gatePeripheral?.hasPc"
-                  [class.theme-red]="!gatePeripheral?.hasPc"
+                  [class.theme-green]="gp.hasPc"
+                  [class.theme-red]="!gp.hasPc"
                 >
-                  {{ gatePeripheral?.hasPc ? t('device_connected') : t('device_not_connected') }}
+                  {{ gp.hasPc ? t('device_connected') : t('device_not_connected') }}
                 </span>
               </div>
-              <div class="small text-muted" *ngIf="gatePeripheral?.pcIp">
+
+              <div class="small text-muted" *ngIf="gp.pcIp">
                 {{ t('ip_address') }}:
-                <span class="mono">{{ gatePeripheral?.pcIp }}</span>
+                <span class="mono">{{ gp.pcIp }}</span>
               </div>
             </div>
 
@@ -35,19 +36,30 @@
 
             <!-- LPR -->
             <div class="device-row">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fw-semibold">{{ t('lpr_device') }}</span>
-                <span
-                  class="badge pill"
-                  [class.theme-green]="gatePeripheral?.hasLpr"
-                  [class.theme-red]="!gatePeripheral?.hasLpr"
-                >
-                  {{ gatePeripheral?.hasLpr ? t('device_connected') : t('device_not_connected') }}
-                </span>
+              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="fw-semibold">{{ t('lpr_device') }}</span>
+                  <span
+                    class="badge pill"
+                    [class.theme-green]="gp.hasLpr"
+                    [class.theme-red]="!gp.hasLpr"
+                  >
+                    {{ gp.hasLpr ? t('device_connected') : t('device_not_connected') }}
+                  </span>
+                </div>
+
+                <!-- Manual input if camera is down -->
+                <input
+                  type="text"
+                  class="form-control form-control-sm manual-lpr-input"
+                  [(ngModel)]="manualLprPlate"
+                  [placeholder]="t('plate')"
+                />
               </div>
-              <div class="small text-muted" *ngIf="gatePeripheral?.lprIp">
+
+              <div class="small text-muted" *ngIf="gp.lprIp">
                 {{ t('ip_address') }}:
-                <span class="mono">{{ gatePeripheral?.lprIp }}</span>
+                <span class="mono">{{ gp.lprIp }}</span>
               </div>
             </div>
           </ng-container>
@@ -72,6 +84,7 @@
         </div>
 
         <div class="card-body d-flex flex-column align-items-center justify-content-center">
+          <!-- QR preview / placeholder -->
           <div class="qr-preview">
             <ng-container *ngIf="currentIssuedQr; else noQr">
               <img
@@ -87,6 +100,7 @@
                 class="img-fluid rounded border"
               />
             </ng-container>
+
             <ng-template #noQr>
               <div class="placeholder text-muted text-center">
                 <div class="bi bi-qr-code display-6 d-block mb-2"></div>
@@ -95,24 +109,83 @@
             </ng-template>
           </div>
 
-          <div class="mt-3 small text-muted" *ngIf="lastIssuedTicketId">
-            {{ t('ticket_id') }}:
-            <span class="mono">{{ lastIssuedTicketId }}</span>
+          <!-- Scan Card + manual card number -->
+          <div class="mb-3 mt-3 w-100">
+            <label class="form-label small mb-1 d-block">
+              {{ t('cardData') }}
+            </label>
+            <div class="d-flex flex-wrap align-items-center gap-2">
+              <button
+                class="btn btn-outline-primary"
+                type="button"
+                (click)="readCard()"
+                [disabled]="readingCard()"
+                [title]="t('readCardTitle')"
+              >
+                <i class="bi bi-upc-scan"></i>
+                <span class="ms-1">
+                  {{ readingCard() ? t('reading') : t('readCard') }}
+                </span>
+              </button>
+
+              <input
+                type="text"
+                class="form-control form-control-sm flex-grow-1"
+                [(ngModel)]="cardNumber"
+                [placeholder]="t('cardNumber')"
+              />
+            </div>
           </div>
 
+          <div class="mt-1 small text-muted" *ngIf="cardNumber">
+            {{ t('cardNumber') }}:
+            <span class="mono">{{ cardNumber }}</span>
+          </div>
+
+          <div *ngIf="lastIssuedTicketId" class="mt-3 w-100">
+            <div class="alert alert-light border d-flex flex-column gap-1">
+              <div class="d-flex justify-content-between">
+                <span class="small fw-semibold">{{ t('ticket_id') }}</span>
+                <span class="mono">{{ lastIssuedTicketId }}</span>
+              </div>
+
+              <div class="d-flex justify-content-between" *ngIf="lastIssuedPrice !== null">
+                <span class="small fw-semibold">{{ t('price') }}</span>
+                <span class="mono">{{ lastIssuedPrice | number : '1.0-2' }}</span>
+              </div>
+
+              <div class="d-flex justify-content-between" *ngIf="lastIssuedCreatedAt">
+                <span class="small fw-semibold">{{ t('created_at') }}</span>
+                <span class="mono">{{ lastIssuedCreatedAt | date : 'short' }}</span>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mt-2">
+                <span class="small">
+                  {{ lastIssuedCollected ? t('cashier_collected_yes') : t('cashier_collected_no') }}
+                </span>
+
+                <button
+                  class="btn btn-sm btn-success"
+                  type="button"
+                  (click)="confirmCashier()"
+                  [disabled]="cashierConfirming || lastIssuedCollected"
+                >
+                  <span *ngIf="!cashierConfirming">
+                    <i class="bi bi-cash-coin"></i> {{ t('cashier_confirm') }}
+                  </span>
+                  <span *ngIf="cashierConfirming" class="spinner-border spinner-border-sm"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- زر Create Ticket -->
           <div class="d-flex gap-2 mt-3">
-            <button class="btn btn-sm btn-primary" (click)="addNewTicket()" [disabled]="adding">
+            <button class="btn btn-sm btn-primary" (click)="createTicket()" [disabled]="adding">
               <span *ngIf="!adding" class="d-inline-flex align-items-center gap-1">
-                <i class="bi bi-plus-circle"></i> {{ t('add_new_ticket') }}
+                <i class="bi bi-plus-circle"></i> {{ t('create_ticket') }}
               </span>
               <span *ngIf="adding" class="spinner-border spinner-border-sm"></span>
-            </button>
-            <button
-              class="btn btn-sm btn-outline-secondary"
-              (click)="printTicket()"
-              [disabled]="!currentIssuedQr"
-            >
-              <i class="bi bi-printer"></i> {{ t('print_ticket') }}
             </button>
           </div>
         </div>
@@ -137,11 +210,13 @@
                   <th style="width: 160px">{{ t('time') }}</th>
                 </tr>
               </thead>
+
               <tbody>
                 <tr *ngFor="let t of pageItems()">
                   <td>{{ t.id }}</td>
                   <td>{{ t.time | date : 'short' }}</td>
                 </tr>
+
                 <tr *ngIf="!pageItems().length && !loading">
                   <td colspan="2" class="text-center text-muted py-4">
                     {{ t('no_tickets') }}
@@ -157,6 +232,7 @@
               {{ (page - 1) * pageSize + 1 }}–{{ Math.min(page * pageSize, filtered.length) }}
               {{ t('of') }} {{ filtered.length }}
             </div>
+
             <div class="btn-group" dir="ltr">
               <button
                 class="btn btn-sm btn-outline-secondary"
@@ -165,6 +241,7 @@
               >
                 {{ t('prev') }}
               </button>
+
               <button
                 class="btn btn-sm btn-outline-secondary"
                 [disabled]="page >= pagesCount()"
@@ -176,36 +253,6 @@
           </div>
         </div>
       </div>
-    </div>
-  </div>
-
-  <!-- Gate selection card -->
-  <div class="card shadow-soft mb-3">
-    <div class="card-body d-flex flex-wrap align-items-end gap-3">
-      <div class="flex-grow-1" style="max-width: 260px">
-        <label class="form-label small mb-1">{{ t('gate') }}</label>
-        <select
-          class="form-select form-select-sm"
-          [(ngModel)]="selectedGateId"
-          [disabled]="gateLoading || gateSaving"
-        >
-          <option [ngValue]="null" disabled>{{ t('all_gates') }}</option>
-          <option *ngFor="let g of gatesList" [ngValue]="g.id">
-            {{ t('gate') }} {{ g.gateNumber }}
-          </option>
-        </select>
-      </div>
-
-      <button
-        class="btn btn-sm btn-primary"
-        (click)="confirmGateSelection()"
-        [disabled]="!selectedGateId || gateSaving"
-      >
-        <span *ngIf="!gateSaving">
-          <i class="bi bi-check2-circle me-1"></i>{{ t('confirm_gate') || 'تأكيد البوابة' }}
-        </span>
-        <span *ngIf="gateSaving" class="spinner-border spinner-border-sm"></span>
-      </button>
     </div>
   </div>
 </div>

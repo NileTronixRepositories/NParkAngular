@@ -6,12 +6,16 @@ export interface TicketDto {
   action: TicketAction | '';
   time: string;
   gate: string;
+
+  price?: number;
+  isCollectedByCashier?: boolean;
 }
 
 export interface IssuedTicketResponse {
-  id: number | string;
-  qrImageBase64?: string;
-  qrText?: string;
+  qrCode: string;
+  ticketId: string;
+  createdAt: string;
+  price: number;
 }
 
 export interface TicketDetailsDto {
@@ -25,6 +29,12 @@ export interface TicketDetailsDto {
 }
 
 export interface TicketEntryDto {
-  ticketNumber: string;
   startDate: string;
+  ticketNumber: string;
+  price: number;
+  isCollectedByCashier: boolean;
+}
+
+export interface CollectCashierRequest {
+  ticketId: string;
 }

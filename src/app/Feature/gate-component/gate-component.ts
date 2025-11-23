@@ -25,7 +25,7 @@ export class GateComponent {
     private gateService: GateServices,
     private authService: AuthService,
     private fb: FormBuilder,
-    private router: Router // إضافة الـ Router هنا لتوجيه المستخدم
+    private router: Router
   ) {}
 
   ngOnInit(): void {
@@ -52,12 +52,11 @@ export class GateComponent {
     const selectedGate = this.gates.find((gate) => gate.gateId === selectedGateId);
 
     if (selectedGate) {
-      const gateNumber = selectedGate.gateName; // استخدام gateName بدلاً من gateNumber
-      const gateType = this.gateType; // نوع البوابة
+      const gateNumber = selectedGate.gateName;
+      const gateType = this.gateType;
 
-      console.log('Sending gateName: ', gateNumber, 'gateType: ', gateType); // تحقق من القيم التي سيتم إرسالها
+      console.log('Sending gateName: ', gateNumber, 'gateType: ', gateType);
 
-      // إرسال البيانات إلى API للتحقق من البوابة
       this.http
         .post(
           'http://192.168.1.8/api/auth/CheckGate',
@@ -67,7 +66,7 @@ export class GateComponent {
           },
           {
             headers: {
-              Authorization: `Bearer ${this.authService.token}`, // استخدام الـ token من الـ AuthService
+              Authorization: `Bearer ${this.authService.token}`,
             },
           }
         )
@@ -79,15 +78,11 @@ export class GateComponent {
             });
             console.log('Gate selected and token updated', response);
 
-            // التوجيه بناءً على الدور بعد التحقق من الـ response
             if (response.roleName === 'ExitCashier') {
-              // التوجيه إلى صفحة Exit
               this.router.navigate(['/tickets/exit']);
             } else if (response.roleName === 'EntranceCashier') {
-              // التوجيه إلى صفحة Entry
               this.router.navigate(['/tickets/entry']);
             } else {
-              // في حالة عدم وجود الدور المناسب يمكن توجيه المستخدم إلى صفحة أخرى
               this.router.navigate(['/overview']);
             }
           },

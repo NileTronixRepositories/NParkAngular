@@ -1,11 +1,11 @@
-import { Component, ElementRef, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   TicketDto,
   TicketAction,
-  IssuedTicketResponse,
   TicketDetailsDto,
+  IssuedTicketResponse,
 } from '../../Domain/tickets/tickets.model';
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
 
@@ -13,6 +13,9 @@ import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { GateServices, GateDto } from '../../Services/Gate/gate-services';
 import { AuthService } from '../../Services/Auth/auth-service';
 import { GateDevicePeripheral, GateType } from '../../Domain/Auth/auth.models';
+
+// NFC Reader
+import { NfcReaderService } from '../../Services/registration/nfc-reader.service';
 
 @Component({
   selector: 'app-ticket-component',
@@ -27,7 +30,9 @@ export class TicketComponent {
 
   private gateSvc = inject(GateServices);
   private auth = inject(AuthService);
+  private nfc = inject(NfcReaderService);
 
+  // ===== Gate selection =====
   showGateSelectionModal = false;
   gatesList: GateDto[] = [];
   selectedGateId: number | null = null;
@@ -36,12 +41,58 @@ export class TicketComponent {
 
   gatePeripheral: GateDevicePeripheral | null = null;
 
+  // ===== Manual inputs =====
+  manualLprPlate: string = '';
+  cardNumber: string = '';
+  readingCard = signal(false);
+
+  // ===== Ticket summary / cashier =====
+  lastIssuedTicketId: string | number | null = null;
+  lastTicketPrice: number | null = null;
+  lastTicketCreatedAt: string | null = null;
+  cashierCollected = false;
+  collectingCashierCash = false;
+
+  get lastIssuedPrice(): number | null {
+    return this.lastTicketPrice;
+  }
+  set lastIssuedPrice(v: number | null) {
+    this.lastTicketPrice = v;
+  }
+
+  get lastIssuedCreatedAt(): string | null {
+    return this.lastTicketCreatedAt;
+  }
+  set lastIssuedCreatedAt(v: string | null) {
+    this.lastTicketCreatedAt = v;
+  }
+
+  get lastIssuedCollected(): boolean {
+    return this.cashierCollected;
+  }
+  set lastIssuedCollected(v: boolean) {
+    this.cashierCollected = v;
+  }
+
+  get cashierConfirming(): boolean {
+    return this.collectingCashierCash;
+  }
+  set cashierConfirming(v: boolean) {
+    this.collectingCashierCash = v;
+  }
+
+  confirmCashier() {
+    return this.confirmCashierCollection();
+  }
+
+  // ===== i18n =====
   private dict: Record<AppLang, Record<string, string>> = {
     ar: {
       issue_ticket: 'إصدار تذكرة',
       entry: 'دخول',
-      no_ticket_yet: 'لا توجد تذكرة بعد — اضغط "إضافة تذكرة جديدة"',
+      no_ticket_yet: 'لا توجد تذكرة بعد — اضغط "إنشاء تذكرة"',
       add_new_ticket: 'إضافة تذكرة جديدة',
+      create_ticket: 'إنشاء تذكرة',
       print_ticket: 'طباعة التذكرة',
       ticket_id: 'رقم التذكرة',
       scan_admit: 'المسح والسماح بالدخول',
@@ -50,7 +101,7 @@ export class TicketComponent {
       scan_placeholder: 'ضع المؤشر هنا ثم امسح...',
       fetching_details: 'جاري جلب تفاصيل التذكرة...',
       id: 'المعرّف',
-      plate: 'اللوحة',
+      plate: 'رقم السيارة',
       start: 'البداية',
       end: 'النهاية',
       price: 'السعر',
@@ -88,12 +139,24 @@ export class TicketComponent {
       device_not_connected: 'غير متوفر',
       ip_address: 'العنوان',
       no_gate_devices: 'لم يتم ربط أجهزة بهذه البوابة بعد',
+
+      cardData: 'بيانات الكارت',
+      cardNumber: 'رقم الكارت',
+      readCard: 'قراءة الكارت',
+      reading: 'جاري القراءة…',
+      readCardTitle: 'قراءة UID من القارئ',
+
+      cashier_status: 'حالة التحصيل',
+      cashier_collected: 'تم التحصيل من الزائر',
+      cashier_not_collected: 'لم يتم التحصيل بعد',
+      cashier_confirm_button: 'تأكيد تحصيل الكاشير',
     },
     en: {
       issue_ticket: 'Issue Ticket',
       entry: 'ENTRY',
-      no_ticket_yet: 'No ticket yet — click “Add New Ticket”',
+      no_ticket_yet: 'No ticket yet — click “Create Ticket”',
       add_new_ticket: 'Add New Ticket',
+      create_ticket: 'Create Ticket',
       print_ticket: 'Print Ticket',
       ticket_id: 'Ticket ID',
       scan_admit: 'Scan & Admit',
@@ -125,13 +188,12 @@ export class TicketComponent {
       admit_done: 'Collected successfully',
       chip_entry: 'ENTRY',
       focus_to_scan: 'Focus here then scan...',
-      ticket_number: 'Ticket Number',
+      ticket_number: 'Tickets',
       select_gate: 'Select Gate',
       choose_gate: 'Choose Gate',
       cancel: 'Cancel',
       confirm: 'Confirm',
       no_gates_available: 'No gates available',
-      gate: 'Gate',
       gate_devices: 'Gate Devices',
       devices_status: 'Devices Status',
       pc_device: 'Kiosk PC',
@@ -140,12 +202,27 @@ export class TicketComponent {
       device_not_connected: 'Not available',
       ip_address: 'IP Address',
       no_gate_devices: 'No devices are linked to this gate yet',
+
+      // NFC / card
+      cardData: 'Card data',
+      cardNumber: 'Card number',
+      readCard: 'Read card',
+      reading: 'Reading…',
+      readCardTitle: 'Read UID from reader',
+
+      // Cashier summary
+      cashier_status: 'Cashier status',
+      cashier_collected: 'Cash collected from visitor',
+      cashier_not_collected: 'Not collected yet',
+      cashier_confirm_button: 'Confirm cashier collection',
     },
   };
+
   t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
   dir = () => this.i18n.dir();
   isRTL = () => this.i18n.isRTL();
 
+  // ===== Tickets list / filters =====
   tickets: TicketDto[] = [];
   filtered: TicketDto[] = [];
   loading = false;
@@ -158,11 +235,12 @@ export class TicketComponent {
   page = 1;
   pageSize = 10;
 
+  // ===== Issue ticket QR state =====
   adding = false;
   currentIssuedQr: string | null = null;
   currentIssuedQrType: 'image' | 'text' | null = null;
-  lastIssuedTicketId: number | null = null;
 
+  // ===== Scan / admit =====
   scanBuffer = '';
   scanning = false;
   scannedTicket: TicketDetailsDto | null = null;
@@ -178,6 +256,7 @@ export class TicketComponent {
     this.gatePeripheral = this.auth.getGateData();
   }
 
+  // ===== Gate loading =====
   private loadGates() {
     this.gateLoading = true;
     this.gateSvc.getAll().subscribe({
@@ -210,6 +289,7 @@ export class TicketComponent {
       },
     });
   }
+
   selectGate() {
     if (!this.selectedGateId) return;
 
@@ -252,32 +332,40 @@ export class TicketComponent {
     });
   }
 
-  addNewTicket() {
+  // ===== Create ticket (AddTicket + summary + print) =====
+  createTicket() {
+    if (this.adding) return;
+
     this.adding = true;
     this.currentIssuedQr = null;
     this.currentIssuedQrType = null;
     this.lastIssuedTicketId = null;
+    this.lastTicketPrice = null;
+    this.lastTicketCreatedAt = null;
+    this.cashierCollected = false;
 
     this.svc.addTicket().subscribe({
-      next: (res) => {
-        this.lastIssuedTicketId = (res as any)?.id ?? (res as any)?.Id ?? null;
+      next: (res: IssuedTicketResponse | null) => {
+        if (!res) {
+          return;
+        }
 
-        const img =
-          this.normalizeQrImage((res as any)?.qrImageBase64) ||
-          this.normalizeQrImage((res as any)?.qrUrl) ||
-          null;
+        this.lastIssuedTicketId = res.ticketId;
+        this.lastTicketPrice = res.price ?? null;
+        this.lastTicketCreatedAt = res.createdAt ?? null;
 
-        if (img) {
-          this.currentIssuedQr = img;
+        const normalized = this.normalizeQrImage(res.qrCode);
+        if (normalized) {
+          this.currentIssuedQr = normalized;
           this.currentIssuedQrType = 'image';
-        } else if ((res as any)?.qrText) {
-          this.currentIssuedQr = this.qrDataUrl((res as any).qrText);
-          this.currentIssuedQrType = 'text';
         } else {
-          console.warn('No QR returned from AddTicket response', res);
+          console.warn('Invalid qrCode returned from AddTicket', res.qrCode);
           this.currentIssuedQr = null;
           this.currentIssuedQrType = null;
         }
+
+        this.printTicket();
+        this.loadTicketsForEntry();
       },
       complete: () => (this.adding = false),
       error: (e) => {
@@ -327,7 +415,7 @@ export class TicketComponent {
     return `data:text/plain,${encodeURIComponent(text)}`;
   }
 
-  // ===== Right Panel =====
+  // ===== Right Panel / QR scan =====
   selectAll(el: HTMLInputElement) {
     setTimeout(() => el.select(), 0);
   }
@@ -358,6 +446,50 @@ export class TicketComponent {
       },
       complete: () => (this.collecting = false),
       error: () => (this.collecting = false),
+    });
+  }
+
+  // ===== NFC read card =====
+  async readCard() {
+    if (this.readingCard()) return;
+    this.readingCard.set(true);
+    try {
+      const uid = await this.nfc.readUID();
+      const normalized = String(uid).trim().toUpperCase();
+
+      this.cardNumber = normalized;
+
+      this.scanBuffer = normalized;
+    } catch (err: any) {
+      console.error(err);
+      alert(err?.message || 'تعذر قراءة الكارت. تأكد من تشغيل قارئ الـ NFC.');
+    } finally {
+      this.readingCard.set(false);
+    }
+  }
+
+  // ===== Cashier collect confirmation =====
+  confirmCashierCollection() {
+    if (!this.lastIssuedTicketId || this.cashierCollected) return;
+
+    this.collectingCashierCash = true;
+    this.svc.collectCashier(String(this.lastIssuedTicketId)).subscribe({
+      next: (ok) => {
+        if (ok) {
+          this.cashierCollected = true;
+          alert(this.t('cashier_collected'));
+          this.loadTicketsForEntry();
+        } else {
+          alert('CollectCashier failed (Ticket not found or validation error).');
+        }
+      },
+      error: (err) => {
+        console.error('CollectCashier error', err);
+        this.collectingCashierCash = false;
+      },
+      complete: () => {
+        this.collectingCashierCash = false;
+      },
     });
   }
 

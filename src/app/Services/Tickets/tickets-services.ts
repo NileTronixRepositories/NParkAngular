@@ -7,6 +7,7 @@ import {
   TicketDetailsDto,
   TicketEntryDto,
   TicketAction,
+  CollectCashierRequest,
 } from '../../Domain/tickets/tickets.model';
 import { environment } from '../../Shared/environment/environment';
 
@@ -35,21 +36,14 @@ export class TicketsServices {
     );
   }
 
-  addTicket(): Observable<IssuedTicketResponse> {
-    return this.http
-      .post(`${this.base}/Ticket/AddTicket`, {}, { observe: 'response', responseType: 'blob' })
-      .pipe(
-        map((res) => {
-          const blob = res.body as Blob;
-          const objectUrl = URL.createObjectURL(blob);
-          return {
-            id: Number(res.headers.get('X-Ticket-Id') ?? 0),
-            qrImageBase64: objectUrl,
-            qrText: undefined,
-          };
-        }),
-        catchError(() => of({ id: 0 } as IssuedTicketResponse))
-      );
+  // ============ AddTicket   DTO   ============
+  addTicket(): Observable<IssuedTicketResponse | null> {
+    return this.http.post<IssuedTicketResponse>(`${this.base}/Ticket/AddTicket`, {}).pipe(
+      catchError((err) => {
+        console.error('POST /Ticket/AddTicket failed', err);
+        return of(null);
+      })
+    );
   }
 
   getTicketByQr(code: string): Observable<TicketDetailsDto> {
@@ -95,6 +89,7 @@ export class TicketsServices {
     );
   }
 
+  // ============ GetTicketForEntry   ============
   getTicketsForEntry(startDate: string, ticketNumber: string = ''): Observable<TicketDto[]> {
     return this.http
       .get<TicketEntryDto[]>(`${this.base}/Ticket/GetTicketForEntry`, {
@@ -109,6 +104,8 @@ export class TicketsServices {
               action: '' as TicketDto['action'],
               time: r.startDate,
               gate: '',
+              price: r.price,
+              isCollectedByCashier: r.isCollectedByCashier,
             })
           )
         ),
@@ -141,5 +138,18 @@ export class TicketsServices {
           return of([] as TicketDto[]);
         })
       );
+  }
+
+  // ============ CollectCashier ============
+  collectCashier(ticketId: string): Observable<boolean> {
+    const body: CollectCashierRequest = { ticketId };
+
+    return this.http.post<any>(`${this.base}/Ticket/CollectCashier`, body).pipe(
+      map(() => true),
+      catchError((err) => {
+        console.error('POST /Ticket/CollectCashier failed', err);
+        return of(false);
+      })
+    );
   }
 }
