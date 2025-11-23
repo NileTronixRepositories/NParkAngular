@@ -2,10 +2,10 @@ import { Component } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { GateServices } from '../../Services/Gate/gate-services';
 import { AuthService } from '../../Services/Auth/auth-service';
-import { GateType } from '../../Domain/Auth/auth.models'; // استيراد GateType
-import { FormsModule, ReactiveFormsModule, FormBuilder, FormGroup } from '@angular/forms';
+import { GateType } from '../../Domain/Auth/auth.models';
+import { FormsModule, ReactiveFormsModule, FormBuilder } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Router } from '@angular/router'; // استيراد الـ Router لتوجيه المستخدم
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-gate-component',
@@ -15,24 +15,23 @@ import { Router } from '@angular/router'; // استيراد الـ Router لتو
 })
 export class GateComponent {
   gates: any[] = [];
-  selectedGate: string = ''; // لحفظ البوابة المختارة
-  gateType: GateType = GateType.Entrance; // لتحديد نوع البوابة (دخول أو خروج)
+  selectedGate: string = '';
+  gateType: GateType = GateType.Entrance;
 
-  GateType = GateType; // لتخزين القيم من الـ Enum
+  GateType = GateType;
 
   constructor(
     private http: HttpClient,
     private gateService: GateServices,
     private authService: AuthService,
     private fb: FormBuilder,
-    private router: Router // إضافة الـ Router هنا لتوجيه المستخدم
+    private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.getGates(); // جلب بيانات البوابات عند بدء التحميل
+    this.getGates();
   }
 
-  // جلب جميع البوابات من الخدمة
   getGates(): void {
     this.gateService.getAll().subscribe(
       (data) => {
@@ -44,59 +43,52 @@ export class GateComponent {
     );
   }
 
-  // عند تغيير نوع البوابة
   onGateTypeChange(type: GateType): void {
-    this.gateType = type; // تحديث نوع البوابة بناءً على الاختيار
+    this.gateType = type;
   }
 
-  // عند اختيار البوابة من القائمة
   onGateSelect(): void {
-    const selectedGateId = this.selectedGate;
-    const selectedGate = this.gates.find((gate) => gate.gateId === selectedGateId);
+    if (!this.selectedGate) return;
 
-    if (selectedGate) {
-      const gateNumber = selectedGate.gateName; // استخدام gateName بدلاً من gateNumber
-      const gateType = this.gateType; // نوع البوابة
+    const selectedGate = this.gates.find((gate) => gate.gateName === this.selectedGate);
+    if (!selectedGate) return;
 
-      console.log('Sending gateName: ', gateNumber, 'gateType: ', gateType); // تحقق من القيم التي سيتم إرسالها
+    const gateNumber = selectedGate.gateNumber;
+    const gateType = this.gateType;
 
-      // إرسال البيانات إلى API للتحقق من البوابة
-      this.http
-        .post(
-          'http://localhost/api/auth/CheckGate',
-          {
-            gateNumber: gateNumber,
-            gateType: gateType,
+    console.log('Sending gateNumber: ', gateNumber, 'gateType: ', gateType);
+
+    this.http
+      .post(
+        'http://192.168.1.8/api/auth/CheckGate',
+        {
+          gateNumber: gateNumber,
+          gateType: gateType,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.authService.token}`,
           },
-          {
-            headers: {
-              Authorization: `Bearer ${this.authService.token}`, // استخدام الـ token من الـ AuthService
-            },
+        }
+      )
+      .subscribe(
+        (response: any) => {
+          this.authService.updateToken(response.token);
+          this.authService.updateGateData(response.gateDevicePeripheral);
+
+          console.log('Gate selected and token updated', response);
+
+          if (response.roleName === 'ExitCashier') {
+            this.router.navigate(['/tickets/exit']);
+          } else if (response.roleName === 'EntranceCashier') {
+            this.router.navigate(['/tickets/entry']);
+          } else {
+            this.router.navigate(['/overview']);
           }
-        )
-        .subscribe(
-          (response: any) => {
-            // 1) تحديث التوكن الجديد اللي رجع من الـ API
-            this.authService.updateToken(response.token);
-
-            // 2) تخزين GateDevicePeripheral كـ قيمة Global
-            this.authService.updateGateData(response.gateDevicePeripheral);
-
-            console.log('Gate selected and token updated', response);
-
-            // 3) التوجيه بناءً على الدور
-            if (response.roleName === 'ExitCashier') {
-              this.router.navigate(['/tickets/exit']);
-            } else if (response.roleName === 'EntranceCashier') {
-              this.router.navigate(['/tickets/entry']);
-            } else {
-              this.router.navigate(['/overview']);
-            }
-          },
-          (error) => {
-            console.error('Error checking gate:', error);
-          }
-        );
-    }
+        },
+        (error) => {
+          console.error('Error checking gate:', error);
+        }
+      );
   }
 }

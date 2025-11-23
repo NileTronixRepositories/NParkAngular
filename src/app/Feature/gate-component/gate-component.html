@@ -1,26 +1,41 @@
-<form>
-  <div class="col-12 col-md-6 mb-3">
-    <label class="form-label">Gate Type</label>
-    <select 
-      class="form-select" 
-      [(ngModel)]="gateType" 
-      (change)="onGateTypeChange(gateType)"
-      name="gateType"> <!-- Add the name attribute -->
-      <option [ngValue]="GateType.Entrance">Entrance</option>
-      <option [ngValue]="GateType.Exit">Exit</option>
-    </select>
-  </div>
+<div class="gate-modal-backdrop">
+  <div class="gate-modal">
+    <div class="gate-modal-header">
+      <h5 class="mb-0">Select Gate</h5>
+    </div>
 
-  <div class="col-12 col-md-6 mb-3">
-    <label class="form-label">Gate</label>
-    <select 
-      class="form-select" 
-      [(ngModel)]="selectedGate" 
-      (change)="onGateSelect()"
-      name="gateId"> <!-- Add the name attribute -->
-      <option *ngFor="let gate of gates" [value]="gate.gateId">
-        {{ gate.gateName }}
-      </option>
-    </select>
+    <div class="gate-modal-body">
+      <form>
+        <div class="row">
+          <div class="col-12 col-md-6 mb-3">
+            <label class="form-label">Gate Type</label>
+            <select
+              class="form-select"
+              [(ngModel)]="gateType"
+              (change)="onGateTypeChange(gateType)"
+              name="gateType"
+            >
+              <option [ngValue]="GateType.Entrance">Entrance</option>
+              <option [ngValue]="GateType.Exit">Exit</option>
+            </select>
+          </div>
+
+          <div class="col-12 col-md-6 mb-3">
+            <label class="form-label">Gate</label>
+            <select
+              class="form-select"
+              [(ngModel)]="selectedGate"
+              (change)="onGateSelect()"
+              name="gateId"
+            >
+              <option [ngValue]="''" disabled>Choose gate...</option>
+              <option *ngFor="let gate of gates" [ngValue]="gate.gateId">
+                {{ gate.gateName }}
+              </option>
+            </select>
+          </div>
+        </div>
+      </form>
+    </div>
   </div>
-</form>
+</div>

@@ -57,7 +57,7 @@
           </div>
         </div>
 
-        <div *ngIf="roleIsGateCashier()" class="row">
+        <!-- <div *ngIf="roleIsGateCashier()" class="row">
           <div class="col-12 col-md-6 mb-3">
             <label class="form-label">{{ 'gateType' | t }}</label>
             <select class="form-select" formControlName="gateType">
@@ -88,7 +88,7 @@
               {{ 'gateNumberRequired' | t }}
             </div>
           </div>
-        </div>
+        </div> -->
 
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div class="form-check">
@@ -172,3 +172,4 @@
     </div>
   </div>
 </div>
+<app-gate-component *ngIf="showGatePopup"></app-gate-component>

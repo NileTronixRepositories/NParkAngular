@@ -1,0 +1,29 @@
+.gate-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1050;
+}
+
+.gate-modal {
+  background: #ffffff;
+  border-radius: 12px;
+  padding: 20px 24px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(15, 23, 42, 0.25);
+}
+
+.gate-modal-header {
+  border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+}
+
+.gate-modal-body {
+  max-height: 60vh;
+  overflow-y: auto;
+}

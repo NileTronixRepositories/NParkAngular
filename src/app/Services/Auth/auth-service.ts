@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
-import { tap } from 'rxjs/operators';
+import { tap, catchError, finalize } from 'rxjs/operators';
 import { HttpClient } from '@angular/common/http';
 import {
   LoginRequest,
@@ -9,6 +9,7 @@ import {
   GateDevicePeripheral,
   GateType,
 } from '../../Domain/Auth/auth.models';
+import {} from 'rxjs/operators';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
@@ -24,7 +25,7 @@ export interface StoredUser {
 export class AuthService {
   private http = inject(HttpClient);
 
-private gateData: GateDevicePeripheral | null = null;
+  private gateData: any = null;
 
   private storage(remember: boolean) {
     return remember ? localStorage : sessionStorage;
@@ -99,6 +100,28 @@ private gateData: GateDevicePeripheral | null = null;
   }
 
   logout(): void {
+    const token = this.token;
+
+    if (!token) {
+      this.clearSession();
+      return;
+    }
+
+    this.http
+      .post(`${API_BASE}/Logout`, {})
+      .pipe(
+        catchError((err) => {
+          console.warn('Logout error (ignored):', err);
+          return of(null);
+        }),
+        finalize(() => {
+          this.clearSession();
+        })
+      )
+      .subscribe();
+  }
+
+  private clearSession() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     sessionStorage.removeItem(TOKEN_KEY);
@@ -118,38 +141,33 @@ private gateData: GateDevicePeripheral | null = null;
   }
 
   checkGate(gateNumber: number) {
-    return this.http.post<any>('http://192.168.1.6/api/auth/CheckGate', { gateNumber });
+    return this.http.post<any>('http://192.168.1.8/api/auth/CheckGate', { gateNumber });
   }
 
-updateToken(token: string): void {
-  // نستخدم نفس KEY اللي كل السيستم مبني عليه
-  localStorage.setItem(TOKEN_KEY, token);
-}
+  updateToken(token: string): Observable<any> {
+    const remember = this.currentRemember();
+    const store = remember ? localStorage : sessionStorage;
 
-updateGateData(gdp: GateDevicePeripheral): void {
-  this.gateData = gdp;
-  localStorage.setItem('gate_device', JSON.stringify(gdp));
-}
+    store.setItem(TOKEN_KEY, token);
 
-getGateData(): GateDevicePeripheral | null {
-  if (this.gateData) return this.gateData;
+    const user = this.user;
+    if (user) {
+      store.setItem(USER_KEY, JSON.stringify(user));
+    }
 
-  const stored = localStorage.getItem('gate_device');
-  return stored ? (JSON.parse(stored) as GateDevicePeripheral) : null;
-} 
+    const other = remember ? sessionStorage : localStorage;
+    other.removeItem(TOKEN_KEY);
+    other.removeItem(USER_KEY);
 
-changePassword(newPassword: string): Observable<LoginResponse> {
-  return this.http
-    .post<LoginResponse>(`${API_BASE}/change-password`, { newPassword })
-    .pipe(
-      tap((resp) => {
-        if (resp.token) {
-          this.updateToken(resp.token); // نخزن التوكن الجديد
-        }
-      })
-    );
-}
+    return of({ token });
+  }
 
+  updateGateData(gateData: any): void {
+    this.gateData = gateData;
+    localStorage.setItem('gate_data', JSON.stringify(gateData));
+  }
 
-
+  getGateData(): any {
+    return this.gateData || JSON.parse(localStorage.getItem('gate_data') || '{}');
+  }
 }

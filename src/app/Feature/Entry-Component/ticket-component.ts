@@ -12,7 +12,7 @@ import { TicketsServices } from '../../Services/Tickets/tickets-services';
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { GateServices, GateDto } from '../../Services/Gate/gate-services';
 import { AuthService } from '../../Services/Auth/auth-service';
-import { GateType } from '../../Domain/Auth/auth.models';
+import { GateDevicePeripheral, GateType } from '../../Domain/Auth/auth.models';
 
 @Component({
   selector: 'app-ticket-component',
@@ -25,14 +25,16 @@ export class TicketComponent {
   svc = inject(TicketsServices);
   i18n = inject(LanguageService);
 
+  private gateSvc = inject(GateServices);
+  private auth = inject(AuthService);
+
   showGateSelectionModal = false;
   gatesList: GateDto[] = [];
   selectedGateId: number | null = null;
   gateLoading = false;
   gateSaving = false;
 
-  private gateSvc = inject(GateServices);
-  private auth = inject(AuthService);
+  gatePeripheral: GateDevicePeripheral | null = null;
 
   private dict: Record<AppLang, Record<string, string>> = {
     ar: {
@@ -78,6 +80,14 @@ export class TicketComponent {
       cancel: 'إلغاء',
       confirm: 'تأكيد',
       no_gates_available: 'لا توجد بوابات متاحة',
+      gate_devices: 'أجهزة البوابة',
+      devices_status: 'حالة الأجهزة',
+      pc_device: 'كمبيوتر الكشك',
+      lpr_device: 'كاميرا قراءة اللوحات (LPR)',
+      device_connected: 'متصل / مفعّل',
+      device_not_connected: 'غير متوفر',
+      ip_address: 'العنوان',
+      no_gate_devices: 'لم يتم ربط أجهزة بهذه البوابة بعد',
     },
     en: {
       issue_ticket: 'Issue Ticket',
@@ -122,6 +132,14 @@ export class TicketComponent {
       confirm: 'Confirm',
       no_gates_available: 'No gates available',
       gate: 'Gate',
+      gate_devices: 'Gate Devices',
+      devices_status: 'Devices Status',
+      pc_device: 'Kiosk PC',
+      lpr_device: 'LPR Camera',
+      device_connected: 'Connected / Enabled',
+      device_not_connected: 'Not available',
+      ip_address: 'IP Address',
+      no_gate_devices: 'No devices are linked to this gate yet',
     },
   };
   t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
@@ -154,9 +172,10 @@ export class TicketComponent {
 
   ngOnInit(): void {
     this.loadGates();
-
     this.loadEntryGates();
     this.loadTicketsForEntry();
+
+    this.gatePeripheral = this.auth.getGateData();
   }
 
   private loadGates() {
@@ -216,8 +235,14 @@ export class TicketComponent {
 
     this.gateSaving = true;
     this.auth.selectGate(gate.id, GateType.Entrance).subscribe({
-      next: () => {
+      next: (res: any) => {
         this.gateSaving = false;
+
+        if (res?.gateDevicePeripheral) {
+          this.auth.updateGateData(res.gateDevicePeripheral);
+          this.gatePeripheral = res.gateDevicePeripheral;
+        }
+
         alert(`تم اختيار البوابة رقم ${gate.gateNumber}`);
       },
       error: (err) => {

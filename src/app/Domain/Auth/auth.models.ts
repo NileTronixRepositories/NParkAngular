@@ -36,3 +36,9 @@ export interface LoginResponse {
   permissions?: string[];
   gateDevicePeripheral?: GateDevicePeripheral | null;
 }
+export interface GateDto {
+  id: number;
+  gateNumber: number;
+  gateType: GateType;
+  name?: string;
+}

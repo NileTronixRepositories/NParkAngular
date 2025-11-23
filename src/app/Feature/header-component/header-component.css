@@ -6,6 +6,18 @@
 .navbar-brand:hover {
   transform: scale(1.05);
 }
+.navbar {
+  border-bottom: 2px solid #f1f1f1;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 3000 !important;
+}
+
+body {
+  padding-top: 80px;
+}
 
 .nav-link {
   transition: color 0.2s;
