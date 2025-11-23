@@ -1,3 +1,4 @@
+import { routes } from './../../app.routes';
 import { inject, Injectable } from '@angular/core';
 import { Observable, of } from 'rxjs';
 import { tap, catchError, finalize } from 'rxjs/operators';
@@ -10,6 +11,7 @@ import {
   GateType,
 } from '../../Domain/Auth/auth.models';
 import {} from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
@@ -24,7 +26,7 @@ export interface StoredUser {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
-
+  private routes = inject(Router);
   private gateData: any = null;
 
   private storage(remember: boolean) {
@@ -113,6 +115,7 @@ export class AuthService {
       }),
       catchError((err) => {
         console.warn('Logout error (ignored):', err);
+        this.routes.navigate(['/login']);
         return of();
       }),
       finalize(() => {

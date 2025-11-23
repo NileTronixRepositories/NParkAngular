@@ -11,17 +11,21 @@ import { catchError } from 'rxjs';
   styleUrl: './header-component.css',
 })
 export class HeaderComponent {
- private auth = inject(AuthService);
+  private auth = inject(AuthService);
   private router = inject(Router);
 
   logout() {
-    this.auth.logout().pipe(
-      catchError((err) => {
-        console.error('Logout failed:', err); // التعامل مع الأخطاء هنا إن حدثت
-        return []; // تجاهل الأخطاء بشكل مرن
-      })
-    ).subscribe(() => {
-      this.router.navigate(['/login']); // التوجيه إلى صفحة الـ Login بعد عملية الـ Logout
-    });
+    this.auth
+      .logout()
+      .pipe(
+        catchError((err) => {
+          console.error('Logout failed:', err); // التعامل مع الأخطاء هنا إن حدثت
+          this.router.navigate(['/login']);
+          return []; // تجاهل الأخطاء بشكل مرن
+        })
+      )
+      .subscribe(() => {
+        this.router.navigate(['/login']); // التوجيه إلى صفحة الـ Login بعد عملية الـ Logout
+      });
   }
 }
