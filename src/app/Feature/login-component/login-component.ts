@@ -142,12 +142,11 @@ export class LoginComponent {
       remember: !!this.form.value.remember,
     };
 
-    // تسجيل الدخول باستخدام auth.login
     this.auth.login(dto).subscribe({
       next: () => {
         this.loading = false;
         this.toast?.success?.(this.t('successLogin'));
-        this.navigateAfterLogin(); // بعد النجاح، توجيه المستخدم بناءً على الدور
+        this.navigateAfterLogin();
       },
       error: (err) => {
         this.loading = false;
@@ -156,12 +155,11 @@ export class LoginComponent {
     });
   }
 
-navigateAfterLogin() {
+  navigateAfterLogin() {
     const role = this.auth.role;
 
-    // التوجيه إلى gate-selection للمستخدمين ذوي الأدوار المحددة
     if (role === 'EntranceCashier' || role === 'ExitCashier') {
-      this.router.navigate(['/gate-selection']); // التوجيه إلى صفحة تحديد البوابة
+      this.router.navigate(['/gate-selection']);
       return;
     }
 
@@ -172,7 +170,7 @@ navigateAfterLogin() {
     }
 
     this.router.navigate(['/overview']);
-}
+  }
 
   private t(key: string) {
     return (this as any).dict?.[this.lang.current]?.[key] ?? key;
@@ -183,7 +181,6 @@ navigateAfterLogin() {
       this.changeForm.markAllAsTouched();
       return;
     }
-    // قم بتطبيق منطق تغيير كلمة المرور هنا
     const newPassword = this.changeForm.value.newPassword;
     const confirmPassword = this.changeForm.value.confirmPassword;
     if (newPassword && confirmPassword) {
@@ -192,7 +189,6 @@ navigateAfterLogin() {
         return;
       }
 
-      // الاتصال بـ API لتحديث كلمة المرور
       this.auth.updateToken(newPassword).subscribe({
         next: () => {
           this.toast?.success?.('تم تحديث كلمة المرور بنجاح');

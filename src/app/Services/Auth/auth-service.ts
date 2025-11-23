@@ -12,7 +12,7 @@ import {
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
-const API_BASE = 'http://192.168.1.6:80/api/auth';
+const API_BASE = 'http://192.168.1.8:80/api/auth';
 
 export interface StoredUser {
   role: string;
@@ -24,7 +24,7 @@ export interface StoredUser {
 export class AuthService {
   private http = inject(HttpClient);
 
-  private gateData: any = null; // إضافة خاصية gateData لتخزين بيانات البوابة
+  private gateData: any = null;
 
   private storage(remember: boolean) {
     return remember ? localStorage : sessionStorage;
@@ -123,16 +123,14 @@ export class AuthService {
 
   updateToken(token: string): Observable<any> {
     localStorage.setItem('token', token);
-    return of({ token }); // إرجاع Observable لضمان أن الدالة تُعيد قيمة يمكن الاشتراك عليها.
+    return of({ token });
   }
 
-  // دالة لتحديث بيانات الـ Gate
   updateGateData(gateData: any): void {
-    this.gateData = gateData; // تخزين بيانات الـ Gate في الذاكرة
-    localStorage.setItem('gate_data', JSON.stringify(gateData)); // حفظ بيانات الـ Gate في Local Storage
+    this.gateData = gateData;
+    localStorage.setItem('gate_data', JSON.stringify(gateData));
   }
 
-  // دالة للحصول على بيانات الـ Gate من الذاكرة أو Local Storage
   getGateData(): any {
     return this.gateData || JSON.parse(localStorage.getItem('gate_data') || '{}');
   }
