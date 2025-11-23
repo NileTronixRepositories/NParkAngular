@@ -99,28 +99,31 @@ export class AuthService {
       .pipe(tap((resp) => this.saveSession(resp, remember)));
   }
 
-  logout(): void {
+  logout(): Observable<object> {
     const token = this.token;
 
     if (!token) {
       this.clearSession();
-      return;
+      return of(); // إرجاع Observable<void> بدون قيمة
     }
 
-    this.http
-      .post(`${API_BASE}/Logout`, {})
+    return this.http
+      .post(`${API_BASE}/Logout`, {}) // إرسال الطلب إلى الـ API
       .pipe(
+        tap(() => {
+          // استخدام tap لتنفيذ الإجراء دون التأثير على البيانات
+          this.clearSession(); // مسح الـ Token من التخزين
+        }),
         catchError((err) => {
           console.warn('Logout error (ignored):', err);
-          return of(null);
+          return of(); // إرجاع Observable<void> في حالة الخطأ
         }),
         finalize(() => {
+          // التأكد من مسح الـ Token حتى في حالة النجاح أو الفشل
           this.clearSession();
         })
-      )
-      .subscribe();
+      );
   }
-
   private clearSession() {
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);

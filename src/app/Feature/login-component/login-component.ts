@@ -105,7 +105,7 @@ export class LoginComponent {
     gateType: [GateType.Entrance, [Validators.required]],
     gateNumber: [1, [Validators.required, Validators.min(1)]],
   });
-
+showGatePopup = false
   showChangeModal = false;
   changeLoading = false;
   changeForm = this.fb.group(
