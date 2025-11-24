@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { Observable, of, tap } from 'rxjs';
 import { GateDevicePeripheral, GateType } from '../../Domain/Auth/auth.models';
 
 const TOKEN_KEY = 'auth_token';
@@ -165,11 +165,32 @@ export class AuthService {
     store.setItem(USER_KEY, JSON.stringify(updated));
   }
 
-  logout(): void {
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(USER_KEY);
-    this.gateData = null;
+logout(): Observable<void> {
+  const token = localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
+
+  if (!token) {
+    console.error('No token found for logout');
+    return of(); // في حال لم يكن هناك توكن، إرجاع Observable فارغ
   }
+
+  console.log('Attempting logout...');
+
+  const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+  return this.http.post<void>(`${API_BASE}/logout`, {}, { headers }).pipe(
+    tap(() => {
+      // لا نقوم بمسح البيانات هنا لأننا نترك هذه المهمة لـ HeaderComponent بعد أن نتأكد من النجاح
+    })
+  );
+}
+clearUserData() {
+  // مسح الـ Token وبيانات الـ User من الـ localStorage أو sessionStorage
+  localStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(USER_KEY);
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(USER_KEY);
+
+  // تأكد من مسح الـ gateData أيضًا
+  this.gateData = null;
+}
 }
