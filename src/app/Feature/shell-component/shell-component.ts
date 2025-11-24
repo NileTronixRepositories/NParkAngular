@@ -93,6 +93,10 @@ export class ShellComponent implements OnDestroy {
     return this.role === 'ExitCashier';
   }
 
+  get isSupervisor(): boolean {
+    return this.role === 'Supervisor';
+  }
+
   toggleGate() {
     this.gateOpen = !this.gateOpen;
   }

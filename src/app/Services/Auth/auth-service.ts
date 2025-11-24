@@ -1,7 +1,9 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, Inject } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable, of, tap } from 'rxjs';
+import { Observable, of, tap, catchError } from 'rxjs';
 import { GateDevicePeripheral, GateType } from '../../Domain/Auth/auth.models';
+import { ToastServices } from '../Toster/toast-services';
+import { TicketsServices } from '../Tickets/tickets-services';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
@@ -23,8 +25,10 @@ export interface AuthResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private http = inject(HttpClient);
+  private toast = inject(ToastServices);
 
   private gateData: GateDevicePeripheral | null = null;
+  private collectLoading = false;
 
   private storage(remember: boolean): Storage {
     return remember ? localStorage : sessionStorage;
@@ -44,8 +48,7 @@ export class AuthService {
     return !!this.token;
   }
 
-  // ========== LOGIN ==========
-  // زي ما كنا عاملين قبل كده: بارامتر واحد dto وفيه remember
+  // ========= LOGIN =========
   login(body: any): Observable<AuthResponse> {
     const remember = !!body.remember;
 
@@ -67,19 +70,16 @@ export class AuthService {
     );
   }
 
-  // لو عندك loginFirstTime خليه زي كده
   loginFirstTime(newPassword: string): Observable<any> {
     return this.http.post<any>(`${API_BASE}/loginFirstTime`, { newPassword });
   }
 
-  // ========== CHECK GATE (من الباك) ==========
+  // ========= CHECK GATE =========
   checkGate(): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${API_BASE}/CheckGate`, {}).pipe(
       tap((res) => {
-        // حدّث التوكن
         this.updateToken(res.token);
 
-        // حدّث بيانات اليوزر + الأجهزة
         const store = this.detectStorage();
         const current = this.getStoredUser();
 
@@ -95,8 +95,7 @@ export class AuthService {
     );
   }
 
-  // ========== SELECT GATE (اختيار بوابة) ==========
-  // TicketComponent بيناديها بـ (selectedGateId, GateType.Entrance)
+  // ========= SELECT GATE =========
   selectGate(gateId: number, gateType: GateType): Observable<AuthResponse> {
     const body = { gateId, gateType };
 
@@ -119,8 +118,7 @@ export class AuthService {
     );
   }
 
-  // ========== TOKEN & USER & GATE DATA ==========
-
+  // ========= TOKEN & USER =========
   updateToken(token: string) {
     if (!token) return;
     const store = this.detectStorage();
@@ -165,32 +163,74 @@ export class AuthService {
     store.setItem(USER_KEY, JSON.stringify(updated));
   }
 
-logout(): Observable<void> {
-  const token = localStorage.getItem(TOKEN_KEY) || sessionStorage.getItem(TOKEN_KEY);
+  // ========= LOGOUT =========
+  logout(): Observable<void> {
+    const token = this.token;
 
-  if (!token) {
-    console.error('No token found for logout');
-    return of(); // في حال لم يكن هناك توكن، إرجاع Observable فارغ
+    if (!token) {
+      console.warn('Logout: no token in storage, treating as already logged out');
+      return of(void 0);
+    }
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+
+    return this.http.post<void>(`${API_BASE}/logout`, {}, { headers }).pipe(
+      tap(() => {
+        console.log('Logout API success');
+      }),
+      catchError((err) => {
+        if (err?.status === 404 && err?.error?.detail === 'Token not found') {
+          console.warn('Logout: token not found on server, treating as already logged out');
+          return of(void 0);
+        }
+
+        console.error('Logout API failed', err);
+        return of(void 0);
+      })
+    );
   }
 
-  console.log('Attempting logout...');
+  clearUserData() {
+    localStorage.removeItem(TOKEN_KEY);
+    localStorage.removeItem(USER_KEY);
+    sessionStorage.removeItem(TOKEN_KEY);
+    sessionStorage.removeItem(USER_KEY);
 
-  const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    this.gateData = null;
+  }
 
-  return this.http.post<void>(`${API_BASE}/logout`, {}, { headers }).pipe(
-    tap(() => {
-      // لا نقوم بمسح البيانات هنا لأننا نترك هذه المهمة لـ HeaderComponent بعد أن نتأكد من النجاح
-    })
-  );
-}
-clearUserData() {
-  // مسح الـ Token وبيانات الـ User من الـ localStorage أو sessionStorage
-  localStorage.removeItem(TOKEN_KEY);
-  localStorage.removeItem(USER_KEY);
-  sessionStorage.removeItem(TOKEN_KEY);
-  sessionStorage.removeItem(USER_KEY);
+  get isSupervisor(): boolean {
+    return this.role === 'Supervisor';
+  }
 
-  // تأكد من مسح الـ gateData أيضًا
-  this.gateData = null;
-}
+  collectDailyForGate() {
+    if (this.collectLoading) return;
+    this.collectLoading = true;
+
+    const ticketService = inject(TicketsServices);
+
+    ticketService.collectDailyTickets().subscribe({
+      next: (res: any) => {
+        const total = res?.totalAmount ?? res?.total ?? res?.amount ?? null;
+
+        if (total != null) {
+          this.toast.success(`تم تحصيل ${total} من هذه البوابة لليوم.`);
+        } else {
+          this.toast.success('تم تحصيل كل التذاكر لليوم لهذه البوابة.');
+        }
+
+        const startOfDay = new Date();
+        startOfDay.setHours(0, 0, 0, 0);
+        ticketService.getTicketsForEntry(startOfDay.toISOString()).subscribe();
+      },
+      error: (err: any) => {
+        console.error('collectDailyTickets error', err);
+        this.collectLoading = false;
+        this.toast.fromProblem(err);
+      },
+      complete: () => {
+        this.collectLoading = false;
+      },
+    });
+  }
 }

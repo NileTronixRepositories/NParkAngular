@@ -123,13 +123,13 @@ export const routes: Routes = [
       },
 
       // Add the Gate Component route here
- {
-  path: 'gate-selection',
-  canActivate: [authGuard],
-  data: { roles: ['EntranceCashier', 'ExitCashier'] },
-  loadComponent: () =>
-    import('./Feature/gate-component/gate-component').then((m) => m.GateComponent),
-},
+      {
+        path: 'gate-selection',
+        canActivate: [authGuard],
+        data: { roles: ['EntranceCashier', 'ExitCashier', 'Supervisor'] },
+        loadComponent: () =>
+          import('./Feature/gate-component/gate-component').then((m) => m.GateComponent),
+      },
     ],
   },
 

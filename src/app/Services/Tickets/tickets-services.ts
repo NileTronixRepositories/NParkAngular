@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, map, catchError } from 'rxjs';
+import { Observable, of, map, catchError, throwError } from 'rxjs';
 import {
   TicketDto,
   IssuedTicketResponse,
@@ -8,8 +8,18 @@ import {
   TicketEntryDto,
   TicketAction,
   CollectCashierRequest,
+  ParkingCardSummaryDto,
+  AddTicketRequest,
+  TicketTableResponseDto,
+  CollectDailyTicketsResponse,
 } from '../../Domain/tickets/tickets.model';
 import { environment } from '../../Shared/environment/environment';
+import { AuthService } from '../Auth/auth-service';
+
+export interface TicketsForGateResult {
+  items: TicketDto[];
+  totalPrice: number;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -17,6 +27,7 @@ import { environment } from '../../Shared/environment/environment';
 export class TicketsServices {
   private http = inject(HttpClient);
   private base = environment.baseUrl;
+  private auth = inject(AuthService);
 
   getAll(): Observable<TicketDto[]> {
     return this.http.get<any[]>(`${this.base}/Ticket`).pipe(
@@ -29,16 +40,22 @@ export class TicketsServices {
           gate: r.gate ?? r.Gate ?? '',
         }))
       ),
-      catchError((err) => {
-        console.error('GET /Ticket failed', err);
-        return of([] as TicketDto[]);
-      })
+      catchError(() => of([]))
     );
   }
 
-  // ============ AddTicket   DTO   ============
-  addTicket(): Observable<IssuedTicketResponse | null> {
-    return this.http.post<IssuedTicketResponse>(`${this.base}/Ticket/AddTicket`, {}).pipe(
+  // ============ AddTicket ============
+
+  addTicket(req: AddTicketRequest): Observable<IssuedTicketResponse | null> {
+    const body: any = {
+      isSubscriber: req.isSubscriber,
+      vehicleNumber: req.vehicleNumber?.trim() || undefined,
+      cardNumber: req.cardNumber?.trim() || undefined,
+    };
+
+    Object.keys(body).forEach((k) => body[k] === undefined && delete body[k]);
+
+    return this.http.post<IssuedTicketResponse>(`${this.base}/Ticket/AddTicket`, body).pipe(
       catchError((err) => {
         console.error('POST /Ticket/AddTicket failed', err);
         return of(null);
@@ -89,15 +106,20 @@ export class TicketsServices {
     );
   }
 
-  // ============ GetTicketForEntry   ============
-  getTicketsForEntry(startDate: string, ticketNumber: string = ''): Observable<TicketDto[]> {
+  // ============ GetTicketForEntry ============
+  getTicketsForEntry(
+    startDate: string,
+    ticketNumber: string = ''
+  ): Observable<TicketsForGateResult> {
     return this.http
-      .get<TicketEntryDto[]>(`${this.base}/Ticket/GetTicketForEntry`, {
+      .get<TicketTableResponseDto>(`${this.base}/Ticket/GetTicketForEntry`, {
         params: { startDate, ticketNumber },
       })
       .pipe(
-        map((rows): TicketDto[] =>
-          (rows ?? []).map(
+        map((res): TicketsForGateResult => {
+          const rows = res?.ticketInfo ?? [];
+
+          const items: TicketDto[] = rows.map(
             (r): TicketDto => ({
               id: r.ticketNumber,
               plate: '',
@@ -106,36 +128,55 @@ export class TicketsServices {
               gate: '',
               price: r.price,
               isCollectedByCashier: r.isCollectedByCashier,
+              info: r.ticketInfo ?? undefined,
             })
-          )
-        ),
+          );
+
+          return {
+            items,
+            totalPrice: res?.totalPrice ?? 0,
+          };
+        }),
         catchError((err) => {
           console.error('GET /Ticket/GetTicketForEntry failed', err);
-          return of([] as TicketDto[]);
+          return of({ items: [] as TicketDto[], totalPrice: 0 });
         })
       );
   }
 
-  getTicketsForExit(startDate: string, ticketNumber: string = ''): Observable<TicketDto[]> {
+  getTicketsForExit(
+    startDate: string,
+    ticketNumber: string = ''
+  ): Observable<TicketsForGateResult> {
     return this.http
-      .get<TicketEntryDto[]>(`${this.base}/Ticket/GetTicketForExit`, {
+      .get<TicketTableResponseDto>(`${this.base}/Ticket/GetTicketForExit`, {
         params: { startDate, ticketNumber },
       })
       .pipe(
-        map((rows): TicketDto[] =>
-          (rows ?? []).map(
+        map((res): TicketsForGateResult => {
+          const rows = res?.ticketInfo ?? [];
+
+          const items: TicketDto[] = rows.map(
             (r): TicketDto => ({
               id: r.ticketNumber,
               plate: '',
               action: 'OUT' as TicketAction,
               time: r.startDate,
               gate: '',
+              price: r.price,
+              isCollectedByCashier: r.isCollectedByCashier,
+              info: r.ticketInfo ?? undefined,
             })
-          )
-        ),
+          );
+
+          return {
+            items,
+            totalPrice: res?.totalPrice ?? 0,
+          };
+        }),
         catchError((err) => {
           console.error('GET /Ticket/GetTicketForExit failed', err);
-          return of([] as TicketDto[]);
+          return of({ items: [] as TicketDto[], totalPrice: 0 });
         })
       );
   }
@@ -150,6 +191,51 @@ export class TicketsServices {
         console.error('POST /Ticket/CollectCashier failed', err);
         return of(false);
       })
+    );
+  }
+
+  // ============ ParkingMemberships/GetCardSummary ============
+  getCardSummary(cardNumber: string): Observable<ParkingCardSummaryDto | null> {
+    const trimmed = cardNumber?.trim();
+    if (!trimmed) return of(null);
+
+    const params = new HttpParams().set('CardNumber', trimmed);
+
+    return this.http.get<any>(`${this.base}/ParkingMemberships/GetCardSummary`, { params }).pipe(
+      map((res: any) => res as ParkingCardSummaryDto),
+      catchError((err) => {
+        console.error('GET /ParkingMemberships/GetCardSummary failed', err);
+        return of(null);
+      })
+    );
+  }
+
+  addExitTicket(ticketId: string): Observable<boolean> {
+    const body = { ticketId };
+
+    return this.http.post<any>(`${this.base}/Ticket/AddExitTicket`, body).pipe(
+      map(() => true),
+      catchError((err) => {
+        console.error('POST /Ticket/AddExitTicket failed', err);
+        return of(false);
+      })
+    );
+  }
+
+  collectDailyTickets(): Observable<CollectDailyTicketsResponse> {
+    const gateData = this.auth.getGateData() as any;
+
+    if (!gateData || !gateData.gateId) {
+      return throwError(
+        () => new Error('No gate selected or gateId missing in gateDevicePeripheral')
+      );
+    }
+
+    const body = { gateId: gateData.gateId };
+
+    return this.http.post<CollectDailyTicketsResponse>(
+      `${this.base}/Ticket/CollectDailyTickets`,
+      body
     );
   }
 }

@@ -18,6 +18,9 @@ body {
   flex: 1 0 auto;
   display: block;
 }
+.page-content {
+  min-height: 100vh;
+}
 
 .app-shell app-footer-component {
   margin-top: auto;

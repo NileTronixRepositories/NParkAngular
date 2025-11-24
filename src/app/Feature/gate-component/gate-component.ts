@@ -1,11 +1,12 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { GateServices } from '../../Services/Gate/gate-services';
 import { AuthService } from '../../Services/Auth/auth-service';
 import { GateType } from '../../Domain/Auth/auth.models';
-import { FormsModule, ReactiveFormsModule, FormBuilder } from '@angular/forms';
+import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
+import { ToastServices } from '../../Services/Toster/toast-services';
 
 @Component({
   selector: 'app-gate-component',
@@ -16,91 +17,91 @@ import { Router } from '@angular/router';
 })
 export class GateComponent {
   gates: any[] = [];
-  selectedGate: string = ''; // انايفاي الـ gateId كـ string جاي من الـ select
+  selectedGate: number | '' = '';
   gateType: GateType = GateType.Entrance;
 
   GateType = GateType;
 
-  constructor(
-    private http: HttpClient,
-    private gateService: GateServices,
-    private authService: AuthService,
-    private fb: FormBuilder,
-    private router: Router
-  ) {}
+  private http = inject(HttpClient);
+  private gateService = inject(GateServices);
+  private authService = inject(AuthService);
+  private router = inject(Router);
+  private toast = inject(ToastServices);
 
   ngOnInit(): void {
     this.getGates();
   }
 
   getGates(): void {
-    this.gateService.getAll().subscribe(
-      (data) => {
+    this.gateService.getAll().subscribe({
+      next: (data) => {
         this.gates = data ?? [];
       },
-      (error) => {
+      error: (error) => {
         console.error('Error fetching gates:', error);
-      }
-    );
+        this.toast.fromProblem(error);
+      },
+    });
   }
 
   onGateTypeChange(type: GateType): void {
     this.gateType = type;
   }
 
-  onGateSelect(): void {
-    const selectedGateId = this.selectedGate;
-
-    if (!selectedGateId) return;
-
-    const selectedGate = this.gates.find((gate) => String(gate.gateId) === String(selectedGateId));
-
-    if (!selectedGate) {
-      console.warn('Selected gate not found in list');
+  confirmGate(): void {
+    if (!this.selectedGate) {
+      this.toast.warn('Please select a gate');
       return;
     }
 
-    const gateNumber = selectedGate.gateName;
+    const selectedGateId = Number(this.selectedGate);
+    const selectedGate = this.gates.find((g) => g.gateId === selectedGateId);
+
+    console.log('Debug - selectedGateId:', selectedGateId);
+    console.log('Debug - available gates:', this.gates);
+    console.log('Debug - found gate:', selectedGate);
+
+    if (!selectedGate) {
+      console.warn('Selected gate not found in list');
+      this.toast.error('Selected gate not found');
+      return;
+    }
+
+    const gateId = selectedGate.gateId as number;
     const gateType = this.gateType;
 
-    console.log('Sending gateName: ', gateNumber, 'gateType: ', gateType);
+    console.log('Selecting gateId:', gateId, 'gateType:', gateType);
 
-    this.http
-      .post(
-        'http://192.168.1.8/api/auth/CheckGate',
-        {
-          gateNumber: gateNumber,
-          gateType: gateType,
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${this.authService.token}`,
+    this.authService.checkGate().subscribe({
+      next: (checkRes) => {
+        console.log('Check gate successful:', checkRes);
+
+        this.authService.selectGate(gateId, gateType).subscribe({
+          next: (selectRes) => {
+            console.log('Gate selected and token updated', selectRes);
+
+            if (gateType === GateType.Entrance) {
+              this.router.navigate(['/tickets/entry']);
+            } else if (gateType === GateType.Exit) {
+              this.router.navigate(['/tickets/exit']);
+            } else {
+              this.router.navigate(['/overview']);
+            }
           },
-        }
-      )
-      .subscribe(
-        (response: any) => {
-          if (response.token) {
-            this.authService.updateToken(response.token);
-          }
+          error: (selectError) => {
+            console.error('Error selecting gate:', selectError);
+            this.toast.fromProblem(selectError);
+          },
+        });
+      },
+      error: (checkError) => {
+        console.error('Error checking gate session:', checkError);
+        this.toast.fromProblem(checkError);
+      },
+    });
+  }
 
-          if (response.gateDevicePeripheral) {
-            this.authService.updateGateData(response.gateDevicePeripheral);
-          }
-
-          console.log('Gate selected and token updated', response);
-
-          if (response.roleName === 'ExitCashier') {
-            this.router.navigate(['/tickets/exit']);
-          } else if (response.roleName === 'EntranceCashier') {
-            this.router.navigate(['/tickets/entry']);
-          } else {
-            this.router.navigate(['/overview']);
-          }
-        },
-        (error) => {
-          console.error('Error checking gate:', error);
-        }
-      );
+  onGateSelect(): void {
+    this.confirmGate();
   }
 }

@@ -19,7 +19,7 @@ import { GateComponent } from '../gate-component/gate-component';
   providers: [
     {
       provide: I18N_DICT,
-      useValue: (<I18nDict>{
+      useValue: <I18nDict>{
         ar: {
           brandSuffix: 'Park',
           signInToContinue: 'سجّل الدخول للمتابعة',
@@ -81,7 +81,7 @@ import { GateComponent } from '../gate-component/gate-component';
           gateTypeRequired: 'Gate type is required.',
           gateNumberRequired: 'Gate number is required.',
         },
-      }) as I18nDict,
+      },
     },
   ],
 })
@@ -122,7 +122,7 @@ export class LoginComponent {
   constructor(@Inject(I18N_DICT) private dict: I18nDict) {}
 
   private t(key: string) {
-    return (this as any).dict?.[this.lang.current]?.[key] ?? key;
+    return this.dict[this.lang.current]?.[key] ?? key;
   }
 
   passwordsMatch(group: any) {
@@ -133,8 +133,7 @@ export class LoginComponent {
 
   roleIsGateCashier(): boolean {
     const role = this.auth.role;
-    // لو الباك اند بيرجع EntranceCashier / ExitCashier
-    return role === 'EntranceCashier' || role === 'ExitCashier';
+    return role === 'EntranceCashier' || role === 'ExitCashier' || role === 'Supervisor';
   }
 
   submit() {
@@ -169,7 +168,7 @@ export class LoginComponent {
   navigateAfterLogin() {
     const role = this.auth.role;
 
-    if (role === 'EntranceCashier' || role === 'ExitCashier') {
+    if (role === 'EntranceCashier' || role === 'ExitCashier' || role === 'Supervisor') {
       this.router.navigate(['/gate-selection']);
       return;
     }
@@ -205,7 +204,6 @@ export class LoginComponent {
     this.changeError = null;
     this.changeLoading = true;
 
-    // ✅ CALL loginFirstTime بدل updateToken().subscribe
     this.auth.loginFirstTime(newPassword).subscribe({
       next: () => {
         this.changeLoading = false;

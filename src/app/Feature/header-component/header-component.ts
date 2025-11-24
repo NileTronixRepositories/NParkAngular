@@ -15,28 +15,18 @@ export class HeaderComponent {
   private router = inject(Router);
 
   logout() {
-    // إرسال طلب تسجيل الخروج إلى الـ API
-    this.auth.logout().subscribe(
-      (response) => {
-        console.log('API call successful, logging out...');
-
-        // بعد نجاح الاتصال مع الـ API، قم بمسح الـ Token وبيانات الـ User
-        this.auth.clearUserData();
-
-        // التوجيه إلى صفحة الـ login بعد نجاح العملية
-        this.router.navigate(['/login']);
+    this.auth.logout().subscribe({
+      next: () => {
+        this.finishLogout();
       },
-      (error) => {
-        console.error('Logout API call failed', error);
-
-        // إذا فشل الاتصال مع الـ API، قم بمسح الـ Token وبيانات الـ User أيضًا
-        this.auth.clearUserData();
-
-        // التوجيه إلى صفحة الـ login حتى وإن فشل الاتصال
-        this.router.navigate(['/login']);
-      }
-    );
+      error: () => {
+        this.finishLogout();
+      },
+    });
   }
 
-  // دالة لمسح الـ Token وبيانات الـ User
+  private finishLogout() {
+    this.auth.clearUserData();
+    this.router.navigate(['/login']);
+  }
 }
