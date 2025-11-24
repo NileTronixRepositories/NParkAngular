@@ -11,6 +11,10 @@ export interface TicketDto {
   isCollectedByCashier?: boolean;
 
   info?: string;
+
+  customerName?: string | null;
+  phone?: string | null;
+  cardNumber?: string | null;
 }
 
 export interface IssuedTicketResponse {
@@ -39,6 +43,20 @@ export interface TicketEntryDto {
   isCollectedByCashier: boolean;
 
   ticketInfo?: string;
+
+  name?: string;
+  Name?: string;
+  customerName?: string;
+  CustomerName?: string;
+
+  phone?: string;
+  Phone?: string;
+
+  cardNumber?: string;
+  CardNumber?: string;
+
+  plate?: string;
+  Plate?: string;
 }
 
 export interface TicketTableResponseDto {
@@ -72,4 +90,11 @@ export interface CollectDailyTicketsResponse {
   gateName: string;
   date: string;
   totalAmount: number;
+  totalPriceCollected: number;
+  totalTicketsCollected: number;
+  ticketCollectDetails: {
+    collectedAt: string;
+    ticketNumber: string;
+    price: number;
+  }[];
 }

@@ -233,11 +233,8 @@
             </ng-template>
           </div>
 
-          <!-- Ticket summary + cashier confirm -->
-          <!-- مخفي في حالة وجود cardSummary (مود الكارت / subscriber) -->
           <div *ngIf="lastIssuedTicketId && !cardSummary" class="mt-3 w-100">
             <div class="alert alert-light border d-flex flex-column gap-1">
-              <!-- ✅ نعرض TicketInfo بدل TicketId -->
               <div class="d-flex justify-content-between" *ngIf="lastIssuedTicketInfo">
                 <span class="small fw-semibold">{{ t('ticket_number') }}</span>
                 <span class="mono">{{ lastIssuedTicketInfo }}</span>
@@ -250,7 +247,12 @@
 
               <div class="d-flex justify-content-between" *ngIf="lastIssuedPrice !== null">
                 <span class="small fw-semibold">{{ t('price') }}</span>
-                <span class="mono">{{ lastIssuedPrice | number : '1.0-2' }}</span>
+                <div class="d-flex align-items-center gap-2">
+                  <span class="mono">{{ lastIssuedPrice | number : '1.0-2' }}</span>
+                  <span *ngIf="lastIssuedCollected" class="badge bg-success">
+                    {{ t('cashier_collected_short') }}
+                  </span>
+                </div>
               </div>
 
               <div class="d-flex justify-content-between" *ngIf="lastIssuedCreatedAt">
@@ -294,7 +296,7 @@
     <!-- Block 3: Tickets Table -->
     <div class="col-12 col-lg-4">
       <div class="card h-100 shadow-soft">
-        <div class="card-header d-flex justify-content_between align-items-center">
+        <div class="card-header d-flex justify-content-between align-items-center">
           <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
             <i class="bi bi-list-ol"></i> {{ t('ticket_number') }}
           </h5>
@@ -313,10 +315,40 @@
 
               <tbody>
                 <tr *ngFor="let ticket of pageItems()">
-                  <td>{{ ticket.info || ticket.id }}</td>
+                  <td>
+                    <ng-container *ngIf="ticket.info as ti; else structuredInfo">
+                      <span class="mono">{{ ti }}</span>
+                    </ng-container>
+
+                    <ng-template #structuredInfo>
+                      <ng-container
+                        *ngIf="
+                          ticket.customerName || ticket.phone || ticket.cardNumber;
+                          else fallbackId
+                        "
+                      >
+                        <div *ngIf="ticket.customerName" class="fw-semibold">
+                          {{ ticket.customerName }}
+                        </div>
+                        <div *ngIf="ticket.phone" class="small text-muted">
+                          {{ ticket.phone }}
+                        </div>
+                        <div *ngIf="ticket.cardNumber" class="small mono">
+                          {{ ticket.cardNumber }}
+                        </div>
+                      </ng-container>
+                    </ng-template>
+
+                    <ng-template #fallbackId>
+                      <span class="mono">{{ ticket.id }}</span>
+                    </ng-template>
+                  </td>
+
                   <td>{{ ticket.time | date : 'short' }}</td>
                   <td>
-                    <span class="mono">{{ ticket.price ?? 0 | number : '1.0-2' }}</span>
+                    <span class="mono">
+                      {{ ticket.price ?? 0 | number : '1.0-2' }}
+                    </span>
                     <span *ngIf="ticket.isCollectedByCashier" class="badge bg-success ms-1">
                       {{ t('cashier_collected_short') }}
                     </span>
@@ -341,9 +373,11 @@
               {{ t('of') }} {{ filtered.length }}
             </div>
 
-            <div class="small text-muted">
-              {{ t('total_fees_today') }}:
-              <span class="mono">{{ totalPriceToday | number : '1.0-2' }}</span>
+            <div class="d-flex align-items-center gap-2">
+              <span class="small text-muted">{{ t('total_fees_today') }}:</span>
+              <span class="badge bg-success fs-6 fw-bold">{{
+                totalPriceToday | number : '1.0-2'
+              }}</span>
             </div>
 
             <div class="btn-group ms-auto" dir="ltr">
@@ -367,16 +401,83 @@
         </div>
       </div>
 
-      <button
-        *ngIf="isSupervisor"
-        class="btn btn-sm btn-success"
-        type="button"
-        (click)="collectDailyForGate()"
-        [disabled]="collectLoading"
-      >
-        <span *ngIf="!collectLoading">{{ t('collectAllToday') }}</span>
-        <span *ngIf="collectLoading" class="spinner-border spinner-border-sm"></span>
-      </button>
+      <div *ngIf="isSupervisor" class="mt-2 d-flex flex-column gap-2">
+        <button
+          class="btn btn-sm btn-success"
+          type="button"
+          (click)="collectDailyForGate()"
+          [disabled]="collectLoading"
+        >
+          <span *ngIf="!collectLoading">{{ t('collectAllToday') }}</span>
+          <span *ngIf="collectLoading" class="spinner-border spinner-border-sm"></span>
+        </button>
+
+        <!-- Summary Card -->
+        <div *ngIf="collectSummary" class="card shadow-soft collect-summary-card">
+          <div class="card-header d-flex justify-content-between align-items-center">
+            <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+              <i class="bi bi-cash-stack"></i> {{ t('collect_summary') }}
+            </h6>
+
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+              (click)="collectSummary = null"
+            >
+              <i class="bi bi-x"></i>
+            </button>
+          </div>
+
+          <div class="card-body p-3">
+            <div class="d-flex justify-content-between mb-1">
+              <span class="fw-semibold">{{ t('total_collected_amount') }}</span>
+              <span class="mono">
+                {{ collectSummary.totalPriceCollected | number : '1.0-2' }}
+              </span>
+            </div>
+
+            <div class="d-flex justify-content-between mb-3">
+              <span class="fw-semibold">{{ t('total_collected_tickets') }}</span>
+              <span class="mono">
+                {{ collectSummary.totalTicketsCollected }}
+              </span>
+            </div>
+
+            <div
+              class="table-responsive collect-summary-table"
+              *ngIf="collectSummary.ticketCollectDetails?.length"
+            >
+              <table class="table table-sm mb-0">
+                <thead>
+                  <tr>
+                    <th>{{ t('ticket_number') }}</th>
+                    <th style="width: 150px">{{ t('collected_at') }}</th>
+                    <th style="width: 120px">{{ t('fees') }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let d of collectSummary.ticketCollectDetails">
+                    <td class="mono">{{ d.ticketNumber }}</td>
+                    <td>{{ d.collectedAt | date : 'short' }}</td>
+                    <td class="mono">{{ d.price | number : '1.0-2' }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <div class="small text-muted mt-2" *ngIf="collectSummary.ticketCollectDetails?.length">
+              {{ t('last_collection_time') }}:
+              <span class="mono">
+                {{
+                  collectSummary.ticketCollectDetails[
+                    collectSummary.ticketCollectDetails.length - 1
+                  ]?.collectedAt | date : 'short'
+                }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 </div>

@@ -62,6 +62,10 @@ export class TicketComponent {
   collectingCashierCash = false;
   lastIssuedVehicleNumber: string | null = null;
 
+  // ===== Daily collect summary (Supervisor) =====
+  collectSummary: CollectDailyTicketsResponse | null = null;
+  collectLoading = false;
+
   get lastIssuedPrice(): number | null {
     return this.lastTicketPrice;
   }
@@ -179,7 +183,14 @@ export class TicketComponent {
       expiryDate: 'تاريخ الانتهاء',
       balance: 'الرصيد',
       total_fees_today: 'إجمالي الرسوم اليوم',
-      collectAllToday: 'تحصيل ',
+      collectAllToday: 'تحصيل اليوم',
+
+      // Collect summary
+      collect_summary: 'ملخص تحصيل اليوم',
+      total_collected_amount: 'إجمالي المبلغ المحصَّل',
+      total_collected_tickets: 'عدد التذاكر المحصَّلة',
+      collected_at: 'وقت التحصيل',
+      last_collection_time: 'وقت آخر تحصيل',
     },
     en: {
       issue_ticket: 'Issue Ticket',
@@ -264,7 +275,14 @@ export class TicketComponent {
       expiryDate: 'Expiry date',
       balance: 'Balance',
       total_fees_today: 'Total fees today',
-      collectAllToday: 'Collect ',
+      collectAllToday: 'Collect today',
+
+      // Collect summary
+      collect_summary: 'Daily collection summary',
+      total_collected_amount: 'Total collected amount',
+      total_collected_tickets: 'Total collected tickets',
+      collected_at: 'Collected at',
+      last_collection_time: 'Last collection time',
     },
   };
 
@@ -297,7 +315,6 @@ export class TicketComponent {
   collecting = false;
 
   totalPriceToday: number = 0;
-  collectLoading = false;
 
   get isSupervisor(): boolean {
     return this.auth.isSupervisor;
@@ -553,20 +570,27 @@ export class TicketComponent {
     return `data:text/plain,${encodeURIComponent(text)}`;
   }
 
+  // =========== Supervisor daily collect ===========
   collectDailyForGate() {
     if (this.collectLoading) return;
 
     this.collectLoading = true;
+    this.collectSummary = null;
 
     this.svc.collectDailyTickets().subscribe({
       next: (res: CollectDailyTicketsResponse) => {
-        this.toast.success(`${this.t('admit_done')} - ${res.totalAmount} collected`);
+        // احفظ الملخص علشان يتعرض في الكارت
+        this.collectSummary = res;
+        this.toast.success(this.t('admit_done'));
         this.loadTicketsForEntry();
       },
-      complete: () => (this.collectLoading = false),
+      complete: () => {
+        this.collectLoading = false;
+      },
       error: (err) => {
         console.error('collectDailyForGate error', err);
         this.collectLoading = false;
+        this.collectSummary = null;
         this.toast.fromProblem(err);
       },
     });
@@ -675,26 +699,20 @@ export class TicketComponent {
 
   // ================== Cashier collect confirmation ==================
   confirmCashierCollection() {
-    if (!this.lastIssuedTicketId || this.cashierCollected) return;
+    if (!this.lastIssuedTicketId || this.cashierCollected || this.collectingCashierCash) {
+      return;
+    }
 
     this.collectingCashierCash = true;
+
     this.svc.collectCashier(String(this.lastIssuedTicketId)).subscribe({
       next: (ok) => {
         if (ok) {
           this.cashierCollected = true;
-
-          const idx = this.tickets.findIndex(
-            (t) => String(t.id) === String(this.lastIssuedTicketId)
-          );
-          if (idx !== -1) {
-            this.tickets[idx] = {
-              ...this.tickets[idx],
-              isCollectedByCashier: true,
-            };
-            this.applyFilters();
-          }
+          this.markTicketAsCashierCollected(this.lastIssuedTicketId!);
 
           this.toast.success(this.t('cashier_collected'));
+
           this.loadTicketsForEntry();
         } else {
           this.toast.error('CollectCashier failed (Ticket not found or validation error).');
@@ -709,6 +727,16 @@ export class TicketComponent {
         this.collectingCashierCash = false;
       },
     });
+  }
+
+  private markTicketAsCashierCollected(ticketId: string | number) {
+    const idStr = String(ticketId);
+
+    this.tickets = this.tickets.map((t) =>
+      String(t.id) === idStr ? { ...t, isCollectedByCashier: true } : t
+    );
+
+    this.applyFilters();
   }
 
   // ================== List / Filters ==================
@@ -761,10 +789,16 @@ export class TicketComponent {
       next: (res) => {
         this.totalPriceToday = res.totalPrice ?? 0;
 
-        this.tickets = res.items.sort(
+        this.tickets = (res.items ?? []).sort(
           (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime()
         );
-        this.applyFilters();
+
+        if (this.lastIssuedTicketId && this.cashierCollected) {
+          this.markTicketAsCashierCollected(this.lastIssuedTicketId);
+        } else {
+          this.applyFilters();
+        }
+
         this.loading = false;
       },
       error: (err) => {

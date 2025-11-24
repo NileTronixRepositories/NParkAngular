@@ -88,6 +88,14 @@ import { NfcReaderService } from '../../Services/registration/nfc-reader.service
           addExitTicket: 'تسجيل التذكرة عند الخروج',
           exitTicketAdded: 'تم تسجيل التذكرة عند الخروج',
           exitTicketAddFailed: 'تعذر تسجيل التذكرة عند الخروج',
+
+          // Collect summary (daily)
+          collect_summary: 'ملخص تحصيل اليوم',
+          total_collected_amount: 'إجمالي المبلغ المحصَّل',
+          total_collected_tickets: 'عدد التذاكر المحصَّلة',
+          collected_at: 'وقت التحصيل',
+          last_collection_time: 'وقت آخر تحصيل',
+          collectDailyOk: 'تم تحصيل إيرادات اليوم بنجاح',
         },
         en: {
           exitTicket: 'Exit Ticket',
@@ -124,6 +132,7 @@ import { NfcReaderService } from '../../Services/registration/nfc-reader.service
           next: 'Next',
           outOnlyTitle: 'Exit gate is OUT only',
           collectedOk: 'Collected and ticket closed',
+          collectAllToday: "Collect today's revenue for this gate",
 
           // Gate devices
           gate_devices: 'Gate Devices',
@@ -146,7 +155,14 @@ import { NfcReaderService } from '../../Services/registration/nfc-reader.service
           addExitTicket: 'Add exit ticket log',
           exitTicketAdded: 'Exit ticket log has been saved',
           exitTicketAddFailed: 'Failed to save exit ticket log',
-          collectAllToday: "Collect today's revenue for this gate",
+
+          // Collect summary (daily)
+          collect_summary: 'Daily collection summary',
+          total_collected_amount: 'Total collected amount',
+          total_collected_tickets: 'Total collected tickets',
+          collected_at: 'Collected at',
+          last_collection_time: 'Last collection time',
+          collectDailyOk: "Today's revenue has been collected successfully",
         },
       }) as I18nDict,
     },
@@ -167,6 +183,7 @@ export class ExitgateComponent {
   gateLoading = false;
   gateSaving = false;
   gatePeripheral: GateDevicePeripheral | null = null;
+
   totalPriceToday: number = 0;
   scanBuffer = '';
   scanning = false;
@@ -177,7 +194,9 @@ export class ExitgateComponent {
 
   addingExitTicket = false;
   exitTicketAdded = false;
+
   collectLoading = false;
+  collectSummary: CollectDailyTicketsResponse | null = null;
 
   // ===== Tickets list =====
   tickets: TicketDto[] = [];
@@ -197,6 +216,7 @@ export class ExitgateComponent {
   ngOnInit(): void {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
+
     this.loadExitGates();
 
     this.loading = true;
@@ -204,7 +224,7 @@ export class ExitgateComponent {
       next: (res) => {
         this.totalPriceToday = res.totalPrice ?? 0;
 
-        this.tickets = res.items
+        this.tickets = (res.items ?? [])
           .filter((t) => t.action === 'OUT')
           .sort(
             (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime()
@@ -307,6 +327,7 @@ export class ExitgateComponent {
       error: () => (this.scanning = false),
     });
   }
+
   addExitTicket(t: TicketDetailsDto) {
     if (this.addingExitTicket || !t?.id) return;
 
@@ -359,7 +380,7 @@ export class ExitgateComponent {
       next: (res) => {
         this.totalPriceToday = res.totalPrice ?? 0;
 
-        this.tickets = res.items
+        this.tickets = (res.items ?? [])
           .filter((x) => x.action === 'OUT')
           .sort(
             (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime()
@@ -419,10 +440,12 @@ export class ExitgateComponent {
     if (this.collectLoading) return;
 
     this.collectLoading = true;
+    this.collectSummary = null;
 
     this.svc.collectDailyTickets().subscribe({
       next: (res: CollectDailyTicketsResponse) => {
-        this.toast.success(this.t('collectedOk') + ` - ${res.totalAmount} `);
+        this.collectSummary = res;
+        this.toast.success(this.t('collectDailyOk'));
 
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
@@ -432,6 +455,7 @@ export class ExitgateComponent {
         console.error('collectDailyForGate error', err);
         this.toast.fromProblem(err);
         this.collectLoading = false;
+        this.collectSummary = null;
       },
       complete: () => {
         this.collectLoading = false;
@@ -439,7 +463,6 @@ export class ExitgateComponent {
     });
   }
 
-  // ترجمة سريعة داخل TS
   private t(key: string) {
     return this.dict[this.lang.current]?.[key] ?? key;
   }

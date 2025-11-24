@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, map, catchError, throwError } from 'rxjs';
+import { Observable, of, map, catchError } from 'rxjs';
 import {
   TicketDto,
   IssuedTicketResponse,
@@ -45,7 +45,6 @@ export class TicketsServices {
   }
 
   // ============ AddTicket ============
-
   addTicket(req: AddTicketRequest): Observable<IssuedTicketResponse | null> {
     const body: any = {
       isSubscriber: req.isSubscriber,
@@ -106,6 +105,55 @@ export class TicketsServices {
     );
   }
 
+  // ========= Helper: build nice info text for table =========
+  private mapEntryToTicketDto(r: TicketEntryDto | any, action: TicketAction | ''): TicketDto {
+    const customerName: string | null =
+      r.customerName ?? r.CustomerName ?? r.name ?? r.Name ?? null;
+
+    const phone: string | null = r.phone ?? r.Phone ?? null;
+
+    const cardNumber: string | null = r.cardNumber ?? r.CardNumber ?? null;
+
+    const plate: string = r.plate ?? r.Plate ?? '';
+
+    let info: string | undefined = r.ticketInfo ?? r.TicketInfo ?? r.info ?? r.Info ?? undefined;
+
+    if (!info) {
+      const parts: string[] = [];
+
+      if (customerName) parts.push(customerName);
+      if (phone) parts.push(phone);
+      if (cardNumber) {
+        parts.push(cardNumber);
+      } else if (plate) {
+        parts.push(plate);
+      }
+
+      if (parts.length) {
+        info = parts.join(' | ');
+      }
+    }
+
+    const time: string =
+      r.startDate ?? r.StartDate ?? r.dateTime ?? r.DateTime ?? new Date().toISOString();
+
+    const id: string | number = r.ticketNumber ?? r.TicketNumber ?? r.id ?? r.Id ?? plate ?? '';
+
+    return {
+      id,
+      plate,
+      action,
+      time,
+      gate: r.gate ?? r.Gate ?? '',
+      price: r.price,
+      isCollectedByCashier: r.isCollectedByCashier,
+      info,
+      customerName,
+      phone,
+      cardNumber,
+    };
+  }
+
   // ============ GetTicketForEntry ============
   getTicketsForEntry(
     startDate: string,
@@ -119,18 +167,7 @@ export class TicketsServices {
         map((res): TicketsForGateResult => {
           const rows = res?.ticketInfo ?? [];
 
-          const items: TicketDto[] = rows.map(
-            (r): TicketDto => ({
-              id: r.ticketNumber,
-              plate: '',
-              action: '' as TicketDto['action'],
-              time: r.startDate,
-              gate: '',
-              price: r.price,
-              isCollectedByCashier: r.isCollectedByCashier,
-              info: r.ticketInfo ?? undefined,
-            })
-          );
+          const items: TicketDto[] = rows.map((r) => this.mapEntryToTicketDto(r, 'IN'));
 
           return {
             items,
@@ -156,18 +193,7 @@ export class TicketsServices {
         map((res): TicketsForGateResult => {
           const rows = res?.ticketInfo ?? [];
 
-          const items: TicketDto[] = rows.map(
-            (r): TicketDto => ({
-              id: r.ticketNumber,
-              plate: '',
-              action: 'OUT' as TicketAction,
-              time: r.startDate,
-              gate: '',
-              price: r.price,
-              isCollectedByCashier: r.isCollectedByCashier,
-              info: r.ticketInfo ?? undefined,
-            })
-          );
+          const items: TicketDto[] = rows.map((r) => this.mapEntryToTicketDto(r, 'OUT'));
 
           return {
             items,
@@ -223,12 +249,9 @@ export class TicketsServices {
   }
 
   collectDailyTickets(): Observable<CollectDailyTicketsResponse> {
-    const gateData = this.auth.getGateData() as any;
-
-    const body = { gateId: gateData.gateId };
-
     return this.http.post<CollectDailyTicketsResponse>(
-      `${this.base}/Ticket/CollectDailyTickets`,{}
+      `${this.base}/Ticket/CollectDailyTickets`,
+      {}
     );
   }
 }
