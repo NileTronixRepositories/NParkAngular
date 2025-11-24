@@ -225,17 +225,10 @@ export class TicketsServices {
   collectDailyTickets(): Observable<CollectDailyTicketsResponse> {
     const gateData = this.auth.getGateData() as any;
 
-    if (!gateData || !gateData.gateId) {
-      return throwError(
-        () => new Error('No gate selected or gateId missing in gateDevicePeripheral')
-      );
-    }
-
     const body = { gateId: gateData.gateId };
 
     return this.http.post<CollectDailyTicketsResponse>(
-      `${this.base}/Ticket/CollectDailyTickets`,
-      body
+      `${this.base}/Ticket/CollectDailyTickets`,{}
     );
   }
 }

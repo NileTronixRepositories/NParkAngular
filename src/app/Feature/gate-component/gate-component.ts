@@ -102,6 +102,48 @@ export class GateComponent {
   }
 
   onGateSelect(): void {
-    this.confirmGate();
+    const selectedGateId = this.selectedGate;
+    const selectedGate = this.gates.find((gate) => gate.gateId === selectedGateId);
+
+    if (selectedGate) {
+      const gateNumber = selectedGate.gateName; // استخدام gateName بدلاً من gateNumber
+      const gateType = this.gateType; // نوع البوابة
+      console.log('Sending gateName: ', gateNumber, 'gateType: ', gateType); // تحقق من القيم التي سيتم إرسالها
+
+      this.http
+        .post(
+          'http://192.168.1.8/api/auth/CheckGate',
+          {
+            gateNumber: gateNumber,
+            gateType: gateType,
+          }, // هذه هي البيانات التي سترسلها
+          {
+            headers: {
+              Authorization: `Bearer ${this.authService.token}`, // استخدام الـ token من الـ AuthService
+            },
+          } // هنا يتم تمرير الـ headers بشكل صحيح
+        )
+        .subscribe(
+          (response: any) => {
+            this.authService.updateToken(response.token);
+            this.authService.updateGateData(response.gateDevicePeripheral);
+            console.log('Gate selected and token updated', response);
+
+            if (response.roleName === 'ExitCashier') {
+              // التوجيه إلى صفحة Exit
+              this.router.navigate(['/tickets/exit']);
+            } else if (response.roleName === 'EntranceCashier') {
+              // التوجيه إلى صفحة Entry
+              this.router.navigate(['/tickets/entry']);
+            } else {
+              // في حالة عدم وجود الدور المناسب يمكن توجيه المستخدم إلى صفحة أخرى
+              this.router.navigate(['/overview']);
+            }
+          },
+          (error) => {
+            console.error('Error checking gate:', error);
+          }
+        );
+    }
   }
 }

@@ -48,7 +48,7 @@ export const routes: Routes = [
             path: 'entry',
             data: {
               mode: 'entry',
-              roles: ['Admin', 'EntranceCashier'],
+              roles: ['Admin', 'EntranceCashier', 'Supervisor'],
             },
             canActivate: [authGuard],
             loadComponent: () =>
@@ -58,7 +58,7 @@ export const routes: Routes = [
             path: 'exit',
             data: {
               mode: 'exit',
-              roles: ['Admin', 'ExitCashier'],
+              roles: ['Admin', 'ExitCashier', 'Supervisor'],
             },
             canActivate: [authGuard],
             loadComponent: () =>
