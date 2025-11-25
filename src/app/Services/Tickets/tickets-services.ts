@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams, HttpBackend, HttpHeaders } from '@angular/common/http';
-import { Observable, of, map, catchError, switchMap, throwError } from 'rxjs';
+import { Observable, of, map, catchError, switchMap, throwError, tap } from 'rxjs';
 import {
   TicketDto,
   IssuedTicketResponse,
@@ -15,6 +15,7 @@ import {
 } from '../../Domain/tickets/tickets.model';
 import { environment } from '../../Shared/environment/environment';
 import { AuthResponse, AuthService } from '../Auth/auth-service';
+import { GateType } from '../../Domain/Auth/auth.models';
 
 export interface TicketsForGateResult {
   items: TicketDto[];
@@ -263,44 +264,51 @@ export class TicketsServices {
     return this._rawHttp;
   }
 
-    collectDailyTicketsAsSupervisor(credentials: {
-      userName: string;
-      password: string;
-    }): Observable<CollectDailyTicketsResponse> {
-      const loginBody = {
-        userName: credentials.userName,
-        password: credentials.password,
-        gateType: 1,
-        gateNumber: 1,
-      };
+collectDailyTicketsAsSupervisor(credentials: {
+  userName: string;
+  password: string;
+  gateType: GateType | null;
+  gateNumber: number | null;
+}): Observable<CollectDailyTicketsResponse> {
+  const loginBody = {
+    userName: credentials.userName,
+    password: credentials.password,
+    gateType: credentials.gateType,
+    gateNumber: credentials.gateNumber,
+  };
 
-      return this.rawHttp.post<AuthResponse>(`${this.base}/auth/Login`, loginBody).pipe(
-        switchMap((authRes) => {
-          const token = authRes?.token;
-          if (!token) {
-            return throwError(() => new Error('No token returned from supervisor login'));
-          }
+  const gateId = this.auth.getGateId();
 
-          const headers = new HttpHeaders({
-            Authorization: `Bearer ${token}`,
-          });
+  return this.rawHttp
+    .post<AuthResponse>(`${this.base}/auth/SuperVisorLogin`, loginBody)
+    .pipe(
+      // ✅ لو وصلنا هنا يبقى الـ Status code = 2xx (200 مثلاً)
+      tap((authRes) => {
+        if (!authRes?.token) {
+          throw new Error('No token returned from supervisor login');
+        }
 
-          const gateId = this.auth.getGateId();
+        // ✅ هنا بنعمل Update للـ Token (و LoginData لو حابب)
+        // استخدم نفس الميثود اللي بتستخدمها في الـ Login العادي
+        this.auth.updateToken(authRes.token); // عدّل الاسم حسب اللي عندك
+      }),
 
-          const collectBody = {
-            gateId: gateId,
-          };
+      // ✅ بعد ما الـ Token اتحدّث → نكمل بالـ CollectDailyTickets
+      switchMap(() => {
+        const collectBody = { gateId };
 
-          return this.rawHttp.post<CollectDailyTicketsResponse>(
-            `${this.base}/Ticket/CollectDailyTickets`,
-            collectBody,
-            { headers }
-          );
-        }),
-        catchError((err) => {
-          console.error('collectDailyTicketsAsSupervisor failed', err);
-          return throwError(() => err);
-        })
-      );
-    }
+        // هنا بنستخدم الـ HttpClient العادي اللي عليه Interceptor
+        return this.http.post<CollectDailyTicketsResponse>(
+          `${this.base}/Ticket/CollectDailyTickets`,
+          collectBody
+        );
+      }),
+
+      catchError((err) => {
+        console.error('collectDailyTicketsAsSupervisor failed', err);
+        return throwError(() => err);
+      })
+    );
+}
+
 }

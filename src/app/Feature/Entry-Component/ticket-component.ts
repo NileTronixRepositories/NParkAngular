@@ -43,7 +43,7 @@ export class TicketComponent {
   gateSaving = false;
 
   gatePeripheral: GateDevicePeripheral | null = null;
-
+  cashierToken: string | null = null;
   // ===== Manual inputs =====
   manualLprPlate: string = '';
   cardNumber: string = '';
@@ -334,7 +334,7 @@ export class TicketComponent {
     this.loadGates();
     this.loadEntryGates();
     this.loadTicketsForEntry();
-
+    this.cashierToken = this.auth.token;
     this.gatePeripheral = this.auth.getGateData();
 
     if (!this.gatePeripheral && this.auth.isLoggedIn()) {
@@ -610,7 +610,8 @@ export class TicketComponent {
   submitSupervisorCollect() {
     const user = this.supervisorUsername.trim();
     const pwd = this.supervisorPassword;
-
+    const gateNumber = this.auth.getGateData()?.gateNumber ?? null;
+    const gateType = this.auth.getGateData()?.gateType ?? null;
     if (!user || !pwd) {
       this.supervisorCollectError = 'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر';
       return;
@@ -624,10 +625,12 @@ export class TicketComponent {
       .collectDailyTicketsAsSupervisor({
         userName: user,
         password: pwd,
+        gateType: gateType,
+        gateNumber: gateNumber,
       })
       .subscribe({
         next: (res: CollectDailyTicketsResponse) => {
-           this.collectSummary = res;
+          this.collectSummary = res;
           this.toast.success(this.t('admit_done'));
           this.loadTicketsForEntry();
         },
@@ -669,7 +672,8 @@ export class TicketComponent {
     this.collectSummary = null;
   }
 
-  finishSupervisorCollect() {
+  finishSupervisorCollect() { 
+    this.auth.updateToken(this.cashierToken ?? '');
     this.closeSupervisorCollectModal();
   }
 

@@ -30,6 +30,7 @@ export interface GateDevicePeripheral {
   hasPc: boolean;
   hasLpr: boolean;
   gateNumber: number;
+  gateType : GateType
 }
 
 export interface LoginResponse {
