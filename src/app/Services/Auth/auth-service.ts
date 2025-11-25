@@ -141,7 +141,6 @@ export class AuthService {
   }
 
   get role(): string | null {
-    console.log('Role:', this.getStoredUser()?.role);
     const user = this.getStoredUser();
     return user?.role ?? null;
   }

@@ -98,3 +98,10 @@ export interface CollectDailyTicketsResponse {
     price: number;
   }[];
 }
+
+export interface CalculateSalaryResponse {
+  totalSalary: number;
+  enterDate: string;
+  isExitValid: boolean;
+  isCollectByCashier: boolean;
+}

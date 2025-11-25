@@ -1,16 +1,42 @@
+/* ==========================
+   Tickets Page Theme
+   ========================== */
+.tickets-theme {
+  --ticket-radius: 12px;
+  --ticket-border-color: #e5e7eb;
+  --ticket-muted: #6b7280;
+  --ticket-bg: #ffffff;
+
+  --ticket-green: #047857;
+  --ticket-green-soft: rgba(16, 185, 129, 0.1);
+  --ticket-green-soft-border: rgba(16, 185, 129, 0.25);
+
+  --ticket-red: #b3261e;
+  --ticket-red-soft: rgba(239, 68, 68, 0.1);
+  --ticket-red-soft-border: rgba(239, 68, 68, 0.25);
+
+  --ticket-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.06);
+  --ticket-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    monospace;
+}
+
+/* Cards */
 .tickets-theme .shadow-soft {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+  box-shadow: var(--ticket-shadow-soft);
   border: 0;
-  border-radius: 12px;
+  border-radius: var(--ticket-radius);
 }
 
-.glass-entry {
+/* Glass effect for entry card */
+.tickets-theme .glass-entry {
   background: radial-gradient(900px 420px at -10% -20%, #ecfdf5 0%, transparent 60%) no-repeat,
-    radial-gradient(740px 460px at 110% 10%, #eff6ff 0%, transparent 60%) no-repeat, #ffffff;
+    radial-gradient(740px 460px at 110% 10%, #eff6ff 0%, transparent 60%) no-repeat,
+    var(--ticket-bg);
 }
 
-.qr-preview {
-  min-height: 320px;
+/* QR preview box */
+.tickets-theme .qr-preview {
+  min-height: 280px;
   width: 100%;
   max-width: 360px;
   display: grid;
@@ -18,91 +44,205 @@
   cursor: default;
 }
 
-.qr-preview .placeholder {
+.tickets-theme .qr-preview .placeholder {
   border: 2px dashed #dfe3e8;
-  border-radius: 12px;
-  padding: 32px;
+  border-radius: var(--ticket-radius);
+  padding: 24px;
   width: 100%;
 }
 
-.label {
-  font-size: 12px;
-  color: #6c757d;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-}
-
-.value {
-  font-size: 14px;
-}
-
-.mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+/* Mono font helper */
+.tickets-theme .mono {
+  font-family: var(--ticket-font-mono);
 }
 
 /* Entry chip */
-.chip {
+.tickets-theme .chip {
   border-radius: 999px;
   padding: 4px 10px;
   font-size: 12px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--ticket-border-color);
   background: #fff;
-  color: #065f46;
+  color: var(--ticket-green);
 }
 
-.chip--entry {
-  background: rgba(16, 185, 129, 0.1);
-  border-color: rgba(16, 185, 129, 0.25);
-  color: #047857;
+.tickets-theme .chip--entry {
+  background: var(--ticket-green-soft);
+  border-color: var(--ticket-green-soft-border);
+  color: var(--ticket-green);
 }
 
-.badge.pill {
+/* Device status badge */
+.tickets-theme .badge.pill {
   border-radius: 20px;
   padding: 6px 10px;
   font-weight: 600;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--ticket-border-color);
   background: #fff;
 }
 
-.theme-green {
-  background: rgba(16, 185, 129, 0.1);
-  color: #047857;
-  border-color: rgba(16, 185, 129, 0.25);
+.tickets-theme .theme-green {
+  background: var(--ticket-green-soft);
+  color: var(--ticket-green);
+  border-color: var(--ticket-green-soft-border);
 }
 
-.theme-red {
-  background: rgba(239, 68, 68, 0.1);
-  color: #b3261e;
-  border-color: rgba(239, 68, 68, 0.25);
+.tickets-theme .theme-red {
+  background: var(--ticket-red-soft);
+  color: var(--ticket-red);
+  border-color: var(--ticket-red-soft-border);
 }
 
-.soft-entry {
-  border: 1px dashed #e5e7eb;
-  border-radius: 12px;
+/* Subtle dashed box (if used) */
+.tickets-theme .soft-entry {
+  border: 1px dashed var(--ticket-border-color);
+  border-radius: var(--ticket-radius);
   background: linear-gradient(0deg, rgba(16, 185, 129, 0.06), rgba(16, 185, 129, 0.06));
 }
 
-.table-head {
+/* Table header */
+.tickets-theme .table-head {
   background: #f7f8fa;
 }
 
+/* Footer of tickets table */
+.tickets-theme .tickets-footer {
+  background-color: #ffffff;
+}
+
+.tickets-theme .tickets-footer .badge {
+  min-width: 80px;
+  text-align: center;
+}
+
 /* Collect summary card */
-.collect-summary-card {
-  border-radius: 12px;
+.tickets-theme .collect-summary-card {
+  border-radius: var(--ticket-radius);
   border: 1px dashed #d1fae5;
   background: #ecfdf5;
 }
 
-.collect-summary-card .card-header {
+.tickets-theme .collect-summary-card .card-header {
   background: rgba(16, 185, 129, 0.06);
   border-bottom: 1px solid rgba(16, 185, 129, 0.15);
 }
 
-.collect-summary-card .table > :not(caption) > * > * {
+.tickets-theme .collect-summary-card .table > :not(caption) > * > * {
   background-color: transparent;
 }
 
-.collect-summary-table {
-  max-height: 220px;
+.tickets-theme .collect-summary-table {
   overflow-y: auto;
+}
+.tickets-card {
+  height: auto !important;
+  max-height: 100%;
+}
+/* ===== Card Summary Box ===== */
+:host .card-summary-box.alert {
+  background: #ffffff !important;
+  border: 1px solid #dcdcdc !important;
+  border-radius: 8px !important;
+  padding: 12px 14px !important;
+  font-size: 13px;
+  color: #333333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+  margin-bottom: 0;
+}
+
+/* Each summary row */
+:host .card-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px dashed #e6e6e6;
+}
+
+:host .card-summary-row:last-child {
+  border-bottom: none;
+}
+
+/* Keys (labels) */
+:host .card-summary-key {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Values */
+:host .card-summary-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  color: #374151;
+  word-break: break-all;
+}
+
+/* Clear Button */
+:host .clearCardSummary {
+  width: 24px;
+  height: 24px;
+  background-color: #b3261e;
+  color: #e5e7eb;
+  border: none;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  font-size: 12px;
+  position: absolute;
+  top: -30px;
+}
+
+:host-context([dir='rtl']) .clearCardSummary {
+  left: 10px;
+}
+
+:host-context([dir='ltr']) .clearCardSummary {
+  right: 10px;
+}
+
+:host .card-summary-actions {
+  text-align: end;
+  margin-top: 8px;
+}
+
+/* =========================================
+   Scrollable tickets table (Block 3)
+   ========================================= */
+
+.tickets-theme .card-body.d-flex {
+  flex-direction: column;
+}
+
+.tickets-theme .tickets-table-wrapper {
+  overflow: visible;
+  max-height: none;
+}
+
+.tickets-theme .tickets-table-scroll {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+.tickets-theme .tickets-table-scroll .table {
+  margin-bottom: 0;
+}
+
+.tickets-theme .tickets-table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f7f8fa;
+}
+
+.tickets-theme .tickets-table-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+.tickets-theme .tickets-table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.tickets-theme .tickets-table-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.7);
+  border-radius: 999px;
 }

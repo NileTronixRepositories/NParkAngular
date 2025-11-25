@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams, HttpBackend, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpBackend } from '@angular/common/http';
 import { Observable, of, map, catchError, switchMap, throwError, tap } from 'rxjs';
 import {
   TicketDto,
@@ -12,6 +12,7 @@ import {
   AddTicketRequest,
   TicketTableResponseDto,
   CollectDailyTicketsResponse,
+  CalculateSalaryResponse,
 } from '../../Domain/tickets/tickets.model';
 import { environment } from '../../Shared/environment/environment';
 import { AuthResponse, AuthService } from '../Auth/auth-service';
@@ -31,6 +32,13 @@ export class TicketsServices {
   private auth = inject(AuthService);
   private httpBackend = inject(HttpBackend);
   private _rawHttp?: HttpClient;
+
+  private get rawHttp(): HttpClient {
+    if (!this._rawHttp) {
+      this._rawHttp = new HttpClient(this.httpBackend);
+    }
+    return this._rawHttp;
+  }
 
   getAll(): Observable<TicketDto[]> {
     return this.http.get<any[]>(`${this.base}/Ticket`).pipe(
@@ -97,6 +105,43 @@ export class TicketsServices {
     );
   }
 
+  /** QR Ticket salary */
+  calculateTicketSalary(qrCode: string): Observable<CalculateSalaryResponse | null> {
+    const trimmed = qrCode?.trim();
+    if (!trimmed) return of(null);
+
+    const body = { qrCode: trimmed };
+
+    return this.http
+      .post<CalculateSalaryResponse>(`${this.base}/Ticket/CalculateQrCodeTicketSalary`, body)
+      .pipe(
+        catchError((err) => {
+          console.error('POST /Ticket/CalculateQrCodeTicketSalary failed', err);
+          return of(null);
+        })
+      );
+  }
+
+  /** Subscriber card salary */
+  calculateSubscriberSalary(cardNumber: string): Observable<CalculateSalaryResponse | null> {
+    const trimmed = cardNumber?.trim();
+    if (!trimmed) return of(null);
+
+    const body = { cardNumber: trimmed };
+
+    return this.http
+      .post<CalculateSalaryResponse>(
+        `${this.base}/Ticket/CalculateSalaryForSubscriberCommand`,
+        body
+      )
+      .pipe(
+        catchError((err) => {
+          console.error('POST /Ticket/CalculateSalaryForSubscriberCommand failed', err);
+          return of(null);
+        })
+      );
+  }
+
   collect(id: number | string): Observable<boolean> {
     const realId = Number(id);
     return this.http.post<any>(`${this.base}/Ticket/Collect/${realId}`, {}).pipe(
@@ -108,7 +153,7 @@ export class TicketsServices {
     );
   }
 
-  // ========= Helper: build nice info text for table =========
+  // ========= Helper: map row to TicketDto =========
   private mapEntryToTicketDto(r: TicketEntryDto | any, action: TicketAction | ''): TicketDto {
     const customerName: string | null =
       r.customerName ?? r.CustomerName ?? r.name ?? r.Name ?? null;
@@ -157,7 +202,6 @@ export class TicketsServices {
     };
   }
 
-  // ============ GetTicketForEntry ============
   getTicketsForEntry(
     startDate: string,
     ticketNumber: string = ''
@@ -210,7 +254,6 @@ export class TicketsServices {
       );
   }
 
-  // ============ CollectCashier ============
   collectCashier(ticketId: string): Observable<boolean> {
     const body: CollectCashierRequest = { ticketId };
 
@@ -223,7 +266,6 @@ export class TicketsServices {
     );
   }
 
-  // ============ ParkingMemberships/GetCardSummary ============
   getCardSummary(cardNumber: string): Observable<ParkingCardSummaryDto | null> {
     const trimmed = cardNumber?.trim();
     if (!trimmed) return of(null);
@@ -257,58 +299,52 @@ export class TicketsServices {
       {}
     );
   }
-  private get rawHttp(): HttpClient {
-    if (!this._rawHttp) {
-      this._rawHttp = new HttpClient(this.httpBackend);
-    }
-    return this._rawHttp;
+
+  captureManualPlate(plate: string): Observable<boolean> {
+    const body = { vehicleNumber: plate.trim().toUpperCase() };
+
+    return this.http.post<any>(`${this.base}/Ticket/CaptureManualPlate`, body).pipe(
+      map(() => true),
+      catchError((err) => {
+        console.error('POST /Ticket/CaptureManualPlate failed', err);
+        return of(false);
+      })
+    );
   }
 
-collectDailyTicketsAsSupervisor(credentials: {
-  userName: string;
-  password: string;
-  gateType: GateType | null;
-  gateNumber: number | null;
-}): Observable<CollectDailyTicketsResponse> {
-  const loginBody = {
-    userName: credentials.userName,
-    password: credentials.password,
-    gateType: credentials.gateType,
-    gateNumber: credentials.gateNumber,
-  };
+  collectDailyTicketsAsSupervisor(credentials: {
+    userName: string;
+    password: string;
+    gateType: GateType | null;
+    gateNumber: number | null;
+  }): Observable<CollectDailyTicketsResponse> {
+    const loginBody = {
+      userName: credentials.userName,
+      password: credentials.password,
+      gateType: credentials.gateType,
+      gateNumber: credentials.gateNumber,
+    };
 
-  const gateId = this.auth.getGateId();
+    const gateId = this.auth.getGateId();
 
-  return this.rawHttp
-    .post<AuthResponse>(`${this.base}/auth/SuperVisorLogin`, loginBody)
-    .pipe(
-      // ✅ لو وصلنا هنا يبقى الـ Status code = 2xx (200 مثلاً)
+    return this.rawHttp.post<AuthResponse>(`${this.base}/auth/SuperVisorLogin`, loginBody).pipe(
       tap((authRes) => {
         if (!authRes?.token) {
           throw new Error('No token returned from supervisor login');
         }
-
-        // ✅ هنا بنعمل Update للـ Token (و LoginData لو حابب)
-        // استخدم نفس الميثود اللي بتستخدمها في الـ Login العادي
-        this.auth.updateToken(authRes.token); // عدّل الاسم حسب اللي عندك
+        this.auth.updateToken(authRes.token);
       }),
-
-      // ✅ بعد ما الـ Token اتحدّث → نكمل بالـ CollectDailyTickets
       switchMap(() => {
         const collectBody = { gateId };
-
-        // هنا بنستخدم الـ HttpClient العادي اللي عليه Interceptor
         return this.http.post<CollectDailyTicketsResponse>(
           `${this.base}/Ticket/CollectDailyTickets`,
           collectBody
         );
       }),
-
       catchError((err) => {
         console.error('collectDailyTicketsAsSupervisor failed', err);
         return throwError(() => err);
       })
     );
-}
-
+  }
 }

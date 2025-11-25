@@ -672,7 +672,7 @@ export class TicketComponent {
     this.collectSummary = null;
   }
 
-  finishSupervisorCollect() { 
+  finishSupervisorCollect() {
     this.auth.updateToken(this.cashierToken ?? '');
     this.closeSupervisorCollectModal();
   }
@@ -747,7 +747,14 @@ export class TicketComponent {
       },
     });
   }
+  clearCardSummary(event?: Event): void {
+    event?.preventDefault();
+    event?.stopPropagation();
 
+    this.cardSummary = null;
+    this.cardNumber = '';
+    this.scanBuffer = '';
+  }
   // ================== NFC read card ==================
   async readCard() {
     if (this.readingCard()) return;
