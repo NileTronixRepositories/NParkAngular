@@ -7,12 +7,13 @@ import { TicketsServices } from '../Tickets/tickets-services';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
-const API_BASE = 'http://192.168.1.8/api/auth';
+const API_BASE = 'http://192.168.1.10/api/auth';
 
 export interface StoredUser {
   role: string;
   permissions?: string[];
   gateDevicePeripheral?: GateDevicePeripheral | null;
+  gateId?: number | null;
 }
 
 export interface AuthResponse {
@@ -20,6 +21,7 @@ export interface AuthResponse {
   roleName: string;
   permissions: string[];
   gateDevicePeripheral?: GateDevicePeripheral | null;
+  gateId?: number | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -62,6 +64,7 @@ export class AuthService {
           role: res.roleName,
           permissions: res.permissions ?? [],
           gateDevicePeripheral: res.gateDevicePeripheral ?? null,
+          gateId: res.gateId ?? null,
         };
         store.setItem(USER_KEY, JSON.stringify(user));
 
@@ -87,6 +90,7 @@ export class AuthService {
           role: res.roleName ?? current?.role ?? '',
           permissions: res.permissions ?? current?.permissions ?? [],
           gateDevicePeripheral: res.gateDevicePeripheral ?? null,
+          gateId: res.gateId ?? current?.gateId ?? null,
         };
 
         store.setItem(USER_KEY, JSON.stringify(updated));
@@ -110,6 +114,7 @@ export class AuthService {
           role: res.roleName ?? current?.role ?? '',
           permissions: res.permissions ?? current?.permissions ?? [],
           gateDevicePeripheral: res.gateDevicePeripheral ?? null,
+          gateId: gateId,
         };
 
         store.setItem(USER_KEY, JSON.stringify(updated));
@@ -149,6 +154,11 @@ export class AuthService {
     return this.gateData;
   }
 
+  getGateId(): number | null {
+    const user = this.getStoredUser();
+    return user?.gateId ?? null;
+  }
+
   updateGateData(gp: GateDevicePeripheral | null) {
     this.gateData = gp;
 
@@ -159,6 +169,7 @@ export class AuthService {
       role: current?.role ?? '',
       permissions: current?.permissions ?? [],
       gateDevicePeripheral: gp,
+      gateId: current?.gateId ?? null,
     };
 
     store.setItem(USER_KEY, JSON.stringify(updated));

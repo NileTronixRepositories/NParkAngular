@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, map, catchError } from 'rxjs';
+import { HttpClient, HttpParams, HttpBackend, HttpHeaders } from '@angular/common/http';
+import { Observable, of, map, catchError, switchMap, throwError } from 'rxjs';
 import {
   TicketDto,
   IssuedTicketResponse,
@@ -14,7 +14,7 @@ import {
   CollectDailyTicketsResponse,
 } from '../../Domain/tickets/tickets.model';
 import { environment } from '../../Shared/environment/environment';
-import { AuthService } from '../Auth/auth-service';
+import { AuthResponse, AuthService } from '../Auth/auth-service';
 
 export interface TicketsForGateResult {
   items: TicketDto[];
@@ -28,6 +28,8 @@ export class TicketsServices {
   private http = inject(HttpClient);
   private base = environment.baseUrl;
   private auth = inject(AuthService);
+  private httpBackend = inject(HttpBackend);
+  private _rawHttp?: HttpClient;
 
   getAll(): Observable<TicketDto[]> {
     return this.http.get<any[]>(`${this.base}/Ticket`).pipe(
@@ -254,4 +256,51 @@ export class TicketsServices {
       {}
     );
   }
+  private get rawHttp(): HttpClient {
+    if (!this._rawHttp) {
+      this._rawHttp = new HttpClient(this.httpBackend);
+    }
+    return this._rawHttp;
+  }
+
+    collectDailyTicketsAsSupervisor(credentials: {
+      userName: string;
+      password: string;
+    }): Observable<CollectDailyTicketsResponse> {
+      const loginBody = {
+        userName: credentials.userName,
+        password: credentials.password,
+        gateType: 1,
+        gateNumber: 1,
+      };
+
+      return this.rawHttp.post<AuthResponse>(`${this.base}/auth/Login`, loginBody).pipe(
+        switchMap((authRes) => {
+          const token = authRes?.token;
+          if (!token) {
+            return throwError(() => new Error('No token returned from supervisor login'));
+          }
+
+          const headers = new HttpHeaders({
+            Authorization: `Bearer ${token}`,
+          });
+
+          const gateId = this.auth.getGateId();
+
+          const collectBody = {
+            gateId: gateId,
+          };
+
+          return this.rawHttp.post<CollectDailyTicketsResponse>(
+            `${this.base}/Ticket/CollectDailyTickets`,
+            collectBody,
+            { headers }
+          );
+        }),
+        catchError((err) => {
+          console.error('collectDailyTicketsAsSupervisor failed', err);
+          return throwError(() => err);
+        })
+      );
+    }
 }

@@ -66,6 +66,13 @@ export class TicketComponent {
   collectSummary: CollectDailyTicketsResponse | null = null;
   collectLoading = false;
 
+  // ==== Supervisor collect =====
+  showSupervisorCollectModal = false;
+  supervisorUsername: string = '';
+  supervisorPassword: string = '';
+  supervisorCollectLoading = false;
+  supervisorCollectError: string | null = null;
+
   get lastIssuedPrice(): number | null {
     return this.lastTicketPrice;
   }
@@ -542,25 +549,29 @@ export class TicketComponent {
     if (!w) return;
 
     const html = `
-      <html>
-        <head>
-          <title>Print Ticket</title>
-          <style>
-            body{margin:0;padding:16px;font-family:Arial, sans-serif;}
-            .wrap{display:flex;flex-direction:column;align-items:center;gap:12px;}
-            img{max-width:100%;height:auto;border:1px solid #ddd;border-radius:8px;padding:8px;}
-            .id{font-size:14px;color:#555}
-            .btn{display:none}
-          </style>
-        </head>
-        <body onload="window.print(); window.close();">
-          <div class="wrap">
-            <img src="${imgSrc}" />
-            ${this.lastIssuedTicketInfo ? `<div class="id">${this.lastIssuedTicketInfo}</div>` : ''}
-          </div>
-        </body>
-      </html>
-    `;
+        <html>
+          <head>
+            <title>Print Ticket</title>
+            <style>
+              body{margin:0;padding:16px;font-family:Arial, sans-serif;}
+              .wrap{display:flex;flex-direction:column;align-items:center;gap:12px;}
+              img{max-width:100%;height:auto;border:1px solid #ddd;border-radius:8px;padding:8px;}
+              .id{font-size:14px;color:#555}
+              .btn{display:none}
+            </style>
+          </head>
+          <body onload="window.print(); window.close();">
+            <div class="wrap">
+              <img src="${imgSrc}" />
+              ${
+                this.lastIssuedTicketInfo
+                  ? `<div class="id">${this.lastIssuedTicketInfo}</div>`
+                  : ''
+              }
+            </div>
+          </body>
+        </html>
+      `;
     w.document.open();
     w.document.write(html);
     w.document.close();
@@ -594,6 +605,72 @@ export class TicketComponent {
         this.toast.fromProblem(err);
       },
     });
+  }
+
+  submitSupervisorCollect() {
+    const user = this.supervisorUsername.trim();
+    const pwd = this.supervisorPassword;
+
+    if (!user || !pwd) {
+      this.supervisorCollectError = 'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر';
+      return;
+    }
+
+    this.supervisorCollectError = null;
+    this.supervisorCollectLoading = true;
+    this.collectSummary = null;
+
+    this.svc
+      .collectDailyTicketsAsSupervisor({
+        userName: user,
+        password: pwd,
+      })
+      .subscribe({
+        next: (res: CollectDailyTicketsResponse) => {
+           this.collectSummary = res;
+          this.toast.success(this.t('admit_done'));
+          this.loadTicketsForEntry();
+        },
+        error: (err) => {
+          console.error('submitSupervisorCollect error', err);
+          this.supervisorCollectError = 'فشل الدخول كـ Supervisor. تأكد من البيانات أو الصلاحيات.';
+          this.toast.fromProblem(err);
+          this.supervisorCollectLoading = false;
+        },
+        complete: () => {
+          this.supervisorCollectLoading = false;
+        },
+      });
+  }
+
+  onCollectClick() {
+    if (this.isSupervisor) {
+      this.collectDailyForGate();
+      return;
+    }
+
+    this.openSupervisorCollectModal();
+  }
+
+  openSupervisorCollectModal() {
+    this.supervisorUsername = '';
+    this.supervisorPassword = '';
+    this.supervisorCollectError = null;
+    this.collectSummary = null;
+    this.showSupervisorCollectModal = true;
+  }
+
+  closeSupervisorCollectModal() {
+    if (this.supervisorCollectLoading) return;
+    this.showSupervisorCollectModal = false;
+    this.supervisorUsername = '';
+    this.supervisorPassword = '';
+    this.supervisorCollectError = null;
+    this.collectSummary = null;
+  }
+
+  finishSupervisorCollect() {
+    this.closeSupervisorCollectModal();
   }
 
   // ===== Scan / admit =====

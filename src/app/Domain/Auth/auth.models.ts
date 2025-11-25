@@ -21,6 +21,7 @@ export interface LoginFirstTimeRequest {
 export interface LoginResponse {
   token: string;
   roleName: string;
+  gateDevicePeripheral?: GateDevicePeripheral | null;
 }
 
 export interface GateDevicePeripheral {
@@ -28,6 +29,7 @@ export interface GateDevicePeripheral {
   lprIp: string;
   hasPc: boolean;
   hasLpr: boolean;
+  gateNumber: number;
 }
 
 export interface LoginResponse {
