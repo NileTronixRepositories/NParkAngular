@@ -253,11 +253,17 @@
                   <i class="bi bi-printer"></i> {{ 'print' | t }}
                 </button>
 
+                <!-- زرار Confirm & Collect (يتقفل لو الكاشير حصّل الكاش) -->
                 <button
                   class="btn btn-success btn-lg px-4"
                   type="button"
                   (click)="confirmExit()"
-                  [disabled]="collecting || !salarySummary || !salarySummary?.isExitValid"
+                  [disabled]="
+                    collecting ||
+                    !salarySummary ||
+                    !salarySummary.isExitValid ||
+                    salarySummary.isCollectByCashier
+                  "
                 >
                   <span *ngIf="!collecting" class="d-inline-flex align-items-center gap-2">
                     <i class="bi bi-cash-coin"></i> {{ 'confirm_and_collect' | t }}
@@ -297,9 +303,11 @@
               </span>
             </div>
 
-            <div class="d-flex justify-content-between mb-1">
+            <!-- Row + زر فتح البوابة -->
+            <div class="d-flex justify-content-between align-items-center mb-1">
               <span class="fw-semibold">{{ 'salary_cashier_collected' | t }}</span>
-              <span>
+
+              <div class="d-flex align-items-center gap-2">
                 <span
                   class="badge"
                   [class.bg-success]="salarySummary.isCollectByCashier"
@@ -311,12 +319,26 @@
                       : ('cashier_not_collected' | t)
                   }}
                 </span>
-              </span>
+
+                <button
+                  *ngIf="salarySummary.isCollectByCashier"
+                  type="button"
+                  class="btn btn-outline-success btn-sm"
+                  (click)="allowExitWithoutCollect()"
+                  [disabled]="exitProcessing"
+                >
+                  <span *ngIf="!exitProcessing">
+                    <i class="bi bi-door-open"></i>
+                    {{ 'open_gate' | t }}
+                  </span>
+                  <span *ngIf="exitProcessing" class="spinner-border spinner-border-sm"></span>
+                </button>
+              </div>
             </div>
           </div>
 
           <!-- Empty state -->
-          <div *ngIf="!scannedTicket && !scanning" class="text-muted mt-3">
+          <div *ngIf="!scannedTicket && !scanning && !salarySummary" class="text-muted mt-3">
             {{ 'emptyState' | t }}
           </div>
         </div>
@@ -494,140 +516,143 @@
         </div>
       </div>
     </div>
-  </div>
 
-  <!-- Supervisor Collect Modal -->
-  <div
-    class="modal d-block"
-    tabindex="-1"
-    *ngIf="showSupervisorCollectModal"
-    style="z-index: 1060; background: rgba(0, 0, 0, 0.4)"
-  >
-    <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">{{ 'collect_summary' | t }} - {{ 'cashier_status' | t }}</h5>
-          <button
-            type="button"
-            class="btn-close"
-            aria-label="Close"
-            (click)="closeSupervisorCollectModal()"
-            [disabled]="supervisorCollectLoading"
-          ></button>
-        </div>
+    <!-- Supervisor Collect Modal -->
+    <div
+      class="modal d-block"
+      tabindex="-1"
+      *ngIf="showSupervisorCollectModal"
+      style="z-index: 1060; background: rgba(0, 0, 0, 0.4)"
+    >
+      <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">{{ 'collect_summary' | t }} - {{ 'cashier_status' | t }}</h5>
+            <button
+              type="button"
+              class="btn-close"
+              aria-label="Close"
+              (click)="closeSupervisorCollectModal()"
+              [disabled]="supervisorCollectLoading"
+            ></button>
+          </div>
 
-        <div class="modal-body">
-          <form (ngSubmit)="submitSupervisorCollect()" *ngIf="!collectSummary">
-            <div class="row g-3">
-              <div class="col-12 col-md-6">
-                <label class="form-label small">Supervisor username</label>
-                <input
-                  type="text"
-                  class="form-control form-control-sm"
-                  [(ngModel)]="supervisorUsername"
-                  name="supervisorUsername"
-                  autocomplete="off"
-                />
+          <div class="modal-body">
+            <form (ngSubmit)="submitSupervisorCollect()" *ngIf="!collectSummary">
+              <div class="row g-3">
+                <div class="col-12 col-md-6">
+                  <label class="form-label small">Supervisor username</label>
+                  <input
+                    type="text"
+                    class="form-control form-control-sm"
+                    [(ngModel)]="supervisorUsername"
+                    name="supervisorUsername"
+                    autocomplete="off"
+                  />
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <label class="form-label small">Supervisor password</label>
+                  <input
+                    type="password"
+                    class="form-control form-control-sm"
+                    [(ngModel)]="supervisorPassword"
+                    name="supervisorPassword"
+                  />
+                </div>
               </div>
 
-              <div class="col-12 col-md-6">
-                <label class="form-label small">Supervisor password</label>
-                <input
-                  type="password"
-                  class="form-control form-control-sm"
-                  [(ngModel)]="supervisorPassword"
-                  name="supervisorPassword"
-                />
+              <div *ngIf="supervisorCollectError" class="alert alert-danger small mt-3">
+                {{ supervisorCollectError }}
               </div>
-            </div>
 
-            <div *ngIf="supervisorCollectError" class="alert alert-danger small mt-3">
-              {{ supervisorCollectError }}
-            </div>
+              <div class="d-flex justify-content-end gap-2 mt-3">
+                <button
+                  type="button"
+                  class="btn btn-outline-secondary btn-sm"
+                  (click)="closeSupervisorCollectModal()"
+                  [disabled]="supervisorCollectLoading"
+                >
+                  {{ 'cancel' | t }}
+                </button>
+                <button
+                  type="submit"
+                  class="btn btn-success btn-sm"
+                  [disabled]="supervisorCollectLoading"
+                >
+                  <span *ngIf="!supervisorCollectLoading">{{ 'confirm' | t }}</span>
+                  <span
+                    *ngIf="supervisorCollectLoading"
+                    class="spinner-border spinner-border-sm"
+                  ></span>
+                </button>
+              </div>
+            </form>
 
-            <div class="d-flex justify-content-end gap-2 mt-3">
-              <button
-                type="button"
-                class="btn btn-outline-secondary btn-sm"
-                (click)="closeSupervisorCollectModal()"
-                [disabled]="supervisorCollectLoading"
+            <div *ngIf="collectSummary" class="mt-3">
+              <div class="alert alert-success small">
+                {{ 'admit_done' | t }} - {{ 'cashier_collected_yes' | t }}
+              </div>
+
+              <div class="d-flex justify-content-between mb-1">
+                <span class="fw-semibold">{{ 'total_collected_amount' | t }}</span>
+                <span class="mono">
+                  {{ collectSummary.totalPriceCollected | number : '1.0-2' }}
+                </span>
+              </div>
+
+              <div class="d-flex justify-content-between mb-3">
+                <span class="fw-semibold">{{ 'total_collected_tickets' | t }}</span>
+                <span class="mono">
+                  {{ collectSummary.totalTicketsCollected }}
+                </span>
+              </div>
+
+              <div
+                class="table-responsive collect-summary-table"
+                *ngIf="collectSummary.ticketCollectDetails?.length"
               >
-                {{ 'cancel' | t }}
-              </button>
-              <button
-                type="submit"
-                class="btn btn-success btn-sm"
-                [disabled]="supervisorCollectLoading"
+                <table class="table table-sm mb-0">
+                  <thead>
+                    <tr>
+                      <th>{{ 'tickets' | t }}</th>
+                      <th style="width: 150px">{{ 'collected_at' | t }}</th>
+                      <th style="width: 120px">{{ 'fees' | t }}</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr *ngFor="let d of collectSummary.ticketCollectDetails">
+                      <td class="mono">{{ d.ticketNumber }}</td>
+                      <td>{{ d.collectedAt | date : 'short' }}</td>
+                      <td class="mono">{{ d.price | number : '1.0-2' }}</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div
+                class="small text-muted mt-2"
+                *ngIf="collectSummary.ticketCollectDetails?.length"
               >
-                <span *ngIf="!supervisorCollectLoading">{{ 'confirm' | t }}</span>
-                <span
-                  *ngIf="supervisorCollectLoading"
-                  class="spinner-border spinner-border-sm"
-                ></span>
-              </button>
-            </div>
-          </form>
+                {{ 'last_collection_time' | t }}:
+                <span class="mono">
+                  {{
+                    collectSummary.ticketCollectDetails[
+                      collectSummary.ticketCollectDetails.length - 1
+                    ]?.collectedAt | date : 'short'
+                  }}
+                </span>
+              </div>
 
-          <div *ngIf="collectSummary" class="mt-3">
-            <div class="alert alert-success small">
-              {{ 'admit_done' | t }} - {{ 'cashier_collected_yes' | t }}
-            </div>
-
-            <div class="d-flex justify-content-between mb-1">
-              <span class="fw-semibold">{{ 'total_collected_amount' | t }}</span>
-              <span class="mono">
-                {{ collectSummary.totalPriceCollected | number : '1.0-2' }}
-              </span>
-            </div>
-
-            <div class="d-flex justify-content-between mb-3">
-              <span class="fw-semibold">{{ 'total_collected_tickets' | t }}</span>
-              <span class="mono">
-                {{ collectSummary.totalTicketsCollected }}
-              </span>
-            </div>
-
-            <div
-              class="table-responsive collect-summary-table"
-              *ngIf="collectSummary.ticketCollectDetails?.length"
-            >
-              <table class="table table-sm mb-0">
-                <thead>
-                  <tr>
-                    <th>{{ 'tickets' | t }}</th>
-                    <th style="width: 150px">{{ 'collected_at' | t }}</th>
-                    <th style="width: 120px">{{ 'fees' | t }}</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  <tr *ngFor="let d of collectSummary.ticketCollectDetails">
-                    <td class="mono">{{ d.ticketNumber }}</td>
-                    <td>{{ d.collectedAt | date : 'short' }}</td>
-                    <td class="mono">{{ d.price | number : '1.0-2' }}</td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-
-            <div class="small text-muted mt-2" *ngIf="collectSummary.ticketCollectDetails?.length">
-              {{ 'last_collection_time' | t }}:
-              <span class="mono">
-                {{
-                  collectSummary.ticketCollectDetails[
-                    collectSummary.ticketCollectDetails.length - 1
-                  ]?.collectedAt | date : 'short'
-                }}
-              </span>
-            </div>
-
-            <div class="d-flex justify-content-end mt-3">
-              <button
-                type="button"
-                class="btn btn-primary btn-sm"
-                (click)="finishSupervisorCollect()"
-              >
-                {{ 'save' | t }}
-              </button>
+              <div class="d-flex justify-content-end mt-3">
+                <button
+                  type="button"
+                  class="btn btn-primary btn-sm"
+                  (click)="finishSupervisorCollect()"
+                >
+                  {{ 'save' | t }}
+                </button>
+              </div>
             </div>
           </div>
         </div>
