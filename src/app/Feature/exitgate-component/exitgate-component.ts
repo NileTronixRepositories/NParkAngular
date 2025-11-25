@@ -469,24 +469,39 @@ export class ExitgateComponent {
   }
 
   onScanEnter() {
-    const code = this.scanBuffer?.trim();
-    if (!code) return;
-
-    this.scanningQR = false;
-    this.manualInput = '';
-
-    this.fetchTicketAndSalaryByQr(code);
+    // بدل تكرار الكود، نعيد استخدام نفس الفانكشن
+    this.submitQrFromInput();
   }
 
   searchManual() {
     const code = this.manualInput?.trim();
-    if (!code) return;
+    if (!code) {
+      return;
+    }
 
-    this.searchingManual = true;
+    // Reset QR state
     this.scanBuffer = '';
-    this.fetchSalaryForCard(code);
-  }
+    this.scannedTicket = null;
+    this.salarySummary = null;
 
+    this.scanning = false;
+    this.searchingManual = true;
+
+    // هنا بننادي الدالة اللي في الـ service زي ما طلبت
+    this.svc.calculateSubscriberSalary(code).subscribe({
+      next: (summary) => {
+        this.salarySummary = summary;
+      },
+      error: (err) => {
+        console.error('calculateSubscriberSalary error', err);
+        this.toast.fromProblem(err);
+        this.searchingManual = false;
+      },
+      complete: () => {
+        this.searchingManual = false;
+      },
+    });
+  }
   /** QR Ticket: Get ticket + salary via CalculateQrCodeTicketSalary */
   private fetchTicketAndSalaryByQr(code: string) {
     this.scanning = true;
@@ -843,5 +858,27 @@ export class ExitgateComponent {
   // ===== Translate helper =====
   private t(key: string) {
     return this.dict[this.lang.current]?.[key] ?? key;
+  }
+  // استخدام الـ QR المكتوب / الممسوح من الإنبوت
+  submitQrFromInput() {
+    let code = this.scanBuffer?.trim();
+    if (!code) {
+      return;
+    }
+
+    // 🔹 شيل الـ double quotes لو القارئ بيرجع "my string"
+    if (code.startsWith('"') && code.endsWith('"') && code.length > 1) {
+      code = code.substring(1, code.length - 1).trim();
+    }
+
+    // Reset حالات أخرى
+    this.manualInput = '';
+    this.scannedTicket = null;
+    this.salarySummary = null;
+    this.addingExitTicket = false;
+    this.exitTicketAdded = false;
+
+    // نستعمل نفس الفلو الموحد للـ QR
+    this.fetchTicketAndSalaryByQr(code);
   }
 }
