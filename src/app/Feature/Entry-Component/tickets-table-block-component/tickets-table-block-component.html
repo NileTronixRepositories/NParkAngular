@@ -1,0 +1,109 @@
+<div class="card h-100 shadow-soft">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+      <i class="bi bi-list-ol"></i> {{ t('ticket_number') }}
+    </h5>
+  </div>
+
+  <div class="card-body p-0 d-flex flex-column">
+    <div class="tickets-table-wrapper">
+      <div class="table-responsive tickets-table-scroll">
+        <table class="table align-middle mb-0">
+          <thead class="table-head">
+            <tr>
+              <th>{{ t('ticket_number') }}</th>
+              <th style="width: 140px">{{ t('time') }}</th>
+              <th style="width: 140px">{{ t('fees') }}</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr *ngFor="let ticket of pageItems">
+              <td>
+                <ng-container *ngIf="ticket.info as ti; else structuredInfo">
+                  <span class="mono">{{ ti }}</span>
+                </ng-container>
+
+                <ng-template #structuredInfo>
+                  <ng-container
+                    *ngIf="
+                      ticket.customerName || ticket.phone || ticket.cardNumber;
+                      else fallbackId
+                    "
+                  >
+                    <div *ngIf="ticket.customerName" class="fw-semibold">
+                      {{ ticket.customerName }}
+                    </div>
+                    <div *ngIf="ticket.phone" class="small text-muted">
+                      {{ ticket.phone }}
+                    </div>
+                    <div *ngIf="ticket.cardNumber" class="small mono">
+                      {{ ticket.cardNumber }}
+                    </div>
+                  </ng-container>
+                </ng-template>
+
+                <ng-template #fallbackId>
+                  <span class="mono">{{ ticket.id }}</span>
+                </ng-template>
+              </td>
+
+              <td>{{ ticket.time | date : 'short' }}</td>
+              <td>
+                <span class="mono">
+                  {{ ticket.price ?? 0 | number : '1.0-2' }}
+                </span>
+                <span *ngIf="ticket.isCollectedByCashier" class="badge bg-success ms-1">
+                  {{ t('cashier_collected_short') }}
+                </span>
+              </td>
+            </tr>
+
+            <tr *ngIf="!pageItems.length && !loading">
+              <td colspan="3" class="text-center text-muted py-4">
+                {{ t('no_tickets') }}
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div
+      class="d-flex justify-content-between align-items-center p-2 border-top mt-auto flex-wrap gap-2"
+    >
+      <div class="small text-muted">
+        {{ t('showing') }}
+        {{ tickets.length ? (page - 1) * pageSize + 1 : 0 }}–{{
+          tickets.length ? Math.min(page * pageSize, tickets.length) : 0
+        }}
+        {{ t('of') }} {{ tickets.length }}
+      </div>
+
+      <div class="d-flex align-items-center gap-2">
+        <span class="small text-muted">{{ t('total_fees_today') }}:</span>
+        <span class="badge bg-success fs-6 fw-bold">
+          {{ totalPriceToday | number : '1.0-2' }}
+        </span>
+      </div>
+
+      <div class="btn-group ms-auto" dir="ltr">
+        <button
+          class="btn btn-sm btn-outline-secondary"
+          [disabled]="page <= 1"
+          (click)="prevPage()"
+        >
+          {{ t('prev') }}
+        </button>
+
+        <button
+          class="btn btn-sm btn-outline-secondary"
+          [disabled]="page >= pagesCount"
+          (click)="nextPage()"
+        >
+          {{ t('next') }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>

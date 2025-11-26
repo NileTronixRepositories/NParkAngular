@@ -1,0 +1,38 @@
+import { Component, Input } from '@angular/core';
+import { TicketDto } from '../../../Domain/tickets/tickets.model';
+import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+
+@Component({
+  selector: 'app-tickets-table-block-component',
+  imports: [CommonModule, FormsModule],
+  templateUrl: './tickets-table-block-component.html',
+  styleUrl: './tickets-table-block-component.css',
+})
+export class TicketsTableBlockComponent {
+  @Input({ required: true }) t!: (key: string) => string;
+  @Input() tickets: TicketDto[] = [];
+  @Input() totalPriceToday: number = 0;
+  @Input() loading: boolean = false;
+
+  page = 1;
+  pageSize = 10;
+  Math = Math;
+
+  get pageItems(): TicketDto[] {
+    const start = (this.page - 1) * this.pageSize;
+    return this.tickets.slice(start, start + this.pageSize);
+  }
+
+  get pagesCount(): number {
+    return Math.max(1, Math.ceil(this.tickets.length / this.pageSize));
+  }
+
+  prevPage() {
+    if (this.page > 1) this.page--;
+  }
+
+  nextPage() {
+    if (this.page < this.pagesCount) this.page++;
+  }
+}

@@ -7,7 +7,7 @@ import { TicketsServices } from '../Tickets/tickets-services';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
-const API_BASE = 'http://192.168.1.10/api/auth';
+const API_BASE = 'http://192.168.1.12/api/auth';
 
 export interface StoredUser {
   role: string;

@@ -112,7 +112,7 @@ export class GateComponent {
 
       this.http
         .post(
-          'http://192.168.1.10/api/auth/CheckGate',
+          'http://192.168.1.12/api/auth/CheckGate',
           {
             gateNumber: gateNumber,
             gateType: gateType,

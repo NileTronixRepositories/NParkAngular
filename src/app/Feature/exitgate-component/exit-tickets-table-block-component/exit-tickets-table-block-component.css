@@ -1,0 +1,56 @@
+:host .table {
+  margin-bottom: 0;
+  font-size: 13px;
+}
+
+:host .table-head {
+  background: #f9fafb;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+:host .table-head th {
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+
+:host tbody tr td {
+  border-top: 1px solid var(--border);
+  vertical-align: middle;
+}
+
+:host tbody tr:hover {
+  background: #f9fafb;
+}
+
+/* mono text */
+:host .mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+}
+
+:host .card > .border-top {
+  border-color: var(--border) !important;
+}
+
+/* ================== COLLECT SUMMARY CARD ================== */
+
+:host .collect-summary-card {
+  border-radius: 12px;
+  border: 1px dashed #d1fae5;
+  background: #ecfdf5;
+}
+
+:host .collect-summary-card .card-header {
+  background: rgba(22, 163, 74, 0.06);
+  border-bottom: 1px solid rgba(22, 163, 74, 0.15);
+}
+
+:host .collect-summary-card .table > :not(caption) > * > * {
+  background-color: transparent;
+}
+
+:host .collect-summary-table {
+  max-height: 220px;
+  overflow-y: auto;
+}

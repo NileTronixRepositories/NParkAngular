@@ -1,0 +1,75 @@
+<div class="card h-100 shadow-soft">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+      <i class="bi bi-hdd-network"></i> {{ 'gate_devices' | t }}
+    </h5>
+    <div class="small text-muted">{{ 'devices_status' | t }}</div>
+  </div>
+
+  <div class="card-body">
+    <ng-container *ngIf="gatePeripheral as gp; else noGateDevices">
+      <!-- PC -->
+      <div class="device-row mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="fw-semibold">{{ 'pc_device' | t }}</span>
+          <span class="badge pill" [class.theme-green]="gp.hasPc" [class.theme-red]="!gp.hasPc">
+            {{ gp.hasPc ? ('device_connected' | t) : ('device_not_connected' | t) }}
+          </span>
+        </div>
+
+        <div class="small text-muted" *ngIf="gp.pcIp">
+          {{ 'ip_address' | t }}:
+          <span class="mono">{{ gp.pcIp }}</span>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- LPR -->
+      <div class="device-row">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="fw-semibold">{{ 'lpr_device' | t }}</span>
+          <span class="badge pill" [class.theme-green]="gp.hasLpr" [class.theme-red]="!gp.hasLpr">
+            {{ gp.hasLpr ? ('device_connected' | t) : ('device_not_connected' | t) }}
+          </span>
+        </div>
+
+        <div class="small text-muted" *ngIf="gp.lprIp">
+          {{ 'ip_address' | t }}:
+          <span class="mono">{{ gp.lprIp }}</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #noGateDevices>
+      <div class="text-muted small mb-2">
+        {{ 'no_gate_devices' | t }}
+      </div>
+
+      <div class="mb-2">
+        <label class="form-label small fw-semibold">
+          {{ 'manual_plate_label' | t }}
+        </label>
+        <textarea
+          class="form-control"
+          rows="2"
+          [(ngModel)]="manualPlate"
+          [placeholder]="'manual_plate_placeholder' | t"
+        ></textarea>
+      </div>
+
+      <button
+        class="btn btn-sm btn-primary"
+        type="button"
+        (click)="submitManualPlate()"
+        [disabled]="manualPlateSubmitting || !manualPlate.trim()"
+      >
+        <span *ngIf="!manualPlateSubmitting">
+          <i class="bi bi-camera"></i>
+          {{ 'send_manual_plate' | t }}
+        </span>
+        <span *ngIf="manualPlateSubmitting" class="spinner-border spinner-border-sm"></span>
+      </button>
+    </ng-template>
+  </div>
+</div>

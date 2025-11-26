@@ -3,409 +3,50 @@
   <div class="row g-3 mb-3">
     <!-- Block 1: Gate Devices -->
     <div class="col-12 col-lg-4">
-      <div class="card h-100 shadow-soft">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
-            <i class="bi bi-hdd-network"></i> {{ t('gate_devices') }}
-          </h5>
-          <div class="small text-muted">{{ t('devices_status') }}</div>
-        </div>
-
-        <div class="card-body">
-          <ng-container *ngIf="gatePeripheral as gp; else noGateDevices">
-            <!-- PC -->
-            <div class="device-row mb-3">
-              <div class="d-flex justify-content-between align-items-center mb-1">
-                <span class="fw-semibold">{{ t('pc_device') }}</span>
-                <span
-                  class="badge pill"
-                  [class.theme-green]="gp.hasPc"
-                  [class.theme-red]="!gp.hasPc"
-                >
-                  {{ gp.hasPc ? t('device_connected') : t('device_not_connected') }}
-                </span>
-              </div>
-
-              <div class="small text-muted" *ngIf="gp.pcIp">
-                {{ t('ip_address') }}:
-                <span class="mono">{{ gp.pcIp }}</span>
-              </div>
-            </div>
-
-            <hr />
-
-            <!-- LPR -->
-            <div class="device-row">
-              <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
-                <div class="d-flex align-items-center gap-2">
-                  <span class="fw-semibold">{{ t('lpr_device') }}</span>
-                  <span
-                    class="badge pill"
-                    [class.theme-green]="gp.hasLpr"
-                    [class.theme-red]="!gp.hasLpr"
-                  >
-                    {{ gp.hasLpr ? t('device_connected') : t('device_not_connected') }}
-                  </span>
-                </div>
-
-                <!-- Manual input + submit button -->
-                <div class="input-group input-group-sm manual-lpr-input-group">
-                  <input
-                    type="text"
-                    class="form-control manual-lpr-input"
-                    [(ngModel)]="manualLprPlate"
-                    [placeholder]="t('plate')"
-                  />
-                  <button
-                    class="btn btn-outline-primary"
-                    type="button"
-                    (click)="createTicket(manualLprPlate)"
-                    [disabled]="adding || !manualLprPlate.trim()"
-                    title="إصدار تذكرة بالرقم المدخل"
-                  >
-                    <i class="bi bi-send"></i>
-                  </button>
-                </div>
-              </div>
-
-              <div class="small text-muted" *ngIf="gp.lprIp">
-                {{ t('ip_address') }}:
-                <span class="mono">{{ gp.lprIp }}</span>
-              </div>
-            </div>
-          </ng-container>
-
-          <ng-template #noGateDevices>
-            <div class="text-muted small">
-              {{ t('no_gate_devices') }}
-            </div>
-          </ng-template>
-        </div>
-      </div>
+      <app-gate-devices-block-component
+        [t]="t"
+        [gatePeripheral]="gatePeripheral"
+        [manualLprPlate]="manualLprPlate"
+        [adding]="adding"
+        (manualLprPlateChange)="manualLprPlate = $event"
+        (createTicketWithPlate)="createTicket($event)"
+      ></app-gate-devices-block-component>
     </div>
 
     <!-- Block 2: Issue Ticket -->
     <div class="col-12 col-lg-4">
-      <div class="card shadow-soft tickets-card shadow-soft glass-entry">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
-            <i class="bi bi-door-open"></i> {{ t('issue_ticket') }}
-          </h5>
-          <span class="chip chip--entry">{{ t('chip_entry') }}</span>
-        </div>
-
-        <div class="card-body d-flex flex-column align-items-center justify-content-center">
-          <!-- QR preview / placeholder -->
-          <div class="qr-preview">
-            <ng-container *ngIf="currentIssuedQr; else noQr">
-              <img
-                *ngIf="currentIssuedQrType === 'image'"
-                [src]="currentIssuedQr"
-                alt="Ticket QR"
-                class="img-fluid rounded border"
-              />
-              <img
-                *ngIf="currentIssuedQrType === 'text'"
-                [src]="qrDataUrl(currentIssuedQr!)"
-                alt="Ticket QR"
-                class="img-fluid rounded border"
-              />
-            </ng-container>
-
-            <ng-template #noQr>
-              <div class="placeholder text-muted text-center">
-                <div class="bi bi-qr-code display-6 d-block mb-2"></div>
-                <div>{{ t('no_ticket_yet') }}</div>
-              </div>
-            </ng-template>
-          </div>
-
-          <!-- Card data -->
-          <div class="mb-3 mt-3 w-100">
-            <label class="form-label small mb-1 d-block">
-              {{ t('cardData') }}
-            </label>
-            <div class="d-flex flex-wrap align-items-center gap-2">
-              <button
-                class="btn btn-outline-primary"
-                type="button"
-                (click)="readCard()"
-                [disabled]="readingCard()"
-                [title]="t('readCardTitle')"
-              >
-                <i class="bi bi-upc-scan"></i>
-                <span class="ms-1">
-                  {{ readingCard() ? t('reading') : t('readCard') }}
-                </span>
-              </button>
-
-              <input
-                type="text"
-                class="form-control form-control-sm flex-grow-1"
-                [(ngModel)]="cardNumber"
-                [placeholder]="t('cardNumber')"
-              />
-            </div>
-          </div>
-
-          <div class="mt-1 small text-muted" *ngIf="cardNumber">
-            {{ t('cardNumber') }}:
-            <span class="mono">{{ cardNumber }}</span>
-          </div>
-
-          <!-- Card summary + Subscriber -->
-          <div class="mt-2 w-100">
-            <h6 class="small fw-bold mb-1">{{ t('cardSummary') }}</h6>
-
-            <ng-container *ngIf="cardSummary; else noCardSummary">
-              <div class="alert card-summary-box small mb-0">
-                <!-- Clear Button -->
-                <button
-                  type="button"
-                  class="clearCardSummary btn btn-outline-primary"
-                  (click)="clearCardSummary($event)"
-                >
-                  <i class="bi bi-x"></i>
-                </button>
-
-                <!-- Summary Rows -->
-                <div class="card-summary-row" *ngIf="cardSummary.cardNumber">
-                  <span class="card-summary-key">{{ t('cardNumber') }}</span>
-                  <span class="card-summary-value">{{ cardSummary.cardNumber }}</span>
-                </div>
-
-                <div class="card-summary-row" *ngIf="cardSummary.name">
-                  <span class="card-summary-key">{{ t('customer_name') }}</span>
-                  <span class="card-summary-value">{{ cardSummary.name }}</span>
-                </div>
-
-                <div class="card-summary-row" *ngIf="cardSummary.phone">
-                  <span class="card-summary-key">{{ t('phone') }}</span>
-                  <span class="card-summary-value">{{ cardSummary.phone }}</span>
-                </div>
-
-                <div class="card-summary-row" *ngIf="cardSummary.nationalId">
-                  <span class="card-summary-key">{{ t('national_id') }}</span>
-                  <span class="card-summary-value">{{ cardSummary.nationalId }}</span>
-                </div>
-
-                <div class="card-summary-row" *ngIf="cardSummary.vehicleNumber">
-                  <span class="card-summary-key">{{ t('vehicle_number') }}</span>
-                  <span class="card-summary-value">{{ cardSummary.vehicleNumber }}</span>
-                </div>
-
-                <div class="card-summary-row" *ngIf="cardSummary.createdAt">
-                  <span class="card-summary-key">{{ t('created_at') }}</span>
-                  <span class="card-summary-value">
-                    {{ cardSummary.createdAt | date : 'short' }}
-                  </span>
-                </div>
-
-                <div class="card-summary-row" *ngIf="cardSummary.endDate">
-                  <span class="card-summary-key">{{ t('expiryDate') }}</span>
-                  <span class="card-summary-value">
-                    {{ cardSummary.endDate | date : 'short' }}
-                  </span>
-                </div>
-
-                <div class="card-summary-row" *ngIf="cardSummary.price != null">
-                  <span class="card-summary-key">{{ t('price') }}</span>
-                  <span class="card-summary-value">
-                    {{ cardSummary.price | number : '1.0-2' }}
-                  </span>
-                </div>
-
-                <!-- Add Ticket Subscriber -->
-                <div class="card-summary-actions">
-                  <button
-                    type="button"
-                    class="btn btn-sm btn-primary"
-                    (click)="createSubscriberTicket()"
-                    [disabled]="adding || !cardNumber.trim()"
-                  >
-                    <i class="bi bi-plus-circle"></i>
-                    <span class="ms-1">{{ t('issue_ticket_subscriber') }}</span>
-                  </button>
-                </div>
-              </div>
-            </ng-container>
-
-            <ng-template #noCardSummary>
-              <div class="text-muted small">
-                {{ t('no_card_summary') }}
-              </div>
-            </ng-template>
-          </div>
-
-          <div *ngIf="lastIssuedTicketId && !cardSummary" class="mt-3 w-100">
-            <div class="alert alert-light border d-flex flex-column gap-1">
-              <div class="d-flex justify-content-between" *ngIf="lastIssuedTicketInfo">
-                <span class="small fw-semibold">{{ t('ticket_number') }}</span>
-                <span class="mono">{{ lastIssuedTicketInfo }}</span>
-              </div>
-
-              <div class="d-flex justify-content-between" *ngIf="lastIssuedVehicleNumber">
-                <span class="small fw-semibold">{{ t('plate') }}</span>
-                <span class="mono">{{ lastIssuedVehicleNumber }}</span>
-              </div>
-
-              <div class="d-flex justify-content-between" *ngIf="lastIssuedPrice !== null">
-                <span class="small fw-semibold">{{ t('price') }}</span>
-                <div class="d-flex align-items-center gap-2">
-                  <span class="mono">{{ lastIssuedPrice | number : '1.0-2' }}</span>
-                  <span *ngIf="lastIssuedCollected" class="badge bg-success">
-                    {{ t('cashier_collected_short') }}
-                  </span>
-                </div>
-              </div>
-
-              <div class="d-flex justify-content-between" *ngIf="lastIssuedCreatedAt">
-                <span class="small fw-semibold">{{ t('created_at') }}</span>
-                <span class="mono">{{ lastIssuedCreatedAt | date : 'short' }}</span>
-              </div>
-
-              <div class="d-flex justify-content-between align-items-center mt-2">
-                <span class="small">
-                  {{ lastIssuedCollected ? t('cashier_collected_yes') : t('cashier_collected_no') }}
-                </span>
-
-                <button
-                  class="btn btn-sm btn-success"
-                  type="button"
-                  (click)="confirmCashier()"
-                  [disabled]="cashierConfirming || lastIssuedCollected"
-                >
-                  <span *ngIf="!cashierConfirming">
-                    <i class="bi bi-cash-coin"></i> {{ t('cashier_confirm_button') }}
-                  </span>
-                  <span *ngIf="cashierConfirming" class="spinner-border spinner-border-sm"></span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!--  Create Ticket (normal / QR / LPR) -->
-          <div class="d-flex gap-2 mt-3">
-            <button class="btn btn-sm btn-primary" (click)="createTicket()" [disabled]="adding">
-              <span *ngIf="!adding" class="d-inline-flex align-items-center gap-1">
-                <i class="bi bi-plus-circle"></i> {{ t('create_ticket') }}
-              </span>
-              <span *ngIf="adding" class="spinner-border spinner-border-sm"></span>
-            </button>
-          </div>
-        </div>
-      </div>
+      <app-issue-ticket-block-component
+        [t]="t"
+        [cardNumber]="cardNumber"
+        [cardSummary]="cardSummary"
+        [adding]="adding"
+        [readingCard]="readingCard()"
+        [currentIssuedQr]="currentIssuedQr"
+        [currentIssuedQrType]="currentIssuedQrType"
+        [lastIssuedTicketId]="lastIssuedTicketId"
+        [lastIssuedTicketInfo]="lastIssuedTicketInfo"
+        [lastIssuedVehicleNumber]="lastIssuedVehicleNumber"
+        [lastIssuedPrice]="lastIssuedPrice"
+        [lastIssuedCreatedAt]="lastIssuedCreatedAt"
+        [lastIssuedCollected]="lastIssuedCollected"
+        [cashierConfirming]="cashierConfirming"
+        (cardNumberChange)="cardNumber = $event"
+        (readCardClicked)="readCard()"
+        (createTicketClicked)="createTicket()"
+        (createSubscriberTicketClicked)="createSubscriberTicket()"
+        (confirmCashierClicked)="confirmCashier()"
+        (clearCardSummaryClicked)="clearCardSummary($event)"
+      ></app-issue-ticket-block-component>
     </div>
 
-    <!-- Block 3: Tickets Table -->
+    <!-- Block 3: Tickets Table + Collect Summary -->
     <div class="col-12 col-lg-4">
-      <div class="card h-100 shadow-soft">
-        <div class="card-header d-flex justify-content-between align-items-center">
-          <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
-            <i class="bi bi-list-ol"></i> {{ t('ticket_number') }}
-          </h5>
-        </div>
-
-        <div class="card-body p-0 d-flex flex-column">
-          <div class="tickets-table-wrapper">
-            <div class="table-responsive tickets-table-scroll">
-              <table class="table align-middle mb-0">
-                <thead class="table-head">
-                  <tr>
-                    <th>{{ t('ticket_number') }}</th>
-                    <th style="width: 140px">{{ t('time') }}</th>
-                    <th style="width: 140px">{{ t('fees') }}</th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  <tr *ngFor="let ticket of pageItems()">
-                    <td>
-                      <ng-container *ngIf="ticket.info as ti; else structuredInfo">
-                        <span class="mono">{{ ti }}</span>
-                      </ng-container>
-
-                      <ng-template #structuredInfo>
-                        <ng-container
-                          *ngIf="
-                            ticket.customerName || ticket.phone || ticket.cardNumber;
-                            else fallbackId
-                          "
-                        >
-                          <div *ngIf="ticket.customerName" class="fw-semibold">
-                            {{ ticket.customerName }}
-                          </div>
-                          <div *ngIf="ticket.phone" class="small text-muted">
-                            {{ ticket.phone }}
-                          </div>
-                          <div *ngIf="ticket.cardNumber" class="small mono">
-                            {{ ticket.cardNumber }}
-                          </div>
-                        </ng-container>
-                      </ng-template>
-
-                      <ng-template #fallbackId>
-                        <span class="mono">{{ ticket.id }}</span>
-                      </ng-template>
-                    </td>
-
-                    <td>{{ ticket.time | date : 'short' }}</td>
-                    <td>
-                      <span class="mono">
-                        {{ ticket.price ?? 0 | number : '1.0-2' }}
-                      </span>
-                      <span *ngIf="ticket.isCollectedByCashier" class="badge bg-success ms-1">
-                        {{ t('cashier_collected_short') }}
-                      </span>
-                    </td>
-                  </tr>
-
-                  <tr *ngIf="!pageItems().length && !loading">
-                    <td colspan="3" class="text-center text-muted py-4">
-                      {{ t('no_tickets') }}
-                    </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div
-            class="d-flex justify-content-between align-items-center p-2 border-top mt-auto flex-wrap gap-2"
-          >
-            <div class="small text-muted">
-              {{ t('showing') }}
-              {{ (page - 1) * pageSize + 1 }}–{{ Math.min(page * pageSize, filtered.length) }}
-              {{ t('of') }} {{ filtered.length }}
-            </div>
-
-            <div class="d-flex align-items-center gap-2">
-              <span class="small text-muted">{{ t('total_fees_today') }}:</span>
-              <span class="badge bg-success fs-6 fw-bold">
-                {{ totalPriceToday | number : '1.0-2' }}
-              </span>
-            </div>
-
-            <div class="btn-group ms-auto" dir="ltr">
-              <button
-                class="btn btn-sm btn-outline-secondary"
-                [disabled]="page <= 1"
-                (click)="page = page - 1"
-              >
-                {{ t('prev') }}
-              </button>
-
-              <button
-                class="btn btn-sm btn-outline-secondary"
-                [disabled]="page >= pagesCount()"
-                (click)="page = page + 1"
-              >
-                {{ t('next') }}
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
+      <app-tickets-table-block-component
+        [t]="t"
+        [tickets]="filtered"
+        [totalPriceToday]="totalPriceToday"
+        [loading]="loading"
+      ></app-tickets-table-block-component>
 
       <div class="mt-2 d-flex flex-column gap-2">
         <button
@@ -423,7 +64,6 @@
           ></span>
         </button>
 
-        <!-- كارت الملخص (يظهر بعد التحصيل) -->
         <div *ngIf="collectSummary" class="card shadow-soft collect-summary-card">
           <div class="card-header d-flex justify-content-between align-items-center">
             <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">

@@ -1,0 +1,71 @@
+<div class="card h-100 shadow-soft">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+      <i class="bi bi-hdd-network"></i> {{ t('gate_devices') }}
+    </h5>
+    <div class="small text-muted">{{ t('devices_status') }}</div>
+  </div>
+
+  <div class="card-body">
+    <ng-container *ngIf="gatePeripheral as gp; else noGateDevices">
+      <!-- PC -->
+      <div class="device-row mb-3">
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <span class="fw-semibold">{{ t('pc_device') }}</span>
+          <span class="badge pill" [class.theme-green]="gp.hasPc" [class.theme-red]="!gp.hasPc">
+            {{ gp.hasPc ? t('device_connected') : t('device_not_connected') }}
+          </span>
+        </div>
+
+        <div class="small text-muted" *ngIf="gp.pcIp">
+          {{ t('ip_address') }}:
+          <span class="mono">{{ gp.pcIp }}</span>
+        </div>
+      </div>
+
+      <hr />
+
+      <!-- LPR -->
+      <div class="device-row">
+        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+          <div class="d-flex align-items-center gap-2">
+            <span class="fw-semibold">{{ t('lpr_device') }}</span>
+            <span class="badge pill" [class.theme-green]="gp.hasLpr" [class.theme-red]="!gp.hasLpr">
+              {{ gp.hasLpr ? t('device_connected') : t('device_not_connected') }}
+            </span>
+          </div>
+
+          <!-- Manual input + submit button -->
+          <div class="input-group input-group-sm manual-lpr-input-group">
+            <input
+              type="text"
+              class="form-control manual-lpr-input"
+              [(ngModel)]="lprPlate"
+              [placeholder]="t('plate')"
+            />
+            <button
+              class="btn btn-outline-primary"
+              type="button"
+              (click)="onCreateTicketClicked()"
+              [disabled]="adding || !lprPlate.trim()"
+              title="إصدار تذكرة بالرقم المدخل"
+            >
+              <i class="bi bi-send"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="small text-muted" *ngIf="gp.lprIp">
+          {{ t('ip_address') }}:
+          <span class="mono">{{ gp.lprIp }}</span>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #noGateDevices>
+      <div class="text-muted small">
+        {{ t('no_gate_devices') }}
+      </div>
+    </ng-template>
+  </div>
+</div>

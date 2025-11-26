@@ -17,6 +17,7 @@ export interface GateConfigDto {
   gateNumber: number;
   lprIp: string;
   pcIp?: string;
+  gateId: string | null;
 }
 
 export interface TicketCardDto {

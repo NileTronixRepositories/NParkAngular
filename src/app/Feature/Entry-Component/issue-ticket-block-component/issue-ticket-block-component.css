@@ -1,0 +1,116 @@
+/* Glass effect for entry card */
+:host-context(.tickets-theme) .glass-entry {
+  background: radial-gradient(900px 420px at -10% -20%, #ecfdf5 0%, transparent 60%) no-repeat,
+    radial-gradient(740px 460px at 110% 10%, #eff6ff 0%, transparent 60%) no-repeat,
+    var(--ticket-bg);
+}
+
+/* QR preview box */
+:host-context(.tickets-theme) .qr-preview {
+  min-height: 280px;
+  width: 100%;
+  max-width: 360px;
+  display: grid;
+  place-items: center;
+  cursor: default;
+}
+
+:host-context(.tickets-theme) .qr-preview .placeholder {
+  border: 2px dashed #dfe3e8;
+  border-radius: var(--ticket-radius);
+  padding: 24px;
+  width: 100%;
+}
+
+/* Mono font helper */
+:host-context(.tickets-theme) .mono {
+  font-family: var(--ticket-font-mono);
+}
+
+/* Entry chip */
+:host-context(.tickets-theme) .chip {
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 12px;
+  border: 1px solid var(--ticket-border-color);
+  background: #fff;
+  color: var(--ticket-green);
+}
+
+:host-context(.tickets-theme) .chip--entry {
+  background: var(--ticket-green-soft);
+  border-color: var(--ticket-green-soft-border);
+  color: var(--ticket-green);
+}
+
+/* Card height fix */
+:host-context(.tickets-theme) .tickets-card {
+  height: auto !important;
+  max-height: 100%;
+}
+
+/* ===== Card Summary Box ===== */
+:host .card-summary-box.alert {
+  background: #ffffff !important;
+  border: 1px solid #dcdcdc !important;
+  border-radius: 8px !important;
+  padding: 12px 14px !important;
+  font-size: 13px;
+  color: #333333;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  position: relative;
+  margin-bottom: 0;
+}
+
+/* Each summary row */
+:host .card-summary-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 4px 0;
+  border-bottom: 1px dashed #e6e6e6;
+}
+
+:host .card-summary-row:last-child {
+  border-bottom: none;
+}
+
+/* Keys (labels) */
+:host .card-summary-key {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* Values */
+:host .card-summary-value {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+  color: #374151;
+  word-break: break-all;
+}
+
+:host .clearCardSummary {
+  width: 24px;
+  height: 24px;
+  background-color: #b3261e;
+  color: #e5e7eb;
+  border: none;
+  font-weight: 600;
+  padding: 0;
+  cursor: pointer;
+  font-size: 12px;
+  position: absolute;
+  top: -30px;
+}
+
+:host-context([dir='rtl']) .clearCardSummary {
+  left: 10px;
+}
+
+:host-context([dir='ltr']) .clearCardSummary {
+  right: 10px;
+}
+
+:host .card-summary-actions {
+  text-align: end;
+  margin-top: 8px;
+}

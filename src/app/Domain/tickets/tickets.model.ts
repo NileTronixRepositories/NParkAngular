@@ -104,4 +104,5 @@ export interface CalculateSalaryResponse {
   enterDate: string;
   isExitValid: boolean;
   isCollectByCashier: boolean;
+  ticketId?: number | string;
 }

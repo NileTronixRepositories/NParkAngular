@@ -1,0 +1,210 @@
+<div class="card shadow-soft tickets-card glass-entry">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+      <i class="bi bi-door-open"></i> {{ t('issue_ticket') }}
+    </h5>
+    <span class="chip chip--entry">{{ t('chip_entry') }}</span>
+  </div>
+
+  <div class="card-body d-flex flex-column align-items-center justify-content-center">
+    <!-- QR preview / placeholder -->
+    <div class="qr-preview">
+      <ng-container *ngIf="currentIssuedQr; else noQr">
+        <img
+          *ngIf="currentIssuedQrType === 'image'"
+          [src]="currentIssuedQr"
+          alt="Ticket QR"
+          class="img-fluid rounded border"
+        />
+        <img
+          *ngIf="currentIssuedQrType === 'text'"
+          [src]="qrDataUrl(currentIssuedQr!)"
+          alt="Ticket QR"
+          class="img-fluid rounded border"
+        />
+      </ng-container>
+
+      <ng-template #noQr>
+        <div class="placeholder text-muted text-center">
+          <div class="bi bi-qr-code display-6 d-block mb-2"></div>
+          <div>{{ t('no_ticket_yet') }}</div>
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Card data -->
+    <div class="mb-3 mt-3 w-100">
+      <label class="form-label small mb-1 d-block">
+        {{ t('cardData') }}
+      </label>
+      <div class="d-flex flex-wrap align-items-center gap-2">
+        <button
+          class="btn btn-outline-primary"
+          type="button"
+          (click)="onReadCard()"
+          [disabled]="readingCard"
+          [title]="t('readCardTitle')"
+        >
+          <i class="bi bi-upc-scan"></i>
+          <span class="ms-1">
+            {{ readingCard ? t('reading') : t('readCard') }}
+          </span>
+        </button>
+
+        <input
+          type="text"
+          class="form-control form-control-sm flex-grow-1"
+          [(ngModel)]="card"
+          [placeholder]="t('cardNumber')"
+        />
+      </div>
+    </div>
+
+    <div class="mt-1 small text-muted" *ngIf="card">
+      {{ t('cardNumber') }}:
+      <span class="mono">{{ card }}</span>
+    </div>
+
+    <!-- Card summary + Subscriber -->
+    <div class="mt-2 w-100">
+      <h6 class="small fw-bold mb-1">{{ t('cardSummary') }}</h6>
+
+      <ng-container *ngIf="cardSummary; else noCardSummary">
+        <div class="alert card-summary-box small mb-0">
+          <!-- Clear Button -->
+          <button
+            type="button"
+            class="clearCardSummary btn btn-outline-primary"
+            (click)="onClearCardSummary($event)"
+          >
+            <i class="bi bi-x"></i>
+          </button>
+
+          <!-- Summary Rows -->
+          <div class="card-summary-row" *ngIf="cardSummary.cardNumber">
+            <span class="card-summary-key">{{ t('cardNumber') }}</span>
+            <span class="card-summary-value">{{ cardSummary.cardNumber }}</span>
+          </div>
+
+          <div class="card-summary-row" *ngIf="cardSummary.name">
+            <span class="card-summary-key">{{ t('customer_name') }}</span>
+            <span class="card-summary-value">{{ cardSummary.name }}</span>
+          </div>
+
+          <div class="card-summary-row" *ngIf="cardSummary.phone">
+            <span class="card-summary-key">{{ t('phone') }}</span>
+            <span class="card-summary-value">{{ cardSummary.phone }}</span>
+          </div>
+
+          <div class="card-summary-row" *ngIf="cardSummary.nationalId">
+            <span class="card-summary-key">{{ t('national_id') }}</span>
+            <span class="card-summary-value">{{ cardSummary.nationalId }}</span>
+          </div>
+
+          <div class="card-summary-row" *ngIf="cardSummary.vehicleNumber">
+            <span class="card-summary-key">{{ t('vehicle_number') }}</span>
+            <span class="card-summary-value">{{ cardSummary.vehicleNumber }}</span>
+          </div>
+
+          <div class="card-summary-row" *ngIf="cardSummary.createdAt">
+            <span class="card-summary-key">{{ t('created_at') }}</span>
+            <span class="card-summary-value">
+              {{ cardSummary.createdAt | date : 'short' }}
+            </span>
+          </div>
+
+          <div class="card-summary-row" *ngIf="cardSummary.endDate">
+            <span class="card-summary-key">{{ t('expiryDate') }}</span>
+            <span class="card-summary-value">
+              {{ cardSummary.endDate | date : 'short' }}
+            </span>
+          </div>
+
+          <div class="card-summary-row" *ngIf="cardSummary.price != null">
+            <span class="card-summary-key">{{ t('price') }}</span>
+            <span class="card-summary-value">
+              {{ cardSummary.price | number : '1.0-2' }}
+            </span>
+          </div>
+
+          <!-- Add Ticket Subscriber -->
+          <div class="card-summary-actions">
+            <button
+              type="button"
+              class="btn btn-sm btn-primary"
+              (click)="onCreateSubscriberTicket()"
+              [disabled]="adding || !card.trim()"
+            >
+              <i class="bi bi-plus-circle"></i>
+              <span class="ms-1">{{ t('issue_ticket_subscriber') }}</span>
+            </button>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #noCardSummary>
+        <div class="text-muted small">
+          {{ t('no_card_summary') }}
+        </div>
+      </ng-template>
+    </div>
+
+    <!-- Last issued ticket summary (بدون cardSummary) -->
+    <div *ngIf="lastIssuedTicketId && !cardSummary" class="mt-3 w-100">
+      <div class="alert alert-light border d-flex flex-column gap-1">
+        <div class="d-flex justify-content-between" *ngIf="lastIssuedTicketInfo">
+          <span class="small fw-semibold">{{ t('ticket_number') }}</span>
+          <span class="mono">{{ lastIssuedTicketInfo }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between" *ngIf="lastIssuedVehicleNumber">
+          <span class="small fw-semibold">{{ t('plate') }}</span>
+          <span class="mono">{{ lastIssuedVehicleNumber }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between" *ngIf="lastIssuedPrice !== null">
+          <span class="small fw-semibold">{{ t('price') }}</span>
+          <div class="d-flex align-items-center gap-2">
+            <span class="mono">{{ lastIssuedPrice | number : '1.0-2' }}</span>
+            <span *ngIf="lastIssuedCollected" class="badge bg-success">
+              {{ t('cashier_collected_short') }}
+            </span>
+          </div>
+        </div>
+
+        <div class="d-flex justify-content-between" *ngIf="lastIssuedCreatedAt">
+          <span class="small fw-semibold">{{ t('created_at') }}</span>
+          <span class="mono">{{ lastIssuedCreatedAt | date : 'short' }}</span>
+        </div>
+
+        <div class="d-flex justify-content-between align-items-center mt-2">
+          <span class="small">
+            {{ lastIssuedCollected ? t('cashier_collected_yes') : t('cashier_collected_no') }}
+          </span>
+
+          <button
+            class="btn btn-sm btn-success"
+            type="button"
+            (click)="onConfirmCashier()"
+            [disabled]="cashierConfirming || lastIssuedCollected"
+          >
+            <span *ngIf="!cashierConfirming">
+              <i class="bi bi-cash-coin"></i> {{ t('cashier_confirm_button') }}
+            </span>
+            <span *ngIf="cashierConfirming" class="spinner-border spinner-border-sm"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!--  Create Ticket (normal / QR / LPR) -->
+    <div class="d-flex gap-2 mt-3">
+      <button class="btn btn-sm btn-primary" (click)="onCreateTicket()" [disabled]="adding">
+        <span *ngIf="!adding" class="d-inline-flex align-items-center gap-1">
+          <i class="bi bi-plus-circle"></i> {{ t('create_ticket') }}
+        </span>
+        <span *ngIf="adding" class="spinner-border spinner-border-sm"></span>
+      </button>
+    </div>
+  </div>
+</div>

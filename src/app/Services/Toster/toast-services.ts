@@ -1,38 +1,69 @@
 import { inject, Injectable } from '@angular/core';
 import { ToastrService } from 'ngx-toastr';
+import { LanguageService, AppLang } from '../i18n/language-service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class ToastServices {
   private toastr = inject(ToastrService);
+  private lang = inject(LanguageService);
+
   constructor() {}
 
-  success(message: string, title: string = 'تم بنجاح') {
-    this.toastr.success(message, title);
+  private currentLang(): AppLang {
+    return this.lang.current ?? 'ar';
   }
 
-  warn(message: string, title: string = 'تحذير') {
-    this.toastr.warning(message, title);
+  private defaultTitles = {
+    ar: {
+      success: 'تم بنجاح',
+      warn: 'تحذير',
+      error: 'خطأ',
+      unexpected: 'حدث خطأ غير متوقع',
+      unknown: 'خطأ غير معروف',
+    },
+    en: {
+      success: 'Success',
+      warn: 'Warning',
+      error: 'Error',
+      unexpected: 'Unexpected error occurred',
+      unknown: 'Unknown error',
+    },
+  };
+
+  success(message: string, title?: string) {
+    const lang = this.currentLang();
+    this.toastr.success(message, title ?? this.defaultTitles[lang].success);
   }
 
-  error(message: string, title: string = 'خطأ') {
-    this.toastr.error(message, title);
+  warn(message: string, title?: string) {
+    const lang = this.currentLang();
+    this.toastr.warning(message, title ?? this.defaultTitles[lang].warn);
+  }
+
+  error(message: string, title?: string) {
+    const lang = this.currentLang();
+    this.toastr.error(message, title ?? this.defaultTitles[lang].error);
   }
 
   fromProblem(err: any) {
+    const lang = this.currentLang();
+    const t = this.defaultTitles[lang];
+
     try {
       const pd = err?.error;
       if (!pd) {
-        this.error('Unexpected error occurred');
+        this.error(t.unexpected);
         return;
       }
 
-      const title = pd.title || 'Error';
+      const title = pd.title || t.error;
       const detail = pd.detail || pd.message || '';
 
       const errors = pd.errors;
 
+      // errors: [{ code, message, ... }]
       if (Array.isArray(errors) && errors.length) {
         for (const e of errors) {
           this.error(e.message || e.code || detail || title, title);
@@ -58,7 +89,7 @@ export class ToastServices {
         this.error(title);
       }
     } catch {
-      this.error('Unknown error');
+      this.error(t.unknown);
     }
   }
 }

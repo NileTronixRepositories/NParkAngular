@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, Inject, ViewChild } from '@angular/core';
+import { Component, ElementRef, inject, Inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -19,11 +19,20 @@ import { AuthService } from '../../Services/Auth/auth-service';
 import { GateType, GateDevicePeripheral } from '../../Domain/Auth/auth.models';
 import { ToastServices } from '../../Services/Toster/toast-services';
 import { NfcReaderService } from '../../Services/registration/nfc-reader.service';
+import { ExitGateDevicesBlockComponent } from './exit-gate-devices-block-component/exit-gate-devices-block-component';
+import { ExitScanCollectBlockComponent } from './exit-scan-collect-block-component/exit-scan-collect-block-component';
+import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-component/exit-tickets-table-block-component';
 
 @Component({
   selector: 'app-exitgate-component',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipePipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ExitGateDevicesBlockComponent,
+    ExitScanCollectBlockComponent,
+    ExitTicketsTableBlockComponent,
+  ],
   templateUrl: './exitgate-component.html',
   styleUrls: ['./exitgate-component.css'],
   providers: [
@@ -137,6 +146,7 @@ import { NfcReaderService } from '../../Services/registration/nfc-reader.service
           save: 'حفظ',
           admit_done: 'تم التحصيل بنجاح',
           cashier_collected_yes: 'تم التحصيل من الزائر',
+          cashier_confirm_button: 'تأكيد تحصيل الكاشير',
 
           // NEW: open gate
           open_gate: 'فتح البوابة ومرور المركبة',
@@ -248,6 +258,7 @@ import { NfcReaderService } from '../../Services/registration/nfc-reader.service
           save: 'Save',
           admit_done: 'Collected successfully',
           cashier_collected_yes: 'Cash collected from visitor',
+          cashier_confirm_button: 'Confirm cashier collection',
 
           // NEW: open gate
           open_gate: 'Open gate & let vehicle pass',
@@ -265,16 +276,12 @@ export class ExitgateComponent {
 
   constructor(public lang: LanguageService, @Inject(I18N_DICT) private dict: I18nDict) {}
 
-  // ===== Gate devices =====
+  // ===== Gate devices (shared gate info) =====
   gatesList: GateDto[] = [];
   selectedGateId: number | null = null;
   gateLoading = false;
   gateSaving = false;
-  gatePeripheral: GateDevicePeripheral | null = null;
-
-  // manual plate (block 1)
-  manualPlate: string = '';
-  manualPlateSubmitting = false;
+  gatePeripheral: GateDevicePeripheral | null = null; // مازالت هنا كـ shared state
 
   // ===== Cashier / supervisor tokens =====
   cashierToken: string | null = null;
@@ -328,8 +335,8 @@ export class ExitgateComponent {
 
   page = 1;
   pageSize = 10;
-
-  @ViewChild('scanBox') scanBox?: ElementRef<HTMLInputElement>;
+  collectingCashier = false;
+  cashierConfirming = false;
 
   get isSupervisor(): boolean {
     return this.auth.isSupervisor;
@@ -426,38 +433,7 @@ export class ExitgateComponent {
     });
   }
 
-  // ===== Block 1: manual plate when no devices =====
-  submitManualPlate() {
-    const plate = this.manualPlate?.trim();
-    if (!plate) return;
-
-    this.manualPlateSubmitting = true;
-
-    this.svc.captureManualPlate(plate).subscribe({
-      next: (ok) => {
-        if (ok) {
-          this.toast.success(this.t('send_manual_plate'));
-          this.manualPlate = '';
-        } else {
-          this.toast.error('تعذر تسجيل المركبة يدويًا');
-        }
-      },
-      error: (err) => {
-        console.error('submitManualPlate error', err);
-        this.toast.fromProblem(err);
-      },
-      complete: () => {
-        this.manualPlateSubmitting = false;
-      },
-    });
-  }
-
   // ===== Scanner / QR / manual card =====
-  selectAll(el: HTMLInputElement) {
-    setTimeout(() => el.select(), 0);
-  }
-
-  // زرار Scan QR الجديد
   scanQRCode() {
     if (this.scanningQR) return;
 
@@ -468,18 +444,6 @@ export class ExitgateComponent {
     this.salarySummary = null;
     this.addingExitTicket = false;
     this.exitTicketAdded = false;
-
-    setTimeout(() => {
-      const el = this.scanBox?.nativeElement;
-      if (el) {
-        el.focus();
-        this.selectAll(el);
-      }
-    }, 0);
-  }
-
-  onScanEnter() {
-    this.submitQrFromInput();
   }
 
   searchManual() {
@@ -888,15 +852,6 @@ export class ExitgateComponent {
     this.page = 1;
   }
 
-  pageItems() {
-    const start = (this.page - 1) * this.pageSize;
-    return this.filtered.slice(start, start + this.pageSize);
-  }
-
-  pagesCount() {
-    return Math.max(1, Math.ceil(this.filtered.length / this.pageSize));
-  }
-
   // ===== NFC read card =====
   async readCard() {
     if (this.readingCard) return;
@@ -1052,5 +1007,47 @@ export class ExitgateComponent {
     this.exitTicketAdded = false;
 
     this.fetchTicketAndSalaryByQr(code);
+  }
+
+  collectCashier() {
+    if (this.cashierConfirming) return;
+    if (!this.salarySummary) return;
+
+    let ticketId: number | string | undefined;
+
+    if (this.scannedTicket?.id != null) {
+      ticketId = this.scannedTicket.id;
+    } else if ((this.salarySummary as any).ticketId != null) {
+      ticketId = (this.salarySummary as any).ticketId;
+    }
+
+    if (!ticketId) {
+      this.toast.error('لا يمكن تحصيل المبلغ: لا يوجد رقم تذكرة متاح.');
+      return;
+    }
+
+    this.cashierConfirming = true;
+
+    this.svc.collectCashier(String(ticketId)).subscribe({
+      next: (ok) => {
+        if (ok) {
+          this.salarySummary = {
+            ...this.salarySummary!,
+            isCollectByCashier: true,
+          };
+
+          this.toast.success(this.t('cashier_collected_yes'));
+        } else {
+          this.toast.error('تعذر تحصيل المبلغ من الكاشير.');
+        }
+      },
+      error: (err) => {
+        console.error('collectCashier error', err);
+        this.toast.fromProblem(err);
+      },
+      complete: () => {
+        this.cashierConfirming = false;
+      },
+    });
   }
 }

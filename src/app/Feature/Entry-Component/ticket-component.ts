@@ -1,6 +1,7 @@
 import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+
 import {
   TicketDto,
   TicketAction,
@@ -18,13 +19,22 @@ import { GateDevicePeripheral, GateType } from '../../Domain/Auth/auth.models';
 
 import { NfcReaderService } from '../../Services/registration/nfc-reader.service';
 import { ToastServices } from '../../Services/Toster/toast-services';
+import { GateDevicesBlockComponent } from './gate-devices-block-component/gate-devices-block-component';
+import { IssueTicketBlockComponent } from './issue-ticket-block-component/issue-ticket-block-component';
+import { TicketsTableBlockComponent } from './tickets-table-block-component/tickets-table-block-component';
 
 @Component({
   selector: 'app-ticket-component',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [
+    CommonModule,
+    FormsModule,
+    GateDevicesBlockComponent,
+    IssueTicketBlockComponent,
+    TicketsTableBlockComponent,
+  ],
   templateUrl: './ticket-component.html',
-  styleUrl: './ticket-component.css',
+  styleUrls: ['./ticket-component.css'],
 })
 export class TicketComponent {
   // ===== Services =====
@@ -44,6 +54,7 @@ export class TicketComponent {
 
   gatePeripheral: GateDevicePeripheral | null = null;
   cashierToken: string | null = null;
+
   // ===== Manual inputs =====
   manualLprPlate: string = '';
   cardNumber: string = '';
@@ -72,6 +83,28 @@ export class TicketComponent {
   supervisorPassword: string = '';
   supervisorCollectLoading = false;
   supervisorCollectError: string | null = null;
+
+  // ===== Tickets list / filters =====
+  tickets: TicketDto[] = [];
+  filtered: TicketDto[] = [];
+  loading = false;
+
+  q = '';
+  action: '' | TicketAction = '';
+  gate: string = '';
+
+  // ===== Issue ticket QR state =====
+  adding = false;
+  currentIssuedQr: string | null = null;
+  currentIssuedQrType: 'image' | 'text' | null = null;
+
+  // ===== Scan / admit =====
+  scanBuffer = '';
+  scanning = false;
+  scannedTicket: TicketDetailsDto | null = null;
+  collecting = false;
+
+  totalPriceToday: number = 0;
 
   get lastIssuedPrice(): number | null {
     return this.lastTicketPrice;
@@ -104,6 +137,12 @@ export class TicketComponent {
   confirmCashier() {
     return this.confirmCashierCollection();
   }
+
+  get isSupervisor(): boolean {
+    return this.auth.isSupervisor;
+  }
+
+  @ViewChild('scanBox') scanBox?: ElementRef<HTMLInputElement>;
 
   // ===== i18n =====
   private dict: Record<AppLang, Record<string, string>> = {
@@ -297,38 +336,6 @@ export class TicketComponent {
   dir = () => this.i18n.dir();
   isRTL = () => this.i18n.isRTL();
 
-  // ===== Tickets list / filters =====
-  tickets: TicketDto[] = [];
-  filtered: TicketDto[] = [];
-  loading = false;
-  Math = Math;
-
-  q = '';
-  action: '' | TicketAction = '';
-  gate: string = '';
-
-  page = 1;
-  pageSize = 10;
-
-  // ===== Issue ticket QR state =====
-  adding = false;
-  currentIssuedQr: string | null = null;
-  currentIssuedQrType: 'image' | 'text' | null = null;
-
-  // ===== Scan / admit =====
-  scanBuffer = '';
-  scanning = false;
-  scannedTicket: TicketDetailsDto | null = null;
-  collecting = false;
-
-  totalPriceToday: number = 0;
-
-  get isSupervisor(): boolean {
-    return this.auth.isSupervisor;
-  }
-
-  @ViewChild('scanBox') scanBox?: ElementRef<HTMLInputElement>;
-
   // ================== Lifecycle ==================
   ngOnInit(): void {
     this.loadGates();
@@ -429,7 +436,6 @@ export class TicketComponent {
   }
 
   // ================== Create ticket (Normal / Subscriber) ==================
-
   createTicket(vehicleNumber?: string) {
     if (this.adding) return;
 
@@ -468,7 +474,6 @@ export class TicketComponent {
     }
 
     this.prepareNewTicketState();
-
     this.lastIssuedVehicleNumber = this.cardSummary?.vehicleNumber?.trim() ?? null;
 
     this.svc
@@ -499,9 +504,7 @@ export class TicketComponent {
   }
 
   private handleIssuedTicketResponse(res: IssuedTicketResponse | null) {
-    if (!res) {
-      return;
-    }
+    if (!res) return;
 
     this.lastIssuedTicketId = res.ticketId;
     this.lastIssuedTicketInfo = res.ticketInfo ?? null;
@@ -549,29 +552,25 @@ export class TicketComponent {
     if (!w) return;
 
     const html = `
-        <html>
-          <head>
-            <title>Print Ticket</title>
-            <style>
-              body{margin:0;padding:16px;font-family:Arial, sans-serif;}
-              .wrap{display:flex;flex-direction:column;align-items:center;gap:12px;}
-              img{max-width:100%;height:auto;border:1px solid #ddd;border-radius:8px;padding:8px;}
-              .id{font-size:14px;color:#555}
-              .btn{display:none}
-            </style>
-          </head>
-          <body onload="window.print(); window.close();">
-            <div class="wrap">
-              <img src="${imgSrc}" />
-              ${
-                this.lastIssuedTicketInfo
-                  ? `<div class="id">${this.lastIssuedTicketInfo}</div>`
-                  : ''
-              }
-            </div>
-          </body>
-        </html>
-      `;
+      <html>
+        <head>
+          <title>Print Ticket</title>
+          <style>
+            body{margin:0;padding:16px;font-family:Arial, sans-serif;}
+            .wrap{display:flex;flex-direction:column;align-items:center;gap:12px;}
+            img{max-width:100%;height:auto;border:1px solid #ddd;border-radius:8px;padding:8px;}
+            .id{font-size:14px;color:#555}
+            .btn{display:none}
+          </style>
+        </head>
+        <body onload="window.print(); window.close();">
+          <div class="wrap">
+            <img src="${imgSrc}" />
+            ${this.lastIssuedTicketInfo ? `<div class="id">${this.lastIssuedTicketInfo}</div>` : ''}
+          </div>
+        </body>
+      </html>
+    `;
     w.document.open();
     w.document.write(html);
     w.document.close();
@@ -582,6 +581,7 @@ export class TicketComponent {
   }
 
   // =========== Supervisor daily collect ===========
+
   collectDailyForGate() {
     if (this.collectLoading) return;
 
@@ -590,7 +590,6 @@ export class TicketComponent {
 
     this.svc.collectDailyTickets().subscribe({
       next: (res: CollectDailyTicketsResponse) => {
-        // احفظ الملخص علشان يتعرض في الكارت
         this.collectSummary = res;
         this.toast.success(this.t('admit_done'));
         this.loadTicketsForEntry();
@@ -612,6 +611,7 @@ export class TicketComponent {
     const pwd = this.supervisorPassword;
     const gateNumber = this.auth.getGateData()?.gateNumber ?? null;
     const gateType = this.auth.getGateData()?.gateType ?? null;
+
     if (!user || !pwd) {
       this.supervisorCollectError = 'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر';
       return;
@@ -625,8 +625,8 @@ export class TicketComponent {
       .collectDailyTicketsAsSupervisor({
         userName: user,
         password: pwd,
-        gateType: gateType,
-        gateNumber: gateNumber,
+        gateType,
+        gateNumber,
       })
       .subscribe({
         next: (res: CollectDailyTicketsResponse) => {
@@ -651,7 +651,6 @@ export class TicketComponent {
       this.collectDailyForGate();
       return;
     }
-
     this.openSupervisorCollectModal();
   }
 
@@ -678,6 +677,7 @@ export class TicketComponent {
   }
 
   // ===== Scan / admit =====
+
   selectAll(el: HTMLInputElement) {
     setTimeout(() => el.select(), 0);
   }
@@ -747,6 +747,7 @@ export class TicketComponent {
       },
     });
   }
+
   clearCardSummary(event?: Event): void {
     event?.preventDefault();
     event?.stopPropagation();
@@ -755,6 +756,7 @@ export class TicketComponent {
     this.cardNumber = '';
     this.scanBuffer = '';
   }
+
   // ================== NFC read card ==================
   async readCard() {
     if (this.readingCard()) return;
@@ -798,9 +800,7 @@ export class TicketComponent {
         if (ok) {
           this.cashierCollected = true;
           this.markTicketAsCashierCollected(this.lastIssuedTicketId!);
-
           this.toast.success(this.t('cashier_collected'));
-
           this.loadTicketsForEntry();
         } else {
           this.toast.error('CollectCashier failed (Ticket not found or validation error).');
@@ -842,16 +842,6 @@ export class TicketComponent {
       const okG = !this.gate || t.gate === this.gate;
       return okQ && okA && okG;
     });
-    this.page = 1;
-  }
-
-  pageItems() {
-    const start = (this.page - 1) * this.pageSize;
-    return this.filtered.slice(start, start + this.pageSize);
-  }
-
-  pagesCount() {
-    return Math.max(1, Math.ceil(this.filtered.length / this.pageSize));
   }
 
   private normalizeQrImage(value?: string | null): string | null {

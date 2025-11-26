@@ -171,7 +171,6 @@ export class ConfigurationComponent implements OnInit {
       captureMode: ['LPR'], // LPR | SCANNER
       printType: ['QR'], // QR | RFID
 
-      // موجودة للعرض فقط، مش داخلة في الـ DTO
       startDate: [new Date()],
       ticketIdPrefix: ['TK', [Validators.maxLength(10)]],
 
@@ -179,23 +178,19 @@ export class ConfigurationComponent implements OnInit {
       ticketIdFlag: [true],
       feesFlag: [true],
 
-      // هتكون required فقط في حالة الـ entry
-      pricingSchemaId: [''],
+       pricingSchemaId: [''],
 
       entryGates: this.fb.array([]),
       exitGates: this.fb.array([]),
     });
 
-    // مزامنة عدد البوابات
-    this.step1Form.get('entryGatesCount')?.valueChanges.subscribe(() => this.syncGateArrays());
+     this.step1Form.get('entryGatesCount')?.valueChanges.subscribe(() => this.syncGateArrays());
     this.step1Form.get('exitGatesCount')?.valueChanges.subscribe(() => this.syncGateArrays());
 
-    // تغيير الفاليديتور بتاع الـ PricingSchema حسب الـ Mode
-    this.modeCtrl.valueChanges.subscribe((mode) => {
+     this.modeCtrl.valueChanges.subscribe((mode) => {
       this.updatePricingSchemaValidator(mode);
     });
-
-    // أول مرة
+ 
     this.updatePricingSchemaValidator(this.modeCtrl.value);
   }
 
@@ -258,7 +253,7 @@ export class ConfigurationComponent implements OnInit {
             pricingSchemaId: cfg.pricingSchemaId ?? '',
           });
 
-          this.patchGateArray(this.entryGatesFA, cfg.entryGates || []);
+           this.patchGateArray(this.entryGatesFA, cfg.entryGates || []);
           this.patchGateArray(this.exitGatesFA, cfg.exitGates || []);
         },
         error: (err) => console.error('Failed to load existing configuration', err),
@@ -293,6 +288,7 @@ export class ConfigurationComponent implements OnInit {
 
   private makeGateGroup(defaultNumber: number): FormGroup {
     return this.fb.group({
+      gateId: [null], 
       gateNumber: [{ value: defaultNumber, disabled: true }, [Validators.min(1)]],
       pcIp: ['', [Validators.required, Validators.pattern(HOST_OR_IP_REGEX)]],
       deviceIp: ['', [Validators.required, Validators.pattern(HOST_OR_IP_REGEX)]],
@@ -314,7 +310,9 @@ export class ConfigurationComponent implements OnInit {
   }
 
   private renumberGateArray(arr: FormArray<FormGroup>) {
-    arr.controls.forEach((fg, i) => fg.get('gateNumber')?.setValue(i + 1, { emitEvent: false }));
+    arr.controls.forEach((fg, i) =>
+      fg.get('gateNumber')?.setValue(i + 1, { emitEvent: false })
+    );
   }
 
   private patchGateArray(arr: FormArray<FormGroup>, data: GateConfigDto[]) {
@@ -324,6 +322,7 @@ export class ConfigurationComponent implements OnInit {
     arr.controls.forEach((fg, i) => {
       const src = data?.[i];
       fg.patchValue({
+        gateId: src?.gateId ?? null,              // ✅ هنا نخزن الـ gateId
         gateNumber: src?.gateNumber ?? i + 1,
         pcIp: src?.pcIp ?? '',
         deviceIp: src?.lprIp ?? '',
@@ -375,6 +374,7 @@ export class ConfigurationComponent implements OnInit {
       const lprIp = deviceIp || pcIp;
 
       return {
+        gateId: g['gateId'] ?? null, // ✅ لو بوابة قديمة هيبقى id، لو جديدة null
         gateNumber: i + 1,
         lprIp,
         pcIp,
@@ -387,6 +387,7 @@ export class ConfigurationComponent implements OnInit {
       const lprIp = deviceIp || pcIp;
 
       return {
+        gateId: g['gateId'] ?? null, // ✅ نفس الفكرة
         gateNumber: i + 1,
         lprIp,
         pcIp,

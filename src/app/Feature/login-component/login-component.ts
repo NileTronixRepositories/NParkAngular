@@ -138,6 +138,7 @@ export class LoginComponent {
 
   submit() {
     if (this.form.invalid) {
+      console.log('sdsdsd ');
       this.form.markAllAsTouched();
       return;
     }
@@ -151,7 +152,7 @@ export class LoginComponent {
       gateNumber: Number(this.form.value.gateNumber) || 1,
       remember: !!this.form.value.remember,
     };
-
+    console.log(dto);
     this.auth.login(dto).subscribe({
       next: () => {
         this.loading = false;

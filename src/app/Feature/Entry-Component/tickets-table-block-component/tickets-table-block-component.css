@@ -1,0 +1,80 @@
+/* Table header */
+:host-context(.tickets-theme) .table-head {
+  background: #f7f8fa;
+}
+
+/* Footer of tickets table */
+:host-context(.tickets-theme) .tickets-footer {
+  background-color: #ffffff;
+}
+
+:host-context(.tickets-theme) .tickets-footer .badge {
+  min-width: 80px;
+  text-align: center;
+}
+
+/* Collect summary card */
+:host-context(.tickets-theme) .collect-summary-card {
+  border-radius: var(--ticket-radius);
+  border: 1px dashed #d1fae5;
+  background: #ecfdf5;
+}
+
+:host-context(.tickets-theme) .collect-summary-card .card-header {
+  background: rgba(16, 185, 129, 0.06);
+  border-bottom: 1px solid rgba(16, 185, 129, 0.15);
+}
+
+:host-context(.tickets-theme) .collect-summary-card .table > :not(caption) > * > * {
+  background-color: transparent;
+}
+
+:host-context(.tickets-theme) .collect-summary-table {
+  overflow-y: auto;
+}
+
+/* =========================================
+   Scrollable tickets table (Block 3)
+   ========================================= */
+
+:host-context(.tickets-theme) .card-body.d-flex {
+  flex-direction: column;
+}
+
+:host-context(.tickets-theme) .tickets-table-wrapper {
+  overflow: visible;
+  max-height: none;
+}
+
+:host-context(.tickets-theme) .tickets-table-scroll {
+  max-height: 600px;
+  overflow-y: auto;
+}
+
+:host-context(.tickets-theme) .tickets-table-scroll .table {
+  margin-bottom: 0;
+}
+
+:host-context(.tickets-theme) .tickets-table-scroll thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: #f7f8fa;
+}
+
+:host-context(.tickets-theme) .tickets-table-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+
+:host-context(.tickets-theme) .tickets-table-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+:host-context(.tickets-theme) .tickets-table-scroll::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.7);
+  border-radius: 999px;
+}
+
+:host-context(.tickets-theme) .mono {
+  font-family: var(--ticket-font-mono);
+}

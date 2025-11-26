@@ -1,0 +1,24 @@
+:host-context(.tickets-theme) .badge.pill {
+  border-radius: 20px;
+  padding: 6px 10px;
+  font-weight: 600;
+  border: 1px solid var(--ticket-border-color);
+  background: #fff;
+}
+
+:host-context(.tickets-theme) .theme-green {
+  background: var(--ticket-green-soft);
+  color: var(--ticket-green);
+  border-color: var(--ticket-green-soft-border);
+}
+
+:host-context(.tickets-theme) .theme-red {
+  background: var(--ticket-red-soft);
+  color: var(--ticket-red);
+  border-color: var(--ticket-red-soft-border);
+}
+
+    /* Mono font helper (لو استخدمته في الـ IP) */
+:host-context(.tickets-theme) .mono {
+  font-family: var(--ticket-font-mono);
+}

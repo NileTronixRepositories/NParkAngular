@@ -1,0 +1,88 @@
+:host .helper {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 24px 8px;
+  color: var(--muted);
+  min-height: 220px;
+}
+
+:host .big-icon {
+  font-size: 48px;
+  line-height: 1;
+  display: grid;
+  place-items: center;
+  width: 74px;
+  height: 74px;
+  border-radius: 16px;
+  border: 1px dashed var(--border);
+  box-shadow: var(--glow);
+  background: #fff;
+}
+
+:host .helper-text .title {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 18px;
+}
+
+:host .helper-text .sub {
+  font-size: 13px;
+  color: var(--muted);
+}
+
+/* summary block after scan */
+:host .summary .label {
+  font-size: 12px;
+  color: var(--muted);
+}
+
+:host .summary .value {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+:host .mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
+    'Courier New', monospace;
+  letter-spacing: 0.2px;
+}
+
+:host .total.box {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #fff;
+  margin-top: 6px;
+}
+
+:host .total .amount {
+  font-weight: 800;
+  font-size: 20px;
+  color: #14532d;
+}
+
+/* SCAN INPUT */
+:host input.form-control-lg {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  box-shadow: none;
+  padding-inline: 18px;
+  font-size: 14px;
+}
+
+:host input.form-control-lg:focus {
+  border-color: var(--accent-2);
+  box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.25);
+}
+
+:host .card.soft {
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  background: linear-gradient(0deg, rgba(14, 165, 233, 0.04), rgba(14, 165, 233, 0.04));
+}
