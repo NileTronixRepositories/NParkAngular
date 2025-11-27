@@ -100,7 +100,7 @@ export interface CollectDailyTicketsResponse {
 }
 
 export interface CalculateSalaryResponse {
-  ticketId: string; // 👈 NEW (Guid جى من الـ API)
+  ticketId: string; 
   totalSalary: number;
   enterDate: string;
   isExitValid: boolean;

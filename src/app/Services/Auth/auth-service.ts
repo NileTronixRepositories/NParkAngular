@@ -156,7 +156,6 @@ export class AuthService {
     if (!token) return null;
     try {
       const payload = JSON.parse(atob(token.split('.')[1]));
-      // Try common claims for name/username
       return payload.unique_name || payload.sub || payload.name || payload.Name || null;
     } catch {
       return null;

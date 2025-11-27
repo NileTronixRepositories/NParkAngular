@@ -503,218 +503,293 @@ export class TicketComponent {
     this.cashierCollected = false;
   }
 
-  private handleIssuedTicketResponse(res: IssuedTicketResponse | null) {
-    if (!res) return;
+private handleIssuedTicketResponse(res: IssuedTicketResponse | null) {
+  if (!res) return;
 
-    this.lastIssuedTicketId = res.ticketId;
-    this.lastIssuedTicketInfo = res.ticketInfo ?? null;
-    this.lastTicketPrice = res.price ?? null;
-    this.lastTicketCreatedAt = res.createdAt ?? null;
+  this.lastIssuedTicketId = res.ticketId ?? null;
+  this.lastIssuedTicketInfo = res.ticketInfo ?? null;
+  this.lastIssuedPrice = res.price ?? null;
+  this.lastIssuedCreatedAt = res.createdAt ?? null;
 
-    const fromResponse: string | undefined = (res as any)?.vehicleNumber;
-    if (fromResponse && fromResponse.trim().length > 0) {
-      this.lastIssuedVehicleNumber = fromResponse.trim();
-    }
-
-    const normalized = this.normalizeQrImage(res.qrCode);
-
-    if (!normalized) {
-      console.warn('Invalid qrCode returned from AddTicket', res.qrCode);
-
-      this.currentIssuedQr = null;
-      this.currentIssuedQrType = null;
-
-      this.toast.error(
-        'تم إصدار التذكرة بنجاح، لكن QR code غير صالح. برجاء مراجعة إعدادات الطابعة أو خدمة الـ QR.'
-      );
-
-      this.loadTicketsForEntry();
-      return;
-    }
-
-    this.currentIssuedQr = normalized;
-    this.currentIssuedQrType = 'image';
-
-    this.toast.success(this.t('create_ticket'));
-    this.printTicket();
-    this.loadTicketsForEntry();
+  const fromResponse: string | undefined = (res as any)?.vehicleNumber;
+  if (fromResponse && fromResponse.trim().length > 0) {
+    this.lastIssuedVehicleNumber = fromResponse.trim();
+  } else {
+    this.lastIssuedVehicleNumber = null;
   }
 
-  printTicket() {
-    if (!this.currentIssuedQr) return;
+  const normalized = this.normalizeQrImage(res.qrCode);
 
-    const imgSrc =
-      this.currentIssuedQrType === 'image'
-        ? this.currentIssuedQr
-        : this.qrDataUrl(this.currentIssuedQr);
+  if (!normalized) {
+    console.warn('Invalid qrCode returned from AddTicket', res.qrCode);
 
-    const w = window.open('', '_blank', 'width=420,height=700');
-    if (!w) return;
+    this.currentIssuedQr = null;
+    this.currentIssuedQrType = null;
 
-    // Format the date/time
-    const createdAt = this.lastIssuedCreatedAt 
-      ? new Date(this.lastIssuedCreatedAt).toLocaleString('ar-EG', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit'
-        })
-      : '—';
+    this.toast.error(
+      'تم إصدار التذكرة بنجاح، لكن QR code غير صالح. برجاء مراجعة إعدادات الطابعة أو خدمة الـ QR.'
+    );
 
-    // Get current user (cashier/employee who created the ticket)
-    const currentUser = this.auth.userName || '—';
+    this.loadTicketsForEntry();
+    return;
+  }
 
-    const html = `
-      <html>
-        <head>
-          <title>NPark</title>
-          <style>
-            * { box-sizing: border-box; }
+  this.currentIssuedQr = normalized;
+  this.currentIssuedQrType = 'image';
+
+  this.toast.success(this.t('create_ticket'));
+  this.printTicket();
+  this.loadTicketsForEntry();
+}
+
+
+printTicket() {
+  if (!this.currentIssuedQr) return;
+
+  const imgSrc =
+    this.currentIssuedQrType === 'image'
+      ? this.currentIssuedQr
+      : this.qrDataUrl(this.currentIssuedQr);
+
+  const w = window.open('', '_blank', 'width=420,height=700');
+  if (!w) return;
+
+  const createdAt = this.lastIssuedCreatedAt
+    ? new Date(this.lastIssuedCreatedAt).toLocaleString('ar-EG', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      })
+    : '—';
+
+  const currentUser = this.auth.userName || '—';
+
+  const ticketIdBlock = this.lastIssuedTicketId
+    ? `
+      <div class="ticket-id">
+        رقم التذكرة: ${this.lastIssuedTicketId}
+      </div>
+    `
+    : '';
+
+  const priceRow =
+    this.lastIssuedPrice !== null && this.lastIssuedPrice !== undefined
+      ? `
+        <div class="info-row">
+          <span class="label">الرسوم:</span>
+          <span class="value price">${this.lastIssuedPrice} ج.م</span>
+        </div>
+      `
+      : '';
+
+  const vehicleRow = this.lastIssuedVehicleNumber
+    ? `
+      <div class="info-row">
+        <span class="label">رقم السيارة:</span>
+        <span class="value">${this.lastIssuedVehicleNumber}</span>
+      </div>
+    `
+    : '';
+
+  const extraInfo = this.lastIssuedTicketInfo
+    ? `
+      <div class="extra-info">
+        ${this.lastIssuedTicketInfo}
+      </div>
+    `
+    : '';
+
+  const html = `
+    <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="utf-8" />
+        <title>NPark</title>
+        <style>
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+          }
+
+          /* مقاس الورقة تقريبًا 80mm * 50mm (بيزنس كارد أفقي) */
+          @page {
+            size: 80mm 50mm;
+            margin: 0;
+          }
+
+          body {
+            margin: 0;
+            padding: 2mm;
+            font-family: Arial, sans-serif;
+            direction: rtl;
+          }
+
+          .wrap {
+            width: 76mm;
+            height: 46mm;
+            display: flex;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: stretch;
+          }
+
+          /* الجزء الشمال (المعلومات) – أصغر شوية لصالح الـ QR */
+      .info-side {
+  flex: 1;
+  max-width: 42mm;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;  
+  padding-inline-end: 1.5mm;
+}
+
+.info-top {
+  display: flex;
+  flex-direction: column;
+  gap: 1mm;
+}
+
+.footer-link {
+  margin-top: 2mm;               
+  font-size: 9.5px;
+  color: #000;
+  font-weight: bold;
+  text-align: center;
+}
+
+          .header-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #000;
+            text-align: center; /* سنتر NPark */
+            margin-bottom: 1mm;
+          }
+
+          .ticket-id {
+            width: 100%;
+            text-align: center;
+            font-size: 9px;
+            font-weight: bold;
+            color: #000;
+            padding: 1mm;
+            background: #f0f0f0;
+            border-radius: 1mm;
+          }
+
+          .info-section {
+            width: 100%;
+            border: 0.3mm solid #000;
+            border-radius: 1mm;
+            padding: 1mm 1.5mm;
+            background: #fff;
+            margin-top: 1mm;
+          }
+
+          .info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 8.2px;
+            padding: 0.35mm 0;
+          }
+
+          .label {
+            font-weight: 600;
+            color: #000;
+          }
+
+          .value {
+            font-weight: 700;
+            color: #000;
+          }
+
+          .price {
+            font-size: 8.5px;
+          }
+
+          .extra-info {
+            font-size: 8px;
+            color: #000;
+            text-align: center;
+            font-weight: bold;
+            margin-top: 1mm;
+          }
+
+          .footer-link {
+            font-size: 9.5px;      
+            color: #000;
+            font-weight: bold;
+            text-align: center;
+          }
+
+           .qr-side {
+            width: 30mm;               
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+          }
+
+          .qr-container {
+            width: 28mm;
+            height: 28mm;
+          }
+
+          .qr-container img {
+            width: 100%;
+            height: 100%;
+            display: block;
+          }
+
+          @media print {
             body {
-              margin: 0;
-              padding: 16px;
-              font-family: 'Arial', sans-serif;
-              background: #fff;
-              direction: rtl;
+              padding: 1mm;
             }
-            .wrap {
-              display: flex;
-              flex-direction: column;
-              align-items: center;
-              gap: 16px;
-              max-width: 400px;
-              margin: 0 auto;
-            }
-            .header-title {
-              font-size: 24px;
-              font-weight: bold;
-              color: #000;
-              margin-bottom: 4px;
-            }
-            .qr-container {
-              border: 2px solid #000;
-              border-radius: 12px;
-              padding: 12px;
-              background: #fff;
-            }
-            img {
-              max-width: 100%;
-              height: auto;
-              display: block;
-            }
-            .info-section {
-              width: 100%;
-              border: 1px solid #000;
-              border-radius: 8px;
-              padding: 12px;
-              background: #fff;
-            }
-            .info-row {
-              display: flex;
-              justify-content: space-between;
-              padding: 8px 0;
-              border-bottom: 1px dashed #000;
-            }
-            .info-row:last-child {
-              border-bottom: none;
-            }
-            .label {
-              font-weight: bold;
-              color: #000;
-              font-size: 14px;
-            }
-            .value {
-              color: #000;
-              font-size: 14px;
-              font-weight: bold;
-            }
-            .price {
-              color: #000;
-              font-size: 16px;
-              font-weight: bold;
-            }
-            .ticket-id {
-              text-align: center;
-              font-size: 16px;
-              font-weight: bold;
-              color: #000;
-              padding: 8px;
-              background: #f0f0f0;
-              border-radius: 6px;
-              width: 100%;
-            }
-            .footer-link {
-              margin-top: 16px;
-              font-size: 12px;
-              color: #000;
-              text-decoration: none;
-              font-weight: bold;
-            }
-            @media print {
-              body { padding: 8px; }
-              .btn { display: none !important; }
-            }
-          </style>
-        </head>
-        <body onload="window.print(); window.close();">
-          <div class="wrap">
-            <div class="header-title">NPark</div>
+          }
+        </style>
+      </head>
+      <body onload="window.print(); window.close();">
+        <div class="wrap">
+          <!-- الجانب الأيسر: العنوان + رقم التذكرة + المعلومات -->
+          <div class="info-side">
+            <div class="info-top">
+              <div class="header-title">NPark</div>
+              ${ticketIdBlock}
+              <div class="info-section">
+                ${priceRow}
+                <div class="info-row">
+                  <span class="label">التاريخ والوقت:</span>
+                  <span class="value">${createdAt}</span>
+                </div>
+                ${vehicleRow}
+                <div class="info-row">
+                  <span class="label">الموظف:</span>
+                  <span class="value">${currentUser}</span>
+                </div>
+              </div>
+              ${extraInfo}
+            </div>
+            <div class="footer-link">www.niletronix.com</div>
+          </div>
 
-            <!-- QR Code -->
+          <div class="qr-side">
             <div class="qr-container">
               <img src="${imgSrc}" alt="QR Code" />
             </div>
-
-            <!-- Ticket ID -->
-            ${this.lastIssuedTicketId ? `
-              <div class="ticket-id">
-                رقم التذكرة: ${this.lastIssuedTicketId}
-              </div>
-            ` : ''}
-
-            <!-- Ticket Information -->
-            <div class="info-section">
-              ${this.lastIssuedPrice !== null ? `
-                <div class="info-row">
-                  <span class="label">الرسوم:</span>
-                  <span class="value price">${this.lastIssuedPrice} ج.م</span>
-                </div>
-              ` : ''}
-              
-              <div class="info-row">
-                <span class="label">التاريخ والوقت:</span>
-                <span class="value">${createdAt}</span>
-              </div>
-
-              ${this.lastIssuedVehicleNumber ? `
-                <div class="info-row">
-                  <span class="label">رقم السيارة:</span>
-                  <span class="value">${this.lastIssuedVehicleNumber}</span>
-                </div>
-              ` : ''}
-
-              <div class="info-row">
-                <span class="label">الموظف:</span>
-                <span class="value">${currentUser}</span>
-              </div>
-            </div>
-
-            ${this.lastIssuedTicketInfo ? `
-              <div style="font-size:12px;color:#000;text-align:center;font-weight:bold;">
-                ${this.lastIssuedTicketInfo}
-              </div>
-            ` : ''}
-
-            <div class="footer-link">www.niletronix.com</div>
           </div>
-        </body>
-      </html>
-    `;
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
-  }
+        </div>
+      </body>
+    </html>
+  `;
+
+  w.document.open();
+  w.document.write(html);
+  w.document.close();
+}
+
+
 
   qrDataUrl(text: string) {
     return `data:text/plain,${encodeURIComponent(text)}`;
