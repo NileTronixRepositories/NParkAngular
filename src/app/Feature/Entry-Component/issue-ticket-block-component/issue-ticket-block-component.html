@@ -123,7 +123,7 @@
           <div class="card-summary-row" *ngIf="cardSummary.price != null">
             <span class="card-summary-key">{{ t('price') }}</span>
             <span class="card-summary-value">
-              {{ cardSummary.price | number : '1.0-2' }}
+              {{ cardSummary.price | number : '1.0-2' }} {{ isRTL ? 'ج.م' : 'EGP' }}
             </span>
           </div>
 
@@ -165,7 +165,7 @@
         <div class="d-flex justify-content-between" *ngIf="lastIssuedPrice !== null">
           <span class="small fw-semibold">{{ t('price') }}</span>
           <div class="d-flex align-items-center gap-2">
-            <span class="mono">{{ lastIssuedPrice | number : '1.0-2' }}</span>
+            <span class="mono">{{ lastIssuedPrice | number : '1.0-2' }} {{ isRTL ? 'ج.م' : 'EGP' }}</span>
             <span *ngIf="lastIssuedCollected" class="badge bg-success">
               {{ t('cashier_collected_short') }}
             </span>

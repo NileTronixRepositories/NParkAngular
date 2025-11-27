@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class IssueTicketBlockComponent {
   @Input({ required: true }) t!: (key: string) => string;
+  @Input() isRTL = false;
 
   @Input() cardNumber: string = '';
   @Input() cardSummary: ParkingCardSummaryDto | null = null;

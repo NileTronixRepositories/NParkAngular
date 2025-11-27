@@ -52,7 +52,7 @@
                   </div>
                   <div class="row-meta">
                     <span class="chip chip--soft">{{ badgeFor(item) }}</span>
-                    <span class="chip chip--price">$ {{ item.price }}</span>
+                    <span class="chip chip--price">{{ item.price }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}</span>
                     <span class="chip" [class.ok]="item.isRepeated" [class.no]="!item.isRepeated">
                       {{ item.isRepeated ? t('repeated_badge_true') : t('repeated_badge_false') }}
                     </span>
@@ -127,7 +127,7 @@
                   <div class="title">{{ p.name }}</div>
                   <div class="meta">
                     <span class="chip chip--soft">{{ badgeFor(p) }}</span>
-                    <span class="chip chip--price">$ {{ p.price }}</span>
+                    <span class="chip chip--price">{{ p.price }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}</span>
                   </div>
                 </div>
               </button>
@@ -195,7 +195,7 @@
               <div class="grid">
                 <div class="kv">
                   <div class="k"><i class="bi bi-cash-coin"></i> {{ t('price') }}</div>
-                  <div class="v">$ {{ active()!.price }}</div>
+                  <div class="v">{{ active()!.price }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}</div>
                 </div>
                 <div class="kv">
                   <div class="k"><i class="bi bi-clock-history"></i> {{ t('type') }}</div>

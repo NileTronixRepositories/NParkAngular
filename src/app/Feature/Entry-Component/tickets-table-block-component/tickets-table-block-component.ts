@@ -11,6 +11,7 @@ import { FormsModule } from '@angular/forms';
 })
 export class TicketsTableBlockComponent {
   @Input({ required: true }) t!: (key: string) => string;
+  @Input() isRTL = false;
   @Input() tickets: TicketDto[] = [];
   @Input() totalPriceToday: number = 0;
   @Input() loading: boolean = false;
@@ -18,6 +19,7 @@ export class TicketsTableBlockComponent {
   page = 1;
   pageSize = 10;
   Math = Math;
+  today = new Date();
 
   get pageItems(): TicketDto[] {
     const start = (this.page - 1) * this.pageSize;

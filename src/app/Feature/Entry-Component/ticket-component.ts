@@ -562,12 +562,13 @@ export class TicketComponent {
         })
       : '—';
 
-    const currentUser = this.auth.getGateData()?.gateNumber || '—';
+    // Get current user (cashier/employee who created the ticket)
+    const currentUser = this.auth.userName || '—';
 
     const html = `
       <html>
         <head>
-          <title>Print Ticket</title>
+          <title>NPark</title>
           <style>
             * { box-sizing: border-box; }
             body {
@@ -585,11 +586,17 @@ export class TicketComponent {
               max-width: 400px;
               margin: 0 auto;
             }
+            .header-title {
+              font-size: 24px;
+              font-weight: bold;
+              color: #000;
+              margin-bottom: 4px;
+            }
             .qr-container {
-              border: 2px solid #0284c7;
+              border: 2px solid #000;
               border-radius: 12px;
               padding: 12px;
-              background: #f8fafc;
+              background: #fff;
             }
             img {
               max-width: 100%;
@@ -598,7 +605,7 @@ export class TicketComponent {
             }
             .info-section {
               width: 100%;
-              border: 1px solid #e5e7eb;
+              border: 1px solid #000;
               border-radius: 8px;
               padding: 12px;
               background: #fff;
@@ -607,7 +614,7 @@ export class TicketComponent {
               display: flex;
               justify-content: space-between;
               padding: 8px 0;
-              border-bottom: 1px dashed #e5e7eb;
+              border-bottom: 1px dashed #000;
             }
             .info-row:last-child {
               border-bottom: none;
@@ -633,9 +640,16 @@ export class TicketComponent {
               font-weight: bold;
               color: #000;
               padding: 8px;
-              background: #eff6ff;
+              background: #f0f0f0;
               border-radius: 6px;
               width: 100%;
+            }
+            .footer-link {
+              margin-top: 16px;
+              font-size: 12px;
+              color: #000;
+              text-decoration: none;
+              font-weight: bold;
             }
             @media print {
               body { padding: 8px; }
@@ -645,6 +659,8 @@ export class TicketComponent {
         </head>
         <body onload="window.print(); window.close();">
           <div class="wrap">
+            <div class="header-title">NPark</div>
+
             <!-- QR Code -->
             <div class="qr-container">
               <img src="${imgSrc}" alt="QR Code" />
@@ -662,7 +678,7 @@ export class TicketComponent {
               ${this.lastIssuedPrice !== null ? `
                 <div class="info-row">
                   <span class="label">الرسوم:</span>
-                  <span class="value price">${this.lastIssuedPrice} جنيه</span>
+                  <span class="value price">${this.lastIssuedPrice} ج.م</span>
                 </div>
               ` : ''}
               
@@ -679,16 +695,18 @@ export class TicketComponent {
               ` : ''}
 
               <div class="info-row">
-                <span class="label">البوابة :</span>
+                <span class="label">الموظف:</span>
                 <span class="value">${currentUser}</span>
               </div>
             </div>
 
             ${this.lastIssuedTicketInfo ? `
-              <div style="font-size:12px;color:#64748b;text-align:center;">
+              <div style="font-size:12px;color:#000;text-align:center;font-weight:bold;">
                 ${this.lastIssuedTicketInfo}
               </div>
             ` : ''}
+
+            <div class="footer-link">www.niletronix.com</div>
           </div>
         </body>
       </html>

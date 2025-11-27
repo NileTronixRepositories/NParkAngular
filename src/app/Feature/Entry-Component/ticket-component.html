@@ -17,6 +17,7 @@
     <div class="col-12 col-lg-4">
       <app-issue-ticket-block-component
         [t]="t"
+        [isRTL]="i18n.isRTL()"
         [cardNumber]="cardNumber"
         [cardSummary]="cardSummary"
         [adding]="adding"
@@ -43,6 +44,7 @@
     <div class="col-12 col-lg-4">
       <app-tickets-table-block-component
         [t]="t"
+        [isRTL]="i18n.isRTL()"
         [tickets]="filtered"
         [totalPriceToday]="totalPriceToday"
         [loading]="loading"
@@ -83,7 +85,7 @@
             <div class="d-flex justify-content-between mb-1">
               <span class="fw-semibold">{{ t('total_collected_amount') }}</span>
               <span class="mono">
-                {{ collectSummary.totalPriceCollected | number : '1.0-2' }}
+                {{ collectSummary.totalPriceCollected | number : '1.0-2' }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}
               </span>
             </div>
 
@@ -110,7 +112,7 @@
                   <tr *ngFor="let d of collectSummary.ticketCollectDetails">
                     <td class="mono">{{ d.ticketNumber }}</td>
                     <td>{{ d.collectedAt | date : 'short' }}</td>
-                    <td class="mono">{{ d.price | number : '1.0-2' }}</td>
+                    <td class="mono">{{ d.price | number : '1.0-2' }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -214,7 +216,7 @@
             <div class="d-flex justify-content-between mb-1">
               <span class="fw-semibold">{{ t('total_collected_amount') }}</span>
               <span class="mono">
-                {{ collectSummary.totalPriceCollected | number : '1.0-2' }}
+                {{ collectSummary.totalPriceCollected | number : '1.0-2' }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}
               </span>
             </div>
 
@@ -241,7 +243,7 @@
                   <tr *ngFor="let d of collectSummary.ticketCollectDetails">
                     <td class="mono">{{ d.ticketNumber }}</td>
                     <td>{{ d.collectedAt | date : 'short' }}</td>
-                    <td class="mono">{{ d.price | number : '1.0-2' }}</td>
+                    <td class="mono">{{ d.price | number : '1.0-2' }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}</td>
                   </tr>
                 </tbody>
               </table>
