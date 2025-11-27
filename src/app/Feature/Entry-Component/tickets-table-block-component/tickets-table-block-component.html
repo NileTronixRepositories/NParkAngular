@@ -53,6 +53,8 @@
                 <span class="mono">
                   {{ ticket.price ?? 0 | number : '1.0-2' }}
                 </span>
+
+                <!-- ✅ تظهر فقط لو isCollectedByCashier = true -->
                 <span *ngIf="ticket.isCollectedByCashier" class="badge bg-success ms-1">
                   {{ t('cashier_collected_short') }}
                 </span>

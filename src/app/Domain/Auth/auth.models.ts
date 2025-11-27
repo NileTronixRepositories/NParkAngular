@@ -17,7 +17,12 @@ export interface LoginFirstTimeRequest {
   gateType: GateType;
   gateNumber: number;
 }
-
+export interface LoginFirstTimeCommand {
+  userName: string;
+  password: string;
+  newPassword: string;
+  confirmedPassword: string;
+}
 export interface LoginResponse {
   token: string;
   roleName: string;
@@ -30,7 +35,7 @@ export interface GateDevicePeripheral {
   hasPc: boolean;
   hasLpr: boolean;
   gateNumber: number;
-  gateType : GateType
+  gateType: GateType;
 }
 
 export interface LoginResponse {
@@ -40,12 +45,10 @@ export interface LoginResponse {
   gateDevicePeripheral?: GateDevicePeripheral | null;
 }
 export interface GateDto {
-  id: number;
-  gateNumber: number;
+  gateId: string; // Guid as string
+  gateName: string;
   gateType: GateType;
-  name?: string;
 }
-
 export interface AuthResponse {
   token: string;
   roleName: string;

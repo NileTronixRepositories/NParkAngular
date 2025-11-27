@@ -7,6 +7,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { ToastServices } from '../../Services/Toster/toast-services';
+import { environment } from '../../Shared/environment/environment';
 
 @Component({
   selector: 'app-gate-component',
@@ -16,10 +17,16 @@ import { ToastServices } from '../../Services/Toster/toast-services';
   styleUrls: ['./gate-component.css'],
 })
 export class GateComponent {
+  // يفضل يكون لها interface، لكن مؤقتًا هنسيبها any عشان اختلاف الأسماء
   gates: any[] = [];
-  selectedGate: number | '' = '';
-  gateType: GateType = GateType.Entrance;
 
+  // ❌ مش محتاجين ده خلاص
+  // selectedGate: number | '' = '';
+
+  // ✅ ده اللى هنشتغل بيه (Guid كـ string)
+  selectedGateId: string | '' = '';
+
+  gateType: GateType = GateType.Entrance;
   GateType = GateType;
 
   private http = inject(HttpClient);
@@ -49,15 +56,14 @@ export class GateComponent {
   }
 
   confirmGate(): void {
-    if (!this.selectedGate) {
+    if (!this.selectedGateId) {
       this.toast.warn('Please select a gate');
       return;
     }
 
-    const selectedGateId = Number(this.selectedGate);
-    const selectedGate = this.gates.find((g) => g.gateId === selectedGateId);
+    const selectedGate = this.gates.find((g) => g.gateId === this.selectedGateId);
 
-    console.log('Debug - selectedGateId:', selectedGateId);
+    console.log('Debug - selectedGateId:', this.selectedGateId);
     console.log('Debug - available gates:', this.gates);
     console.log('Debug - found gate:', selectedGate);
 
@@ -67,15 +73,13 @@ export class GateComponent {
       return;
     }
 
-    const gateId = selectedGate.gateId as number;
+    const gateId = selectedGate.gateId;
     const gateType = this.gateType;
 
     console.log('Selecting gateId:', gateId, 'gateType:', gateType);
 
     this.authService.checkGate().subscribe({
-      next: (checkRes) => {
-        console.log('Check gate successful:', checkRes);
-
+      next: () => {
         this.authService.selectGate(gateId, gateType).subscribe({
           next: (selectRes) => {
             console.log('Gate selected and token updated', selectRes);
@@ -102,45 +106,54 @@ export class GateComponent {
   }
 
   onGateSelect(): void {
-    const selectedGateId = this.selectedGate;
-    const selectedGate = this.gates.find((gate) => gate.gateId === selectedGateId);
-
-    if (selectedGate) {
-      const gateNumber = selectedGate.gateName;
-      const gateType = this.gateType;
-      console.log('Sending gateName: ', gateNumber, 'gateType: ', gateType);
-
-      this.http
-        .post(
-          'http://192.168.1.12/api/auth/CheckGate',
-          {
-            gateNumber: gateNumber,
-            gateType: gateType,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${this.authService.token}`,
-            },
-          }
-        )
-        .subscribe(
-          (response: any) => {
-            this.authService.updateToken(response.token);
-            this.authService.updateGateData(response.gateDevicePeripheral);
-            console.log('Gate selected and token updated', response);
-
-            if (response.roleName === 'ExitCashier') {
-              this.router.navigate(['/tickets/exit']);
-            } else if (response.roleName === 'EntranceCashier') {
-              this.router.navigate(['/tickets/entry']);
-            } else {
-              this.router.navigate(['/overview']);
-            }
-          },
-          (error) => {
-            console.error('Error checking gate:', error);
-          }
-        );
+    if (!this.selectedGateId) {
+      return;
     }
+
+    const selectedGate = this.gates.find((gate) => gate.gateId === this.selectedGateId);
+
+    if (!selectedGate) {
+      console.warn('Selected gate not found in list');
+      this.toast.error('Selected gate not found');
+      return;
+    }
+
+    const gateId = selectedGate.gateId;
+    const gateType = this.gateType;
+
+    console.log('Sending gateId: ', gateId, 'gateType: ', gateType);
+
+    this.http
+      .post(
+        `${environment.baseUrl}/auth/CheckGate`,
+        {
+          gateId: gateId,
+          gateType: gateType,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${this.authService.token}`,
+          },
+        }
+      )
+      .subscribe(
+        (response: any) => {
+          this.authService.updateToken(response.token);
+          this.authService.updateGateData(response.gateDevicePeripheral);
+          console.log('Gate selected and token updated', response);
+
+          if (response.roleName === 'ExitCashier') {
+            this.router.navigate(['/tickets/exit']);
+          } else if (response.roleName === 'EntranceCashier') {
+            this.router.navigate(['/tickets/entry']);
+          } else {
+            this.router.navigate(['/overview']);
+          }
+        },
+        (error) => {
+          console.error('Error checking gate:', error);
+          this.toast.fromProblem(error);
+        }
+      );
   }
 }

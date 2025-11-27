@@ -14,9 +14,9 @@ import { TicketsServices } from '../../Services/Tickets/tickets-services';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
-import { GateServices, GateDto } from '../../Services/Gate/gate-services';
+import { GateServices } from '../../Services/Gate/gate-services';
 import { AuthService } from '../../Services/Auth/auth-service';
-import { GateType, GateDevicePeripheral } from '../../Domain/Auth/auth.models';
+import { GateType, GateDevicePeripheral, GateDto } from '../../Domain/Auth/auth.models';
 import { ToastServices } from '../../Services/Toster/toast-services';
 import { NfcReaderService } from '../../Services/registration/nfc-reader.service';
 import { ExitGateDevicesBlockComponent } from './exit-gate-devices-block-component/exit-gate-devices-block-component';
@@ -1009,45 +1009,44 @@ export class ExitgateComponent {
     this.fetchTicketAndSalaryByQr(code);
   }
 
-  collectCashier() {
-    if (this.cashierConfirming) return;
-    if (!this.salarySummary) return;
-
-    let ticketId: number | string | undefined;
-
-    if (this.scannedTicket?.id != null) {
-      ticketId = this.scannedTicket.id;
-    } else if ((this.salarySummary as any).ticketId != null) {
-      ticketId = (this.salarySummary as any).ticketId;
-    }
-
-    if (!ticketId) {
-      this.toast.error('لا يمكن تحصيل المبلغ: لا يوجد رقم تذكرة متاح.');
-      return;
-    }
-
-    this.cashierConfirming = true;
-
-    this.svc.collectCashier(String(ticketId)).subscribe({
-      next: (ok) => {
-        if (ok) {
-          this.salarySummary = {
-            ...this.salarySummary!,
-            isCollectByCashier: true,
-          };
-
-          this.toast.success(this.t('cashier_collected_yes'));
-        } else {
-          this.toast.error('تعذر تحصيل المبلغ من الكاشير.');
-        }
-      },
-      error: (err) => {
-        console.error('collectCashier error', err);
-        this.toast.fromProblem(err);
-      },
-      complete: () => {
-        this.cashierConfirming = false;
-      },
-    });
+ collectCashier() {
+  if (this.cashierConfirming || !this.salarySummary) {
+    return;
   }
+
+  // لو معايا QR ticket استخدم id بتاعها، وإلا استخدم TicketId من الـ Salary
+  const ticketId =
+    this.scannedTicket?.id != null
+      ? String(this.scannedTicket.id)
+      : this.salarySummary.ticketId; // 👈 من CalculateSalaryResponse
+
+  if (!ticketId) {
+    this.toast.error('لا يمكن تحصيل المبلغ: لا يوجد رقم تذكرة متاح.');
+    return;
+  }
+
+  this.cashierConfirming = true;
+
+  this.svc.collectCashier(ticketId).subscribe({
+    next: (ok) => {
+      if (ok) {
+        this.salarySummary = {
+          ...this.salarySummary!,
+          isCollectByCashier: true,
+        };
+        this.toast.success(this.t('cashier_collected_yes'));
+      } else {
+        this.toast.error('تعذر تحصيل المبلغ من الكاشير.');
+      }
+    },
+    error: (err) => {
+      console.error('collectCashier error', err);
+      this.toast.fromProblem(err);
+    },
+    complete: () => {
+      this.cashierConfirming = false;
+    },
+  });
+}
+
 }

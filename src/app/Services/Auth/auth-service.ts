@@ -1,13 +1,14 @@
 import { inject, Injectable, Inject } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Observable, of, tap, catchError } from 'rxjs';
-import { GateDevicePeripheral, GateType } from '../../Domain/Auth/auth.models';
+import { GateDevicePeripheral, GateType, LoginFirstTimeCommand } from '../../Domain/Auth/auth.models';
 import { ToastServices } from '../Toster/toast-services';
 import { TicketsServices } from '../Tickets/tickets-services';
+import { environment } from '../../Shared/environment/environment';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
-const API_BASE = 'http://192.168.1.12/api/auth';
+const API_BASE = `${environment.baseUrl}/auth`;
 
 export interface StoredUser {
   role: string;
@@ -73,9 +74,14 @@ export class AuthService {
     );
   }
 
-  loginFirstTime(newPassword: string): Observable<any> {
-    return this.http.post<any>(`${API_BASE}/loginFirstTime`, { newPassword });
+  // ========= LOGIN FIRST TIME =========
+  // ========= LOGIN FIRST TIME =========
+  loginFirstTime(body: LoginFirstTimeCommand): Observable<HttpResponse<void>> {
+    return this.http.post<void>(`${API_BASE}/loginfirsttime`, body, {
+      observe: 'response',
+    });
   }
+
 
   // ========= CHECK GATE =========
   checkGate(): Observable<AuthResponse> {

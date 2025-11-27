@@ -17,12 +17,12 @@
       <label class="form-label">Gate</label>
       <select
         class="form-select"
-        [(ngModel)]="selectedGate"
+        [(ngModel)]="selectedGateId"
         (change)="onGateSelect()"
         name="gateId"
       >
         <option *ngFor="let gate of gates" [value]="gate.gateId">
-          {{ gate.gateName }}
+          {{ gate.gateName || gate.name }}
         </option>
       </select>
     </div>

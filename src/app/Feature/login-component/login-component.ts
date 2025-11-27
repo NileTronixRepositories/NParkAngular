@@ -7,7 +7,7 @@ import { ToastServices } from '../../Services/Toster/toast-services';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
-import { GateType } from '../../Domain/Auth/auth.models';
+import { GateType, LoginFirstTimeCommand } from '../../Domain/Auth/auth.models';
 import { GateComponent } from '../gate-component/gate-component';
 
 @Component({
@@ -33,7 +33,8 @@ import { GateComponent } from '../gate-component/gate-component';
           forgotPassword: 'نسيت كلمة المرور؟',
           signIn: 'تسجيل الدخول',
           changeAdminCreds: 'تغيير بيانات المشرف',
-          tempPasswordNotice: 'أنت تستخدم كلمة مرور مؤقتة، من فضلك أدخل كلمة مرور جديدة.',
+          tempPasswordNotice:
+            'أنت تستخدم كلمة مرور مؤقتة. من فضلك أدخل كلمة مرور جديدة ثم قم بالتسجيل.',
           newPassword: 'كلمة المرور الجديدة',
           confirmPassword: 'تأكيد كلمة المرور',
           pwdMin: 'كلمة المرور مطلوبة (6 أحرف على الأقل).',
@@ -64,7 +65,8 @@ import { GateComponent } from '../gate-component/gate-component';
           forgotPassword: 'Forgot password?',
           signIn: 'Sign In',
           changeAdminCreds: 'Change admin credentials',
-          tempPasswordNotice: 'You are using a temporary password. Please create new credentials.',
+          tempPasswordNotice:
+            'You are using a temporary password. Please enter a new password to continue.',
           newPassword: 'New password',
           confirmPassword: 'Confirm password',
           pwdMin: 'Password required (min 6).',
@@ -111,8 +113,11 @@ export class LoginComponent {
   changeLoading = false;
   changeError: string | null = null;
 
+  // === First-time change form: 4 fields ===
   changeForm = this.fb.group(
     {
+      userName: ['', [Validators.required]],
+      password: ['', [Validators.required]],
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
     },
@@ -126,9 +131,9 @@ export class LoginComponent {
   }
 
   passwordsMatch(group: any) {
-    return group.get('newPassword')?.value === group.get('confirmPassword')?.value
-      ? null
-      : { mismatch: true };
+    const newPwd = group.get('newPassword')?.value;
+    const confirmPwd = group.get('confirmPassword')?.value;
+    return newPwd === confirmPwd ? null : { mismatch: true };
   }
 
   roleIsGateCashier(): boolean {
@@ -136,23 +141,33 @@ export class LoginComponent {
     return role === 'EntranceCashier' || role === 'ExitCashier' || role === 'Supervisor';
   }
 
+  // ========== SUBMIT LOGIN ==========
   submit() {
     if (this.form.invalid) {
-      console.log('sdsdsd ');
       this.form.markAllAsTouched();
       return;
     }
 
+    const username = (this.form.value.username ?? '').trim();
+    const password = this.form.value.password ?? '';
+
+    // 🎯 الحالة الخاصة: Admin / Admin123 → افتح Modal بس، بدون API
+    if (username === 'Admin' && password === 'Admin123') {
+      this.openFirstTimeModal(username, password);
+      return;
+    }
+
+    // 🔁 باقي الحالات → login عادي
     this.loading = true;
 
     const dto = {
-      userName: (this.form.value.username ?? '').trim(),
-      password: this.form.value.password ?? '',
+      userName: username,
+      password: password,
       gateType: this.form.value.gateType!,
       gateNumber: Number(this.form.value.gateNumber) || 1,
       remember: !!this.form.value.remember,
     };
-    console.log(dto);
+
     this.auth.login(dto).subscribe({
       next: () => {
         this.loading = false;
@@ -164,6 +179,22 @@ export class LoginComponent {
         this.toast?.fromProblem?.(err);
       },
     });
+  }
+
+  private openFirstTimeModal(username: string, password: string) {
+    this.showChangeModal = true;
+    this.changeError = null;
+    this.changeLoading = false;
+
+    // نملأ الفورم الأولية من شاشة اللوجين
+    this.changeForm.reset({
+      userName: username,
+      password: password,
+      newPassword: '',
+      confirmPassword: '',
+    });
+
+    this.toast?.success?.(this.t('tempPasswordNotice'));
   }
 
   navigateAfterLogin() {
@@ -183,37 +214,82 @@ export class LoginComponent {
     this.router.navigate(['/overview']);
   }
 
+  // ========== SUBMIT FIRST-TIME CREDENTIALS ==========
   saveNewCredentials() {
     if (this.changeForm.invalid) {
       this.changeForm.markAllAsTouched();
       return;
     }
 
-    const newPassword = this.changeForm.value.newPassword;
-    const confirmPassword = this.changeForm.value.confirmPassword;
+    const userName = (this.changeForm.value.userName ?? '').trim();
+    const password = this.changeForm.value.password ?? '';
+    const newPassword = this.changeForm.value.newPassword ?? '';
+    const confirmPassword = this.changeForm.value.confirmPassword ?? '';
 
-    if (!newPassword || !confirmPassword) {
-      this.changeError = 'يرجى إدخال كلمة المرور';
+    if (!userName || !password || !newPassword || !confirmPassword) {
+      this.changeError = this.t('pwdMin');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      this.changeError = 'كلمتا المرور غير متطابقتين';
+      this.changeError = this.t('pwdMismatch');
       return;
     }
 
     this.changeError = null;
     this.changeLoading = true;
 
-    this.auth.loginFirstTime(newPassword).subscribe({
-      next: () => {
+    const body = {
+      userName,
+      password,
+      newPassword,
+      confirmedPassword: confirmPassword,
+    };
+
+    this.auth.loginFirstTime(body).subscribe({
+      next: (res) => {
         this.changeLoading = false;
-        this.toast?.success?.('تم تحديث كلمة المرور بنجاح');
+
+        // ✅ نجاح: 204 No Content
+        if (res.status === 204) {
+          this.toast?.success?.(this.t('successPwdUpdated'));
+        } else {
+          // لو الـ API رجّع 200 أو أي 2xx تاني
+          this.toast?.success?.(this.t('successPwdUpdated'));
+        }
+
+        // نرجّعه لشاشة اللوجين: نقفل المودال + نعمل Reset للفورم الأساسية
         this.showChangeModal = false;
+
+        this.form.reset({
+          username: '',
+          password: '',
+          remember: true,
+          gateType: this.GateType.Entrance,
+          gateNumber: 1,
+        });
       },
       error: (err: any) => {
         this.changeLoading = false;
-        this.toast?.fromProblem?.(err);
+
+        // نستخرج رسالة الخطأ من الـ API (لو موجودة)
+        const apiMessage =
+          err?.error?.message || err?.error?.detail || 'حدث خطأ أثناء تغيير كلمة المرور';
+
+        // نعرضها للـ User
+        this.toast?.fromProblem ? this.toast.fromProblem(err) : this.toast?.success?.(apiMessage); // fallback بسيط لو مفيش fromProblem
+
+        // برضه نرجّعه لشاشة اللوجين: نقفل المودال
+        this.showChangeModal = false;
+
+        // تقدر تختار تعمل Reset للفورم أو تسيب الـ username زي ما هو:
+        this.form.reset({
+          username: userName, // أو خليه فاضي لو حابب
+          password: '',
+          remember: true,
+          gateType: this.GateType.Entrance,
+          gateNumber: 1,
+        });
       },
     });
   }

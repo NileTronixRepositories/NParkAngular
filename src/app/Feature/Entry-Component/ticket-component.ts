@@ -13,9 +13,9 @@ import {
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
 
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
-import { GateServices, GateDto } from '../../Services/Gate/gate-services';
+import { GateServices } from '../../Services/Gate/gate-services';
 import { AuthService } from '../../Services/Auth/auth-service';
-import { GateDevicePeripheral, GateType } from '../../Domain/Auth/auth.models';
+import { GateDevicePeripheral, GateDto, GateType } from '../../Domain/Auth/auth.models';
 
 import { NfcReaderService } from '../../Services/registration/nfc-reader.service';
 import { ToastServices } from '../../Services/Toster/toast-services';

@@ -154,53 +154,58 @@ export class TicketsServices {
   }
 
   // ========= Helper: map row to TicketDto =========
-  private mapEntryToTicketDto(r: TicketEntryDto | any, action: TicketAction | ''): TicketDto {
-    const customerName: string | null =
-      r.customerName ?? r.CustomerName ?? r.name ?? r.Name ?? null;
+// ========= Helper: map row to TicketDto =========
+private mapEntryToTicketDto(r: TicketEntryDto | any, action: TicketAction | ''): TicketDto {
+  const customerName: string | null =
+    r.customerName ?? r.CustomerName ?? r.name ?? r.Name ?? null;
 
-    const phone: string | null = r.phone ?? r.Phone ?? null;
+  const phone: string | null = r.phone ?? r.Phone ?? null;
 
-    const cardNumber: string | null = r.cardNumber ?? r.CardNumber ?? null;
+  const cardNumber: string | null = r.cardNumber ?? r.CardNumber ?? null;
 
-    const plate: string = r.plate ?? r.Plate ?? '';
+  const plate: string = r.plate ?? r.Plate ?? '';
 
-    let info: string | undefined = r.ticketInfo ?? r.TicketInfo ?? r.info ?? r.Info ?? undefined;
+  let info: string | undefined = r.ticketInfo ?? r.TicketInfo ?? r.info ?? r.Info ?? undefined;
 
-    if (!info) {
-      const parts: string[] = [];
+  if (!info) {
+    const parts: string[] = [];
 
-      if (customerName) parts.push(customerName);
-      if (phone) parts.push(phone);
-      if (cardNumber) {
-        parts.push(cardNumber);
-      } else if (plate) {
-        parts.push(plate);
-      }
-
-      if (parts.length) {
-        info = parts.join(' | ');
-      }
+    if (customerName) parts.push(customerName);
+    if (phone) parts.push(phone);
+    if (cardNumber) {
+      parts.push(cardNumber);
+    } else if (plate) {
+      parts.push(plate);
     }
 
-    const time: string =
-      r.startDate ?? r.StartDate ?? r.dateTime ?? r.DateTime ?? new Date().toISOString();
-
-    const id: string | number = r.ticketNumber ?? r.TicketNumber ?? r.id ?? r.Id ?? plate ?? '';
-
-    return {
-      id,
-      plate,
-      action,
-      time,
-      gate: r.gate ?? r.Gate ?? '',
-      price: r.price,
-      isCollectedByCashier: r.isCollectedByCashier,
-      info,
-      customerName,
-      phone,
-      cardNumber,
-    };
+    if (parts.length) {
+      info = parts.join(' | ');
+    }
   }
+
+  const time: string =
+    r.startDate ?? r.StartDate ?? r.dateTime ?? r.DateTime ?? new Date().toISOString();
+
+  const id: string | number = r.ticketNumber ?? r.TicketNumber ?? r.id ?? r.Id ?? plate ?? '';
+
+  return {
+    id,
+    plate,
+    action,
+    time,
+    gate: r.gate ?? r.Gate ?? '',
+    price: Number(r.price ?? r.Price ?? 0),
+
+    // ✅ API راجع bool باسم isCollectedByCashier → نستخدمه زي ما هو
+    isCollectedByCashier: !!(r.isCollectedByCashier ?? r.IsCollectedByCashier),
+
+    info,
+    customerName,
+    phone,
+    cardNumber,
+  };
+}
+  
 
   getTicketsForEntry(
     startDate: string,
@@ -255,17 +260,17 @@ export class TicketsServices {
   }
 
   collectCashier(ticketId: string): Observable<boolean> {
-    const body: CollectCashierRequest = { ticketId };
-
-    return this.http.post<any>(`${this.base}/Ticket/CollectCashier`, body).pipe(
-      map(() => true),
-      catchError((err) => {
-        console.error('POST /Ticket/CollectCashier failed', err);
-        return of(false);
-      })
-    );
+    // 👈 POST على نفس الـ Route بدون Baram في الـ URL
+    return this.http
+      .post<any>(`${this.base}/Ticket/CollectCashier`, { ticketId }) // body => { ticketId: "guid" }
+      .pipe(
+        map(() => true),
+        catchError((err) => {
+          console.error('POST /Ticket/CollectCashier failed', err);
+          return of(false);
+        })
+      );
   }
-
   getCardSummary(cardNumber: string): Observable<ParkingCardSummaryDto | null> {
     const trimmed = cardNumber?.trim();
     if (!trimmed) return of(null);
