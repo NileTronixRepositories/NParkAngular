@@ -40,7 +40,8 @@
             <input
               type="text"
               class="form-control manual-lpr-input"
-              [(ngModel)]="lprPlate"
+              [ngModel]="lprPlate"
+              (ngModelChange)="onPlateChange($event)"
               [placeholder]="t('plate')"
             />
             <button

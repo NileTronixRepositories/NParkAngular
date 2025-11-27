@@ -34,4 +34,12 @@ export class Registrationservice {
       params,
     });
   }
+
+  deleteMembership(id: string): Observable<any> {
+    return this.http.delete(`${this.membershipsBase}/${id}`);
+  }
+
+  updateMembership(id: string, fd: FormData): Observable<any> {
+    return this.http.put(`${this.membershipsBase}/Update/${id}`, fd);
+  }
 }

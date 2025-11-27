@@ -201,7 +201,7 @@
                 <div class="doc-sub" dir="ltr">{{ d.mime }} • {{ humanSize(d.size) }}</div>
               </div>
               <button class="btn btn-sm btn-outline-danger w-100 mt-2" (click)="removeDocument(i)">
-                <i class="bi bi-trash3"></i> {{ 'delete' | t }}
+                <i class="bi bi-trash3"></i> {{ 'deleteDoc' | t }}
               </button>
             </div>
           </div>
@@ -249,8 +249,16 @@
   </div>
 
   <div class="d-flex gap-2 justify-content-end mt-3">
+    <button
+      *ngIf="isEditing()"
+      type="button"
+      class="btn btn-outline-secondary"
+      (click)="cancelEdit()"
+    >
+      {{ 'cancelEdit' | t }}
+    </button>
     <button type="submit" class="btn btn-primary" [disabled]="saving() || form.invalid">
-      {{ saving() ? ('saving' | t) : ('saveSubscription' | t) }}
+      {{ saving() ? ('saving' | t) : isEditing() ? ('updateSubscription' | t) : ('saveSubscription' | t) }}
     </button>
   </div>
 </form>
@@ -296,6 +304,7 @@
               <th>{{ 'usageTimeCol' | t }}</th>
               <th>{{ 'createdAtCol' | t }}</th>
               <th>{{ 'endDateCol' | t }}</th>
+              <th>{{ 'actionsCol' | t }}</th>
             </tr>
           </thead>
           <tbody>
@@ -315,6 +324,24 @@
               </td>
               <td>{{ r.createdAt | date : 'yyyy/MM/dd HH:mm' }}</td>
               <td>{{ r.endDate | date : 'yyyy/MM/dd HH:mm' }}</td>
+              <td>
+                <div class="btn-group btn-group-sm" role="group">
+                  <button
+                    class="btn btn-outline-primary"
+                    (click)="editMembership(r)"
+                    [title]="'edit' | t"
+                  >
+                    <i class="bi bi-pencil"></i>
+                  </button>
+                  <button
+                    class="btn btn-outline-danger"
+                    (click)="deleteMembership(r.id)"
+                    [title]="'deleteAction' | t"
+                  >
+                    <i class="bi bi-trash"></i>
+                  </button>
+                </div>
+              </td>
             </tr>
 
             <tr *ngIf="!rows().length">

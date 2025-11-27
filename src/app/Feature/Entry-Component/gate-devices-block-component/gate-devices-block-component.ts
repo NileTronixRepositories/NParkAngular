@@ -26,9 +26,28 @@ export class GateDevicesBlockComponent {
     this.manualLprPlateChange.emit(value);
   }
 
+  /**
+   * Handle plate input change with auto-formatting
+   * Adds space between each character: ABC123 -> A B C 1 2 3
+   */
+  onPlateChange(value: string) {
+    // Remove all existing spaces
+    const cleaned = (value || '').replace(/\s+/g, '');
+    
+    // Add space between each character
+    const formatted = cleaned
+      .split('')
+      .join(' ')
+      .trim();
+    
+    // Emit the formatted value
+    this.manualLprPlateChange.emit(formatted);
+  }
+
   onCreateTicketClicked() {
     const plate = (this.manualLprPlate ?? '').trim();
     if (!plate) return;
     this.createTicketWithPlate.emit(plate);
   }
 }
+

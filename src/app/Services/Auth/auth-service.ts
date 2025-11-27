@@ -151,6 +151,18 @@ export class AuthService {
     return user?.role ?? null;
   }
 
+  get userName(): string | null {
+    const token = this.token;
+    if (!token) return null;
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      // Try common claims for name/username
+      return payload.unique_name || payload.sub || payload.name || payload.Name || null;
+    } catch {
+      return null;
+    }
+  }
+
   getGateData(): GateDevicePeripheral | null {
     if (this.gateData) return this.gateData;
 

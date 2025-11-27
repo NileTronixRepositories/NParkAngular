@@ -70,7 +70,7 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           filesCount: 'ملف',
           uploadDocs: 'رفع مستندات',
           scanCamera: 'مسح بالمـاسـح/الكاميرا',
-          delete: 'حذف',
+          deleteDoc: 'حذف',
           noDocs: 'لا توجد مستندات مرفوعة بعد.',
           notPreviewable: 'لا يمكن معاينة هذا النوع هنا. يمكنك تنزيله لفتحه محلياً.',
           download: 'تنزيل الملف',
@@ -82,7 +82,7 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           // ===== submit =====
           saving: 'جاري الحفظ...',
           saveSubscription: 'حفظ الاشتراك',
-          savedOk: 'تم حفظ الاشتراك بنجاح ✅',
+          savedOk: 'تم حفظ الاشتراك بنجاح ',
           saveFail: 'تعذر حفظ الاشتراك. تأكد من الـ API والبيانات.',
 
           // ===== list =====
@@ -104,6 +104,18 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           prev: 'السابق',
           next: 'التالي',
           last: 'الأخيرة',
+
+          // ===== actions =====
+          actionsCol: 'إجراءات',
+          edit: 'تعديل',
+          deleteAction: 'حذف',
+          cancelEdit: 'إلغاء التعديل',
+          deleteConfirm: 'هل أنت متأكد من حذف هذا الاشتراك؟',
+          deleteSuccess: 'تم حذف الاشتراك بنجاح ',
+          deleteFailed: 'فشل في حذف الاشتراك.',
+          updateSuccess: 'تم تحديث الاشتراك بنجاح ',
+          updateFailed: 'فشل في تحديث الاشتراك.',
+          updateSubscription: 'تحديث الاشتراك',
 
           // ===== plate helpers =====
           plateExampleNumbers: '5678',
@@ -147,7 +159,7 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           filesCount: 'file(s)',
           uploadDocs: 'Upload documents',
           scanCamera: 'Scan by camera',
-          delete: 'Delete',
+          deleteDoc: 'Delete',
           noDocs: 'No documents yet.',
           notPreviewable: 'Preview is not available. You can download and open locally.',
           download: 'Download',
@@ -181,6 +193,18 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           prev: 'Prev',
           next: 'Next',
           last: 'Last',
+
+          // ===== actions =====
+          actionsCol: 'Actions',
+          edit: 'Edit',
+          deleteAction: 'Delete',
+          cancelEdit: 'Cancel Edit',
+          deleteConfirm: 'Are you sure you want to delete this membership?',
+          deleteSuccess: 'Membership deleted successfully ✅',
+          deleteFailed: 'Failed to delete membership.',
+          updateSuccess: 'Membership updated successfully ✅',
+          updateFailed: 'Failed to update membership.',
+          updateSubscription: 'Update Membership',
 
           // ===== plate helpers =====
           plateExampleNumbers: '5678',
@@ -222,6 +246,10 @@ export class RegistrationComponent implements OnInit {
   loadingSchemas = signal(false);
 
   readingCard = signal(false);
+
+  // ===== Edit mode state =====
+  editingId = signal<string | null>(null);
+  isEditing = computed(() => !!this.editingId());
 
   // ===== Form & Validators =====
   form: FormGroup = this.fb.group(
@@ -464,17 +492,31 @@ export class RegistrationComponent implements OnInit {
       fd.append('VehicleImage', img.file as File, img.name);
     }
 
-    this.svc.addMembership(fd).subscribe({
+    const editingId = this.editingId();
+
+    // Choose create or update
+    const request$ = editingId
+      ? this.svc.updateMembership(editingId, fd)
+      : this.svc.addMembership(fd);
+
+    const dict = this.lang.current === 'ar' ? (I18N_DICT as any).ar : (I18N_DICT as any).en;
+    const successMsg = editingId
+      ? dict?.updateSuccess || 'Updated successfully ✅'
+      : dict?.savedOk || 'Saved successfully ✅';
+    const errorMsg = editingId
+      ? dict?.updateFailed || 'Failed to update.'
+      : dict?.saveFail || 'Failed to save.';
+
+    request$.subscribe({
       next: () => {
-        alert('تم حفظ الاشتراك بنجاح ✅');
-
+        alert(successMsg);
+        this.editingId.set(null);
         this.reset();
-
         this.load();
       },
       error: (err) => {
         console.error(err);
-        alert('تعذر حفظ الاشتراك. تأكد من الـ API والبيانات.');
+        alert(errorMsg);
         this.saving.set(false);
       },
       complete: () => this.saving.set(false),
@@ -506,6 +548,60 @@ export class RegistrationComponent implements OnInit {
     if (kb < 1024) return `${kb.toFixed(1)} KB`;
     const mb = kb / 1024;
     return `${mb.toFixed(1)} MB`;
+  }
+
+  // ===== CRUD Actions =====
+  editMembership(row: ParkingMembershipDto) {
+    this.editingId.set(row.id);
+
+    // Parse plate number
+    const parts = (row.vehicleNumber || '').split(' ').filter(Boolean);
+    const p4 = parts[0] || '';
+    const p2 = parts[1] || '';
+
+    // Populate form
+    this.form.patchValue({
+      subscriberName: row.name,
+      phone: row.phone,
+      nationalId: row.nationalId,
+      cardNo: row.cardNumber,
+      pricingSchemaId: row.pricingSchemeId || null,
+      plate: {
+        p1: '',
+        p2: p2,
+        p3: '',
+        p4: p4,
+      },
+    });
+
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  deleteMembership(id: string) {
+    const dict = this.lang.current === 'ar' ? (I18N_DICT as any).ar : (I18N_DICT as any).en;
+    if (!confirm(dict?.deleteConfirm || 'Are you sure?')) {
+      return;
+    }
+
+    this.loading.set(true);
+    this.svc.deleteMembership(id).subscribe({
+      next: () => {
+        alert(dict?.deleteSuccess || 'Deleted successfully!');
+        this.load();
+      },
+      error: (err) => {
+        console.error(err);
+        alert(dict?.deleteFailed || 'Failed to delete.');
+        this.loading.set(false);
+      },
+      complete: () => this.loading.set(false),
+    });
+  }
+
+  cancelEdit() {
+    this.editingId.set(null);
+    this.reset();
   }
 }
 

@@ -548,25 +548,147 @@ export class TicketComponent {
         ? this.currentIssuedQr
         : this.qrDataUrl(this.currentIssuedQr);
 
-    const w = window.open('', '_blank', 'width=420,height=600');
+    const w = window.open('', '_blank', 'width=420,height=700');
     if (!w) return;
+
+    // Format the date/time
+    const createdAt = this.lastIssuedCreatedAt 
+      ? new Date(this.lastIssuedCreatedAt).toLocaleString('ar-EG', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit'
+        })
+      : '—';
+
+    const currentUser = this.auth.getGateData()?.gateNumber || '—';
 
     const html = `
       <html>
         <head>
           <title>Print Ticket</title>
           <style>
-            body{margin:0;padding:16px;font-family:Arial, sans-serif;}
-            .wrap{display:flex;flex-direction:column;align-items:center;gap:12px;}
-            img{max-width:100%;height:auto;border:1px solid #ddd;border-radius:8px;padding:8px;}
-            .id{font-size:14px;color:#555}
-            .btn{display:none}
+            * { box-sizing: border-box; }
+            body {
+              margin: 0;
+              padding: 16px;
+              font-family: 'Arial', sans-serif;
+              background: #fff;
+              direction: rtl;
+            }
+            .wrap {
+              display: flex;
+              flex-direction: column;
+              align-items: center;
+              gap: 16px;
+              max-width: 400px;
+              margin: 0 auto;
+            }
+            .qr-container {
+              border: 2px solid #0284c7;
+              border-radius: 12px;
+              padding: 12px;
+              background: #f8fafc;
+            }
+            img {
+              max-width: 100%;
+              height: auto;
+              display: block;
+            }
+            .info-section {
+              width: 100%;
+              border: 1px solid #e5e7eb;
+              border-radius: 8px;
+              padding: 12px;
+              background: #fff;
+            }
+            .info-row {
+              display: flex;
+              justify-content: space-between;
+              padding: 8px 0;
+              border-bottom: 1px dashed #e5e7eb;
+            }
+            .info-row:last-child {
+              border-bottom: none;
+            }
+            .label {
+              font-weight: bold;
+              color: #000;
+              font-size: 14px;
+            }
+            .value {
+              color: #000;
+              font-size: 14px;
+              font-weight: bold;
+            }
+            .price {
+              color: #000;
+              font-size: 16px;
+              font-weight: bold;
+            }
+            .ticket-id {
+              text-align: center;
+              font-size: 16px;
+              font-weight: bold;
+              color: #000;
+              padding: 8px;
+              background: #eff6ff;
+              border-radius: 6px;
+              width: 100%;
+            }
+            @media print {
+              body { padding: 8px; }
+              .btn { display: none !important; }
+            }
           </style>
         </head>
         <body onload="window.print(); window.close();">
           <div class="wrap">
-            <img src="${imgSrc}" />
-            ${this.lastIssuedTicketInfo ? `<div class="id">${this.lastIssuedTicketInfo}</div>` : ''}
+            <!-- QR Code -->
+            <div class="qr-container">
+              <img src="${imgSrc}" alt="QR Code" />
+            </div>
+
+            <!-- Ticket ID -->
+            ${this.lastIssuedTicketId ? `
+              <div class="ticket-id">
+                رقم التذكرة: ${this.lastIssuedTicketId}
+              </div>
+            ` : ''}
+
+            <!-- Ticket Information -->
+            <div class="info-section">
+              ${this.lastIssuedPrice !== null ? `
+                <div class="info-row">
+                  <span class="label">الرسوم:</span>
+                  <span class="value price">${this.lastIssuedPrice} جنيه</span>
+                </div>
+              ` : ''}
+              
+              <div class="info-row">
+                <span class="label">التاريخ والوقت:</span>
+                <span class="value">${createdAt}</span>
+              </div>
+
+              ${this.lastIssuedVehicleNumber ? `
+                <div class="info-row">
+                  <span class="label">رقم السيارة:</span>
+                  <span class="value">${this.lastIssuedVehicleNumber}</span>
+                </div>
+              ` : ''}
+
+              <div class="info-row">
+                <span class="label">البوابة :</span>
+                <span class="value">${currentUser}</span>
+              </div>
+            </div>
+
+            ${this.lastIssuedTicketInfo ? `
+              <div style="font-size:12px;color:#64748b;text-align:center;">
+                ${this.lastIssuedTicketInfo}
+              </div>
+            ` : ''}
           </div>
         </body>
       </html>
@@ -851,10 +973,32 @@ export class TicketComponent {
     if (/^(data:image\/|blob:|https?:\/\/)/i.test(v)) return v;
 
     const clean = v.replace(/\s+/g, '');
-    if (/^[A-Za-z0-9+/=]+$/.test(clean)) {
+
+    if (/^[0-9A-Fa-f]+$/.test(clean)) {
+      try {
+        const base64 = this.hexToBase64(clean);
+        return `data:image/png;base64,${base64}`;
+      } catch (err) {
+        console.error('Failed to convert HEX to base64:', err);
+        return null;
+      }
+    }
+
+     if (/^[A-Za-z0-9+/=]+$/.test(clean)) {
       return `data:image/png;base64,${clean}`;
     }
+
     return null;
+  }
+ 
+  private hexToBase64(hexString: string): string {
+     const bytes: number[] = [];
+    for (let i = 0; i < hexString.length; i += 2) {
+      bytes.push(parseInt(hexString.substr(i, 2), 16));
+    }
+
+     const binary = String.fromCharCode(...bytes);
+    return btoa(binary);
   }
 
   private loadTicketsForEntry(ticketNumber: string = '') {
