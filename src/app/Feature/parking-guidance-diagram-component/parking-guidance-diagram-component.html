@@ -5,7 +5,7 @@
   [class.page-ltr]="!lang.isRTL()"
 >
   <div class="row g-4">
-    <div class="col-12 col-xxl-8">
+    <div class="col-12">
       <div class="card card--glass shadow-sm h-100">
         <div class="card-header d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
@@ -14,56 +14,68 @@
           </div>
 
           <div class="controls d-flex align-items-center gap-2">
-            <!-- استخراج JSON -->
-            <button
-              type="button"
-              class="btn btn-primary btn-sm"
-              (click)="exportJson()"
-              [disabled]="!svgEl"
-              [title]="'titleExport' | t"
-            >
-              {{ 'exportJson' | t }}
-            </button>
-
-            <!-- زووم وتحكم -->
-            <div class="btn-group">
+            <!-- Floor Switcher -->
+            <div class="btn-group floor-switcher" role="group">
               <button
                 type="button"
-                class="btn btn-outline btn-sm"
-                (click)="zoomOut()"
-                [disabled]="!svgEl"
-                [title]="'titleZoomOut' | t"
+                class="btn btn-sm"
+                [class.btn-primary]="currentFloor() === 'B1'"
+                [class.btn-outline-secondary]="currentFloor() !== 'B1'"
+                (click)="switchSvg('B1')"
               >
-                −
+                {{ 'planB1' | t }}
               </button>
               <button
                 type="button"
-                class="btn btn-outline btn-sm"
-                (click)="resetView()"
-                [disabled]="!svgEl"
-                [title]="'titleReset' | t"
+                class="btn btn-sm"
+                [class.btn-primary]="currentFloor() === 'B2'"
+                [class.btn-outline-secondary]="currentFloor() !== 'B2'"
+                (click)="switchSvg('B2')"
               >
-                ⟳
-              </button>
-              <button
-                type="button"
-                class="btn btn-outline btn-sm"
-                (click)="zoomIn()"
-                [disabled]="!svgEl"
-                [title]="'titleZoomIn' | t"
-              >
-                +
+                {{ 'planB2' | t }}
               </button>
             </div>
 
-            <select
-              class="form-select form-select-sm"
-              (change)="onMapChange($event)"
-              [disabled]="!svgEl"
+            <!-- Zoom Controls -->
+            <div class="btn-group">
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
+                (click)="zoomOut()"
+                [title]="'titleZoomOut' | t"
+              >
+                <i class="bi bi-dash-lg"></i>
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
+                (click)="resetView()"
+                [title]="'titleReset' | t"
+              >
+                <i class="bi bi-arrow-clockwise"></i>
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
+                (click)="zoomIn()"
+                [title]="'titleZoomIn' | t"
+              >
+                <i class="bi bi-plus-lg"></i>
+              </button>
+            </div>
+
+            <!-- Zoom Display -->
+            <small class="text-muted">{{ zoomPercentage() }}%</small>
+
+            <!-- Export JSON -->
+            <button
+              type="button"
+              class="btn btn-success btn-sm"
+              (click)="exportJson()"
+              [title]="'titleExport' | t"
             >
-              <option value="B1">{{ 'planB1' | t }}</option>
-              <option value="B2">{{ 'planB2' | t }}</option>
-            </select>
+              <i class="bi bi-download"></i>
+            </button>
           </div>
         </div>
 
@@ -75,6 +87,7 @@
       </div>
     </div>
 
+    <!-- Quick Controls (Commented out - not needed currently)
     <div class="col-12 col-xxl-4">
       <div class="card card--glass shadow-sm h-100">
         <div class="card-header">
@@ -98,6 +111,7 @@
                 class="form-control"
                 [placeholder]="'slotIdExample' | t"
                 (input)="onSlotIdInput($event)"
+                [value]="formSlotId()"
               />
             </div>
             <div class="col-5">
@@ -124,7 +138,8 @@
           <h6 class="fw-bold mb-2">{{ 'stats' | t }}</h6>
           <ul class="kpis">
             <li>
-              <span class="dot dot--free"></span>{{ 'freeLbl' | t }}: <b>{{ freeCount() }}</b>
+              <span class="dot dot--free"></span>{{ 'freeLbl' | t }}:
+              <b>{{ freeCount() }}</b>
             </li>
             <li>
               <span class="dot dot--occupied"></span>{{ 'occupiedLbl' | t }}:
@@ -146,5 +161,7 @@
         </div>
       </div>
     </div>
+    -->
+  
   </div>
 </div>

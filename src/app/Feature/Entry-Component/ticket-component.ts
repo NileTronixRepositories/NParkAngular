@@ -635,35 +635,34 @@ printTicket() {
             align-items: stretch;
           }
 
-          /* الجزء الشمال (المعلومات) – أصغر شوية لصالح الـ QR */
-      .info-side {
-  flex: 1;
-  max-width: 42mm;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;  
-  padding-inline-end: 1.5mm;
-}
+          .info-side {
+            flex: 1;
+            max-width: 42mm;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;  
+            padding-inline-end: 1.5mm;
+          }
 
-.info-top {
-  display: flex;
-  flex-direction: column;
-  gap: 1mm;
-}
+          .info-top {
+            display: flex;
+            flex-direction: column;
+            gap: 1mm;
+          }
 
-.footer-link {
-  margin-top: 2mm;               
-  font-size: 9.5px;
-  color: #000;
-  font-weight: bold;
-  text-align: center;
-}
+          .footer-link {
+            margin-top: 2mm;               
+            font-size: 9.5px;
+            color: #000;
+            font-weight: bold;
+            text-align: center;
+          }
 
           .header-title {
             font-size: 11px;
             font-weight: bold;
             color: #000;
-            text-align: center; /* سنتر NPark */
+            text-align: center; 
             margin-bottom: 1mm;
           }
 

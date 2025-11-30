@@ -18,31 +18,48 @@
 .controls .btn-group .btn {
   padding-inline: 10px;
 }
+
+/* Simplified buttons */
 .btn {
-  border-radius: 10px;
-  padding: 8px 12px;
-  font-weight: 700;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-weight: 500;
 }
+
 .btn-sm {
-  padding: 6px 10px;
+  padding: 5px 10px;
   font-size: 13px;
 }
-.btn-outline {
+
+.btn-outline-secondary {
   background: #fff;
-  border: 1px solid #e5e7eb;
+  border: 1px solid #dee2e6;
 }
-.btn-outline:hover {
-  border-color: #cbd5e1;
+
+.btn-outline-secondary:hover:not(:disabled) {
+  background: #f8f9fa;
 }
-.form-select,
-.form-control {
-  border-radius: 10px;
+
+/* Floor switcher */
+.floor-switcher .btn {
+  min-width: 70px;
 }
 
 .svg-wrap {
   width: 100%;
-  height: clamp(380px, 58vh, 720px);
+  height: clamp(500px, 70vh, 900px);
   overflow: hidden;
+  cursor: grab;
+  user-select: none;
+}
+
+.svg-wrap:active {
+  cursor: grabbing;
+}
+
+.form-select,
+.form-control {
+  border-radius: 8px;
 }
 .svg-host svg {
   width: 100%;
@@ -159,7 +176,11 @@ svg [data-slot-id].slot--disabled > g.sensor > .sensor-dot {
   fill: #111;
   paint-order: stroke;
   stroke: #fff;
-  stroke-width: 1;
+  stroke-width: 2.5;
+  font-weight: 700;
+  font-size: 10px;
+  pointer-events: none;
+  user-select: none;
 }
 .card-header .btn,
 .card-header .form-select {
@@ -170,4 +191,35 @@ svg [data-slot-id].slot--disabled > g.sensor > .sensor-dot {
 .card-header .form-select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
+}
+
+/* ===== Overlay stations from JSON (Sensors / ParkingSensors) ===== */
+
+.stations-layer .station-dot {
+  stroke: #111827;
+  stroke-width: 1.1;
+  fill: #14a44d;
+}
+
+.stations-layer .station.station--parkingsensor .station-dot {
+  fill: #0ea5e9;  
+}
+
+.stations-layer .station.station--sensor .station-dot {
+  fill: #22c55e;
+}
+
+.stations-layer .station-label {
+  fill: #111827;
+  paint-order: stroke;
+  stroke: #ffffff;
+  stroke-width: 2;
+  font-size: 10px;
+  font-weight: 600;
+  pointer-events: none;
+  user-select: none;
+}
+
+.stations-layer .station {
+  cursor: pointer;
 }

@@ -4,188 +4,410 @@
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
 >
-  <!-- Header -->
-  <div class="page-header">
-    <div>
-      <h1 class="page-title">{{ 'overview' | t }}</h1>
-      <p class="page-subtitle">{{ 'welcomeBack' | t }}</p>
-    </div>
-    <div class="header-actions">
-      <a class="btn btn-primary btn-sm" routerLink="/users">{{ 'seeAllUsers' | t }}</a>
-      <button class="btn btn-outline-secondary btn-sm">{{ 'logout' | t }}</button>
-    </div>
+  <!-- Loading State -->
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>{{ 'loading' | t }}</p>
   </div>
 
-  <div class="row g-4">
-    <!-- Left -->
-    <div class="col-12 col-xl-8">
-      <div class="row g-3 kpis">
-        <div class="col-12 col-md-6">
-          <div class="card kpi-card">
-            <div class="kpi-label">{{ 'stations' | t }}</div>
-            <div class="kpi-value">{{ stationsTotal() }}</div>
-            <div class="kpi-sub">
-              <span class="tag tag--blue">{{ 'full' | t }}: {{ stationsFull() }}</span>
-              <span class="sep">·</span>
-              <span class="tag tag--pink">{{ 'empty' | t }}: {{ stationsEmpty() }}</span>
-            </div>
-          </div>
-        </div>
+  <!-- Error State -->
+  <div *ngIf="errorMessage() && !loading()" class="error-state">
+    <i class="bi bi-exclamation-triangle"></i>
+    <p>{{ 'error' | t }}</p>
+    <button class="btn btn-primary" (click)="loadDashboard()">{{ 'retry' | t }}</button>
+  </div>
 
-        <div class="col-12 col-md-6">
-          <div class="card kpi-card">
-            <div class="kpi-label">{{ 'users' | t }}</div>
-            <div class="kpi-value">{{ usersTotal() }}</div>
-            <div class="kpi-sub">
-              <span class="pill pill--success">{{ 'subscribers' | t }}: {{ subscribers() }}</span>
-              <span class="pill pill--warning">{{ 'visitors' | t }}: {{ visitors() }}</span>
+  <!-- Dashboard Content -->
+  <div *ngIf="!loading() && !errorMessage()">
+    <!-- Header -->
+    <div class="page-header">
+      <div>
+        <h1 class="page-title">{{ 'overview' | t }}</h1>
+        <p class="page-subtitle">{{ 'todayStats' | t }}</p>
+      </div>
+    </div>
+
+    <!-- Top KPI Cards -->
+    <div class="row g-4 mb-4">
+      <!-- Total Revenue Card -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="kpi-card kpi-card--blue">
+          <div class="kpi-icon">
+            <i class="bi bi-cash-stack"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">{{ 'totalRevenue' | t }}</div>
+            <div class="kpi-value">{{ formatCurrency(totalRevenue()) }} {{ lang.isRTL() ? 'ج.م' : 'EGP' }}</div>
+            <div class="kpi-stats">
+              <div class="stat stat--success">
+                <i class="bi bi-check-circle"></i>
+                <span>{{ 'collected' | t }}: {{ collectedPercent() | number : '1.0-0' }}%</span>
+              </div>
+              <div class="stat stat--warning">
+                <i class="bi bi-clock"></i>
+                <span>{{ 'pending' | t }}: {{ formatCurrency(pendingRevenue()) }}</span>
+              </div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Table -->
-      <div class="card table-card">
-        <div class="card-header">
-          <div class="card-title">{{ 'recentTickets' | t }}</div>
-          <div class="card-meta">
-            <span class="muted">{{ 'last10' | t }}</span>
-            <a class="btn btn-sm btn-primary" routerLink="/tickets">{{ 'seeAllTickets' | t }}</a>
+      <!-- Occupancy Card -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="kpi-card kpi-card--green">
+          <div class="kpi-icon">
+            <i class="bi bi-car-front"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">{{ 'occupancy' | t }}</div>
+            <div class="kpi-value">{{ occupancyPercentage() | number : '1.0-0' }}%</div>
+            <div class="kpi-stats">
+              <div class="stat">
+                <i class="bi bi-arrow-down-circle"></i>
+                <span>{{ 'inside' | t }}: {{ currentVehiclesInside() }}</span>
+              </div>
+              <div class="stat">
+                <i class="bi bi-check2-square"></i>
+                <span>{{ 'free' | t }}: {{ estimatedFreeSlots() }}</span>
+              </div>
+            </div>
           </div>
         </div>
+      </div>
 
-        <div class="table-responsive">
-          <table class="table mb-0">
-            <thead>
-              <tr>
-                <th>{{ 'id' | t }}</th>
-                <th>{{ 'plate' | t }}</th>
-                <th>{{ 'action' | t }}</th>
-                <th>{{ 'gate' | t }}</th>
-                <th>{{ 'time' | t }}</th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr *ngFor="let t of tickets()">
-                <td>{{ t.id }}</td>
-                <td class="plate">{{ t.plate }}</td>
-                <td>
-                  <span
-                    class="status"
-                    [class.in]="t.action === 'IN'"
-                    [class.out]="t.action === 'OUT'"
-                  >
-                    {{ (t.action === 'IN' ? 'IN' : 'OUT') | t }}
-                  </span>
-                </td>
-                <td>{{ t.gate }}</td>
-                <td>{{ t.time }}</td>
-              </tr>
-            </tbody>
-          </table>
+      <!-- Tickets Today Card -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="kpi-card kpi-card--purple">
+          <div class="kpi-icon">
+            <i class="bi bi-ticket-perforated"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">{{ 'ticketsToday' | t }}</div>
+            <div class="kpi-value">{{ enterTicketsCount() + exitTicketsCount() }}</div>
+            <div class="kpi-stats">
+              <div class="stat">
+                <i class="bi bi-box-arrow-in-down"></i>
+                <span>{{ 'entry' | t }}: {{ enterTicketsCount() }}</span>
+              </div>
+              <div class="stat">
+                <i class="bi bi-box-arrow-up"></i>
+                <span>{{ 'exit' | t }}: {{ exitTicketsCount() }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Memberships Card -->
+      <div class="col-12 col-md-6 col-xl-3">
+        <div class="kpi-card kpi-card--orange">
+          <div class="kpi-icon">
+            <i class="bi bi-people"></i>
+          </div>
+          <div class="kpi-content">
+            <div class="kpi-label">{{ 'memberships' | t }}</div>
+            <div class="kpi-value">{{ subscriptionCount() }}</div>
+            <div class="kpi-stats">
+              <div class="stat" *ngIf="membershipsExpiringNext7Days() > 0" class="stat--warning">
+                <i class="bi bi-exclamation-triangle"></i>
+                <span>{{ 'expiringNext7Days' | t }}: {{ membershipsExpiringNext7Days() }}</span>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Right -->
-    <div class="col-12 col-xl-4">
-      <!-- Donut -->
-      <div class="card chart-card">
-        <div class="card-header">
-          <div class="card-title">{{ 'occupancy' | t }}</div>
-          <div class="legend">
-            <span class="dot dot--blue"></span> {{ 'full' | t }}
-            <span class="dot dot--pink ms-3"></span> {{ 'empty' | t }}
+    <!-- Charts & Analytics Section -->
+    <div class="row g-4 mb-4">
+      <!-- Left Column -->
+      <div class="col-12 col-lg-6">
+        <!-- Revenue Breakdown Donut -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <h6 class="card-title">{{ 'revenueBreakdown' | t }}</h6>
+            <div class="legend">
+              <span class="dot dot--purple"></span> {{ 'membershipRevenue' | t }}
+              <span class="dot dot--cyan ms-3"></span> {{ 'walkInRevenue' | t }}
+            </div>
+          </div>
+          <div class="card-body text-center">
+            <svg width="200" height="200" viewBox="0 0 200 200" class="donut-chart">
+              <circle cx="100" cy="100" [attr.r]="donutRadius" class="donut-track"></circle>
+              <circle
+                cx="100"
+                cy="100"
+                [attr.r]="donutRadius"
+                class="donut-seg donut-seg--purple"
+                [attr.stroke-dasharray]="donutCirc()"
+                [attr.stroke-dashoffset]="donutCirc() - membershipStroke()"
+                transform="rotate(-90 100 100)"
+              ></circle>
+              <circle
+                cx="100"
+                cy="100"
+                [attr.r]="donutRadius"
+                class="donut-seg donut-seg--cyan"
+                [attr.stroke-dasharray]="donutCirc()"
+                [attr.stroke-dashoffset]="donutCirc() - walkInStroke() - membershipStroke()"
+                [attr.transform]="'rotate(' + walkInRotateDeg() + ' 100 100)'"
+              ></circle>
+              <text x="50%" y="45%" text-anchor="middle" class="donut-number">
+                {{ formatCurrency(totalRevenue()) }}
+              </text>
+              <text x="50%" y="55%" text-anchor="middle" class="donut-caption">
+                {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
+              </text>
+            </svg>
+            <div class="revenue-stats mt-3">
+              <div class="stat-row">
+                <span class="stat-label"><span class="dot dot--purple"></span> {{ 'membershipRevenue' | t }}</span>
+                <span class="stat-value">{{ formatCurrency(membershipRelatedRevenue()) }} ({{ membershipRevenuePercent() | number : '1.0-0' }}%)</span>
+              </div>
+              <div class="stat-row">
+                <span class="stat-label"><span class="dot dot--cyan"></span> {{ 'walkInRevenue' | t }}</span>
+                <span class="stat-value">{{ formatCurrency(walkInRevenue()) }} ({{ walkInRevenuePercent() | number : '1.0-0' }}%)</span>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div class="donut-wrap">
-          <svg width="180" height="180" viewBox="0 0 180 180" class="donut">
-            <defs>
-              <filter id="softShadow" x="-50%" y="-50%" width="200%" height="200%">
-                <feDropShadow dx="0" dy="2" stdDeviation="6" flood-opacity="0.15" />
-              </filter>
-            </defs>
-
-            <!-- Track -->
-            <circle cx="90" cy="90" [attr.r]="donutRadius" class="donut-track"></circle>
-
-            <!-- Full -->
-            <circle
-              cx="90"
-              cy="90"
-              [attr.r]="donutRadius"
-              class="donut-seg donut-seg--blue"
-              [attr.stroke-dasharray]="donutCirc()"
-              [attr.stroke-dashoffset]="donutCirc() - fullStroke()"
-              [attr.transform]="'rotate(-90 90 90)'"
-            ></circle>
-
-            <!-- Empty -->
-            <circle
-              cx="90"
-              cy="90"
-              [attr.r]="donutRadius"
-              class="donut-seg donut-seg--pink"
-              [attr.stroke-dasharray]="donutCirc()"
-              [attr.stroke-dashoffset]="donutCirc() - emptyStroke() - fullStroke()"
-              [attr.transform]="'rotate(' + emptyRotateDeg() + ' 90 90)'"
-            ></circle>
-
-            <!-- Center label -->
-            <g filter="url(#softShadow)">
-              <text
-                x="50%"
-                y="50%"
-                dominant-baseline="middle"
-                text-anchor="middle"
-                class="donut-number"
-              >
-                {{ fullPercent() | number : '1.0-0' }}%
-              </text>
-              <text
-                x="50%"
-                y="50%"
-                dy="20"
-                dominant-baseline="hanging"
-                text-anchor="middle"
-                class="donut-caption"
-              >
-                {{ 'full' | t }}
-              </text>
-            </g>
-          </svg>
+        <!-- Exceed Analytics Card -->
+        <div class="card stats-card mt-4">
+          <div class="card-header">
+            <h6 class="card-title">{{ 'exceedAnalytics' | t }}</h6>
+          </div>
+          <div class="card-body">
+            <div class="stat-grid">
+              <div class="stat-item">
+                <div class="stat-icon stat-icon--red">
+                  <i class="bi bi-exclamation-circle"></i>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-label">{{ 'exceededTickets' | t }}</div>
+                  <div class="stat-value">{{ exceededTicketsCount() }}</div>
+                </div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-icon stat-icon--orange">
+                  <i class="bi bi-cash"></i>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-label">{{ 'totalExceed' | t }}</div>
+                  <div class="stat-value">{{ formatCurrency(totalExceedRevenue()) }} {{ lang.isRTL() ? 'ج.م' : 'EGP' }}</div>
+                </div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-icon stat-icon--blue">
+                  <i class="bi bi-calculator"></i>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-label">{{ 'avgPerTicket' | t }}</div>
+                  <div class="stat-value">{{ formatCurrency(averageExceedPerTicket()) }} {{ lang.isRTL() ? 'ج.م' : 'EGP' }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      <!-- Line -->
-      <div class="card chart-card">
-        <div class="card-header">
-          <div class="card-title">{{ 'liveInOutToday' | t }}</div>
-          <div class="legend">
-            <span class="dot dot--blue"></span> {{ 'IN' | t }}
-            <span class="dot dot--pink ms-3"></span> {{ 'OUT' | t }}
+      <!-- Right Column -->
+      <div class="col-12 col-lg-6">
+        <!-- Live In/Out Line Chart -->
+        <div class="card chart-card">
+          <div class="card-header">
+            <h6 class="card-title">{{ 'liveInOut' | t }}</h6>
+            <div class="legend">
+              <span class="dot dot--blue"></span> {{ 'in' | t }}
+              <span class="dot dot--pink ms-3"></span> {{ 'out' | t }}
+            </div>
+          </div>
+          <div class="card-body">
+            <svg [attr.width]="lineChartWidth" [attr.height]="lineChartHeight" class="line-chart">
+              <polyline class="line line--blue" [attr.points]="inPoints()"></polyline>
+              <polyline class="line line--pink" [attr.points]="outPoints()"></polyline>
+              <g class="axis-x">
+                <ng-container *ngFor="let h of chartHours(); index as i">
+                  <text
+                    [attr.x]="20 + i * ((lineChartWidth - 40) / Math.max(chartHours().length - 1, 1))"
+                    [attr.y]="lineChartHeight - 5"
+                    text-anchor="middle"
+                    class="axis-label"
+                  >
+                    {{ h }}:00
+                  </text>
+                </ng-container>
+              </g>
+            </svg>
           </div>
         </div>
 
-        <div class="line-wrap">
-          <svg [attr.width]="lineChartWidth" [attr.height]="lineChartHeight" class="linechart">
-            <g>
-              <polyline class="line line--blue" [attr.points]="inPoints()" />
-              <polyline class="line line--pink" [attr.points]="outPoints()" />
-            </g>
-            <g class="axis-x">
-              <ng-container *ngFor="let h of hours; index as i">
-                <text
-                  [attr.x]="18 + i * ((lineChartWidth - 36) / (hours.length - 1 || 1))"
-                  [attr.y]="lineChartHeight - 2"
-                  text-anchor="middle"
-                >
-                  {{ h | number : '2.0-0' }}
-                </text>
-              </ng-container>
-            </g>
-          </svg>
+        <!-- Duration Stats Card -->
+        <div class="card stats-card mt-4">
+          <div class="card-header">
+            <h6 class="card-title">{{ 'durationStats' | t }}</h6>
+          </div>
+          <div class="card-body">
+            <div class="stat-grid">
+              <div class="stat-item">
+                <div class="stat-icon stat-icon--green">
+                  <i class="bi bi-clock"></i>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-label">{{ 'avgDuration' | t }}</div>
+                  <div class="stat-value">{{ formatDuration(averageDurationMinutes()) }}</div>
+                </div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-icon stat-icon--purple">
+                  <i class="bi bi-alarm"></i>
+                </div>
+                <div class="stat-info">
+                  <div class="stat-label">{{ 'maxDuration' | t }}</div>
+                  <div class="stat-value">{{ formatDuration(maxDurationMinutes()) }}</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Section - Tables -->
+    <div class="row g-4">
+      <!-- Gates Tables -->
+      <div class="col-12 col-xl-6">
+        <!-- Entry Gates -->
+        <div class="card table-card">
+          <div class="card-header">
+            <h6 class="card-title">{{ 'entryGates' | t }}</h6>
+          </div>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>{{ 'gateNumber' | t }}</th>
+                  <th>{{ 'tickets' | t }}</th>
+                  <th>{{ 'totalPrice' | t }}</th>
+                  <th>{{ 'collectedPrice' | t }}</th>
+                  <th>{{ 'supervisor' | t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let gate of entryGates()">
+                  <td><span class="badge badge--blue">Gate {{ gate.gateNumber }}</span></td>
+                  <td>{{ gate.ticketsCount }}</td>
+                  <td>{{ formatCurrency(gate.totalPrice) }}</td>
+                  <td>{{ formatCurrency(gate.collectedPrice) }}</td>
+                  <td>{{ gate.supervisorName || '-' }}</td>
+                </tr>
+                <tr *ngIf="entryGates().length === 0">
+                  <td colspan="5" class="text-center text-muted">No data</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Exit Gates -->
+        <div class="card table-card mt-4">
+          <div class="card-header">
+            <h6 class="card-title">{{ 'exitGates' | t }}</h6>
+          </div>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>{{ 'gateNumber' | t }}</th>
+                  <th>{{ 'tickets' | t }}</th>
+                  <th>{{ 'totalPrice' | t }}</th>
+                  <th>{{ 'collectedPrice' | t }}</th>
+                  <th>{{ 'supervisor' | t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let gate of exitGates()">
+                  <td><span class="badge badge--green">Gate {{ gate.gateNumber }}</span></td>
+                  <td>{{ gate.ticketsCount }}</td>
+                  <td>{{ formatCurrency(gate.totalPrice) }}</td>
+                  <td>{{ formatCurrency(gate.collectedPrice) }}</td>
+                  <td>{{ gate.supervisorName || '-' }}</td>
+                </tr>
+                <tr *ngIf="exitGates().length === 0">
+                  <td colspan="5" class="text-center text-muted">No data</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- Right Column - Top Performers & Recent Tickets -->
+      <div class="col-12 col-xl-6">
+        <!-- Top Performers -->
+        <div class="card stats-card">
+          <div class="card-header">
+            <h6 class="card-title">{{ 'topPerformers' | t }}</h6>
+          </div>
+          <div class="card-body">
+            <div class="performer-item">
+              <div class="performer-icon">
+                <i class="bi bi-trophy"></i>
+              </div>
+              <div class="performer-info">
+                <div class="performer-label">{{ 'busiestGate' | t }}</div>
+                <div class="performer-value">Gate {{ busiestGateNumber() }} - {{ busiestGateTicketsCount() }} {{ 'tickets' | t }}</div>
+              </div>
+            </div>
+            <div class="performer-item mt-3">
+              <div class="performer-icon performer-icon--gold">
+                <i class="bi bi-star-fill"></i>
+              </div>
+              <div class="performer-info">
+                <div class="performer-label">{{ 'topCollector' | t }}</div>
+                <div class="performer-value">{{ topCollectorName() }}</div>
+                <div class="performer-stats">
+                  {{ formatCurrency(topCollectorAmount()) }} {{ lang.isRTL() ? 'ج.م' : 'EGP' }} · {{ topCollectorTicketsCount() }} {{ 'tickets' | t }}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Tickets -->
+        <div class="card table-card mt-4">
+          <div class="card-header">
+            <h6 class="card-title">{{ 'recentTickets' | t }}</h6>
+          </div>
+          <div class="table-responsive">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th>{{ 'id' | t }}</th>
+                  <th>{{ 'plate' | t }}</th>
+                  <th>{{ 'action' | t }}</th>
+                  <th>{{ 'gate' | t }}</th>
+                  <th>{{ 'time' | t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let ticket of recentTickets()">
+                  <td>#{{ ticket.id }}</td>
+                  <td><span class="plate-number">{{ ticket.plate }}</span></td>
+                  <td>
+                    <span class="badge" [class.badge--blue]="ticket.action === 'IN'" [class.badge--pink]="ticket.action === 'OUT'">
+                      {{ ticket.action }}
+                    </span>
+                  </td>
+                  <td>{{ ticket.gate }}</td>
+                  <td>{{ ticket.time }}</td>
+                </tr>
+                <tr *ngIf="recentTickets().length === 0">
+                  <td colspan="5" class="text-center text-muted">No recent tickets</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
         </div>
       </div>
     </div>
