@@ -507,105 +507,104 @@ export class TicketComponent {
     this.cashierCollected = false;
   }
 
-private handleIssuedTicketResponse(res: IssuedTicketResponse | null) {
-  if (!res) return;
+  private handleIssuedTicketResponse(res: IssuedTicketResponse | null) {
+    if (!res) return;
 
-  this.lastIssuedTicketId = res.ticketId ?? null;
-  this.lastIssuedTicketInfo = res.ticketInfo ?? null;
-  this.lastIssuedPrice = res.price ?? null;
-  this.lastIssuedCreatedAt = res.createdAt ?? null;
+    this.lastIssuedTicketId = res.ticketInfo ?? null;
+    this.lastIssuedTicketInfo = res.ticketInfo ?? null;
+    this.lastIssuedPrice = res.price ?? null;
+    this.lastIssuedCreatedAt = res.createdAt ?? null;
 
-  const fromResponse: string | undefined = (res as any)?.vehicleNumber;
-  if (fromResponse && fromResponse.trim().length > 0) {
-    this.lastIssuedVehicleNumber = fromResponse.trim();
-  } else {
-    this.lastIssuedVehicleNumber = null;
-  }
+    const fromResponse: string | undefined = (res as any)?.vehicleNumber;
+    if (fromResponse && fromResponse.trim().length > 0) {
+      this.lastIssuedVehicleNumber = fromResponse.trim();
+    } else {
+      this.lastIssuedVehicleNumber = null;
+    }
 
-  const normalized = this.normalizeQrImage(res.qrCode);
+    const normalized = this.normalizeQrImage(res.qrCode);
 
-  if (!normalized) {
-    console.warn('Invalid qrCode returned from AddTicket', res.qrCode);
+    if (!normalized) {
+      console.warn('Invalid qrCode returned from AddTicket', res.qrCode);
 
-    this.currentIssuedQr = null;
-    this.currentIssuedQrType = null;
+      this.currentIssuedQr = null;
+      this.currentIssuedQrType = null;
 
-    this.toast.error(
-      'تم إصدار التذكرة بنجاح، لكن QR code غير صالح. برجاء مراجعة إعدادات الطابعة أو خدمة الـ QR.'
-    );
+      this.toast.error(
+        'تم إصدار التذكرة بنجاح، لكن QR code غير صالح. برجاء مراجعة إعدادات الطابعة أو خدمة الـ QR.'
+      );
 
+      this.loadTicketsForEntry();
+      return;
+    }
+
+    this.currentIssuedQr = normalized;
+    this.currentIssuedQrType = 'image';
+
+    this.toast.success(this.t('create_ticket'));
+    this.printTicket();
     this.loadTicketsForEntry();
-    return;
   }
 
-  this.currentIssuedQr = normalized;
-  this.currentIssuedQrType = 'image';
+  printTicket() {
+    if (!this.currentIssuedQr) return;
 
-  this.toast.success(this.t('create_ticket'));
-  this.printTicket();
-  this.loadTicketsForEntry();
-}
+    const imgSrc =
+      this.currentIssuedQrType === 'image'
+        ? this.currentIssuedQr
+        : this.qrDataUrl(this.currentIssuedQr);
 
+    const w = window.open('', '_blank', 'width=420,height=700');
+    if (!w) return;
 
-printTicket() {
-  if (!this.currentIssuedQr) return;
+    const createdAt = this.lastIssuedCreatedAt
+      ? new Date(this.lastIssuedCreatedAt).toLocaleString('ar-EG', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : '—';
 
-  const imgSrc =
-    this.currentIssuedQrType === 'image'
-      ? this.currentIssuedQr
-      : this.qrDataUrl(this.currentIssuedQr);
+    const currentUser = this.auth.userName || '—';
 
-  const w = window.open('', '_blank', 'width=420,height=700');
-  if (!w) return;
-
-  const createdAt = this.lastIssuedCreatedAt
-    ? new Date(this.lastIssuedCreatedAt).toLocaleString('ar-EG', {
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-      })
-    : '—';
-
-  const currentUser = this.auth.userName || '—';
-
-  const ticketIdBlock = this.lastIssuedTicketId
-    ? `
+    const ticketIdBlock = this.lastIssuedTicketId
+      ? `
       <div class="ticket-id">
         رقم التذكرة: ${this.lastIssuedTicketId}
       </div>
     `
-    : '';
+      : '';
 
-  const priceRow =
-    this.lastIssuedPrice !== null && this.lastIssuedPrice !== undefined
-      ? `
+    const priceRow =
+      this.lastIssuedPrice !== null && this.lastIssuedPrice !== undefined
+        ? `
         <div class="info-row">
           <span class="label">الرسوم:</span>
           <span class="value price">${this.lastIssuedPrice} ج.م</span>
         </div>
       `
-      : '';
+        : '';
 
-  const vehicleRow = this.lastIssuedVehicleNumber
-    ? `
+    const vehicleRow = this.lastIssuedVehicleNumber
+      ? `
       <div class="info-row">
         <span class="label">رقم السيارة:</span>
         <span class="value">${this.lastIssuedVehicleNumber}</span>
       </div>
     `
-    : '';
+      : '';
 
-  const extraInfo = this.lastIssuedTicketInfo
-    ? `
+    const extraInfo = this.lastIssuedTicketInfo
+      ? `
       <div class="extra-info">
         ${this.lastIssuedTicketInfo}
       </div>
     `
-    : '';
+      : '';
 
-  const html = `
+    const html = `
     <html dir="rtl" lang="ar">
       <head>
         <meta charset="utf-8" />
@@ -787,12 +786,10 @@ printTicket() {
     </html>
   `;
 
-  w.document.open();
-  w.document.write(html);
-  w.document.close();
-}
-
-
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+  }
 
   qrDataUrl(text: string) {
     return `data:text/plain,${encodeURIComponent(text)}`;
@@ -1103,20 +1100,20 @@ printTicket() {
       }
     }
 
-     if (/^[A-Za-z0-9+/=]+$/.test(clean)) {
+    if (/^[A-Za-z0-9+/=]+$/.test(clean)) {
       return `data:image/png;base64,${clean}`;
     }
 
     return null;
   }
- 
+
   private hexToBase64(hexString: string): string {
-     const bytes: number[] = [];
+    const bytes: number[] = [];
     for (let i = 0; i < hexString.length; i += 2) {
       bytes.push(parseInt(hexString.substr(i, 2), 16));
     }
 
-     const binary = String.fromCharCode(...bytes);
+    const binary = String.fromCharCode(...bytes);
     return btoa(binary);
   }
 
