@@ -1,16 +1,18 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, computed, inject } from '@angular/core';
+import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
 import { PanelMenuModule } from 'primeng/panelmenu';
 import { Subscription } from 'rxjs';
 
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { AuthService } from '../../Services/Auth/auth-service';
+import { FooterComponent } from '../footer-component/footer-component';
+import { HeaderComponent } from '../header-component/header-component';
 
 @Component({
   selector: 'app-shell-component',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, PanelMenuModule, RouterModule],
+  imports: [RouterOutlet, CommonModule, PanelMenuModule, RouterModule, FooterComponent, HeaderComponent],
   templateUrl: './shell-component.html',
   styleUrl: './shell-component.css',
 })
@@ -67,6 +69,9 @@ export class ShellComponent implements OnDestroy {
   dir = computed(() => this.i18n.dir());
   isRTL = computed(() => this.i18n.isRTL());
 
+  // Sidebar collapse state
+  sidebarCollapsed = signal(false);
+  
   gateOpen = false;
   private sub?: Subscription;
 
@@ -99,6 +104,10 @@ export class ShellComponent implements OnDestroy {
 
   toggleGate() {
     this.gateOpen = !this.gateOpen;
+  }
+
+  toggleSidebar() {
+    this.sidebarCollapsed.update(v => !v);
   }
 
   switchLang() {

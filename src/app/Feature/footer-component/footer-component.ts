@@ -16,11 +16,11 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
       useValue: (<I18nDict>{
         ar: {
           rights: 'جميع الحقوق محفوظة',
-          followUs: 'تابعنا على',
+          poweredBy: 'مدعوم من',
         },
         en: {
-          rights: 'All rights reserved.',
-          followUs: 'Follow us on',
+          rights: 'All rights reserved',
+          poweredBy: 'Powered by',
         },
       }) as I18nDict,
     },

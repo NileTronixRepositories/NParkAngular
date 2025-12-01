@@ -1,21 +1,34 @@
 <footer
-  class="footer bg-dark text-light py-4"
+  class="footer"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
 >
-  <div class="container text-center">
-    <h5 class="fw-bold mb-2">
-      <span class="text-danger">N</span><span class="text-secondary">Park</span>
-    </h5>
+  <div class="footer-container">
+    <div class="footer-content">
+      <!-- Logo & Copyright -->
+      <div class="footer-brand">
+        <div class="brand-logo">
+          <span class="brand-n">N</span><span class="brand-park">Park</span>
+        </div>
+        <p class="copyright">
+          © {{ currentYear }} NPark. {{ 'rights' | t }}
+        </p>
+      </div>
 
-    <p class="mb-1 small">© {{ currentYear }} NPark. {{ 'rights' | t }}</p>
-
-    <div class="social-icons mt-2">
-      <span class="me-2 small text-secondary">{{ 'followUs' | t }}:</span>
-      <a href="#" class="text-light mx-2"><i class="bi bi-facebook"></i></a>
-      <a href="#" class="text-light mx-2"><i class="bi bi-twitter"></i></a>
-      <a href="#" class="text-light mx-2"><i class="bi bi-instagram"></i></a>
+      <!-- Powered by Niletronix -->
+      <div class="footer-powered">
+        <span class="powered-text">{{ 'poweredBy' | t }}</span>
+        <a 
+          href="https://www.niletronix.com" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          class="niletronix-link"
+        >
+          <i class="bi bi-award-fill"></i>
+          <span>Niletronix</span>
+        </a>
+      </div>
     </div>
   </div>
 </footer>

@@ -1,136 +1,177 @@
-<div class="app-shell d-flex mt-4" [attr.dir]="dir()">
+<div class="app-shell" [attr.dir]="dir()">
   <!-- Sidebar -->
-  <aside class="app-sidebar d-flex flex-column p-3">
-    <a class="brand text-decoration-none mb-4" routerLink="/">
-      <span class="n">N</span><span class="p">Park</span>
-    </a>
+  <aside class="app-sidebar" [class.collapsed]="sidebarCollapsed()">
+    <!-- Sidebar Header -->
+    <div class="sidebar-header">
+      <a class="brand" routerLink="/" *ngIf="!sidebarCollapsed()">
+        <span class="brand-n">N</span><span class="brand-park">Park</span>
+      </a>
+      <a class="brand-icon" routerLink="/" *ngIf="sidebarCollapsed()">
+        <span class="brand-n">N</span>
+      </a>
+      
+      <!-- Toggle Button -->
+      <button 
+        class="sidebar-toggle" 
+        (click)="toggleSidebar()"
+        [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
+      >
+        <i class="bi" [ngClass]="sidebarCollapsed() ? 'bi-chevron-right' : 'bi-chevron-left'"></i>
+      </button>
+    </div>
 
-    <nav class="nav flex-column gap-1">
+    <!-- Navigation -->
+    <nav class="sidebar-nav">
       <!-- Overview — Admin  -->
       <a
         *ngIf="isAdmin"
-        class="nav-link text-light d-flex align-items-center gap-2"
+        class="nav-item"
         routerLink="/overview"
         routerLinkActive="active"
         [routerLinkActiveOptions]="{ exact: true }"
+        [attr.title]="sidebarCollapsed() ? t('overview') : null"
       >
-        <i class="bi bi-house"></i> {{ t('overview') }}
+        <i class="bi bi-house"></i>
+        <span class="nav-text" *ngIf="!sidebarCollapsed()">{{ t('overview') }}</span>
       </a>
 
       <!-- Parking section — Admin +EntranceCashier + ExitCashier + Supervisor -->
       <div
-        class="text-secondary small mt-3 mb-1 text-uppercase"
-        *ngIf="isAdmin || isEntranceCashier || isExitCashier || isSupervisor"
+        class="nav-section-title"
+        *ngIf="(isAdmin || isEntranceCashier || isExitCashier || isSupervisor) && !sidebarCollapsed()"
       >
         {{ t('parking') }}
       </div>
 
       <!-- Gate with submenu -->
-      <div class="nav-item" *ngIf="isAdmin || isEntranceCashier || isExitCashier || isSupervisor">
+      <div class="nav-group" *ngIf="isAdmin || isEntranceCashier || isExitCashier || isSupervisor">
         <button
-          class="nav-link text-light d-flex align-items-center gap-2 btn-toggle"
+          class="nav-item nav-toggle"
           type="button"
           (click)="toggleGate()"
           [attr.aria-expanded]="gateOpen"
-          [attr.aria-label]="t('toggleSubmenu')"
+          [attr.title]="sidebarCollapsed() ? t('gate') : null"
         >
           <i class="bi bi-door-open"></i>
-          {{ t('gate') }}
-          <i class="bi ms-auto" [ngClass]="gateOpen ? 'bi-chevron-up' : 'bi-chevron-down'"></i>
+          <span class="nav-text" *ngIf="!sidebarCollapsed()">{{ t('gate') }}</span>
+          <i class="expand-icon bi" [ngClass]="gateOpen ? 'bi-chevron-up' : 'bi-chevron-down'" *ngIf="!sidebarCollapsed()"></i>
         </button>
 
-        <div class="submenu" *ngIf="gateOpen">
+        <div class="submenu" *ngIf="gateOpen && !sidebarCollapsed()">
           <!-- Entry Gate — Admin + EntranceCashier + Supervisor -->
           <a
             *ngIf="isAdmin || isEntranceCashier || isSupervisor"
-            class="nav-link text-light d-flex align-items-center gap-2 ps-4"
+            class="nav-item submenu-item"
             routerLink="/tickets/entry"
             routerLinkActive="active"
           >
-            <i class="bi bi-arrow-right-circle"></i> {{ t('entryGate') }}
+            <i class="bi bi-arrow-right-circle"></i>
+            <span class="nav-text">{{ t('entryGate') }}</span>
           </a>
 
           <!-- Exit Gate — Admin + ExitCashier + Supervisor -->
           <a
             *ngIf="isAdmin || isExitCashier || isSupervisor"
-            class="nav-link text-light d-flex align-items-center gap-2 ps-4"
+            class="nav-item submenu-item"
             routerLink="/tickets/exit"
             routerLinkActive="active"
           >
-            <i class="bi bi-box-arrow-right"></i> {{ t('exitGate') }}
+            <i class="bi bi-box-arrow-right"></i>
+            <span class="nav-text">{{ t('exitGate') }}</span>
           </a>
         </div>
       </div>
 
-      <!-- باقي المينيو زي ما هو (Admin فقط) -->
+      <!-- Visitor (Admin فقط) -->
       <a
         *ngIf="isAdmin"
-        class="nav-link text-light d-flex align-items-center gap-2"
+        class="nav-item"
         routerLink="/visitor"
         routerLinkActive="active"
+        [attr.title]="sidebarCollapsed() ? t('visitor') : null"
       >
-        <i class="bi bi-credit-card"></i>
-        {{ t('visitor') }}
+        <i class="bi bi-person-vcard"></i>
+        <span class="nav-text" *ngIf="!sidebarCollapsed()">{{ t('visitor') }}</span>
       </a>
 
+      <!-- Altaeriffa -->
       <a
         *ngIf="isAdmin"
-        class="nav-link text-light d-flex align-items-center gap-2"
+        class="nav-item"
         routerLink="/subscription"
         routerLinkActive="active"
+        [attr.title]="sidebarCollapsed() ? t('altaeriffa') : null"
       >
-        <i class="bi bi-credit-card"></i>
-        {{ t('altaeriffa') }}
+        <i class="bi bi-tags-fill"></i>
+        <span class="nav-text" *ngIf="!sidebarCollapsed()">{{ t('altaeriffa') }}</span>
       </a>
 
+      <!-- Subscription -->
       <a
         *ngIf="isAdmin"
-        class="nav-link text-light d-flex align-items-center gap-2"
+        class="nav-item"
         routerLink="/registration"
         routerLinkActive="active"
+        [attr.title]="sidebarCollapsed() ? t('subscription') : null"
       >
-        <i class="bi bi-person"></i>
-        {{ t('subscription') }}
+        <i class="bi bi-person-badge"></i>
+        <span class="nav-text" *ngIf="!sidebarCollapsed()">{{ t('subscription') }}</span>
       </a>
 
-      <div class="text-secondary small mt-3 mb-1 text-uppercase" *ngIf="isAdmin">
+      <!-- Management Section -->
+      <div class="nav-section-title" *ngIf="isAdmin && !sidebarCollapsed()">
         {{ t('management') }}
       </div>
 
+      <!-- Users -->
       <a
         *ngIf="isAdmin"
-        class="nav-link text-light d-flex align-items-center gap-2"
+        class="nav-item"
         routerLink="/users"
         routerLinkActive="active"
+        [attr.title]="sidebarCollapsed() ? t('users') : null"
       >
-        <i class="bi bi-people"></i> {{ t('users') }}
+        <i class="bi bi-people-fill"></i>
+        <span class="nav-text" *ngIf="!sidebarCollapsed()">{{ t('users') }}</span>
       </a>
 
+      <!-- Configuration -->
       <a
         *ngIf="isAdmin"
-        class="nav-link text-light d-flex align-items-center gap-2"
+        class="nav-item"
         routerLink="/configuration"
         routerLinkActive="active"
+        [attr.title]="sidebarCollapsed() ? t('configuration') : null"
       >
-        <i class="bi bi-gear"></i> {{ t('configuration') }}
+        <i class="bi bi-sliders"></i>
+        <span class="nav-text" *ngIf="!sidebarCollapsed()">{{ t('configuration') }}</span>
       </a>
 
+      <!-- Parking Guidance Diagram -->
       <a
         *ngIf="isAdmin"
-        class="nav-link text-light d-flex align-items-center gap-2"
+        class="nav-item"
         routerLink="/parking-guidance-diagram"
         routerLinkActive="active"
+        [attr.title]="sidebarCollapsed() ? t('parkingGuidanceDiagram') : null"
       >
-        <i class="bi bi-gear"></i> {{ t('parkingGuidanceDiagram') }}
+        <i class="bi bi-map-fill"></i>
+        <span class="nav-text" *ngIf="!sidebarCollapsed()">{{ t('parkingGuidanceDiagram') }}</span>
       </a>
     </nav>
 
-    <div class="mt-auto small text-secondary">{{ t('version') }} 1.0</div>
+    <!-- Sidebar Footer -->
+    <div class="sidebar-footer" *ngIf="!sidebarCollapsed()">
+      <div class="version-text">{{ t('version') }} 1.0</div>
+    </div>
   </aside>
 
-  <section class="app-content flex-fill d-flex flex-column">
-    <main class="p-4">
+  <!-- Main Content -->
+  <main class="app-content">
+    <app-header-component></app-header-component>
+    <div class="page-content">
       <router-outlet></router-outlet>
-    </main>
-  </section>
+    </div>
+    <app-footer-component></app-footer-component>
+  </main>
 </div>

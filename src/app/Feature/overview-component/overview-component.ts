@@ -1,12 +1,36 @@
+// src/app/Feature/overview-component/overview-component.ts
 import { CommonModule } from '@angular/common';
-import { Component, computed, signal, Inject, OnInit } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import {
+  Component,
+  computed,
+  signal,
+  OnInit,
+  OnDestroy,
+} from '@angular/core';
+import { Subscription } from 'rxjs';
 
 import { LanguageService } from '../../Services/i18n/language-service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
-import { DashboardDto, OverviewTicketDto, GateTicketsSummaryDto } from '../../Domain/OverView/overview.model';
+import { DashboardDto } from '../../Domain/OverView/overview.model';
 import { OverviewServices } from '../../Services/OverView/overview-services';
+import { DashboardHubService } from '../../Services/OverView/dashboard-hub.service';
+import {
+  TicketAddedNotification,
+  TicketExitedNotification,
+  TicketCollectedNotification,
+} from '../../Domain/OverView/dashboard-notifications.model';
+
+// === UI Notification model ===
+type NotificationType = 'IN' | 'OUT' | 'COLLECTED';
+
+interface UiNotification {
+  id: number;
+  type: NotificationType;
+  titleKey: string; // مفتاح الترجمة (مثلاً: 'notif_in_title')
+  message: string;
+  time: string; // "13:20"
+}
 
 @Component({
   selector: 'app-overview-component',
@@ -72,6 +96,11 @@ import { OverviewServices } from '../../Services/OverView/overview-services';
           error: 'حدث خطأ في تحميل البيانات',
           retry: 'إعادة المحاولة',
           egp: 'ج.م',
+
+          // Notifications
+          notif_in_title: 'تذكرة دخول جديدة',
+          notif_out_title: 'تذكرة خروج',
+          notif_collected_title: 'تحصيل تذكرة',
         },
         en: {
           overview: 'Dashboard',
@@ -127,136 +156,236 @@ import { OverviewServices } from '../../Services/OverView/overview-services';
           error: 'Error loading data',
           retry: 'Retry',
           egp: 'EGP',
+
+          // Notifications
+          notif_in_title: 'New entry ticket',
+          notif_out_title: 'Exit ticket',
+          notif_collected_title: 'Ticket collected',
         },
       }),
     },
   ],
 })
-export class OverviewComponent implements OnInit {
-  // Expose Math to template
+export class OverviewComponent implements OnInit, OnDestroy {
   protected readonly Math = Math;
 
   constructor(
     public readonly lang: LanguageService,
-    @Inject(I18N_DICT) private readonly dict: I18nDict,
-    private readonly overviewServices: OverviewServices
+    private readonly overviewServices: OverviewServices,
+    private readonly dashboardHub: DashboardHubService
   ) {}
 
-  // ===== State =====
+  // ===== Dashboard State =====
   dashboard = signal<DashboardDto | null>(null);
   loading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
 
-  // ===== Computed Properties =====
-  
-  // Revenue metrics
+  // ===== Notifications State =====
+  notifications = signal<UiNotification[]>([]);
+  private notificationIdCounter = 0;
+  private hubSubscriptions = new Subscription();
+
+  // ===== KPI / Stats computed =====
   totalRevenue = computed(() => this.dashboard()?.totalRevenue ?? 0);
   collectedRevenue = computed(() => this.dashboard()?.collectedRevenue ?? 0);
   pendingRevenue = computed(() => this.dashboard()?.pendingRevenue ?? 0);
+
   collectedPercent = computed(() => {
     const total = this.totalRevenue();
     return total > 0 ? (this.collectedRevenue() / total) * 100 : 0;
   });
 
-  // Occupancy metrics
-  currentVehiclesInside = computed(() => this.dashboard()?.currentVehiclesInside ?? 0);
-  estimatedFreeSlots = computed(() => this.dashboard()?.estimatedFreeSlots ?? 0);
-  occupancyPercentage = computed(() => this.dashboard()?.occupancyPercentage ?? 0);
-  totalCapacity = computed(() => this.currentVehiclesInside() + this.estimatedFreeSlots());
+  currentVehiclesInside = computed(
+    () => this.dashboard()?.currentVehiclesInside ?? 0
+  );
+  estimatedFreeSlots = computed(
+    () => this.dashboard()?.estimatedFreeSlots ?? 0
+  );
+  occupancyPercentage = computed(
+    () => this.dashboard()?.occupancyPercentage ?? 0
+  );
 
-  // Tickets metrics
   enterTicketsCount = computed(() => this.dashboard()?.enterTicketsCount ?? 0);
   exitTicketsCount = computed(() => this.dashboard()?.exitTicketsCount ?? 0);
-  activeTicketsCount = computed(() => this.dashboard()?.activeTicketsCount ?? 0);
+  activeTicketsCount = computed(
+    () => this.dashboard()?.activeTicketsCount ?? 0
+  );
 
-  // Membership metrics
   subscriptionCount = computed(() => this.dashboard()?.subscriptionCount ?? 0);
-  membershipsExpiringNext7Days = computed(() => this.dashboard()?.membershipsExpiringNext7Days ?? 0);
-  membershipTicketsCount = computed(() => this.dashboard()?.membershipTicketsCount ?? 0);
-  walkInTicketsCount = computed(() => this.dashboard()?.walkInTicketsCount ?? 0);
+  membershipsExpiringNext7Days = computed(
+    () => this.dashboard()?.membershipsExpiringNext7Days ?? 0
+  );
 
-  // Revenue breakdown
-  membershipRelatedRevenue = computed(() => this.dashboard()?.membershipRelatedRevenue ?? 0);
+  membershipTicketsCount = computed(
+    () => this.dashboard()?.membershipTicketsCount ?? 0
+  );
+  walkInTicketsCount = computed(
+    () => this.dashboard()?.walkInTicketsCount ?? 0
+  );
+
+  membershipRelatedRevenue = computed(
+    () => this.dashboard()?.membershipRelatedRevenue ?? 0
+  );
   walkInRevenue = computed(() => this.dashboard()?.walkInRevenue ?? 0);
+
   membershipRevenuePercent = computed(() => {
     const total = this.totalRevenue();
     return total > 0 ? (this.membershipRelatedRevenue() / total) * 100 : 0;
   });
+
   walkInRevenuePercent = computed(() => {
     const total = this.totalRevenue();
     return total > 0 ? (this.walkInRevenue() / total) * 100 : 0;
   });
 
-  // Exceed analytics
-  exceededTicketsCount = computed(() => this.dashboard()?.exceededTicketsCount ?? 0);
-  totalExceedRevenue = computed(() => this.dashboard()?.totalExceedRevenue ?? 0);
-  averageExceedPerTicket = computed(() => this.dashboard()?.averageExceedPerTicket ?? 0);
+  exceededTicketsCount = computed(
+    () => this.dashboard()?.exceededTicketsCount ?? 0
+  );
+  totalExceedRevenue = computed(
+    () => this.dashboard()?.totalExceedRevenue ?? 0
+  );
+  averageExceedPerTicket = computed(
+    () => this.dashboard()?.averageExceedPerTicket ?? 0
+  );
 
-  // Duration stats
-  averageDurationMinutes = computed(() => this.dashboard()?.averageDurationMinutes ?? 0);
-  maxDurationMinutes = computed(() => this.dashboard()?.maxDurationMinutes ?? 0);
-  averageDurationHours = computed(() => Math.floor(this.averageDurationMinutes() / 60));
-  averageDurationRemainingMinutes = computed(() => this.averageDurationMinutes() % 60);
+  averageDurationMinutes = computed(
+    () => this.dashboard()?.averageDurationMinutes ?? 0
+  );
+  maxDurationMinutes = computed(
+    () => this.dashboard()?.maxDurationMinutes ?? 0
+  );
+
+  averageDurationHours = computed(() =>
+    Math.floor(this.averageDurationMinutes() / 60)
+  );
+  averageDurationRemainingMinutes = computed(
+    () => this.averageDurationMinutes() % 60
+  );
   maxDurationHours = computed(() => Math.floor(this.maxDurationMinutes() / 60));
-  maxDurationRemainingMinutes = computed(() => this.maxDurationMinutes() % 60);
+  maxDurationRemainingMinutes = computed(
+    () => this.maxDurationMinutes() % 60
+  );
 
-  // Top performers
-  busiestGateNumber = computed(() => this.dashboard()?.busiestGateNumber ?? 0);
-  busiestGateTicketsCount = computed(() => this.dashboard()?.busiestGateTicketsCount ?? 0);
+  busiestGateNumber = computed(
+    () => this.dashboard()?.busiestGateNumber ?? 0
+  );
+  busiestGateTicketsCount = computed(
+    () => this.dashboard()?.busiestGateTicketsCount ?? 0
+  );
   topCollectorName = computed(() => this.dashboard()?.topCollectorName ?? 'N/A');
-  topCollectorAmount = computed(() => this.dashboard()?.topCollectorAmount ?? 0);
-  topCollectorTicketsCount = computed(() => this.dashboard()?.topCollectorTicketsCount ?? 0);
+  topCollectorAmount = computed(
+    () => this.dashboard()?.topCollectorAmount ?? 0
+  );
+  topCollectorTicketsCount = computed(
+    () => this.dashboard()?.topCollectorTicketsCount ?? 0
+  );
 
-  // Gates
   entryGates = computed(() => this.dashboard()?.entryGates ?? []);
   exitGates = computed(() => this.dashboard()?.exitGates ?? []);
-
-  // Recent tickets
   recentTickets = computed(() => this.dashboard()?.recentTickets ?? []);
 
-  // Charts
-  chartHours = computed(() => this.dashboard()?.chartHours ?? []);
-  chartIn = computed(() => this.dashboard()?.chartIn ?? []);
-  chartOut = computed(() => this.dashboard()?.chartOut ?? []);
+  // ===== Charts =====
+  private readonly defaultChartHours = [
+    8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
+  ];
 
-  // Donut chart for revenue breakdown
+  chartHours = computed(() => {
+    const hours = this.dashboard()?.chartHours;
+    return hours && hours.length > 0 ? hours : this.defaultChartHours;
+  });
+
+  chartIn = computed(() => {
+    const dto = this.dashboard();
+    const hours = this.chartHours();
+    const apiSeries = dto?.chartIn;
+    if (apiSeries && apiSeries.length === hours.length) {
+      return apiSeries;
+    }
+    const totalIn = dto?.enterTicketsCount ?? 0;
+    return this.buildSeriesFromTotal(totalIn, hours.length);
+  });
+
+  chartOut = computed(() => {
+    const dto = this.dashboard();
+    const hours = this.chartHours();
+    const apiSeries = dto?.chartOut;
+    if (apiSeries && apiSeries.length === hours.length) {
+      return apiSeries;
+    }
+    const totalOut = dto?.exitTicketsCount ?? 0;
+    return this.buildSeriesFromTotal(totalOut, hours.length);
+  });
+
+  // ===== Donut chart (revenue breakdown) =====
   donutRadius = 58;
+
   donutCirc = computed(() => 2 * Math.PI * this.donutRadius);
-  membershipStroke = computed(() => (this.membershipRevenuePercent() / 100) * this.donutCirc());
-  walkInStroke = computed(() => (this.walkInRevenuePercent() / 100) * this.donutCirc());
-  walkInRotateDeg = computed(() => -90 + (this.membershipRevenuePercent() / 100) * 360);
 
-  // Line chart for live in/out
-  lineChartWidth = 420;
-  lineChartHeight = 200;
-  linePadding = 20;
+  membershipStroke = computed(
+    () => (this.membershipRevenuePercent() / 100) * this.donutCirc()
+  );
+  walkInStroke = computed(
+    () => (this.walkInRevenuePercent() / 100) * this.donutCirc()
+  );
+  walkInRotateDeg = computed(
+    () => -90 + (this.membershipRevenuePercent() / 100) * 360
+  );
 
-  inPoints = computed(() => this.buildLinePoints(this.chartIn()));
-  outPoints = computed(() => this.buildLinePoints(this.chartOut()));
+  // ===== Live In/Out simple bar counters =====
+  liveChartWidth = 320;
+  liveChartHeight = 160;
+  private readonly liveTopPadding = 20;
+  private readonly liveBottomPadding = 36;
 
-  private buildLinePoints(series: number[]): string {
-    if (!series || series.length === 0) return '';
+  liveMaxCount = computed(() =>
+    Math.max(this.enterTicketsCount(), this.exitTicketsCount(), 1)
+  );
 
-    const w = this.lineChartWidth - this.linePadding * 2;
-    const h = this.lineChartHeight - this.linePadding * 2;
-    const maxVal = Math.max(...this.chartIn(), ...this.chartOut(), 1);
-    const stepX = w / Math.max(series.length - 1, 1);
+  liveBarHeight(value: number): number {
+    const usable =
+      this.liveChartHeight - this.liveTopPadding - this.liveBottomPadding;
+    const max = this.liveMaxCount();
+    const ratio = max > 0 ? value / max : 0;
+    return ratio * usable;
+  }
 
-    return series
-      .map((v, i) => {
-        const x = this.linePadding + i * stepX;
-        const y = this.linePadding + (1 - v / maxVal) * h;
-        return `${x},${y}`;
-      })
-      .join(' ');
+  liveBarY(value: number): number {
+    const usable =
+      this.liveChartHeight - this.liveTopPadding - this.liveBottomPadding;
+    const max = this.liveMaxCount();
+    const ratio = max > 0 ? value / max : 0;
+    return this.liveTopPadding + (1 - ratio) * usable;
+  }
+
+  liveBarWidth(): number {
+    return 46;
+  }
+
+  liveInBarX(): number {
+    return this.liveChartWidth * 0.2;
+  }
+
+  liveOutBarX(): number {
+    return this.liveChartWidth * 0.6;
+  }
+
+  liveValueY(value: number): number {
+    const h = this.liveBarHeight(value);
+    return this.liveBarY(value) + h / 2;
   }
 
   // ===== Lifecycle =====
   ngOnInit(): void {
     this.loadDashboard();
+    this.connectToHub();
   }
 
-  // ===== API =====
+  ngOnDestroy(): void {
+    this.hubSubscriptions.unsubscribe();
+    this.dashboardHub.stop();
+  }
+
+  // ===== API Calls =====
   loadDashboard(): void {
     this.loading.set(true);
     this.errorMessage.set(null);
@@ -274,7 +403,131 @@ export class OverviewComponent implements OnInit {
     });
   }
 
+  // ===== SignalR Real-time =====
+  private async connectToHub(): Promise<void> {
+    try {
+      await this.dashboardHub.start();
+
+      // ✅ هنا شيلت الـ type annotation من الـ subscribe → Error 2769 يختفي
+      // Ticket Added
+      this.hubSubscriptions.add(
+        this.dashboardHub.ticketAdded$.subscribe((notification) => {
+          console.log('OVERVIEW: ticket added', notification);
+
+          this.updateChartIn(notification.hour);
+
+          this.dashboard.update((current) => {
+            if (!current) return current;
+            return {
+              ...current,
+              enterTicketsCount: current.enterTicketsCount + 1,
+            };
+          });
+
+          this.pushNotification(
+            'IN',
+            'notif_in_title',
+            this.buildInMessage(notification)
+          );
+
+          this.loadDashboard();
+        })
+      );
+
+      // Ticket Exited
+      this.hubSubscriptions.add(
+        this.dashboardHub.ticketExited$.subscribe((notification) => {
+          console.log('OVERVIEW: ticket exited', notification);
+
+          this.updateChartOut(notification.hour);
+
+          this.dashboard.update((current) => {
+            if (!current) return current;
+            return {
+              ...current,
+              exitTicketsCount: current.exitTicketsCount + 1,
+            };
+          });
+
+          this.pushNotification(
+            'OUT',
+            'notif_out_title',
+            this.buildOutMessage(notification)
+          );
+
+          this.loadDashboard();
+        })
+      );
+
+      // Ticket Collected
+      this.hubSubscriptions.add(
+        this.dashboardHub.ticketCollected$.subscribe((notification) => {
+          console.log('OVERVIEW: ticket collected', notification);
+
+          this.pushNotification(
+            'COLLECTED',
+            'notif_collected_title',
+            this.buildCollectedMessage(notification)
+          );
+
+          this.loadDashboard();
+        })
+      );
+    } catch (error) {
+      console.error('Failed to connect to SignalR hub', error);
+    }
+  }
+
+  private updateChartIn(hour: number): void {
+    const current = this.dashboard();
+    if (!current) return;
+
+    const hours = current.chartHours || this.defaultChartHours;
+    const chartIn =
+      current.chartIn ||
+      this.buildSeriesFromTotal(current.enterTicketsCount, hours.length);
+
+    const index = hours.indexOf(hour);
+    if (index >= 0 && index < chartIn.length) {
+      chartIn[index] = (chartIn[index] ?? 0) + 1;
+      this.dashboard.set({
+        ...current,
+        chartHours: hours,
+        chartIn: [...chartIn],
+      });
+    }
+  }
+
+  private updateChartOut(hour: number): void {
+    const current = this.dashboard();
+    if (!current) return;
+
+    const hours = current.chartHours || this.defaultChartHours;
+    const chartOut =
+      current.chartOut ||
+      this.buildSeriesFromTotal(current.exitTicketsCount, hours.length);
+
+    const index = hours.indexOf(hour);
+    if (index >= 0 && index < chartOut.length) {
+      chartOut[index] = (chartOut[index] ?? 0) + 1;
+      this.dashboard.set({
+        ...current,
+        chartHours: hours,
+        chartOut: [...chartOut],
+      });
+    }
+  }
+
   // ===== Helpers =====
+  private buildSeriesFromTotal(total: number, pointsCount: number): number[] {
+    if (pointsCount <= 0) return [];
+    if (total <= 0) return Array(pointsCount).fill(0);
+
+    const step = total / Math.max(pointsCount - 1, 1);
+
+    return Array.from({ length: pointsCount }, (_, i) => Math.round(step * i));
+  }
+
   formatCurrency(value: number): string {
     return value.toLocaleString('en-US', {
       minimumFractionDigits: 2,
@@ -289,5 +542,88 @@ export class OverviewComponent implements OnInit {
       return `${hours}h ${mins}m`;
     }
     return `${mins}m`;
+  }
+
+  // ===== Notification helpers =====
+  private pushNotification(
+    type: NotificationType,
+    titleKey: string,
+    message: string
+  ): void {
+    const id = ++this.notificationIdCounter;
+    const date = new Date();
+    const time = date.toLocaleTimeString('en-GB', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    this.notifications.update((list) => {
+      const next: UiNotification[] = [
+        ...list,
+        {
+          id,
+          type,
+          titleKey,
+          message,
+          time,
+        },
+      ];
+
+      if (next.length > 5) {
+        next.shift();
+      }
+
+      return next;
+    });
+
+    setTimeout(() => {
+      this.notifications.update((list) =>
+        list.filter((n) => n.id !== id)
+      );
+    }, 8000);
+  }
+
+  dismissNotification(id: number): void {
+    this.notifications.update((list) => list.filter((n) => n.id !== id));
+  }
+
+  private buildInMessage(notification: TicketAddedNotification): string {
+    const gateLabel = this.lang.isRTL()
+      ? `بوابة ${notification.gateNumber}`
+      : `Gate ${notification.gateNumber}`;
+
+    return this.lang.isRTL()
+      ? `${gateLabel} - تذكرة رقم ${notification.ticketId}`
+      : `${gateLabel} - Ticket #${notification.ticketId}`;
+  }
+
+  private buildOutMessage(notification: TicketExitedNotification): string {
+    const gateLabel = this.lang.isRTL()
+      ? `بوابة ${notification.gateNumber}`
+      : `Gate ${notification.gateNumber}`;
+
+    const pricePart = this.lang.isRTL()
+      ? `${notification.price.toFixed(2)} ج.م`
+      : `${notification.price.toFixed(2)} EGP`;
+
+    return this.lang.isRTL()
+      ? `${gateLabel} - تحصيل ${pricePart}`
+      : `${gateLabel} - Collected ${pricePart}`;
+  }
+
+  private buildCollectedMessage(
+    notification: TicketCollectedNotification
+  ): string {
+    const collectorLabel = this.lang.isRTL()
+      ? `المحصّل ${notification.collectorName}`
+      : `Collector ${notification.collectorName}`;
+
+    const amountPart = this.lang.isRTL()
+      ? `${notification.collectedAmount.toFixed(2)} ج.م`
+      : `${notification.collectedAmount.toFixed(2)} EGP`;
+
+    return this.lang.isRTL()
+      ? `${collectorLabel} - ${amountPart}`
+      : `${collectorLabel} - ${amountPart}`;
   }
 }

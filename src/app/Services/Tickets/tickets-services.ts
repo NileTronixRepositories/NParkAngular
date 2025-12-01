@@ -154,58 +154,61 @@ export class TicketsServices {
   }
 
   // ========= Helper: map row to TicketDto =========
-// ========= Helper: map row to TicketDto =========
-private mapEntryToTicketDto(r: TicketEntryDto | any, action: TicketAction | ''): TicketDto {
-  const customerName: string | null =
-    r.customerName ?? r.CustomerName ?? r.name ?? r.Name ?? null;
+  private mapEntryToTicketDto(r: TicketEntryDto | any, action: TicketAction | ''): TicketDto {
+    // console.log('Mapping Ticket Row:', r);
+    const customerName: string | null =
+      r.customerName ?? r.CustomerName ?? r.name ?? r.Name ?? null;
 
-  const phone: string | null = r.phone ?? r.Phone ?? null;
+    const phone: string | null = r.phone ?? r.Phone ?? null;
 
-  const cardNumber: string | null = r.cardNumber ?? r.CardNumber ?? null;
+    const cardNumber: string | null = r.cardNumber ?? r.CardNumber ?? null;
 
-  const plate: string = r.plate ?? r.Plate ?? '';
+    const plate: string = r.plate ?? r.Plate ?? '';
 
-  let info: string | undefined = r.ticketInfo ?? r.TicketInfo ?? r.info ?? r.Info ?? undefined;
+    let info: string | undefined = r.ticketInfo ?? r.TicketInfo ?? r.info ?? r.Info ?? undefined;
 
-  if (!info) {
-    const parts: string[] = [];
+    if (!info) {
+      const parts: string[] = [];
 
-    if (customerName) parts.push(customerName);
-    if (phone) parts.push(phone);
-    if (cardNumber) {
-      parts.push(cardNumber);
-    } else if (plate) {
-      parts.push(plate);
+      if (customerName) parts.push(customerName);
+      if (phone) parts.push(phone);
+      if (cardNumber) {
+        parts.push(cardNumber);
+      } else if (plate) {
+        parts.push(plate);
+      }
+
+      if (parts.length) {
+        info = parts.join(' | ');
+      }
     }
 
-    if (parts.length) {
-      info = parts.join(' | ');
-    }
+    const time: string =
+      r.startDate ?? r.StartDate ?? r.dateTime ?? r.DateTime ?? new Date().toISOString();
+
+    // Internal GUID should be in r.id or r.Id or r.ticketId or r.TicketId
+    // Ticket Number (Display) should be in r.ticketNumber or r.TicketNumber
+    const internalId: string | number = r.id ?? r.Id ?? r.ticketId ?? r.TicketId ?? r.ticketNumber ?? r.TicketNumber ?? '';
+    const displayId: string = r.ticketNumber ?? r.TicketNumber ?? r.id ?? r.Id ?? plate ?? '';
+
+    return {
+      id: internalId,
+      ticketNumber: displayId,
+      plate,
+      action,
+      time,
+      gate: r.gate ?? r.Gate ?? '',
+      price: Number(r.price ?? r.Price ?? 0),
+
+      // ✅ API راجع bool باسم isCollectedByCashier → نستخدمه زي ما هو
+      isCollectedByCashier: !!(r.isCollectedByCashier ?? r.IsCollectedByCashier),
+
+      info,
+      customerName,
+      phone,
+      cardNumber,
+    };
   }
-
-  const time: string =
-    r.startDate ?? r.StartDate ?? r.dateTime ?? r.DateTime ?? new Date().toISOString();
-
-  const id: string | number = r.ticketNumber ?? r.TicketNumber ?? r.id ?? r.Id ?? plate ?? '';
-
-  return {
-    id,
-    plate,
-    action,
-    time,
-    gate: r.gate ?? r.Gate ?? '',
-    price: Number(r.price ?? r.Price ?? 0),
-
-    // ✅ API راجع bool باسم isCollectedByCashier → نستخدمه زي ما هو
-    isCollectedByCashier: !!(r.isCollectedByCashier ?? r.IsCollectedByCashier),
-
-    info,
-    customerName,
-    phone,
-    cardNumber,
-  };
-}
-  
 
   getTicketsForEntry(
     startDate: string,
@@ -289,7 +292,7 @@ private mapEntryToTicketDto(r: TicketEntryDto | any, action: TicketAction | ''):
   addExitTicket(ticketId: string): Observable<boolean> {
     const body = { ticketId };
 
-    return this.http.post<any>(`${this.base}/Ticket/AddExitTicket`, body).pipe(
+    return this.http.post<any>(`${this.base}/Ticket/ExitTicket`, body).pipe(
       map(() => true),
       catchError((err) => {
         console.error('POST /Ticket/AddExitTicket failed', err);

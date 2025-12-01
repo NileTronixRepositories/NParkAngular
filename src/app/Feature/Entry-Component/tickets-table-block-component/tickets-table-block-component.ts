@@ -1,4 +1,4 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { TicketDto } from '../../../Domain/tickets/tickets.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -15,6 +15,9 @@ export class TicketsTableBlockComponent {
   @Input() tickets: TicketDto[] = [];
   @Input() totalPriceToday: number = 0;
   @Input() loading: boolean = false;
+  @Input() collectingTicketId: string | null = null;
+
+  @Output() collectTicket = new EventEmitter<string>();
 
   page = 1;
   pageSize = 10;
@@ -36,5 +39,9 @@ export class TicketsTableBlockComponent {
 
   nextPage() {
     if (this.page < this.pagesCount) this.page++;
+  }
+
+  onCollectClick(ticketId: string | number) {
+    this.collectTicket.emit(String(ticketId));
   }
 }

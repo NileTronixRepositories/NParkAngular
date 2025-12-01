@@ -647,11 +647,11 @@ export class ExitgateComponent {
     this.exitProcessing = true;
 
     if (this.scannedTicket) {
-      this.svc.addExitTicket(String(this.scannedTicket.id)).subscribe({
+      const ticketId = String(this.scannedTicket.id);
+
+      this.svc.addExitTicket(ticketId).subscribe({
         next: (ok) => {
           if (ok) {
-            this.toast.success(this.t('open_gate'));
-
             const price = this.salarySummary?.totalSalary ?? 0;
             this.upsertExitTicketRow(
               this.scannedTicket!.id,
@@ -659,31 +659,45 @@ export class ExitgateComponent {
               price,
               true
             );
-          } else {
-            this.toast.error('Failed to open gate');
+            this.resetScanState();
           }
-
-          this.resetScanState();
         },
         error: (err) => {
-          console.error('allowExitWithoutCollect error', err);
           this.toast.fromProblem(err);
           this.exitProcessing = false;
         },
         complete: () => {
           this.exitProcessing = false;
-          this.resetScanState();
-          this.loadExitGates();
         },
       });
 
       return;
     }
 
-    this.toast.success(this.t('open_gate'));
-    this.resetScanState();
-    this.loadExitGates();
-    this.exitProcessing = false;
+    // Subscriber card case (no scanned ticket)
+    if (this.salarySummary?.ticketId) {
+      const ticketId = String(this.salarySummary.ticketId);
+
+      this.svc.addExitTicket(ticketId).subscribe({
+        next: (ok) => {
+          if (ok) {
+            const price = this.salarySummary?.totalSalary ?? 0;
+            const plate = 'SUBSCRIBER';
+            this.upsertExitTicketRow(ticketId, plate, price, true);
+            this.resetScanState();
+          }
+        },
+        error: (err) => {
+          this.toast.fromProblem(err);
+          this.exitProcessing = false;
+        },
+        complete: () => {
+          this.exitProcessing = false;
+        },
+      });
+    } else {
+      this.exitProcessing = false;
+    }
   }
 
   printSummary() {

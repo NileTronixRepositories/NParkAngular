@@ -71,6 +71,7 @@ export class TicketComponent {
   lastTicketCreatedAt: string | null = null;
   cashierCollected = false;
   collectingCashierCash = false;
+  collectingTicketId: string | null = null;
   lastIssuedVehicleNumber: string | null = null;
 
   // ===== Daily collect summary (Supervisor) =====
@@ -219,9 +220,6 @@ export class TicketComponent {
       cashier_collected_no: 'لم يتم التحصيل بعد',
       cashier_collected_short: 'تم',
 
-      // Card summary
-      cardSummary: 'ملخص الكارت',
-      no_card_summary: 'لا توجد بيانات عضوية لهذا الكارت',
       customer_name: 'اسم العميل',
       phone: 'الهاتف',
       national_id: 'الرقم القومي',
@@ -233,16 +231,19 @@ export class TicketComponent {
 
       // Collect summary
       collect_summary: 'ملخص تحصيل اليوم',
-      total_collected_amount: 'إجمالي المبلغ المحصَّل',
-      total_collected_tickets: 'عدد التذاكر المحصَّلة',
+      total_collected_amount: 'إجمالي المبلغ المحصَّل',
+      total_collected_tickets: 'عدد التذاكر المحصَّلة',
       collected_at: 'وقت التحصيل',
       last_collection_time: 'وقت آخر تحصيل',
+      collect: 'تحصيل',
+      collected: 'تم التحصيل',
+      actions: 'الإجراءات',
     },
     en: {
       issue_ticket: 'Issue Ticket',
       issue_ticket_subscriber: 'Issue ticket (subscriber)',
       entry: 'ENTRY',
-      no_ticket_yet: 'No ticket yet — click “Create Ticket”',
+      no_ticket_yet: 'No ticket yet — click "Create Ticket"',
       add_new_ticket: 'Add New Ticket',
       create_ticket: 'Create Ticket',
       print_ticket: 'Print Ticket',
@@ -329,6 +330,9 @@ export class TicketComponent {
       total_collected_tickets: 'Total collected tickets',
       collected_at: 'Collected at',
       last_collection_time: 'Last collection time',
+      collect: 'Collect',
+      collected: 'Collected',
+      actions: 'Actions',
     },
   };
 
@@ -929,6 +933,29 @@ printTicket() {
         console.error('collect error', err);
         this.collecting = false;
         this.toast.fromProblem(err);
+      },
+    });
+  }
+
+  // ================== Collect from table ==================
+  collectTicketFromTable(ticketId: string) {
+    if (this.collectingTicketId) return;
+
+    this.collectingTicketId = ticketId;
+
+    this.svc.collectCashier(ticketId).subscribe({
+      next: (ok) => {
+        if (ok) {
+          this.markTicketAsCashierCollected(ticketId);
+          this.loadTicketsForEntry();
+        }
+      },
+      error: (err) => {
+        this.toast.fromProblem(err);
+        this.collectingTicketId = null;
+      },
+      complete: () => {
+        this.collectingTicketId = null;
       },
     });
   }

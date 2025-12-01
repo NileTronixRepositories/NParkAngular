@@ -12,6 +12,7 @@ export interface TicketDto {
 
   info?: string;
 
+  ticketNumber?: string;
   customerName?: string | null;
   phone?: string | null;
   cardNumber?: string | null;
@@ -38,6 +39,8 @@ export interface TicketDetailsDto {
 
 export interface TicketEntryDto {
   startDate: string;
+  id?: string; // Internal GUID
+  ticketId?: string; // Alternative Internal GUID field
   ticketNumber: string;
   price: number;
   isCollectedByCashier: boolean;
