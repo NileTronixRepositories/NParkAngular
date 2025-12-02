@@ -1,21 +1,19 @@
-import { Injectable, inject } from '@angular/core';
-import { HttpEvent, HttpHandler, HttpInterceptor, HttpRequest } from '@angular/common/http';
-import { Observable } from 'rxjs';
-import { LanguageService } from '../../Services/i18n/language-service';
+import { inject } from '@angular/core';
+import { HttpInterceptorFn } from '@angular/common/http';
+import { LanguageService, AppLang, APP_LANG_LS_KEY } from '../../Services/i18n/language-service';
 
-@Injectable()
-export class LanguageHeaderInterceptor implements HttpInterceptor {
-  private lang = inject(LanguageService);
+export const languageHeaderInterceptor: HttpInterceptorFn = (req, next) => {
+  const langService = inject(LanguageService);
 
-  intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    const currentLang = this.lang.current ?? 'ar';
+  const storedLang = localStorage.getItem(APP_LANG_LS_KEY) as AppLang | null;
+  const serviceLang = langService.current;
+  const currentLang: AppLang = storedLang ?? serviceLang ?? 'ar';
 
-    const cloned = req.clone({
-      setHeaders: {
-        'Accept-Language': currentLang,
-      },
-    });
+  const cloned = req.clone({
+    setHeaders: {
+      'Accept-Language': currentLang,
+    },
+  });
 
-    return next.handle(cloned);
-  }
-}
+  return next(cloned);
+};
