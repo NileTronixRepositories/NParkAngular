@@ -510,7 +510,7 @@ export class TicketComponent {
   private handleIssuedTicketResponse(res: IssuedTicketResponse | null) {
     if (!res) return;
 
-    this.lastIssuedTicketId = res.ticketInfo ?? null;
+    this.lastIssuedTicketId = res.ticketId ?? null;
     this.lastIssuedTicketInfo = res.ticketInfo ?? null;
     this.lastIssuedPrice = res.price ?? null;
     this.lastIssuedCreatedAt = res.createdAt ?? null;
@@ -572,7 +572,7 @@ export class TicketComponent {
     const ticketIdBlock = this.lastIssuedTicketId
       ? `
       <div class="ticket-id">
-        رقم التذكرة: ${this.lastIssuedTicketId}
+        رقم التذكرة: ${this.lastIssuedTicketInfo}
       </div>
     `
       : '';
