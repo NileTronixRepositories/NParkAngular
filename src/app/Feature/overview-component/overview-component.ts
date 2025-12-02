@@ -59,7 +59,7 @@ interface UiNotification {
           memberships: 'الاشتراكات',
           total: 'الإجمالي',
           expiringNext7Days: 'تنتهي خلال 7 أيام',
-          revenueBreakdown: 'تفصيل الإيرادات',
+          revenueBreakdown: 'أنواع العملاء ',
           membershipRevenue: 'إيراد الاشتراكات',
           walkInRevenue: 'إيراد الزوار',
           liveInOut: 'الدخول/الخروج المباشر',
@@ -80,7 +80,7 @@ interface UiNotification {
           totalPrice: 'المبلغ الكلي',
           collectedPrice: 'المحصّل',
           supervisor: 'المشرف',
-          topPerformers: 'الأفضل أداءً',
+          topPerformers: 'Gate Flow',
           busiestGate: 'أكثر بوابة نشاطًا',
           topCollector: 'أفضل محصّل',
           amount: 'المبلغ',
@@ -119,7 +119,7 @@ interface UiNotification {
           memberships: 'Memberships',
           total: 'Total',
           expiringNext7Days: 'Expiring in 7 days',
-          revenueBreakdown: 'Revenue Breakdown',
+          revenueBreakdown: 'Customer Type',
           membershipRevenue: 'Membership Revenue',
           walkInRevenue: 'Walk-in Revenue',
           liveInOut: 'Live In/Out',
@@ -140,7 +140,7 @@ interface UiNotification {
           totalPrice: 'Total',
           collectedPrice: 'Collected',
           supervisor: 'Supervisor',
-          topPerformers: 'Top Performers',
+          topPerformers: 'Gate Flow',
           busiestGate: 'Busiest Gate',
           topCollector: 'Top Collector',
           amount: 'Amount',
@@ -228,7 +228,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
   );
   walkInRevenue = computed(() => this.dashboard()?.walkInRevenue ?? 0);
 
-  membershipRevenuePercent = computed(() => {
+   membershipRevenuePercent = computed(() => {
     const total = this.totalRevenue();
     return total > 0 ? (this.membershipRelatedRevenue() / total) * 100 : 0;
   });
@@ -332,48 +332,57 @@ export class OverviewComponent implements OnInit, OnDestroy {
   );
 
   // ===== Live In/Out simple bar counters =====
-  liveChartWidth = 320;
-  liveChartHeight = 160;
-  private readonly liveTopPadding = 20;
-  private readonly liveBottomPadding = 36;
+ liveChartWidth = 360;
+  liveChartHeight = 140;
+
+  readonly liveLeftPadding = 70;
+  readonly liveRightPadding = 24;
+  readonly liveBarThickness = 32;
+  readonly liveBarsGap = 28;
 
   liveMaxCount = computed(() =>
     Math.max(this.enterTicketsCount(), this.exitTicketsCount(), 1)
   );
 
-  liveBarHeight(value: number): number {
+  liveBarWidth(value: number): number {
     const usable =
-      this.liveChartHeight - this.liveTopPadding - this.liveBottomPadding;
+      this.liveChartWidth - this.liveLeftPadding - this.liveRightPadding;
     const max = this.liveMaxCount();
     const ratio = max > 0 ? value / max : 0;
     return ratio * usable;
   }
 
-  liveBarY(value: number): number {
-    const usable =
-      this.liveChartHeight - this.liveTopPadding - this.liveBottomPadding;
-    const max = this.liveMaxCount();
-    const ratio = max > 0 ? value / max : 0;
-    return this.liveTopPadding + (1 - ratio) * usable;
+  liveInBarY(): number {
+    return 30;
   }
 
-  liveBarWidth(): number {
-    return 46;
+  liveOutBarY(): number {
+    return this.liveInBarY() + this.liveBarThickness + this.liveBarsGap;
   }
 
-  liveInBarX(): number {
-    return this.liveChartWidth * 0.2;
+  liveValueX(value: number): number {
+    return this.liveLeftPadding + this.liveBarWidth(value) / 2;
   }
 
-  liveOutBarX(): number {
-    return this.liveChartWidth * 0.6;
+  liveValueYForIn(): number {
+    return this.liveInBarY() + this.liveBarThickness / 2;
   }
 
-  liveValueY(value: number): number {
-    const h = this.liveBarHeight(value);
-    return this.liveBarY(value) + h / 2;
+   liveValueYForOut(): number {
+    return this.liveOutBarY() + this.liveBarThickness / 2;
   }
 
+   liveLabelX(): number {
+    return this.liveLeftPadding;
+  }
+
+  liveLabelYForIn(): number {
+    return this.liveInBarY() + this.liveBarThickness + 18;
+  }
+
+  liveLabelYForOut(): number {
+    return this.liveOutBarY() + this.liveBarThickness + 18;
+  }
   // ===== Lifecycle =====
   ngOnInit(): void {
     this.loadDashboard();

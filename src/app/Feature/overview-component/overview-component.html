@@ -193,90 +193,104 @@
       <!-- Left Column -->
       <div class="col-12 col-lg-6">
         <!-- Revenue Breakdown Donut -->
-        <div class="card chart-card">
-          <div class="card-header">
-            <h6 class="card-title">{{ 'revenueBreakdown' | t }}</h6>
-            <div class="legend">
-              <span class="dot dot--purple"></span>
-              {{ 'membershipRevenue' | t }}
-              <span class="dot dot--cyan ms-3"></span>
-              {{ 'walkInRevenue' | t }}
-            </div>
-          </div>
-          <div class="card-body text-center">
-            <svg
-              width="200"
-              height="200"
-              viewBox="0 0 200 200"
-              class="donut-chart"
-            >
-              <circle
-                cx="100"
-                cy="100"
-                [attr.r]="donutRadius"
-                class="donut-track"
-              ></circle>
-              <circle
-                cx="100"
-                cy="100"
-                [attr.r]="donutRadius"
-                class="donut-seg donut-seg--purple"
-                [attr.stroke-dasharray]="donutCirc()"
-                [attr.stroke-dashoffset]="donutCirc() - membershipStroke()"
-                transform="rotate(-90 100 100)"
-              ></circle>
-              <circle
-                cx="100"
-                cy="100"
-                [attr.r]="donutRadius"
-                class="donut-seg donut-seg--cyan"
-                [attr.stroke-dasharray]="donutCirc()"
-                [attr.stroke-dashoffset]="
-                  donutCirc() - walkInStroke() - membershipStroke()
-                "
-                [attr.transform]="'rotate(' + walkInRotateDeg() + ' 100 100)'"
-              ></circle>
-              <text
-                x="50%"
-                y="45%"
-                text-anchor="middle"
-                class="donut-number"
-              >
-                {{ formatCurrency(totalRevenue()) }}
-              </text>
-              <text
-                x="50%"
-                y="55%"
-                text-anchor="middle"
-                class="donut-caption"
-              >
-                {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-              </text>
-            </svg>
-            <div class="revenue-stats mt-3">
-              <div class="stat-row">
-                <span class="stat-label">
-                  <span class="dot dot--purple"></span>
-                  {{ 'membershipRevenue' | t }}
-                </span>
-                <span class="stat-value">
-                  {{ formatCurrency(membershipRelatedRevenue()) }}
-                  ({{ membershipRevenuePercent() | number : '1.0-0' }}%)
-                </span>
-              </div>
-              <div class="stat-row">
-                <span class="stat-label">
-                  <span class="dot dot--cyan"></span>
-                  {{ 'walkInRevenue' | t }}
-                </span>
-                <span class="stat-value">
-                  {{ formatCurrency(walkInRevenue()) }}
-                  ({{ walkInRevenuePercent() | number : '1.0-0' }}%)
-                </span>
-              </div>
-            </div>
-          </div>
-        </div>
+ <div class="card chart-card">
+  <div class="card-header">
+    <h6 class="card-title">{{ 'revenueBreakdown' | t }}</h6>
+    <div class="legend">
+      <span class="dot dot--purple"></span>
+      {{ 'membershipRevenue' | t }}
+      <span class="dot dot--cyan ms-3"></span>
+      {{ 'walkInRevenue' | t }}
+    </div>
+  </div>
+
+  <div class="card-body text-center">
+     <svg
+      width="200"
+      height="200"
+      viewBox="0 0 200 200"
+      class="donut-chart"
+    >
+      <circle
+        cx="100"
+        cy="100"
+        [attr.r]="donutRadius"
+        class="donut-track"
+      ></circle>
+
+      <circle
+        cx="100"
+        cy="100"
+        [attr.r]="donutRadius"
+        class="donut-seg donut-seg--purple"
+        [attr.stroke-dasharray]="donutCirc()"
+        [attr.stroke-dashoffset]="donutCirc() - membershipStroke()"
+        transform="rotate(-90 100 100)"
+      ></circle>
+
+      <!-- Walk-in segment -->
+      <circle
+        cx="100"
+        cy="100"
+        [attr.r]="donutRadius"
+        class="donut-seg donut-seg--cyan"
+        [attr.stroke-dasharray]="donutCirc()"
+        [attr.stroke-dashoffset]="
+          donutCirc() - walkInStroke() - membershipStroke()
+        "
+        [attr.transform]="'rotate(' + walkInRotateDeg() + ' 100 100)'"
+      ></circle>
+
+      <!-- Center total -->
+      <text
+        x="50%"
+        y="45%"
+        text-anchor="middle"
+        class="donut-number"
+      >
+        {{ formatCurrency(totalRevenue()) }}
+      </text>
+      <text
+        x="50%"
+        y="55%"
+        text-anchor="middle"
+        class="donut-caption"
+      >
+        {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
+      </text>
+    </svg>
+
+    <!-- ✔ هنا بقى عدد الناس + المبلغ، بدون أي نسبة مئوية -->
+    <div class="revenue-stats mt-3">
+      <div class="stat-row">
+        <span class="stat-label">
+          <span class="dot dot--purple"></span>
+          {{ 'membershipRevenue' | t }}
+        </span>
+        <span class="stat-value">
+          {{ membershipTicketsCount() }} {{ 'tickets' | t }}
+          ·
+          {{ formatCurrency(membershipRelatedRevenue()) }}
+          {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
+        </span>
+      </div>
+
+      <div class="stat-row">
+        <span class="stat-label">
+          <span class="dot dot--cyan"></span>
+          {{ 'walkInRevenue' | t }}
+        </span>
+        <span class="stat-value">
+          {{ walkInTicketsCount() }} {{ 'tickets' | t }}
+          ·
+          {{ formatCurrency(walkInRevenue()) }}
+          {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
+        </span>
+      </div>
+    </div>
+  </div>
+</div>
+
 
         <!-- Exceed Analytics Card -->
         <div class="card stats-card mt-4">
@@ -326,93 +340,95 @@
       <!-- Right Column -->
       <div class="col-12 col-lg-6">
         <!-- Live In/Out Chart (Simple Counters) -->
-        <div class="card live-card">
-          <div class="card-header">
-            <div class="header-content">
-              <h3>{{ 'liveInOut' | t }}</h3>
-              <div class="live-indicator">
-                <span class="live-dot"></span>
-                <span class="live-text">LIVE</span>
-              </div>
-            </div>
-            <div class="legend">
-              <span class="legend-item">
-                <span class="legend-color legend-color--blue"></span>
-                {{ 'in' | t }}
-              </span>
-              <span class="legend-item">
-                <span class="legend-color legend-color--pink"></span>
-                {{ 'out' | t }}
-              </span>
-            </div>
-          </div>
-          <div class="card-body">
-            <svg
-              [attr.width]="liveChartWidth"
-              [attr.height]="liveChartHeight"
-              class="bar-chart"
-            >
-              <!-- IN bar -->
-              <rect
-                class="bar bar--blue"
-                [attr.x]="liveInBarX()"
-                [attr.y]="liveBarY(enterTicketsCount())"
-                [attr.width]="liveBarWidth()"
-                [attr.height]="liveBarHeight(enterTicketsCount())"
-              ></rect>
+       <div class="card live-card">
+  <div class="card-header">
+    <div class="header-content">
+      <h3>{{ 'liveInOut' | t }}</h3>
+      <div class="live-indicator">
+        <span class="live-dot"></span>
+        <span class="live-text">LIVE</span>
+      </div>
+    </div>
+    <div class="legend">
+      <span class="legend-item">
+        <span class="legend-color legend-color--blue"></span>
+        {{ 'in' | t }}
+      </span>
+      <span class="legend-item">
+        <span class="legend-color legend-color--pink"></span>
+        {{ 'out' | t }}
+      </span>
+    </div>
+  </div>
 
-              <!-- IN value inside bar -->
-              <text
-                [attr.x]="liveInBarX() + liveBarWidth() / 2"
-                [attr.y]="liveValueY(enterTicketsCount())"
-                text-anchor="middle"
-                class="live-value-text"
-                dominant-baseline="middle"
-              >
-                {{ enterTicketsCount() }}
-              </text>
+  <div class="card-body">
+    <svg
+      [attr.width]="liveChartWidth"
+      [attr.height]="liveChartHeight"
+      class="bar-chart"
+    >
+      <!-- IN bar (أفقي) -->
+      <rect
+        class="bar bar--blue"
+        [attr.x]="liveLeftPadding"
+        [attr.y]="liveInBarY()"
+        [attr.width]="liveBarWidth(enterTicketsCount())"
+        [attr.height]="liveBarThickness"
+      ></rect>
 
-              <!-- OUT bar -->
-              <rect
-                class="bar bar--pink"
-                [attr.x]="liveOutBarX()"
-                [attr.y]="liveBarY(exitTicketsCount())"
-                [attr.width]="liveBarWidth()"
-                [attr.height]="liveBarHeight(exitTicketsCount())"
-              ></rect>
+      <!-- قيمة IN داخل البار -->
+      <text
+        [attr.x]="liveValueX(enterTicketsCount())"
+        [attr.y]="liveValueYForIn()"
+        text-anchor="middle"
+        class="live-value-text"
+        dominant-baseline="middle"
+      >
+        {{ enterTicketsCount() }}
+      </text>
 
-              <!-- OUT value inside bar -->
-              <text
-                [attr.x]="liveOutBarX() + liveBarWidth() / 2"
-                [attr.y]="liveValueY(exitTicketsCount())"
-                text-anchor="middle"
-                class="live-value-text"
-                dominant-baseline="middle"
-              >
-                {{ exitTicketsCount() }}
-              </text>
+      <!-- OUT bar (أفقي) -->
+      <rect
+        class="bar bar--pink"
+        [attr.x]="liveLeftPadding"
+        [attr.y]="liveOutBarY()"
+        [attr.width]="liveBarWidth(exitTicketsCount())"
+        [attr.height]="liveBarThickness"
+      ></rect>
 
-              <!-- Labels under bars -->
-              <text
-                [attr.x]="liveInBarX() + liveBarWidth() / 2"
-                [attr.y]="liveChartHeight - 10"
-                text-anchor="middle"
-                class="axis-label"
-              >
-                {{ 'in' | t }}
-              </text>
+      <!-- قيمة OUT داخل البار -->
+      <text
+        [attr.x]="liveValueX(exitTicketsCount())"
+        [attr.y]="liveValueYForOut()"
+        text-anchor="middle"
+        class="live-value-text"
+        dominant-baseline="middle"
+      >
+        {{ exitTicketsCount() }}
+      </text>
 
-              <text
-                [attr.x]="liveOutBarX() + liveBarWidth() / 2"
-                [attr.y]="liveChartHeight - 10"
-                text-anchor="middle"
-                class="axis-label"
-              >
-                {{ 'out' | t }}
-              </text>
-            </svg>
-          </div>
-        </div>
+      <!-- Labels IN / OUT تحت كل بار -->
+      <text
+        [attr.x]="liveLabelX()"
+        [attr.y]="liveLabelYForIn()"
+        text-anchor="start"
+        class="axis-label"
+      >
+        {{ 'in' | t }}
+      </text>
+
+      <text
+        [attr.x]="liveLabelX()"
+        [attr.y]="liveLabelYForOut()"
+        text-anchor="start"
+        class="axis-label"
+      >
+        {{ 'out' | t }}
+      </text>
+    </svg>
+  </div>
+</div>
+
 
         <!-- Duration Stats Card -->
         <div class="card stats-card mt-4">
@@ -553,7 +569,7 @@
               <div class="performer-icon performer-icon--gold">
                 <i class="bi bi-star-fill"></i>
               </div>
-              <div class="performer-info">
+              <!-- <div class="performer-info">
                 <div class="performer-label">{{ 'topCollector' | t }}</div>
                 <div class="performer-value">{{ topCollectorName() }}</div>
                 <div class="performer-stats">
@@ -562,13 +578,13 @@
                   {{ topCollectorTicketsCount() }}
                   {{ 'tickets' | t }}
                 </div>
-              </div>
+              </div> -->
             </div>
           </div>
         </div>
 
         <!-- Recent Tickets -->
-        <div class="card table-card mt-4">
+        <!-- <div class="card table-card mt-4">
           <div class="card-header">
             <h6 class="card-title">{{ 'recentTickets' | t }}</h6>
           </div>
@@ -611,7 +627,7 @@
               </tbody>
             </table>
           </div>
-        </div>
+        </div> -->
       </div>
     </div>
   </div>
