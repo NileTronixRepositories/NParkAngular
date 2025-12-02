@@ -556,8 +556,6 @@ export class ExitgateComponent {
           // نحدّث الجدول مباشرة
           const price = this.salarySummary?.totalSalary ?? t.totalPrice;
           this.upsertExitTicketRow(t.id, t.plate, price, false);
-        } else {
-          this.toast.error(this.t('exitTicketAddFailed'));
         }
       },
       error: (err) => {
@@ -1023,44 +1021,41 @@ export class ExitgateComponent {
     this.fetchTicketAndSalaryByQr(code);
   }
 
- collectCashier() {
-  if (this.cashierConfirming || !this.salarySummary) {
-    return;
+  collectCashier() {
+    if (this.cashierConfirming || !this.salarySummary) {
+      return;
+    }
+
+     const ticketId =
+      this.scannedTicket?.id != null
+        ? String(this.scannedTicket.id)
+        : this.salarySummary.ticketId;  
+
+    if (!ticketId) {
+      this.toast.error('لا يمكن تحصيل المبلغ: لا يوجد رقم تذكرة متاح.');
+      return;
+    }
+
+    this.cashierConfirming = true;
+
+    this.svc.collectCashier(ticketId).subscribe({
+      next: (ok) => {
+        if (ok) {
+          this.salarySummary = {
+            ...this.salarySummary!,
+            isCollectByCashier: true,
+          };
+          this.toast.success(this.t('cashier_collected_yes'));
+        }
+      },
+      error: (err) => {
+        console.error('collectCashier error', err);
+        this.toast.fromProblem(err);
+      },
+      complete: () => {
+        this.cashierConfirming = false;
+      },
+    });
   }
-
-  // لو معايا QR ticket استخدم id بتاعها، وإلا استخدم TicketId من الـ Salary
-  const ticketId =
-    this.scannedTicket?.id != null
-      ? String(this.scannedTicket.id)
-      : this.salarySummary.ticketId; // 👈 من CalculateSalaryResponse
-
-  if (!ticketId) {
-    this.toast.error('لا يمكن تحصيل المبلغ: لا يوجد رقم تذكرة متاح.');
-    return;
-  }
-
-  this.cashierConfirming = true;
-
-  this.svc.collectCashier(ticketId).subscribe({
-    next: (ok) => {
-      if (ok) {
-        this.salarySummary = {
-          ...this.salarySummary!,
-          isCollectByCashier: true,
-        };
-        this.toast.success(this.t('cashier_collected_yes'));
-      } else {
-        this.toast.error('تعذر تحصيل المبلغ من الكاشير.');
-      }
-    },
-    error: (err) => {
-      console.error('collectCashier error', err);
-      this.toast.fromProblem(err);
-    },
-    complete: () => {
-      this.cashierConfirming = false;
-    },
-  });
-}
 
 }

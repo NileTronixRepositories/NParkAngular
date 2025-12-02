@@ -148,7 +148,7 @@ export class TicketsServices {
       map(() => true),
       catchError((err) => {
         console.error('POST /Ticket/Collect/{id} failed', err);
-        return of(false);
+        return throwError(() => err);
       })
     );
   }
@@ -270,7 +270,7 @@ export class TicketsServices {
         map(() => true),
         catchError((err) => {
           console.error('POST /Ticket/CollectCashier failed', err);
-          return of(false);
+          return throwError(() => err);
         })
       );
   }
@@ -296,7 +296,7 @@ export class TicketsServices {
       map(() => true),
       catchError((err) => {
         console.error('POST /Ticket/AddExitTicket failed', err);
-        return of(false);
+        return throwError(() => err);
       })
     );
   }

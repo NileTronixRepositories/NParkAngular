@@ -39,6 +39,10 @@ export class ExitTicketsTableBlockComponent {
 
   Math = Math;
 
+  get currentDate(): Date {
+    return new Date();
+  }
+
   pageItems() {
     const start = (this.page - 1) * this.pageSize;
     return this.tickets.slice(start, start + this.pageSize);

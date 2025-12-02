@@ -1,29 +1,46 @@
-<div class="card h-100 shadow-soft">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
-      <i class="bi bi-list-ol"></i> {{ t('ticket_number') }}
-      <span class="ms-2 text-muted small">{{ today | date : 'mediumDate' }}</span>
-    </h5>
+<div class="card h-100 shadow-soft tickets-card">
+  <div class="card-header tickets-card__header">
+    <div class="tickets-card__title">
+      <div class="tickets-card__icon">
+        <i class="bi bi-list-ol"></i>
+      </div>
+      <div class="tickets-card__text">
+        <div class="tickets-card__title-main">
+          {{ t('ticket_number') }}
+        </div>
+        <div class="tickets-card__title-sub">
+          {{ t('showing') }}
+          {{ tickets.length ? (page - 1) * pageSize + 1 : 0 }}–{{
+            tickets.length ? Math.min(page * pageSize, tickets.length) : 0
+          }}
+          {{ t('of') }} {{ tickets.length }}
+        </div>
+      </div>
+    </div>
+
+    <div class="tickets-card__date-pill">
+      <i class="bi bi-calendar2"></i>
+      <span>{{ today | date : 'dd/MM/yyyy' }}</span>
+    </div>
   </div>
 
   <div class="card-body p-0 d-flex flex-column">
     <div class="tickets-table-wrapper">
       <div class="table-responsive tickets-table-scroll">
-        <table class="table align-middle mb-0">
+        <table class="table align-middle mb-0 tickets-table">
           <thead class="table-head">
             <tr>
               <th>{{ t('ticket_number') }}</th>
-              <th style="width: 140px">{{ t('time') }}</th>
-              <th style="width: 140px">{{ t('fees') }}</th>
-              <!-- <th style="width: 120px">{{ t('actions') }}</th> -->
+              <th class="text-center">{{ t('time') }}</th>
+              <th class="text-end">{{ t('fees') }}</th>
             </tr>
           </thead>
 
           <tbody>
-            <tr *ngFor="let ticket of pageItems">
+            <tr *ngFor="let ticket of pageItems" class="tickets-row">
               <td>
                 <ng-container *ngIf="ticket.info as ti; else structuredInfo">
-                  <span class="mono">{{ ti }}</span>
+                  <span class="mono tickets-id">{{ ti }}</span>
                 </ng-container>
 
                 <ng-template #structuredInfo>
@@ -33,53 +50,36 @@
                       else fallbackId
                     "
                   >
-                    <div *ngIf="ticket.customerName" class="fw-semibold">
+                    <div *ngIf="ticket.customerName" class="fw-semibold tickets-name">
                       {{ ticket.customerName }}
                     </div>
                     <div *ngIf="ticket.phone" class="small text-muted">
                       {{ ticket.phone }}
                     </div>
-                    <div *ngIf="ticket.cardNumber" class="small mono">
+                    <div *ngIf="ticket.cardNumber" class="small mono text-muted">
                       {{ ticket.cardNumber }}
                     </div>
                   </ng-container>
                 </ng-template>
 
                 <ng-template #fallbackId>
-                  <span class="mono">{{ ticket.ticketNumber || ticket.id }}</span>
+                  <span class="mono tickets-id">{{ ticket.ticketNumber || ticket.id }}</span>
                 </ng-template>
               </td>
 
-              <td>{{ ticket.time | date : 'shortTime' }}</td>
-              <td>
-                <span class="mono">
+              <td class="text-center text-muted">
+                {{ ticket.time | date : 'shortTime' }}
+              </td>
+
+              <td class="text-end">
+                <span class="mono tickets-amount">
                   {{ ticket.price ?? 0 | number : '1.0-2' }} {{ isRTL ? 'ج.م' : 'EGP' }}
                 </span>
 
-                <!-- تظهر فقط لو isCollectedByCashier = true -->
-                <span *ngIf="ticket.isCollectedByCashier" class="badge bg-success ms-1">
+                <span *ngIf="ticket.isCollectedByCashier" class="badge bg-success-soft ms-1">
                   {{ t('cashier_collected_short') }}
                 </span>
               </td>
-              
-              <!-- <td>
-                 <button
-                  *ngIf="!ticket.isCollectedByCashier"
-                  class="btn btn-sm btn-success"
-                  type="button"
-                  (click)="onCollectClick(ticket.id)"
-                  [disabled]="collectingTicketId === ticket.id"
-                >
-                  <span *ngIf="collectingTicketId !== ticket.id">
-                    <i class="bi bi-cash-coin"></i> {{ t('collect') }}
-                  </span>
-                  <span *ngIf="collectingTicketId === ticket.id" class="spinner-border spinner-border-sm"></span>
-                </button>
-                
-                 <span *ngIf="ticket.isCollectedByCashier" class="badge bg-success">
-                  <i class="bi bi-check-circle"></i> {{ t('collected') }}
-                </span>
-              </td> -->
             </tr>
 
             <tr *ngIf="!pageItems.length && !loading">
@@ -93,19 +93,23 @@
     </div>
 
     <div
-      class="d-flex justify-content-between align-items-center p-2 border-top mt-auto flex-wrap gap-2"
+      class="tickets-footer d-flex justify-content-between align-items-center p-2 border-top mt-auto flex-wrap gap-2"
     >
-      <div class="small text-muted">
-        {{ t('showing') }}
-        {{ tickets.length ? (page - 1) * pageSize + 1 : 0 }}–{{
-          tickets.length ? Math.min(page * pageSize, tickets.length) : 0
-        }}
-        {{ t('of') }} {{ tickets.length }}
+      <div class="small text-muted d-flex align-items-center gap-1">
+        <span class="dot-status"></span>
+        <span>{{ t('showing') }}</span>
+        <strong>
+          {{ tickets.length ? (page - 1) * pageSize + 1 : 0 }}–{{
+            tickets.length ? Math.min(page * pageSize, tickets.length) : 0
+          }}
+        </strong>
+        <span>{{ t('of') }}</span>
+        <strong>{{ tickets.length }}</strong>
       </div>
 
       <div class="d-flex align-items-center gap-2">
         <span class="small text-muted">{{ t('total_fees_today') }}:</span>
-        <span class="badge bg-success fs-6 fw-bold">
+        <span class="badge bg-success total-amount-badge">
           {{ totalPriceToday | number : '1.0-2' }} {{ isRTL ? 'ج.م' : 'EGP' }}
         </span>
       </div>

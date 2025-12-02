@@ -9,34 +9,36 @@
   <div class="card-body">
     <ng-container *ngIf="gatePeripheral as gp; else noGateDevices">
       <!-- PC -->
-      <div class="device-row mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <span class="fw-semibold">{{ 'pc_device' | t }}</span>
-          <span class="badge pill" [class.theme-green]="gp.hasPc" [class.theme-red]="!gp.hasPc">
+      <div class="device-row">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-pc-display text-muted"></i>
+            <span class="device-name">{{ 'pc_device' | t }}</span>
+          </div>
+          <span class="badge pill" [class.bg-success-subtle]="gp.hasPc" [class.text-success]="gp.hasPc" [class.bg-danger-subtle]="!gp.hasPc" [class.text-danger]="!gp.hasPc">
             {{ gp.hasPc ? ('device_connected' | t) : ('device_not_connected' | t) }}
           </span>
         </div>
 
-        <div class="small text-muted" *ngIf="gp.pcIp">
-          {{ 'ip_address' | t }}:
-          <span class="mono">{{ gp.pcIp }}</span>
+        <div class="mt-1" *ngIf="gp.pcIp">
+          <span class="device-ip mono">{{ gp.pcIp }}</span>
         </div>
       </div>
 
-      <hr />
-
       <!-- LPR -->
       <div class="device-row">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <span class="fw-semibold">{{ 'lpr_device' | t }}</span>
-          <span class="badge pill" [class.theme-green]="gp.hasLpr" [class.theme-red]="!gp.hasLpr">
+        <div class="d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-camera-video text-muted"></i>
+            <span class="device-name">{{ 'lpr_device' | t }}</span>
+          </div>
+          <span class="badge pill" [class.bg-success-subtle]="gp.hasLpr" [class.text-success]="gp.hasLpr" [class.bg-danger-subtle]="!gp.hasLpr" [class.text-danger]="!gp.hasLpr">
             {{ gp.hasLpr ? ('device_connected' | t) : ('device_not_connected' | t) }}
           </span>
         </div>
 
-        <div class="small text-muted" *ngIf="gp.lprIp">
-          {{ 'ip_address' | t }}:
-          <span class="mono">{{ gp.lprIp }}</span>
+        <div class="mt-1" *ngIf="gp.lprIp">
+          <span class="device-ip mono">{{ gp.lprIp }}</span>
         </div>
       </div>
     </ng-container>

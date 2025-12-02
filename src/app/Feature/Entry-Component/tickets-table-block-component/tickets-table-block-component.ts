@@ -2,7 +2,7 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 import { TicketDto } from '../../../Domain/tickets/tickets.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-
+ 
 @Component({
   selector: 'app-tickets-table-block-component',
   imports: [CommonModule, FormsModule],
@@ -23,6 +23,10 @@ export class TicketsTableBlockComponent {
   pageSize = 10;
   Math = Math;
   today = new Date();
+
+  get currentDate(): Date {
+    return new Date();
+  }
 
   get pageItems(): TicketDto[] {
     const start = (this.page - 1) * this.pageSize;

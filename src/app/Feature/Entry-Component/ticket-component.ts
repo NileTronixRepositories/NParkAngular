@@ -554,7 +554,7 @@ export class TicketComponent {
         ? this.currentIssuedQr
         : this.qrDataUrl(this.currentIssuedQr);
 
-    const w = window.open('', '_blank', 'width=420,height=700');
+    const w = window.open('', '_blank', 'width=400,height=600');
     if (!w) return;
 
     const createdAt = this.lastIssuedCreatedAt
@@ -568,6 +568,7 @@ export class TicketComponent {
       : '—';
 
     const currentUser = this.auth.userName || '—';
+    const gateNumber = this.gatePeripheral?.gateNumber ?? '—';
 
     const ticketIdBlock = this.lastIssuedTicketId
       ? `
@@ -616,8 +617,7 @@ export class TicketComponent {
             padding: 0;
           }
 
-          /* مقاس الورقة تقريبًا 80mm * 50mm (بيزنس كارد أفقي) */
-          @page {
+           @page {
             size: 80mm 50mm;
             margin: 0;
           }
@@ -754,11 +754,9 @@ export class TicketComponent {
       </head>
       <body onload="window.print(); window.close();">
         <div class="wrap">
-          <!-- الجانب الأيسر: العنوان + رقم التذكرة + المعلومات -->
           <div class="info-side">
             <div class="info-top">
-              <div class="header-title">NPark</div>
-              ${ticketIdBlock}
+               ${ticketIdBlock}
               <div class="info-section">
                 ${priceRow}
                 <div class="info-row">
@@ -767,12 +765,11 @@ export class TicketComponent {
                 </div>
                 ${vehicleRow}
                 <div class="info-row">
-                  <span class="label">الموظف:</span>
-                  <span class="value">${currentUser}</span>
+                  <span class="label">رقم البوابة:</span>
+                  <span class="value">${gateNumber}</span>
                 </div>
               </div>
-              ${extraInfo}
-            </div>
+             </div>
             <div class="footer-link">www.niletronix.com</div>
           </div>
 
@@ -1040,12 +1037,9 @@ export class TicketComponent {
           this.markTicketAsCashierCollected(this.lastIssuedTicketId!);
           this.toast.success(this.t('cashier_collected'));
           this.loadTicketsForEntry();
-        } else {
-          this.toast.error('CollectCashier failed (Ticket not found or validation error).');
         }
       },
       error: (err) => {
-        console.error('CollectCashier error', err);
         this.collectingCashierCash = false;
         this.toast.fromProblem(err);
       },

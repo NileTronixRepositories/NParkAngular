@@ -1,11 +1,124 @@
-/* Table header */
-:host-context(.tickets-theme) .table-head {
-  background: #f7f8fa;
+/* الكارت الأساسي */
+:host-context(.tickets-theme) .tickets-card {
+  border-radius: var(--ticket-radius);
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  box-shadow: var(--ticket-shadow-soft);
+  overflow: hidden;
 }
 
-/* Footer of tickets table */
+/* الهيدر */
+:host-context(.tickets-theme) .tickets-card__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.75rem 1rem;
+  background: linear-gradient(90deg, #f9fafb, #eef2ff);
+  border-bottom: 1px solid #e5e7eb;
+}
+
+:host-context(.tickets-theme) .tickets-card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+:host-context(.tickets-theme) .tickets-card__icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #e0e7ff;
+  color: #1d4ed8;
+  font-size: 1.1rem;
+}
+
+:host-context(.tickets-theme) .tickets-card__text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+:host-context(.tickets-theme) .tickets-card__title-main {
+  font-weight: 700;
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+:host-context(.tickets-theme) .tickets-card__title-sub {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+:host-context(.tickets-theme) .tickets-card__date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  font-size: 0.75rem;
+  color: #4b5563;
+}
+
+:host-context(.tickets-theme) .tickets-card__date-pill i {
+  font-size: 0.9rem;
+}
+
+:host-context(.tickets-theme) .table-head {
+  background: #f9fafb;
+}
+
+:host-context(.tickets-theme) .tickets-table thead th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #6b7280;
+  border-bottom-width: 1px;
+}
+
+:host-context(.tickets-theme) .tickets-row {
+  transition: background-color 0.15s ease, transform 0.05s ease;
+}
+
+:host-context(.tickets-theme) .tickets-row:hover {
+  background: #f3f4ff;
+}
+
+:host-context(.tickets-theme) .tickets-row td {
+  font-size: 0.8rem;
+}
+
+:host-context(.tickets-theme) .tickets-id {
+  font-family: var(--ticket-font-mono);
+  font-size: 0.85rem;
+  color: #111827;
+}
+
+:host-context(.tickets-theme) .tickets-name {
+  font-size: 0.85rem;
+  color: #111827;
+}
+
+:host-context(.tickets-theme) .tickets-amount {
+  font-family: var(--ticket-font-mono);
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+:host-context(.tickets-theme) .bg-success-soft {
+  background: #ecfdf5;
+  color: #047857;
+  border-radius: 999px;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.7rem;
+  border: 1px solid rgba(16, 185, 129, 0.25);
+}
+
 :host-context(.tickets-theme) .tickets-footer {
-  background-color: #ffffff;
+  background-color: #fafafa;
 }
 
 :host-context(.tickets-theme) .tickets-footer .badge {
@@ -13,7 +126,19 @@
   text-align: center;
 }
 
-/* Collect summary card */
+:host-context(.tickets-theme) .dot-status {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+}
+
+:host-context(.tickets-theme) .total-amount-badge {
+  border-radius: 999px;
+  padding-inline: 0.8rem;
+  font-size: 0.85rem;
+}
+
 :host-context(.tickets-theme) .collect-summary-card {
   border-radius: var(--ticket-radius);
   border: 1px dashed #d1fae5;
@@ -28,14 +153,6 @@
 :host-context(.tickets-theme) .collect-summary-card .table > :not(caption) > * > * {
   background-color: transparent;
 }
-
-:host-context(.tickets-theme) .collect-summary-table {
-  overflow-y: auto;
-}
-
-/* =========================================
-   Scrollable tickets table (Block 3)
-   ========================================= */
 
 :host-context(.tickets-theme) .card-body.d-flex {
   flex-direction: column;
@@ -59,9 +176,10 @@
   position: sticky;
   top: 0;
   z-index: 2;
-  background: #f7f8fa;
+  background: #f9fafb;
 }
 
+/* Scrollbar */
 :host-context(.tickets-theme) .tickets-table-scroll::-webkit-scrollbar {
   width: 6px;
 }
@@ -75,6 +193,7 @@
   border-radius: 999px;
 }
 
+/* فونت mono */
 :host-context(.tickets-theme) .mono {
   font-family: var(--ticket-font-mono);
 }

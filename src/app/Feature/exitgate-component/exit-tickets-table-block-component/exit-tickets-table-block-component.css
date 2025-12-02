@@ -1,49 +1,130 @@
+:host {
+  display: block;
+}
+
+/* ============= CARD & HEADER ============= */
+
+:host .card.glass {
+  border-radius: 14px;
+  border: 1px solid var(--border, #e5e7eb);
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 14px 35px rgba(15, 23, 42, 0.12);
+  overflow: hidden;
+}
+
+:host .card-header {
+  padding: 0.75rem 1rem;
+  background: linear-gradient(90deg, #f9fafb, #eef2ff);
+  border-bottom: 1px solid var(--border, #e5e7eb);
+}
+
+:host .card-header h5 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.95rem;
+  color: #111827;
+}
+
+:host .card-header h5 i {
+  font-size: 1.1rem;
+  color: #2563eb;
+}
+
+/* Pill للتاريخ */
+:host .card-header .badge.bg-secondary {
+  border-radius: 999px;
+  padding: 0.35rem 0.6rem;
+  font-size: 0.75rem;
+  background: #111827;
+  color: #f9fafb;
+}
+
+/* ============= TABLE ============= */
+
 :host .table {
   margin-bottom: 0;
   font-size: 13px;
 }
 
 :host .table-head {
-  background: #f9fafb;
-  font-size: 12px;
-  color: var(--muted);
+  background: var(--bg-soft, #f9fafb);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--muted, #6b7280);
 }
 
 :host .table-head th {
-  border-bottom: 1px solid var(--border);
+  border-bottom: 1px solid var(--border, #e5e7eb);
   font-weight: 600;
+  padding: 10px 16px;
 }
 
+/* body rows */
 :host tbody tr td {
-  border-top: 1px solid var(--border);
+  border-top: 1px solid var(--border, #e5e7eb);
   vertical-align: middle;
+  padding: 10px 16px;
+  color: var(--text, #111827);
 }
 
 :host tbody tr:hover {
-  background: #f9fafb;
+  background: var(--bg-soft, #f9fafb);
 }
 
 /* mono text */
 :host .mono {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    'Courier New', monospace;
+  font-family: 'SF Mono', 'Segoe UI Mono', 'Roboto Mono', monospace;
 }
 
+/* badge "تم تحصيلها" */
+:host .badge.bg-success {
+  background: #ecfdf5;
+  color: #15803d;
+  border-radius: 999px;
+  border: 1px solid rgba(22, 163, 74, 0.3);
+  font-size: 0.7rem;
+}
+
+/* صف عدم وجود بيانات */
+:host tbody tr td .bi-inbox {
+  font-size: 1.8rem !important;
+}
+
+/* card-body border top */
 :host .card > .border-top {
-  border-color: var(--border) !important;
+  border-color: var(--border, #e5e7eb) !important;
 }
 
-/* ================== COLLECT SUMMARY CARD ================== */
+/* الخلفية الناعمة تحت جدول التجميع */
+:host .bg-soft {
+  background: #f9fafb;
+}
+
+/* ============= COLLECT SUMMARY CARD ============= */
 
 :host .collect-summary-card {
   border-radius: 12px;
-  border: 1px dashed #d1fae5;
-  background: #ecfdf5;
+  border: 1px solid rgba(22, 163, 74, 0.4);
+  background: #f0fdf4;
+  box-shadow: 0 10px 25px rgba(22, 163, 74, 0.12);
 }
 
 :host .collect-summary-card .card-header {
-  background: rgba(22, 163, 74, 0.06);
-  border-bottom: 1px solid rgba(22, 163, 74, 0.15);
+  background: rgba(22, 163, 74, 0.08);
+  border-bottom: 1px solid rgba(22, 163, 74, 0.25);
+  color: #166534;
+  padding: 0.5rem 0.75rem;
+}
+
+:host .collect-summary-card .card-header h6 {
+  font-size: 0.85rem;
+}
+
+:host .collect-summary-card .card-header .btn {
+  padding: 0.1rem 0.35rem;
 }
 
 :host .collect-summary-card .table > :not(caption) > * > * {
@@ -53,4 +134,99 @@
 :host .collect-summary-table {
   max-height: 220px;
   overflow-y: auto;
+  margin-top: 0.5rem;
+}
+
+/* scrollbar صغير جوه جدول التجميع */
+:host .collect-summary-table::-webkit-scrollbar {
+  width: 6px;
+}
+:host .collect-summary-table::-webkit-scrollbar-track {
+  background: transparent;
+}
+:host .collect-summary-table::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.7);
+  border-radius: 999px;
+}
+
+/* Info rows جوه الكارت */
+:host .collect-summary-card .d-flex.justify-content-between span.fw-semibold {
+  font-size: 0.85rem;
+}
+
+/* ============= COLLECT TODAY BUTTON ============= */
+
+:host .btn-collect-today {
+  width: 100%;
+  padding: 12px;
+  font-weight: 600;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: all 0.18s ease;
+  box-shadow: 0 8px 20px rgba(22, 163, 74, 0.15);
+}
+
+:host .btn-collect-today i {
+  font-size: 1rem;
+}
+
+:host .btn-collect-today:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 28px rgba(22, 163, 74, 0.22);
+}
+
+:host .btn-collect-today:disabled {
+  opacity: 0.6;
+  box-shadow: none;
+}
+
+/* ============= PAGINATION / FOOTER ============= */
+
+:host .card-body + .d-flex {
+  background: #f9fafb;
+}
+
+:host .card-body + .d-flex .small {
+  font-size: 0.78rem;
+}
+
+:host .card-body + .d-flex .mono {
+  font-weight: 600;
+}
+
+/* ============= SUPERVISOR MODAL ============= */
+
+:host .modal-dialog .modal-content {
+  border-radius: 14px;
+  border: 1px solid var(--border, #e5e7eb);
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.25);
+}
+
+:host .modal-header {
+  border-bottom-color: var(--border, #e5e7eb);
+}
+
+:host .modal-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+:host .modal-body .form-label {
+  font-size: 0.78rem;
+  color: #4b5563;
+}
+
+:host .modal-body .form-control-sm {
+  font-size: 0.8rem;
+}
+
+:host .modal-body .alert {
+  font-size: 0.78rem;
+}
+
+:host .modal-body .table {
+  font-size: 0.8rem;
 }

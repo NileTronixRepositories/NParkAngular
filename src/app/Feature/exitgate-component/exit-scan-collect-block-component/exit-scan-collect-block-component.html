@@ -250,8 +250,14 @@
     </div>
 
     <!-- Empty state -->
-    <div *ngIf="!scannedTicket && !scanning && !salarySummary" class="text-muted mt-3 helper-text">
-      {{ 'emptyState' | t }}
+    <div *ngIf="!scannedTicket && !scanning && !salarySummary" class="mt-4 helper">
+      <div class="big-icon">
+        <i class="bi bi-qr-code-scan"></i>
+      </div>
+      <div class="helper-text">
+        <div class="title">{{ 'ready_to_scan' | t }}</div>
+        <div class="sub">{{ 'scan_instruction' | t }}</div>
+      </div>
     </div>
   </div>
 
