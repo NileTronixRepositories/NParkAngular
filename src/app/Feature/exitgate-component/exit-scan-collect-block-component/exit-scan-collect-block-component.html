@@ -41,7 +41,7 @@
         type="button"
         class="btn btn-primary btn-sm"
         (click)="onSubmitQrClick()"
-        [disabled]="!scanBuffer || !scanBuffer.trim() || scanning || searchingManual"
+        [disabled]="!canSubmitQr"
         [title]="'scanAndCollect' | t"
       >
         <i class="bi bi-search"></i>
@@ -80,18 +80,12 @@
           type="button"
           class="btn btn-primary btn-sm"
           (click)="onManualSearchClick()"
-          [disabled]="searchingManual || !manualInput.trim()"
+          [disabled]="!canSearchManual"
         >
           <span *ngIf="!searchingManual"> <i class="bi bi-search"></i> {{ 'search' | t }} </span>
           <span *ngIf="searchingManual" class="spinner-border spinner-border-sm"></span>
         </button>
       </div>
-    </div>
-
-    <!-- Loading state -->
-    <div *ngIf="scanning" class="mt-3">
-      <span class="spinner-border spinner-border-sm"></span>
-      <span class="ms-2">{{ 'fetching' | t }}</span>
     </div>
 
     <!-- Summary (QR ticket details) -->
@@ -148,7 +142,7 @@
             class="btn btn-outline-secondary"
             type="button"
             (click)="onPrintSummaryClick()"
-            [disabled]="!salarySummary"
+            [disabled]="!hasSummary"
           >
             <i class="bi bi-printer"></i> {{ 'print' | t }}
           </button>
@@ -158,12 +152,7 @@
             class="btn btn-success btn-lg px-4"
             type="button"
             (click)="onConfirmExitClick()"
-            [disabled]="
-              collecting ||
-              !salarySummary ||
-              !salarySummary.isExitValid ||
-              salarySummary.isCollectByCashier
-            "
+            [disabled]="disableConfirmAndCollect"
           >
             <span *ngIf="!collecting" class="d-inline-flex align-items-center gap-2">
               <i class="bi bi-cash-coin"></i> {{ 'confirm_and_collect' | t }}
@@ -175,30 +164,26 @@
     </div>
 
     <!-- 🔹 Salary summary (QR أو Subscriber card) -->
-    <div *ngIf="salarySummary" class="mt-3 p-2 border rounded small">
+    <div *ngIf="salarySummary as s" class="mt-3 p-2 border rounded small">
       <div class="d-flex justify-content-between mb-1">
         <span class="fw-semibold">{{ 'salary_total' | t }}</span>
         <span class="mono">
-          {{ salarySummary.totalSalary | number : '1.2-2' }}
+          {{ s.totalSalary | number : '1.2-2' }}
         </span>
       </div>
 
       <div class="d-flex justify-content-between mb-1">
         <span class="fw-semibold">{{ 'salary_enter_date' | t }}</span>
         <span class="mono">
-          {{ salarySummary.enterDate | date : 'short' }}
+          {{ s.enterDate | date : 'short' }}
         </span>
       </div>
 
       <div class="d-flex justify-content-between mb-1">
         <span class="fw-semibold">{{ 'salary_exit_valid' | t }}</span>
         <span>
-          <span
-            class="badge"
-            [class.bg-success]="salarySummary.isExitValid"
-            [class.bg-danger]="!salarySummary.isExitValid"
-          >
-            {{ salarySummary.isExitValid ? ('yes' | t) : ('no' | t) }}
+          <span class="badge" [class.bg-success]="s.isExitValid" [class.bg-danger]="!s.isExitValid">
+            {{ s.isExitValid ? ('yes' | t) : ('no' | t) }}
           </span>
         </span>
       </div>
@@ -210,13 +195,11 @@
         <div class="d-flex align-items-center gap-2">
           <span
             class="badge"
-            [class.bg-success]="salarySummary.isCollectByCashier"
-            [class.bg-warning]="!salarySummary.isCollectByCashier"
+            [class.bg-success]="s.isCollectByCashier"
+            [class.bg-warning]="!s.isCollectByCashier"
           >
             {{
-              salarySummary.isCollectByCashier
-                ? ('cashierCollectedShort' | t)
-                : ('cashier_not_collected' | t)
+              s.isCollectByCashier ? ('cashierCollectedShort' | t) : ('cashier_not_collected' | t)
             }}
           </span>
 
@@ -224,7 +207,7 @@
             class="btn btn-sm btn-success"
             type="button"
             (click)="onConfirmCashier()"
-            [disabled]="cashierConfirming || !salarySummary || salarySummary.isCollectByCashier"
+            [disabled]="disableCashierConfirm"
           >
             <span *ngIf="!cashierConfirming">
               <i class="bi bi-cash-coin"></i> {{ 'cashier_confirm_button' | t }}
@@ -233,7 +216,7 @@
           </button>
 
           <button
-            *ngIf="salarySummary.isCollectByCashier"
+            *ngIf="s.isCollectByCashier"
             type="button"
             class="btn btn-outline-success btn-sm"
             (click)="onAllowExitWithoutCollectClick()"
@@ -250,7 +233,7 @@
     </div>
 
     <!-- Empty state -->
-    <div *ngIf="!scannedTicket && !scanning && !salarySummary" class="mt-4 helper">
+    <div *ngIf="showEmptyState" class="mt-4 helper">
       <div class="big-icon">
         <i class="bi bi-qr-code-scan"></i>
       </div>

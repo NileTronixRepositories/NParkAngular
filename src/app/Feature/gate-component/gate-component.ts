@@ -17,13 +17,8 @@ import { environment } from '../../Shared/environment/environment';
   styleUrls: ['./gate-component.css'],
 })
 export class GateComponent {
-  // يفضل يكون لها interface، لكن مؤقتًا هنسيبها any عشان اختلاف الأسماء
   gates: any[] = [];
 
-  // ❌ مش محتاجين ده خلاص
-  // selectedGate: number | '' = '';
-
-  // ✅ ده اللى هنشتغل بيه (Guid كـ string)
   selectedGateId: string | '' = '';
 
   gateType: GateType = GateType.Entrance;

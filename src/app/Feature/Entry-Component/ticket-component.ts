@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject, signal } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, signal, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -10,8 +10,8 @@ import {
   ParkingCardSummaryDto,
   CollectDailyTicketsResponse,
 } from '../../Domain/tickets/tickets.model';
-import { TicketsServices } from '../../Services/Tickets/tickets-services';
 
+import { TicketsServices } from '../../Services/Tickets/tickets-services';
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { GateServices } from '../../Services/Gate/gate-services';
 import { AuthService } from '../../Services/Auth/auth-service';
@@ -19,9 +19,11 @@ import { GateDevicePeripheral, GateDto, GateType } from '../../Domain/Auth/auth.
 
 import { NfcReaderService } from '../../Services/registration/nfc-reader.service';
 import { ToastServices } from '../../Services/Toster/toast-services';
+
 import { GateDevicesBlockComponent } from './gate-devices-block-component/gate-devices-block-component';
 import { IssueTicketBlockComponent } from './issue-ticket-block-component/issue-ticket-block-component';
 import { TicketsTableBlockComponent } from './tickets-table-block-component/tickets-table-block-component';
+import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
 
 @Component({
   selector: 'app-ticket-component',
@@ -32,20 +34,25 @@ import { TicketsTableBlockComponent } from './tickets-table-block-component/tick
     GateDevicesBlockComponent,
     IssueTicketBlockComponent,
     TicketsTableBlockComponent,
+    SearchBlockComponent,
   ],
   templateUrl: './ticket-component.html',
   styleUrls: ['./ticket-component.css'],
 })
-export class TicketComponent {
-  // ===== Services =====
-  svc = inject(TicketsServices);
-  i18n = inject(LanguageService);
-  private gateSvc = inject(GateServices);
-  private auth = inject(AuthService);
-  private nfc = inject(NfcReaderService);
-  private toast = inject(ToastServices);
+export class TicketComponent implements OnInit {
+  // =======================
+  // Services
+  // =======================
+  private readonly ticketsSvc = inject(TicketsServices);
+  readonly i18n = inject(LanguageService);
+  private readonly gateSvc = inject(GateServices);
+  private readonly auth = inject(AuthService);
+  private readonly nfc = inject(NfcReaderService);
+  private readonly toast = inject(ToastServices);
 
-  // ===== Gate selection =====
+  // =======================
+  // Gate selection
+  // =======================
   showGateSelectionModal = false;
   gatesList: GateDto[] = [];
   selectedGateId: number | null = null;
@@ -55,37 +62,47 @@ export class TicketComponent {
   gatePeripheral: GateDevicePeripheral | null = null;
   cashierToken: string | null = null;
 
-  // ===== Manual inputs =====
-  manualLprPlate: string = '';
-  cardNumber: string = '';
-  readingCard = signal(false);
+  // =======================
+  // Manual inputs / card
+  // =======================
+  manualLprPlate = '';
+  cardNumber = '';
+  readonly readingCard = signal(false);
 
-  // ===== Card summary (subscriber) =====
+  // =======================
+  // Card summary (subscriber)
+  // =======================
   cardSummary: ParkingCardSummaryDto | null = null;
   loadingCardSummary = false;
 
-  // ===== Ticket summary / cashier =====
+  // =======================
+  // Ticket summary / cashier
+  // =======================
   lastIssuedTicketId: string | number | null = null;
   lastIssuedTicketInfo: string | null = null;
-  lastTicketPrice: number | null = null;
-  lastTicketCreatedAt: string | null = null;
-  cashierCollected = false;
+  private _lastTicketPrice: number | null = null;
+  private _lastTicketCreatedAt: string | null = null;
+  private _cashierCollected = false;
   collectingCashierCash = false;
   collectingTicketId: string | null = null;
   lastIssuedVehicleNumber: string | null = null;
 
-  // ===== Daily collect summary (Supervisor) =====
+  // =======================
+  // Daily collect summary (Supervisor)
+  // =======================
   collectSummary: CollectDailyTicketsResponse | null = null;
   collectLoading = false;
 
-  // ==== Supervisor collect =====
+  // Supervisor collect
   showSupervisorCollectModal = false;
-  supervisorUsername: string = '';
-  supervisorPassword: string = '';
+  supervisorUsername = '';
+  supervisorPassword = '';
   supervisorCollectLoading = false;
   supervisorCollectError: string | null = null;
 
-  // ===== Tickets list / filters =====
+  // =======================
+  // Tickets list / filters
+  // =======================
   tickets: TicketDto[] = [];
   filtered: TicketDto[] = [];
   loading = false;
@@ -94,38 +111,51 @@ export class TicketComponent {
   action: '' | TicketAction = '';
   gate: string = '';
 
-  // ===== Issue ticket QR state =====
+  // =======================
+  // Issue ticket QR state
+  // =======================
   adding = false;
   currentIssuedQr: string | null = null;
   currentIssuedQrType: 'image' | 'text' | null = null;
 
-  // ===== Scan / admit =====
+  // =======================
+  // Scan / admit
+  // =======================
   scanBuffer = '';
   scanning = false;
   scannedTicket: TicketDetailsDto | null = null;
   collecting = false;
 
-  totalPriceToday: number = 0;
+  totalPriceToday = 0;
 
+  // =======================
+  // Real-time search
+  // =======================
+  searchingTickets = false;
+  searchResults: TicketDto[] = [];
+
+  // =======================
+  // Getters / Setters
+  // =======================
   get lastIssuedPrice(): number | null {
-    return this.lastTicketPrice;
+    return this._lastTicketPrice;
   }
   set lastIssuedPrice(v: number | null) {
-    this.lastTicketPrice = v;
+    this._lastTicketPrice = v;
   }
 
   get lastIssuedCreatedAt(): string | null {
-    return this.lastTicketCreatedAt;
+    return this._lastTicketCreatedAt;
   }
   set lastIssuedCreatedAt(v: string | null) {
-    this.lastTicketCreatedAt = v;
+    this._lastTicketCreatedAt = v;
   }
 
   get lastIssuedCollected(): boolean {
-    return this.cashierCollected;
+    return this._cashierCollected;
   }
   set lastIssuedCollected(v: boolean) {
-    this.cashierCollected = v;
+    this._cashierCollected = v;
   }
 
   get cashierConfirming(): boolean {
@@ -135,18 +165,16 @@ export class TicketComponent {
     this.collectingCashierCash = v;
   }
 
-  confirmCashier() {
-    return this.confirmCashierCollection();
-  }
-
   get isSupervisor(): boolean {
     return this.auth.isSupervisor;
   }
 
   @ViewChild('scanBox') scanBox?: ElementRef<HTMLInputElement>;
 
-  // ===== i18n =====
-  private dict: Record<AppLang, Record<string, string>> = {
+  // =======================
+  // i18n Dictionary
+  // =======================
+  private readonly dict: Record<AppLang, Record<string, string>> = {
     ar: {
       issue_ticket: 'إصدار تذكرة',
       issue_ticket_subscriber: 'إصدار تذكرة للعميل',
@@ -160,7 +188,7 @@ export class TicketComponent {
       scanner_ready: 'الماسح جاهز',
       scan_label: 'امسح QR / ألصق الكود',
       scan_placeholder: 'ضع المؤشر هنا ثم امسح...',
-      fetching_details: 'جاري جلب تفاصيل التذكرة...',
+      // fetching_details: 'جاري جلب تفاصيل التذكرة...',
       id: 'المعرّف',
       plate: 'رقم السيارة',
       start: 'البداية',
@@ -200,26 +228,20 @@ export class TicketComponent {
       device_not_connected: 'غير متوفر',
       ip_address: 'العنوان',
       no_gate_devices: 'لم يتم ربط أجهزة بهذه البوابة بعد',
-
-      // NFC / card
       cardData: 'بيانات الكارت',
       cardNumber: 'رقم الكارت',
       readCard: 'قراءة الكارت',
       reading: 'جاري القراءة…',
       readCardTitle: 'قراءة UID من القارئ',
-
-      // Cashier summary
       cashier_status: 'حالة التحصيل',
       cashier_collected: 'تم التحصيل من الزائر',
       cashier_not_collected: 'لم يتم التحصيل بعد',
       cashier_confirm_button: 'تأكيد تحصيل الكاشير',
-
       created_at: 'تاريخ الإنشاء',
       fees: 'الرسوم',
       cashier_collected_yes: 'تم التحصيل من الزائر',
       cashier_collected_no: 'لم يتم التحصيل بعد',
       cashier_collected_short: 'تم',
-
       customer_name: 'اسم العميل',
       phone: 'الهاتف',
       national_id: 'الرقم القومي',
@@ -228,8 +250,6 @@ export class TicketComponent {
       balance: 'الرصيد',
       total_fees_today: 'إجمالي الرسوم اليوم',
       collectAllToday: 'تحصيل اليوم',
-
-      // Collect summary
       collect_summary: 'ملخص تحصيل اليوم',
       total_collected_amount: 'إجمالي المبلغ المحصَّل',
       total_collected_tickets: 'عدد التذاكر المحصَّلة',
@@ -238,6 +258,10 @@ export class TicketComponent {
       collect: 'تحصيل',
       collected: 'تم التحصيل',
       actions: 'الإجراءات',
+      save: 'حفظ',
+
+      // Search
+      search_tickets_placeholder: 'ابحث برقم التذكرة، اللوحة، أو الكارت',
     },
     en: {
       issue_ticket: 'Issue Ticket',
@@ -252,7 +276,7 @@ export class TicketComponent {
       scanner_ready: 'Scanner ready',
       scan_label: 'Scan QR / Paste Code',
       scan_placeholder: 'Focus here then scan...',
-      fetching_details: 'Fetching ticket details...',
+      // fetching_details: 'Fetching ticket details...',
       id: 'ID',
       plate: 'Plate',
       start: 'Start',
@@ -292,27 +316,20 @@ export class TicketComponent {
       device_not_connected: 'Not available',
       ip_address: 'IP Address',
       no_gate_devices: 'No devices are linked to this gate yet',
-
-      // NFC / card
       cardData: 'Card data',
       cardNumber: 'Card number',
       readCard: 'Read card',
       reading: 'Reading…',
       readCardTitle: 'Read UID from reader',
-
-      // Cashier summary
       cashier_status: 'Cashier status',
       cashier_collected: 'Cash collected from visitor',
       cashier_not_collected: 'Not collected yet',
       cashier_confirm_button: 'Confirm cashier collection',
-
       created_at: 'Created at',
       fees: 'Fees',
       cashier_collected_yes: 'Cash collected from visitor',
       cashier_collected_no: 'Not collected yet',
       cashier_collected_short: 'OK',
-
-      // Card summary
       cardSummary: 'Card summary',
       no_card_summary: 'No membership data for this card',
       customer_name: 'Customer name',
@@ -323,8 +340,6 @@ export class TicketComponent {
       balance: 'Balance',
       total_fees_today: 'Total fees today',
       collectAllToday: 'Collect today',
-
-      // Collect summary
       collect_summary: 'Daily collection summary',
       total_collected_amount: 'Total collected amount',
       total_collected_tickets: 'Total collected tickets',
@@ -333,6 +348,10 @@ export class TicketComponent {
       collect: 'Collect',
       collected: 'Collected',
       actions: 'Actions',
+      save: 'Save',
+
+      // Search
+      search_tickets_placeholder: 'Search by ticket, plate, or card number',
     },
   };
 
@@ -340,42 +359,48 @@ export class TicketComponent {
   dir = () => this.i18n.dir();
   isRTL = () => this.i18n.isRTL();
 
-  // ================== Lifecycle ==================
+  // =======================
+  // Lifecycle
+  // =======================
   ngOnInit(): void {
+    this.initGatePeripheral();
     this.loadGates();
     this.loadEntryGates();
     this.loadTicketsForEntry();
+  }
+
+  // =======================
+  // Gate / Auth init
+  // =======================
+  private initGatePeripheral(): void {
     this.cashierToken = this.auth.token;
     this.gatePeripheral = this.auth.getGateData();
 
-    if (!this.gatePeripheral && this.auth.isLoggedIn()) {
-      this.auth.checkGate().subscribe({
-        next: (res) => {
-          if (res?.gateDevicePeripheral) {
-            this.gatePeripheral = res.gateDevicePeripheral;
-          } else {
-            this.gatePeripheral = this.auth.getGateData();
-          }
-        },
-        error: (err) => {
-          console.error('CheckGate error', err);
-          this.toast.fromProblem(err);
-          this.gatePeripheral = this.auth.getGateData();
-        },
-      });
-    }
+    if (this.gatePeripheral || !this.auth.isLoggedIn()) return;
+
+    this.auth.checkGate().subscribe({
+      next: (res) => {
+        this.gatePeripheral = res?.gateDevicePeripheral ?? this.auth.getGateData();
+      },
+      error: (err) => {
+        console.error('CheckGate error', err);
+        this.toast.fromProblem(err);
+        this.gatePeripheral = this.auth.getGateData();
+      },
+    });
   }
 
-  // ================== Gate loading ==================
-  private loadGates() {
+  // =======================
+  // GATES LOADING
+  // =======================
+  private loadGates(): void {
     this.gateLoading = true;
+
     this.gateSvc.getAll().subscribe({
       next: (all) => {
         this.gatesList = (all ?? []).filter(
           (g) => g.gateType === GateType.Entrance || g.gateType === GateType.Exit
         );
-        this.gateLoading = false;
-
         if (this.gatesList.length > 0) {
           this.showGateSelectionModal = true;
         } else {
@@ -384,28 +409,32 @@ export class TicketComponent {
       },
       error: (err) => {
         console.error('Gate/GetAll error', err);
-        this.gateLoading = false;
         this.toast.fromProblem(err);
+      },
+      complete: () => {
+        this.gateLoading = false;
       },
     });
   }
 
-  private loadEntryGates() {
+  private loadEntryGates(): void {
     this.gateLoading = true;
+
     this.gateSvc.getAll().subscribe({
       next: (all) => {
         this.gatesList = (all ?? []).filter((g) => g.gateType === GateType.Entrance);
-        this.gateLoading = false;
       },
       error: (err) => {
         console.error('Gate/GetAll error', err);
-        this.gateLoading = false;
         this.toast.fromProblem(err);
+      },
+      complete: () => {
+        this.gateLoading = false;
       },
     });
   }
 
-  selectGate() {
+  selectGate(): void {
     if (!this.selectedGateId) {
       this.toast.warn(this.t('choose_gate'));
       return;
@@ -415,32 +444,29 @@ export class TicketComponent {
 
     this.auth.selectGate(this.selectedGateId, GateType.Entrance).subscribe({
       next: (res) => {
-        this.gateSaving = false;
         this.showGateSelectionModal = false;
-
-        if (res?.gateDevicePeripheral) {
-          this.gatePeripheral = res.gateDevicePeripheral;
-        } else {
-          this.gatePeripheral = this.auth.getGateData();
-        }
-
+        this.gatePeripheral = res?.gateDevicePeripheral ?? this.auth.getGateData();
         this.toast.success(this.t('select_gate'));
         this.loadTicketsForEntry();
       },
       error: (err) => {
         console.error('selectGate error', err);
-        this.gateSaving = false;
         this.toast.fromProblem(err);
+      },
+      complete: () => {
+        this.gateSaving = false;
       },
     });
   }
 
-  confirmGateSelection() {
+  confirmGateSelection(): void {
     this.selectGate();
   }
 
-  // ================== Create ticket (Normal / Subscriber) ==================
-  createTicket(vehicleNumber?: string) {
+  // =======================
+  // Create ticket (Normal / Subscriber)
+  // =======================
+  createTicket(vehicleNumber?: string): void {
     if (this.adding) return;
 
     const trimmed = vehicleNumber?.trim();
@@ -452,23 +478,25 @@ export class TicketComponent {
     this.prepareNewTicketState();
     this.lastIssuedVehicleNumber = trimmed ?? null;
 
-    this.svc
+    this.ticketsSvc
       .addTicket({
         isSubscriber: false,
         vehicleNumber: trimmed,
       })
       .subscribe({
-        next: (res: IssuedTicketResponse | null) => this.handleIssuedTicketResponse(res),
-        complete: () => (this.adding = false),
+        next: (res) => this.handleIssuedTicketResponse(res),
         error: (e) => {
           console.error('AddTicket (normal) error', e);
-          this.adding = false;
           this.toast.fromProblem(e);
+          this.adding = false;
+        },
+        complete: () => {
+          this.adding = false;
         },
       });
   }
 
-  createSubscriberTicket() {
+  createSubscriberTicket(): void {
     if (this.adding) return;
 
     const card = this.cardNumber?.trim();
@@ -480,34 +508,36 @@ export class TicketComponent {
     this.prepareNewTicketState();
     this.lastIssuedVehicleNumber = this.cardSummary?.vehicleNumber?.trim() ?? null;
 
-    this.svc
+    this.ticketsSvc
       .addTicket({
         isSubscriber: true,
         cardNumber: card,
       })
       .subscribe({
-        next: (res: IssuedTicketResponse | null) => this.handleIssuedTicketResponse(res),
-        complete: () => (this.adding = false),
+        next: (res) => this.handleIssuedTicketResponse(res),
         error: (e) => {
           console.error('AddTicket (subscriber) error', e);
-          this.adding = false;
           this.toast.fromProblem(e);
+          this.adding = false;
+        },
+        complete: () => {
+          this.adding = false;
         },
       });
   }
 
-  private prepareNewTicketState() {
+  private prepareNewTicketState(): void {
     this.adding = true;
     this.currentIssuedQr = null;
     this.currentIssuedQrType = null;
     this.lastIssuedTicketId = null;
     this.lastIssuedTicketInfo = null;
-    this.lastTicketPrice = null;
-    this.lastTicketCreatedAt = null;
-    this.cashierCollected = false;
+    this._lastTicketPrice = null;
+    this._lastTicketCreatedAt = null;
+    this._cashierCollected = false;
   }
 
-  private handleIssuedTicketResponse(res: IssuedTicketResponse | null) {
+  private handleIssuedTicketResponse(res: IssuedTicketResponse | null): void {
     if (!res) return;
 
     this.lastIssuedTicketId = res.ticketId ?? null;
@@ -522,9 +552,9 @@ export class TicketComponent {
       this.lastIssuedVehicleNumber = null;
     }
 
-    const normalized = this.normalizeQrImage(res.qrCode);
+    const normalizedQr = this.normalizeQrImage(res.qrCode);
 
-    if (!normalized) {
+    if (!normalizedQr) {
       console.warn('Invalid qrCode returned from AddTicket', res.qrCode);
 
       this.currentIssuedQr = null;
@@ -538,7 +568,7 @@ export class TicketComponent {
       return;
     }
 
-    this.currentIssuedQr = normalized;
+    this.currentIssuedQr = normalizedQr;
     this.currentIssuedQrType = 'image';
 
     this.toast.success(this.t('create_ticket'));
@@ -546,7 +576,10 @@ export class TicketComponent {
     this.loadTicketsForEntry();
   }
 
-  printTicket() {
+  // =======================
+  // Printing
+  // =======================
+  printTicket(): void {
     if (!this.currentIssuedQr) return;
 
     const imgSrc =
@@ -554,58 +587,78 @@ export class TicketComponent {
         ? this.currentIssuedQr
         : this.qrDataUrl(this.currentIssuedQr);
 
-    const w = window.open('', '_blank', 'width=400,height=600');
-    if (!w) return;
+    const popup = window.open('', '_blank', 'width=400,height=600');
+    if (!popup) return;
 
-    const createdAt = this.lastIssuedCreatedAt
-      ? new Date(this.lastIssuedCreatedAt).toLocaleString('ar-EG', {
-          year: 'numeric',
-          month: '2-digit',
-          day: '2-digit',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
-      : '—';
-
-    const currentUser = this.auth.userName || '—';
+    const createdAtText = this.buildCreatedAtText();
     const gateNumber = this.gatePeripheral?.gateNumber ?? '—';
 
+    const html = this.buildTicketPrintHtml({
+      imgSrc,
+      createdAt: createdAtText,
+      gateNumber,
+      ticketInfo: this.lastIssuedTicketInfo,
+      price: this.lastIssuedPrice,
+      vehicleNumber: this.lastIssuedVehicleNumber,
+    });
+
+    popup.document.open();
+    popup.document.write(html);
+    popup.document.close();
+  }
+
+  private buildCreatedAtText(): string {
+    if (!this.lastIssuedCreatedAt) return '—';
+
+    return new Date(this.lastIssuedCreatedAt).toLocaleString('ar-EG', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  private buildTicketPrintHtml(opts: {
+    imgSrc: string;
+    createdAt: string;
+    gateNumber: string | number;
+    ticketInfo: string | null;
+    price: number | null;
+    vehicleNumber: string | null;
+  }): string {
     const ticketIdBlock = this.lastIssuedTicketId
       ? `
       <div class="ticket-id">
-        رقم التذكرة: ${this.lastIssuedTicketInfo}
-      </div>
-    `
+        رقم التذكرة: ${opts.ticketInfo}
+      </div>`
       : '';
 
     const priceRow =
-      this.lastIssuedPrice !== null && this.lastIssuedPrice !== undefined
+      opts.price !== null && opts.price !== undefined
         ? `
         <div class="info-row">
           <span class="label">الرسوم:</span>
-          <span class="value price">${this.lastIssuedPrice} ج.م</span>
-        </div>
-      `
+          <span class="value price">${opts.price} ج.م</span>
+        </div>`
         : '';
 
-    const vehicleRow = this.lastIssuedVehicleNumber
+    const vehicleRow = opts.vehicleNumber
       ? `
       <div class="info-row">
         <span class="label">رقم السيارة:</span>
-        <span class="value">${this.lastIssuedVehicleNumber}</span>
-      </div>
-    `
+        <span class="value">${opts.vehicleNumber}</span>
+      </div>`
       : '';
 
-    const extraInfo = this.lastIssuedTicketInfo
+    const extraInfo = opts.ticketInfo
       ? `
       <div class="extra-info">
-        ${this.lastIssuedTicketInfo}
-      </div>
-    `
+        ${opts.ticketInfo}
+      </div>`
       : '';
 
-    const html = `
+    return `
     <html dir="rtl" lang="ar">
       <head>
         <meta charset="utf-8" />
@@ -617,7 +670,7 @@ export class TicketComponent {
             padding: 0;
           }
 
-           @page {
+          @page {
             size: 80mm 50mm;
             margin: 0;
           }
@@ -643,7 +696,7 @@ export class TicketComponent {
             max-width: 42mm;
             display: flex;
             flex-direction: column;
-            justify-content: flex-start;  
+            justify-content: flex-start;
             padding-inline-end: 1.5mm;
           }
 
@@ -653,19 +706,11 @@ export class TicketComponent {
             gap: 1mm;
           }
 
-          .footer-link {
-            margin-top: 2mm;               
-            font-size: 9.5px;
-            color: #000;
-            font-weight: bold;
-            text-align: center;
-          }
-
           .header-title {
             font-size: 11px;
             font-weight: bold;
             color: #000;
-            text-align: center; 
+            text-align: center;
             margin-bottom: 1mm;
           }
 
@@ -720,14 +765,15 @@ export class TicketComponent {
           }
 
           .footer-link {
-            font-size: 9.5px;      
+            margin-top: 2mm;
+            font-size: 9.5px;
             color: #000;
             font-weight: bold;
             text-align: center;
           }
 
-           .qr-side {
-            width: 30mm;               
+          .qr-side {
+            width: 30mm;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -756,73 +802,70 @@ export class TicketComponent {
         <div class="wrap">
           <div class="info-side">
             <div class="info-top">
-               ${ticketIdBlock}
+              ${ticketIdBlock}
               <div class="info-section">
                 ${priceRow}
                 <div class="info-row">
                   <span class="label">التاريخ والوقت:</span>
-                  <span class="value">${createdAt}</span>
+                  <span class="value">${opts.createdAt}</span>
                 </div>
                 ${vehicleRow}
                 <div class="info-row">
                   <span class="label">رقم البوابة:</span>
-                  <span class="value">${gateNumber}</span>
+                  <span class="value">${opts.gateNumber}</span>
                 </div>
               </div>
-             </div>
+              ${extraInfo}
+            </div>
             <div class="footer-link">www.niletronix.com</div>
           </div>
 
           <div class="qr-side">
             <div class="qr-container">
-              <img src="${imgSrc}" alt="QR Code" />
+              <img src="${opts.imgSrc}" alt="QR Code" />
             </div>
           </div>
         </div>
       </body>
-    </html>
-  `;
-
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
+    </html>`;
   }
 
-  qrDataUrl(text: string) {
+  qrDataUrl(text: string): string {
     return `data:text/plain,${encodeURIComponent(text)}`;
   }
 
-  // =========== Supervisor daily collect ===========
-
-  collectDailyForGate() {
+  // =======================
+  // Supervisor daily collect
+  // =======================
+  collectDailyForGate(): void {
     if (this.collectLoading) return;
 
     this.collectLoading = true;
     this.collectSummary = null;
 
-    this.svc.collectDailyTickets().subscribe({
-      next: (res: CollectDailyTicketsResponse) => {
+    this.ticketsSvc.collectDailyTickets().subscribe({
+      next: (res) => {
         this.collectSummary = res;
         this.toast.success(this.t('admit_done'));
         this.loadTicketsForEntry();
       },
-      complete: () => {
-        this.collectLoading = false;
-      },
       error: (err) => {
         console.error('collectDailyForGate error', err);
-        this.collectLoading = false;
-        this.collectSummary = null;
         this.toast.fromProblem(err);
+        this.collectSummary = null;
+      },
+      complete: () => {
+        this.collectLoading = false;
       },
     });
   }
 
-  submitSupervisorCollect() {
+  submitSupervisorCollect(): void {
     const user = this.supervisorUsername.trim();
     const pwd = this.supervisorPassword;
-    const gateNumber = this.auth.getGateData()?.gateNumber ?? null;
-    const gateType = this.auth.getGateData()?.gateType ?? null;
+    const gateData = this.auth.getGateData();
+    const gateNumber = gateData?.gateNumber ?? null;
+    const gateType = gateData?.gateType ?? null;
 
     if (!user || !pwd) {
       this.supervisorCollectError = 'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر';
@@ -833,7 +876,7 @@ export class TicketComponent {
     this.supervisorCollectLoading = true;
     this.collectSummary = null;
 
-    this.svc
+    this.ticketsSvc
       .collectDailyTicketsAsSupervisor({
         userName: user,
         password: pwd,
@@ -841,7 +884,7 @@ export class TicketComponent {
         gateNumber,
       })
       .subscribe({
-        next: (res: CollectDailyTicketsResponse) => {
+        next: (res) => {
           this.collectSummary = res;
           this.toast.success(this.t('admit_done'));
           this.loadTicketsForEntry();
@@ -858,7 +901,7 @@ export class TicketComponent {
       });
   }
 
-  onCollectClick() {
+  onCollectClick(): void {
     if (this.isSupervisor) {
       this.collectDailyForGate();
       return;
@@ -866,7 +909,7 @@ export class TicketComponent {
     this.openSupervisorCollectModal();
   }
 
-  openSupervisorCollectModal() {
+  openSupervisorCollectModal(): void {
     this.supervisorUsername = '';
     this.supervisorPassword = '';
     this.supervisorCollectError = null;
@@ -874,8 +917,9 @@ export class TicketComponent {
     this.showSupervisorCollectModal = true;
   }
 
-  closeSupervisorCollectModal() {
+  closeSupervisorCollectModal(): void {
     if (this.supervisorCollectLoading) return;
+
     this.showSupervisorCollectModal = false;
     this.supervisorUsername = '';
     this.supervisorPassword = '';
@@ -883,61 +927,67 @@ export class TicketComponent {
     this.collectSummary = null;
   }
 
-  finishSupervisorCollect() {
+  finishSupervisorCollect(): void {
     this.auth.updateToken(this.cashierToken ?? '');
     this.closeSupervisorCollectModal();
   }
 
-  // ===== Scan / admit =====
-
-  selectAll(el: HTMLInputElement) {
+  // =======================
+  // Scan / admit
+  // =======================
+  selectAll(el: HTMLInputElement): void {
     setTimeout(() => el.select(), 0);
   }
 
-  onScanEnter() {
+  onScanEnter(): void {
     const code = this.scanBuffer?.trim();
     if (!code) return;
     this.fetchTicketByQr(code);
   }
 
-  fetchTicketByQr(code: string) {
+  fetchTicketByQr(code: string): void {
     this.scanning = true;
     this.scannedTicket = null;
 
-    this.svc.getTicketByQr(code).subscribe({
-      next: (t) => (this.scannedTicket = t),
-      complete: () => (this.scanning = false),
-      error: (err) => {
-        console.error('getTicketByQr error', err);
-        this.scanning = false;
-        this.toast.fromProblem(err);
-      },
-    });
+    // this.ticketsSvc.getTicketByQr(code).subscribe({
+    //   next: (t) => (this.scannedTicket = t),
+    //   error: (err) => {
+    //     console.error('getTicketByQr error', err);
+    //     this.toast.fromProblem(err);
+    //   },
+    //   complete: () => {
+    //     this.scanning = false;
+    //   },
+    // });
   }
 
-  collect(t: TicketDetailsDto) {
+  collect(t: TicketDetailsDto): void {
     this.collecting = true;
-    this.svc.collect(t.id).subscribe({
+
+    this.ticketsSvc.collect(t.id).subscribe({
       next: () => {
         this.toast.success(this.t('admit_done'));
         this.loadTicketsForEntry();
       },
-      complete: () => (this.collecting = false),
       error: (err) => {
         console.error('collect error', err);
-        this.collecting = false;
         this.toast.fromProblem(err);
+      },
+      complete: () => {
+        this.collecting = false;
       },
     });
   }
 
-  // ================== Collect from table ==================
-  collectTicketFromTable(ticketId: string) {
+  // =======================
+  // Collect from table
+  // =======================
+  collectTicketFromTable(ticketId: string): void {
     if (this.collectingTicketId) return;
 
     this.collectingTicketId = ticketId;
 
-    this.svc.collectCashier(ticketId).subscribe({
+    this.ticketsSvc.collectCashier(ticketId).subscribe({
       next: (ok) => {
         if (ok) {
           this.markTicketAsCashierCollected(ticketId);
@@ -954,8 +1004,10 @@ export class TicketComponent {
     });
   }
 
-  // ================== Card summary ==================
-  loadCardSummary(cardNumber?: string) {
+  // =======================
+  // Card summary
+  // =======================
+  loadCardSummary(cardNumber?: string): void {
     const cn = (cardNumber ?? this.cardNumber)?.trim().toUpperCase();
     if (!cn) {
       this.toast.warn('يرجى إدخال رقم الكارت أولاً');
@@ -963,7 +1015,8 @@ export class TicketComponent {
     }
 
     this.loadingCardSummary = true;
-    this.svc.getCardSummary(cn).subscribe({
+
+    this.ticketsSvc.getCardSummary(cn).subscribe({
       next: (summary) => {
         if (!summary) {
           this.cardSummary = null;
@@ -992,8 +1045,10 @@ export class TicketComponent {
     this.scanBuffer = '';
   }
 
-  // ================== NFC read card ==================
-  async readCard() {
+  // =======================
+  // NFC read card
+  // =======================
+  async readCard(): Promise<void> {
     if (this.readingCard()) return;
     this.readingCard.set(true);
 
@@ -1004,13 +1059,7 @@ export class TicketComponent {
       this.cardNumber = normalized;
       this.scanBuffer = normalized;
 
-      this.lastIssuedTicketId = null;
-      this.lastIssuedTicketInfo = null;
-      this.lastIssuedPrice = null;
-      this.lastIssuedCreatedAt = null;
-      this.cashierCollected = false;
-      this.collectingCashierCash = false;
-
+      this.resetTicketPreview();
       this.cardSummary = null;
 
       this.loadCardSummary(normalized);
@@ -1022,26 +1071,41 @@ export class TicketComponent {
     }
   }
 
-  // ================== Cashier collect confirmation ==================
-  confirmCashierCollection() {
-    if (!this.lastIssuedTicketId || this.cashierCollected || this.collectingCashierCash) {
+  private resetTicketPreview(): void {
+    this.lastIssuedTicketId = null;
+    this.lastIssuedTicketInfo = null;
+    this.lastIssuedPrice = null;
+    this.lastIssuedCreatedAt = null;
+    this._cashierCollected = false;
+    this.collectingCashierCash = false;
+  }
+
+  // =======================
+  // Cashier collect confirmation
+  // =======================
+  confirmCashier(): void {
+    this.confirmCashierCollection();
+  }
+
+  confirmCashierCollection(): void {
+    if (!this.lastIssuedTicketId || this._cashierCollected || this.collectingCashierCash) {
       return;
     }
 
     this.collectingCashierCash = true;
 
-    this.svc.collectCashier(String(this.lastIssuedTicketId)).subscribe({
+    this.ticketsSvc.collectCashier(String(this.lastIssuedTicketId)).subscribe({
       next: (ok) => {
         if (ok) {
-          this.cashierCollected = true;
+          this._cashierCollected = true;
           this.markTicketAsCashierCollected(this.lastIssuedTicketId!);
           this.toast.success(this.t('cashier_collected'));
           this.loadTicketsForEntry();
         }
       },
       error: (err) => {
-        this.collectingCashierCash = false;
         this.toast.fromProblem(err);
+        this.collectingCashierCash = false;
       },
       complete: () => {
         this.collectingCashierCash = false;
@@ -1049,7 +1113,38 @@ export class TicketComponent {
     });
   }
 
-  private markTicketAsCashierCollected(ticketId: string | number) {
+  // =======================
+  // Real-time search handlers (FAKE endpoint)
+  // =======================
+  onSearchTickets(query: string): void {
+    if (!query?.trim()) {
+      this.searchResults = [];
+      return;
+    }
+
+    this.searchingTickets = true;
+
+    this.ticketsSvc.searchTickets(query).subscribe({
+      next: (results) => {
+        this.searchResults = results;
+      },
+      error: (err) => {
+        console.error('searchTickets error', err);
+        this.toast.fromProblem(err);
+      },
+      complete: () => {
+        this.searchingTickets = false;
+      },
+    });
+  }
+
+  onTicketSelected(ticket: TicketDto): void {
+    // TODO: Handle selected ticket (e.g., show details, collect, etc.)
+    console.log('Selected ticket:', ticket);
+    this.toast.success(`Selected ticket #${ticket.ticketNumber || ticket.id}`);
+  }
+
+  private markTicketAsCashierCollected(ticketId: string | number): void {
     const idStr = String(ticketId);
 
     this.tickets = this.tickets.map((t) =>
@@ -1059,19 +1154,25 @@ export class TicketComponent {
     this.applyFilters();
   }
 
-  // ================== List / Filters ==================
+  // =======================
+  // List / Filters
+  // =======================
   gates(): string[] {
     return Array.from(new Set(this.tickets.map((t) => t.gate))).sort();
   }
 
-  applyFilters() {
+  applyFilters(): void {
     const q = this.q.trim().toLowerCase();
+
     this.filtered = this.tickets.filter((t) => {
       const info = t.info?.toLowerCase() ?? '';
+
       const okQ =
         !q || t.plate.toLowerCase().includes(q) || String(t.id).includes(q) || info.includes(q);
+
       const okA = !this.action || t.action === this.action;
       const okG = !this.gate || t.gate === this.gate;
+
       return okQ && okA && okG;
     });
   }
@@ -1084,6 +1185,7 @@ export class TicketComponent {
 
     const clean = v.replace(/\s+/g, '');
 
+    // HEX → Base64
     if (/^[0-9A-Fa-f]+$/.test(clean)) {
       try {
         const base64 = this.hexToBase64(clean);
@@ -1094,6 +1196,7 @@ export class TicketComponent {
       }
     }
 
+    // Base64 image
     if (/^[A-Za-z0-9+/=]+$/.test(clean)) {
       return `data:image/png;base64,${clean}`;
     }
@@ -1104,20 +1207,19 @@ export class TicketComponent {
   private hexToBase64(hexString: string): string {
     const bytes: number[] = [];
     for (let i = 0; i < hexString.length; i += 2) {
-      bytes.push(parseInt(hexString.substr(i, 2), 16));
+      bytes.push(parseInt(hexString.substring(i, i + 2), 16));
     }
-
     const binary = String.fromCharCode(...bytes);
     return btoa(binary);
   }
 
-  private loadTicketsForEntry(ticketNumber: string = '') {
+  private loadTicketsForEntry(ticketNumber: string = ''): void {
     this.loading = true;
 
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
-    this.svc.getTicketsForEntry(startOfDay.toISOString(), ticketNumber).subscribe({
+    this.ticketsSvc.getTicketsForEntry(startOfDay.toISOString(), ticketNumber).subscribe({
       next: (res) => {
         this.totalPriceToday = res.totalPrice ?? 0;
 
@@ -1125,20 +1227,20 @@ export class TicketComponent {
           (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime()
         );
 
-        if (this.lastIssuedTicketId && this.cashierCollected) {
+        if (this.lastIssuedTicketId && this._cashierCollected) {
           this.markTicketAsCashierCollected(this.lastIssuedTicketId);
         } else {
           this.applyFilters();
         }
-
-        this.loading = false;
       },
       error: (err) => {
         console.error('loadTicketsForEntry error', err);
         this.tickets = [];
         this.applyFilters();
-        this.loading = false;
         this.toast.fromProblem(err);
+      },
+      complete: () => {
+        this.loading = false;
       },
     });
   }

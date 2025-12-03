@@ -1,7 +1,11 @@
-import { inject, Injectable, Inject } from '@angular/core';
+import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Observable, of, tap, catchError } from 'rxjs';
-import { GateDevicePeripheral, GateType, LoginFirstTimeCommand } from '../../Domain/Auth/auth.models';
+import {
+  GateDevicePeripheral,
+  GateType,
+  LoginFirstTimeCommand,
+} from '../../Domain/Auth/auth.models';
 import { ToastServices } from '../Toster/toast-services';
 import { TicketsServices } from '../Tickets/tickets-services';
 import { environment } from '../../Shared/environment/environment';
@@ -29,10 +33,13 @@ export interface AuthResponse {
 export class AuthService {
   private http = inject(HttpClient);
   private toast = inject(ToastServices);
+  // ⛔ مهم: ما نحقنش TicketsServices هنا عشان ما نعملش دائرة
+  // private ticketsService = inject(TicketsServices);
 
   private gateData: GateDevicePeripheral | null = null;
   private collectLoading = false;
 
+  // ================== STORAGE HELPERS ==================
   private storage(remember: boolean): Storage {
     return remember ? localStorage : sessionStorage;
   }
@@ -51,7 +58,7 @@ export class AuthService {
     return !!this.token;
   }
 
-  // ========= LOGIN =========
+  // ================== LOGIN ==================
   login(body: any): Observable<AuthResponse> {
     const remember = !!body.remember;
 
@@ -74,16 +81,14 @@ export class AuthService {
     );
   }
 
-  // ========= LOGIN FIRST TIME =========
-  // ========= LOGIN FIRST TIME =========
+  // ================== LOGIN FIRST TIME ==================
   loginFirstTime(body: LoginFirstTimeCommand): Observable<HttpResponse<void>> {
     return this.http.post<void>(`${API_BASE}/loginfirsttime`, body, {
       observe: 'response',
     });
   }
 
-
-  // ========= CHECK GATE =========
+  // ================== CHECK GATE ==================
   checkGate(): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${API_BASE}/CheckGate`, {}).pipe(
       tap((res) => {
@@ -105,7 +110,7 @@ export class AuthService {
     );
   }
 
-  // ========= SELECT GATE =========
+  // ================== SELECT GATE ==================
   selectGate(gateId: number, gateType: GateType): Observable<AuthResponse> {
     const body = { gateId, gateType };
 
@@ -129,7 +134,7 @@ export class AuthService {
     );
   }
 
-  // ========= TOKEN & USER =========
+  // ================== TOKEN & USER ==================
   updateToken(token: string) {
     if (!token) return;
     const store = this.detectStorage();
@@ -191,7 +196,7 @@ export class AuthService {
     store.setItem(USER_KEY, JSON.stringify(updated));
   }
 
-  // ========= LOGOUT =========
+  // ================== LOGOUT ==================
   logout(): Observable<void> {
     const token = this.token;
 
@@ -231,25 +236,67 @@ export class AuthService {
     return this.role === 'Supervisor';
   }
 
+  // ================== HELPER: GET MESSAGE FROM BACKEND ==================
+  private getBackendMessage(response: any, fallback: string): string {
+    if (!response || typeof response !== 'object') {
+      return fallback;
+    }
+
+    const possibleKeys = ['message', 'Message', 'msg', 'detail', 'title', 'error'];
+
+    for (const key of possibleKeys) {
+      const value = (response as any)[key];
+      if (typeof value === 'string' && value.trim().length > 0) {
+        return value;
+      }
+    }
+
+    const errors = (response as any).errors;
+    if (Array.isArray(errors) && errors.length > 0) {
+      const first = errors[0];
+
+      if (typeof first === 'string' && first.trim().length > 0) {
+        return first;
+      }
+
+      if (first && typeof first === 'object') {
+        if (typeof (first as any).description === 'string' && first.description.trim()) {
+          return first.description;
+        }
+        if (typeof (first as any).message === 'string' && first.message.trim()) {
+          return first.message;
+        }
+      }
+    }
+
+    return fallback;
+  }
+
+  // ================== COLLECT DAILY FOR GATE ==================
   collectDailyForGate() {
     if (this.collectLoading) return;
     this.collectLoading = true;
 
-    const ticketService = inject(TicketsServices);
+    // ✅ نحقن TicketsServices هنا بس → ما فيش Circular DI
+    const ticketsService = inject(TicketsServices);
 
-    ticketService.collectDailyTickets().subscribe({
+    ticketsService.collectDailyTickets().subscribe({
       next: (res: any) => {
         const total = res?.totalAmount ?? res?.total ?? res?.amount ?? null;
 
-        if (total != null) {
-          this.toast.success(`تم تحصيل ${total} من هذه البوابة لليوم.`);
-        } else {
-          this.toast.success('تم تحصيل كل التذاكر لليوم لهذه البوابة.');
-        }
+        const defaultMessage =
+          total != null
+            ? `تم تحصيل ${total} من هذه البوابة لليوم.`
+            : 'تم تحصيل كل التذاكر لليوم لهذه البوابة.';
+
+        const messageFromApi = this.getBackendMessage(res, defaultMessage);
+
+        this.toast.success(messageFromApi);
 
         const startOfDay = new Date();
         startOfDay.setHours(0, 0, 0, 0);
-        ticketService.getTicketsForEntry(startOfDay.toISOString()).subscribe();
+
+        ticketsService.getTicketsForEntry(startOfDay.toISOString()).subscribe();
       },
       error: (err: any) => {
         console.error('collectDailyTickets error', err);

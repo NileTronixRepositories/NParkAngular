@@ -1,4 +1,4 @@
-import { Component, ElementRef, inject, Inject } from '@angular/core';
+import { Component, Inject, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -13,15 +13,16 @@ import { TicketsServices } from '../../Services/Tickets/tickets-services';
 
 import { LanguageService } from '../../Services/i18n/language-service';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
-import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { GateServices } from '../../Services/Gate/gate-services';
 import { AuthService } from '../../Services/Auth/auth-service';
 import { GateType, GateDevicePeripheral, GateDto } from '../../Domain/Auth/auth.models';
 import { ToastServices } from '../../Services/Toster/toast-services';
 import { NfcReaderService } from '../../Services/registration/nfc-reader.service';
+
 import { ExitGateDevicesBlockComponent } from './exit-gate-devices-block-component/exit-gate-devices-block-component';
 import { ExitScanCollectBlockComponent } from './exit-scan-collect-block-component/exit-scan-collect-block-component';
 import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-component/exit-tickets-table-block-component';
+import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
 
 @Component({
   selector: 'app-exitgate-component',
@@ -32,6 +33,7 @@ import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-compo
     ExitGateDevicesBlockComponent,
     ExitScanCollectBlockComponent,
     ExitTicketsTableBlockComponent,
+    SearchBlockComponent,
   ],
   templateUrl: './exitgate-component.html',
   styleUrls: ['./exitgate-component.css'],
@@ -58,7 +60,6 @@ import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-compo
           scannerReady: 'الماسح جاهز',
           scanLabel: 'مسح QR / لصق الكود',
           scanPlaceholder: 'ضع المؤشر هنا ثم امسح...',
-          fetching: 'جاري جلب تفاصيل التذكرة...',
           collect: 'تحصيل',
           emptyState: 'امسح تذكرة أو كارت لعرض التفاصيل والتحصيل.',
           ticketsExit: 'التذاكر — خروج',
@@ -86,10 +87,16 @@ import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-compo
           ip_address: 'العنوان',
           no_gate_devices: 'لم يتم ربط أجهزة بهذه البوابة بعد',
 
-          // manual plate (block 1)
+          // manual plate
           manual_plate_label: 'إدخال رقم السيارة يدويًا',
           manual_plate_placeholder: 'اكتب رقم السيارة يدويًا في حالة عدم توفر أي جهاز',
           send_manual_plate: 'تسجيل مرور المركبة يدويًا',
+
+          // Ticket number search
+          search_ticket_number: 'البحث برقم التذكرة',
+          ticket_number_placeholder: 'أدخل رقم التذكرة',
+          search_ticket: 'بحث',
+          search_ticket_hint: 'ابحث عن تذكرة برقمها لعرض تفاصيلها وتحصيلها',
 
           // Tickets list
           tickets: 'التذاكر',
@@ -148,8 +155,13 @@ import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-compo
           cashier_collected_yes: 'تم التحصيل من الزائر',
           cashier_confirm_button: 'تأكيد تحصيل الكاشير',
 
-          // NEW: open gate
           open_gate: 'فتح البوابة ومرور المركبة',
+
+          // Search
+          search_tickets_placeholder: 'ابحث برقم التذكرة، اللوحة، أو الكارت',
+          search_tickets: 'بحث التذاكر',
+          no_search_results: 'لا توجد نتائج',
+          searching: 'جاري البحث...',
         },
         en: {
           exitTicket: 'Exit Ticket',
@@ -170,7 +182,6 @@ import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-compo
           scannerReady: 'Scanner ready',
           scanLabel: 'Scan QR / Paste Code',
           scanPlaceholder: 'Focus here then scan...',
-          fetching: 'Fetching ticket details...',
           collect: 'Collect',
           emptyState: 'Scan a ticket or card to show its details and collect payment.',
           ticketsExit: 'Tickets — Exit',
@@ -202,6 +213,12 @@ import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-compo
           manual_plate_label: 'Manual vehicle plate input',
           manual_plate_placeholder: 'Type the vehicle plate when no devices are available',
           send_manual_plate: 'Log vehicle pass',
+
+          // Ticket number search
+          search_ticket_number: 'Search by ticket number',
+          ticket_number_placeholder: 'Enter ticket number',
+          search_ticket: 'Search',
+          search_ticket_hint: 'Search for a ticket by its number to view details and collect',
 
           // Tickets list
           tickets: 'Tickets',
@@ -260,70 +277,85 @@ import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-compo
           cashier_collected_yes: 'Cash collected from visitor',
           cashier_confirm_button: 'Confirm cashier collection',
 
-          // NEW: open gate
           open_gate: 'Open gate & let vehicle pass',
+
+          // Search
+          search_tickets_placeholder: 'Search by ticket, plate, or card number',
+          search_tickets: 'Search Tickets',
+          no_search_results: 'No results found',
+          searching: 'Searching...',
         },
       },
     },
   ],
 })
 export class ExitgateComponent {
-  private svc = inject(TicketsServices);
-  private gateSvc = inject(GateServices);
-  private auth = inject(AuthService);
-  private toast = inject(ToastServices);
-  private nfc = inject(NfcReaderService);
+  // ====== Injects ======
+  private readonly svc = inject(TicketsServices);
+  private readonly gateSvc = inject(GateServices);
+  private readonly auth = inject(AuthService);
+  private readonly toast = inject(ToastServices);
+  private readonly nfc = inject(NfcReaderService);
 
   constructor(public lang: LanguageService, @Inject(I18N_DICT) private dict: I18nDict) {}
 
-  // ===== Gate devices (shared gate info) =====
+  t(key: string): string {
+    return this.dict[this.lang.current]?.[key] ?? key;
+  }
+
+  // ====== Gate devices / state ======
   gatesList: GateDto[] = [];
   selectedGateId: number | null = null;
   gateLoading = false;
   gateSaving = false;
-  gatePeripheral: GateDevicePeripheral | null = null; // مازالت هنا كـ shared state
+  gatePeripheral: GateDevicePeripheral | null = null;
 
-  // ===== Cashier / supervisor tokens =====
+  // ====== Tokens / roles ======
   cashierToken: string | null = null;
 
-  totalPriceToday: number = 0;
+  // ====== Dashboard KPI ======
+  totalPriceToday = 0;
 
-  // QR input (scanBox)
+  // ====== Real-time Search ======
+  searchingTickets = false;
+  searchResults: TicketDto[] = [];
+
+  // ✅ بحث رقم التذكرة جاي من Gate Devices
+  searchingTicketNumber = false;
+
+  // ====== QR / Manual input / salary ======
   scanBuffer = '';
   scanning = false;
   scanningQR = false;
 
-  scannedTicket: TicketDetailsDto | null = null;
-  collecting = false;
-
-  // NFC
-  readingCard = false;
-
-  // Exit ticket log
-  addingExitTicket = false;
-  exitTicketAdded = false;
-
-  // Daily collect
-  collectLoading = false;
-  collectSummary: CollectDailyTicketsResponse | null = null;
-
-  // Supervisor collect modal
-  showSupervisorCollectModal = false;
-  supervisorUsername: string = '';
-  supervisorPassword: string = '';
-  supervisorCollectLoading = false;
-  supervisorCollectError: string | null = null;
-
-  // Manual input (card / QR) block 2
-  manualInput: string = '';
+  manualInput = '';
   searchingManual = false;
+
+  scannedTicket: TicketDetailsDto | null = null;
   salarySummary: CalculateSalaryResponse | null = null;
 
   lastQrCode: string | null = null;
 
+  // ====== Exit / collect flags ======
+  collecting = false;
+  addingExitTicket = false;
+  exitTicketAdded = false;
   exitProcessing = false;
 
-  // Tickets list
+  // ====== Daily collect / supervisor ======
+  collectLoading = false;
+  collectSummary: CollectDailyTicketsResponse | null = null;
+
+  showSupervisorCollectModal = false;
+  supervisorUsername = '';
+  supervisorPassword = '';
+  supervisorCollectLoading = false;
+  supervisorCollectError: string | null = null;
+
+  // ====== NFC ======
+  readingCard = false;
+
+  // ====== Tickets list & filters ======
   tickets: TicketDto[] = [];
   filtered: TicketDto[] = [];
   loading = false;
@@ -331,10 +363,12 @@ export class ExitgateComponent {
 
   q = '';
   action: TicketAction | '' = 'OUT';
-  gate: string = '';
+  gate = '';
 
   page = 1;
   pageSize = 10;
+
+  // Cashier confirm
   collectingCashier = false;
   cashierConfirming = false;
 
@@ -342,35 +376,53 @@ export class ExitgateComponent {
     return this.auth.isSupervisor;
   }
 
+  // ========= Lifecycle =========
+
   ngOnInit(): void {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-
     this.cashierToken = this.auth.token;
-    this.gatePeripheral = this.auth.getGateData();
-
-    if (!this.gatePeripheral && this.auth.isLoggedIn()) {
-      this.auth.checkGate().subscribe({
-        next: (res) => {
-          if (res?.gateDevicePeripheral) {
-            this.gatePeripheral = res.gateDevicePeripheral;
-          } else {
-            this.gatePeripheral = this.auth.getGateData();
-          }
-        },
-        error: (err) => {
-          console.error('CheckGate error', err);
-          this.toast.fromProblem(err);
-          this.gatePeripheral = this.auth.getGateData();
-        },
-      });
-    }
-
+    this.initGatePeripheral();
     this.loadExitGates();
-    this.loadTicketsForExit(startOfDay.toISOString());
+    this.reloadList();
   }
 
-  private loadExitGates() {
+  // ========= Init helpers =========
+
+  private getStartOfDayIso(): string {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d.toISOString();
+  }
+
+  private initGatePeripheral(): void {
+    this.gatePeripheral = this.auth.getGateData();
+
+    if (this.gatePeripheral || !this.auth.isLoggedIn()) {
+      return;
+    }
+
+    this.auth.checkGate().subscribe({
+      next: (res) => {
+        if (res?.gateDevicePeripheral) {
+          this.gatePeripheral = res.gateDevicePeripheral;
+        } else {
+          this.gatePeripheral = this.auth.getGateData();
+        }
+      },
+      error: (err) => {
+        this.handleError('CheckGate', err);
+        this.gatePeripheral = this.auth.getGateData();
+      },
+    });
+  }
+
+  private handleError(operation: string, err: any): void {
+    console.error(`${operation} error`, err);
+    this.toast.fromProblem(err);
+  }
+
+  // ========= Gates =========
+
+  private loadExitGates(): void {
     this.gateLoading = true;
     this.gateSvc.getAll().subscribe({
       next: (all) => {
@@ -378,38 +430,13 @@ export class ExitgateComponent {
         this.gateLoading = false;
       },
       error: (err) => {
-        console.error('Gate/GetAll error', err);
+        this.handleError('Gate/GetAll', err);
         this.gateLoading = false;
-        this.toast.fromProblem(err);
       },
     });
   }
 
-  private loadTicketsForExit(startDateIso: string, ticketNumber: string = '') {
-    this.loading = true;
-
-    this.svc.getTicketsForExit(startDateIso, ticketNumber).subscribe({
-      next: (res) => {
-        this.totalPriceToday = res.totalPrice ?? 0;
-
-        this.tickets = (res.items ?? [])
-          .filter((t: TicketDto) => t.action === 'OUT')
-          .sort(
-            (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime()
-          );
-
-        this.applyFilters();
-      },
-      complete: () => (this.loading = false),
-      error: (err) => {
-        console.error('getTicketsForExit error', err);
-        this.loading = false;
-        this.toast.fromProblem(err);
-      },
-    });
-  }
-
-  confirmGateSelection() {
+  confirmGateSelection(): void {
     if (!this.selectedGateId) return;
 
     this.gateSaving = true;
@@ -426,15 +453,63 @@ export class ExitgateComponent {
         this.toast.success(this.t('outOnlyTitle'));
       },
       error: (err) => {
-        console.error('selectGate error', err);
+        this.handleError('selectGate', err);
         this.gateSaving = false;
-        this.toast.fromProblem(err);
       },
     });
   }
 
-  // ===== Scanner / QR / manual card =====
-  scanQRCode() {
+  // ========= Tickets list / filters =========
+
+  private loadTicketsForExit(startDateIso: string, ticketNumber: string = ''): void {
+    this.loading = true;
+
+    this.svc.getTicketsForExit(startDateIso, ticketNumber).subscribe({
+      next: (res) => {
+        this.totalPriceToday = res.totalPrice ?? 0;
+
+        this.tickets = (res.items ?? [])
+          .filter((t: TicketDto) => t.action === 'OUT')
+          .sort(
+            (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime()
+          );
+
+        this.applyFilters();
+      },
+      error: (err) => {
+        this.handleError('getTicketsForExit', err);
+        this.loading = false;
+      },
+      complete: () => (this.loading = false),
+    });
+  }
+
+  reloadList(): void {
+    this.loadTicketsForExit(this.getStartOfDayIso());
+  }
+
+  gates(): string[] {
+    return Array.from(new Set(this.tickets.map((t) => t.gate))).sort();
+  }
+
+  applyFilters(): void {
+    const q = this.q.trim().toLowerCase();
+
+    this.filtered = this.tickets.filter((t) => {
+      const info = t.info?.toLowerCase() ?? '';
+      const okQ =
+        !q || t.plate.toLowerCase().includes(q) || String(t.id).includes(q) || info.includes(q);
+
+      const okG = !this.gate || t.gate === this.gate;
+      return okQ && okG;
+    });
+
+    this.page = 1;
+  }
+
+  // ========= Scan / QR / Manual =========
+
+  scanQRCode(): void {
     if (this.scanningQR) return;
 
     this.scanningQR = true;
@@ -446,11 +521,32 @@ export class ExitgateComponent {
     this.exitTicketAdded = false;
   }
 
-  searchManual() {
-    const code = this.manualInput?.trim();
+  submitQrFromInput(): void {
+    let code = this.scanBuffer?.trim();
     if (!code) {
+      this.scanningQR = false;
       return;
     }
+
+    if (code.startsWith('"') && code.endsWith('"') && code.length > 1) {
+      code = code.substring(1, code.length - 1).trim();
+    }
+
+    this.scanningQR = false;
+    this.lastQrCode = code;
+
+    this.manualInput = '';
+    this.scannedTicket = null;
+    this.salarySummary = null;
+    this.addingExitTicket = false;
+    this.exitTicketAdded = false;
+
+    this.fetchTicketAndSalaryByQr(code);
+  }
+
+  searchManual(): void {
+    const code = this.manualInput?.trim();
+    if (!code) return;
 
     // Reset QR state
     this.scanBuffer = '';
@@ -461,14 +557,12 @@ export class ExitgateComponent {
     this.scanning = false;
     this.searchingManual = true;
 
-    // Subscriber salary فقط
     this.svc.calculateSubscriberSalary(code).subscribe({
       next: (summary) => {
         this.salarySummary = summary;
       },
       error: (err) => {
-        console.error('calculateSubscriberSalary error', err);
-        this.toast.fromProblem(err);
+        this.handleError('calculateSubscriberSalary (manual)', err);
         this.searchingManual = false;
       },
       complete: () => {
@@ -477,8 +571,78 @@ export class ExitgateComponent {
     });
   }
 
+  // =======================
+  // Real-time search (SearchBlockComponent)
+  // =======================
+  onSearchTickets(query: string): void {
+    if (!query?.trim()) {
+      this.searchResults = [];
+      return;
+    }
+
+    this.searchingTickets = true;
+
+    this.svc.searchTickets(query).subscribe({
+      next: (results) => {
+        this.searchResults = results;
+      },
+      error: (err) => {
+        console.error('searchTickets error', err);
+        this.toast.fromProblem(err);
+      },
+      complete: () => {
+        this.searchingTickets = false;
+      },
+    });
+  }
+
+  onTicketSelected(ticket: TicketDto): void {
+    const identifier = ticket.ticketNumber || String(ticket.id);
+    this.toast.success(
+      this.lang.current === 'ar'
+        ? `تم اختيار التذكرة: ${identifier}`
+        : `Selected ticket: ${identifier}`
+    );
+    this.onSearchTicketNumber(identifier);
+    this.searchResults = [];
+  }
+
+  /** ✅ Search by ticket number coming from Gate Devices block */
+  onGateDeviceSearchTicket(ticketNumber: string): void {
+    const trimmed = ticketNumber?.trim();
+    if (!trimmed || this.searchingTicketNumber) return;
+
+    this.searchingTicketNumber = true;
+
+    this.svc.searchTickets(trimmed).subscribe({
+      next: (results) => {
+        if (!results || results.length === 0) {
+          this.toast.error(this.t('no_search_results'));
+          return;
+        }
+
+        // نحاول نلاقي تطابق كامل مع الرقم اللي المستخدم كتبه
+        const exact =
+          results.find(
+            (r) => (r.ticketNumber ?? String(r.id)).toLowerCase() === trimmed.toLowerCase()
+          ) ?? results[0];
+
+        const identifier = exact.ticketNumber || String(exact.id);
+
+        // نعيد استخدام نفس الflow اللي بيحسب Salary إلخ
+        this.onSearchTicketNumber(identifier);
+      },
+      error: (err) => {
+        this.handleError('searchTickets (gate devices)', err);
+      },
+      complete: () => {
+        this.searchingTicketNumber = false;
+      },
+    });
+  }
+
   /** QR Ticket: Get ticket + salary via CalculateQrCodeTicketSalary */
-  private fetchTicketAndSalaryByQr(code: string) {
+  private fetchTicketAndSalaryByQr(code: string): void {
     this.scanning = true;
     this.searchingManual = true;
     this.scannedTicket = null;
@@ -488,28 +652,42 @@ export class ExitgateComponent {
     this.addingExitTicket = false;
     this.exitTicketAdded = false;
 
-    this.svc.getTicketByQr(code).subscribe({
-      next: (t) => {
-        this.scannedTicket = t;
-      },
-      error: (err) => {
-        console.error('getTicketByQr error', err);
-        this.toast.fromProblem(err);
-        this.scanning = false;
-        this.searchingManual = false;
-      },
-      complete: () => {
-        this.scanning = false;
-      },
-    });
-
+    // الملخص المالي
     this.svc.calculateTicketSalary(code).subscribe({
       next: (summary) => {
         this.salarySummary = summary;
       },
       error: (err) => {
-        console.error('calculateTicketSalary error', err);
-        this.toast.fromProblem(err);
+        this.handleError('calculateTicketSalary', err);
+      },
+      complete: () => {
+        this.searchingManual = false;
+      },
+    });
+  }
+
+  /** Search ticket by its number and display in Exit block */
+  onSearchTicketNumber(ticketNumber: string): void {
+    if (!ticketNumber?.trim()) return;
+
+    const trimmed = ticketNumber.trim();
+
+    // Reset states
+    this.scanBuffer = '';
+    this.manualInput = '';
+    this.scannedTicket = null;
+    this.salarySummary = null;
+    this.lastQrCode = trimmed;
+
+    this.addingExitTicket = false;
+    this.exitTicketAdded = false;
+
+    this.svc.calculateTicketSalary(trimmed).subscribe({
+      next: (summary) => {
+        this.salarySummary = summary;
+      },
+      error: (err) => {
+        this.handleError('calculateTicketSalary', err);
       },
       complete: () => {
         this.searchingManual = false;
@@ -518,7 +696,7 @@ export class ExitgateComponent {
   }
 
   /** Subscriber card: CalculateSalaryForSubscriberCommand فقط */
-  private fetchSalaryForCard(cardNumber: string) {
+  private fetchSalaryForCard(cardNumber: string): void {
     this.scanning = false;
     this.searchingManual = true;
     this.scannedTicket = null;
@@ -533,8 +711,7 @@ export class ExitgateComponent {
         this.salarySummary = summary;
       },
       error: (err) => {
-        console.error('calculateSubscriberSalary error', err);
-        this.toast.fromProblem(err);
+        this.handleError('calculateSubscriberSalary (card)', err);
       },
       complete: () => {
         this.searchingManual = false;
@@ -542,7 +719,9 @@ export class ExitgateComponent {
     });
   }
 
-  addExitTicket(t: TicketDetailsDto) {
+  // ========= Exit ticket log / collect =========
+
+  addExitTicket(t: TicketDetailsDto): void {
     if (this.addingExitTicket || !t?.id) return;
 
     this.addingExitTicket = true;
@@ -551,16 +730,13 @@ export class ExitgateComponent {
       next: (ok) => {
         if (ok) {
           this.exitTicketAdded = true;
-          this.toast.success(this.t('exitTicketAdded'));
 
-          // نحدّث الجدول مباشرة
           const price = this.salarySummary?.totalSalary ?? t.totalPrice;
           this.upsertExitTicketRow(t.id, t.plate, price, false);
         }
       },
       error: (err) => {
-        console.error('addExitTicket error', err);
-        this.toast.fromProblem(err);
+        this.handleError('addExitTicket', err);
       },
       complete: () => {
         this.addingExitTicket = false;
@@ -568,8 +744,7 @@ export class ExitgateComponent {
     });
   }
 
-  // زرار Confirm & Collect في حالة الـ QR (تحصيل فعلي)
-  confirmExit() {
+  confirmExit(): void {
     if (!this.salarySummary) return;
 
     if (!this.salarySummary.isExitValid) {
@@ -594,17 +769,15 @@ export class ExitgateComponent {
 
     this.svc.addExitTicket(String(ticketId)).subscribe({
       next: (ok) => {
-        if (ok) {
-          this.exitTicketAdded = true;
-        } else {
+        if (!ok) {
           this.toast.error(this.t('exitTicketAddFailed'));
+          return;
         }
+
+        this.exitTicketAdded = true;
 
         this.svc.collect(ticketId).subscribe({
           next: () => {
-            this.toast.success(this.t('collectedOk'));
-
-            // ✅ تحديث الجدول مباشرة بدون reload للصفحة
             const price = this.salarySummary?.totalSalary ?? this.scannedTicket!.totalPrice;
             this.upsertExitTicketRow(ticketId, this.scannedTicket!.plate, price, false);
 
@@ -614,15 +787,13 @@ export class ExitgateComponent {
                   this.salarySummary = summary;
                 },
                 error: (err) => {
-                  console.error('recalculate salary after collect error', err);
-                  this.toast.fromProblem(err);
+                  this.handleError('recalculate salary after collect', err);
                 },
               });
             }
           },
           error: (err) => {
-            console.error('collect error', err);
-            this.toast.fromProblem(err);
+            this.handleError('collect (confirmExit)', err);
           },
           complete: () => {
             this.collecting = false;
@@ -630,20 +801,18 @@ export class ExitgateComponent {
         });
       },
       error: (err) => {
-        console.error('addExitTicket error (confirmExit)', err);
-        this.toast.fromProblem(err);
+        this.handleError('addExitTicket (confirmExit)', err);
         this.collecting = false;
       },
     });
   }
 
-  allowExitWithoutCollect() {
-    if (!this.scannedTicket && !this.salarySummary) {
-      return;
-    }
+  allowExitWithoutCollect(): void {
+    if (!this.scannedTicket && !this.salarySummary) return;
 
     this.exitProcessing = true;
 
+    // حالة: فيه تذكرة كاملة
     if (this.scannedTicket) {
       const ticketId = String(this.scannedTicket.id);
 
@@ -661,7 +830,7 @@ export class ExitgateComponent {
           }
         },
         error: (err) => {
-          this.toast.fromProblem(err);
+          this.handleError('addExitTicket (allowExitWithoutCollect/QR)', err);
           this.exitProcessing = false;
         },
         complete: () => {
@@ -672,7 +841,7 @@ export class ExitgateComponent {
       return;
     }
 
-    // Subscriber card case (no scanned ticket)
+    // حالة: كارت مشترك فقط (بدون scannedTicket)
     if (this.salarySummary?.ticketId) {
       const ticketId = String(this.salarySummary.ticketId);
 
@@ -686,7 +855,7 @@ export class ExitgateComponent {
           }
         },
         error: (err) => {
-          this.toast.fromProblem(err);
+          this.handleError('addExitTicket (allowExitWithoutCollect/subscriber)', err);
           this.exitProcessing = false;
         },
         complete: () => {
@@ -698,7 +867,176 @@ export class ExitgateComponent {
     }
   }
 
-  printSummary() {
+  collect(t: TicketDetailsDto): void {
+    this.collecting = true;
+
+    this.svc.collect(t.id).subscribe({
+      next: () => {
+        this.upsertExitTicketRow(t.id, t.plate, t.totalPrice, false);
+        this.resetScanState();
+      },
+      error: (err) => {
+        this.handleError('collect', err);
+        this.collecting = false;
+      },
+      complete: () => {
+        this.collecting = false;
+      },
+    });
+  }
+
+  collectCashier(): void {
+    if (this.cashierConfirming || !this.salarySummary) return;
+
+    const ticketId =
+      this.scannedTicket?.id != null ? String(this.scannedTicket.id) : this.salarySummary.ticketId;
+
+    if (!ticketId) {
+      this.toast.error('لا يمكن تحصيل المبلغ: لا يوجد رقم تذكرة متاح.');
+      return;
+    }
+
+    this.cashierConfirming = true;
+
+    this.svc.collectCashier(ticketId).subscribe({
+      next: (ok) => {
+        if (ok) {
+          this.salarySummary = {
+            ...this.salarySummary!,
+            isCollectByCashier: true,
+          };
+        }
+      },
+      error: (err) => {
+        this.handleError('collectCashier', err);
+      },
+      complete: () => {
+        this.cashierConfirming = false;
+      },
+    });
+  }
+
+  // ========= Daily collect / supervisor =========
+
+  collectDailyForGate(): void {
+    if (this.collectLoading) return;
+
+    this.collectLoading = true;
+    this.collectSummary = null;
+
+    this.svc.collectDailyTickets().subscribe({
+      next: (res: CollectDailyTicketsResponse) => {
+        this.collectSummary = res;
+        this.toast.success(this.t('collectDailyOk'));
+        this.reloadList();
+      },
+      error: (err) => {
+        this.handleError('collectDailyForGate', err);
+        this.collectLoading = false;
+        this.collectSummary = null;
+      },
+      complete: () => {
+        this.collectLoading = false;
+      },
+    });
+  }
+
+  submitSupervisorCollect(): void {
+    const user = this.supervisorUsername.trim();
+    const pwd = this.supervisorPassword;
+    const gateNumber = this.auth.getGateData()?.gateNumber ?? null;
+    const gateType = this.auth.getGateData()?.gateType ?? null;
+
+    if (!user || !pwd) {
+      this.supervisorCollectError = 'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر';
+      return;
+    }
+
+    this.supervisorCollectError = null;
+    this.supervisorCollectLoading = true;
+    this.collectSummary = null;
+
+    this.svc
+      .collectDailyTicketsAsSupervisor({
+        userName: user,
+        password: pwd,
+        gateType,
+        gateNumber,
+      })
+      .subscribe({
+        next: (res: CollectDailyTicketsResponse) => {
+          this.collectSummary = res;
+          this.toast.success(this.t('admit_done'));
+          this.reloadList();
+        },
+        error: (err) => {
+          this.handleError('collectDailyTicketsAsSupervisor', err);
+          this.supervisorCollectError = 'فشل الدخول كـ Supervisor. تأكد من البيانات أو الصلاحيات.';
+          this.supervisorCollectLoading = false;
+        },
+        complete: () => {
+          this.supervisorCollectLoading = false;
+        },
+      });
+  }
+
+  onCollectClick(): void {
+    if (this.isSupervisor) {
+      this.collectDailyForGate();
+      return;
+    }
+    this.openSupervisorCollectModal();
+  }
+
+  openSupervisorCollectModal(): void {
+    this.supervisorUsername = '';
+    this.supervisorPassword = '';
+    this.supervisorCollectError = null;
+    this.collectSummary = null;
+    this.showSupervisorCollectModal = true;
+  }
+
+  closeSupervisorCollectModal(): void {
+    if (this.supervisorCollectLoading) return;
+
+    this.showSupervisorCollectModal = false;
+    this.supervisorUsername = '';
+    this.supervisorPassword = '';
+    this.supervisorCollectError = null;
+    this.collectSummary = null;
+  }
+
+  finishSupervisorCollect(): void {
+    this.auth.updateToken(this.cashierToken ?? '');
+    this.closeSupervisorCollectModal();
+  }
+
+  // ========= NFC =========
+
+  async readCard(): Promise<void> {
+    if (this.readingCard) return;
+    this.readingCard = true;
+
+    try {
+      const uid = await this.nfc.readUID();
+      const normalized = String(uid).trim().toUpperCase();
+
+      this.scanBuffer = '';
+      this.manualInput = normalized;
+      this.lastQrCode = null;
+
+      this.fetchSalaryForCard(normalized);
+    } catch (err: any) {
+      console.error(err);
+      this.toast.error(err?.message || 'تعذر قراءة الكارت. تأكد من توصيل وتشغيل قارئ الـ NFC.');
+    } finally {
+      this.readingCard = false;
+    }
+  }
+
+  // ========= Print =========
+
+  printSummary(): void {
     if (!this.scannedTicket && !this.salarySummary) return;
 
     const t = this.scannedTicket;
@@ -773,33 +1111,22 @@ export class ExitgateComponent {
     w.document.close();
   }
 
-  collect(t: TicketDetailsDto) {
-    this.collecting = true;
-    this.svc.collect(t.id).subscribe({
-      next: () => {
-        this.toast.success(this.t('collectedOk'));
+  // ========= Helpers =========
 
-        // تحديث الجدول لو محتاج تستخدم الطريقة دي
-        this.upsertExitTicketRow(t.id, t.plate, t.totalPrice, false);
-
-        this.resetScanState();
-      },
-      complete: () => (this.collecting = false),
-      error: (err) => {
-        console.error('collect error', err);
-        this.collecting = false;
-        this.toast.fromProblem(err);
-      },
-    });
+  private resetScanState(): void {
+    this.scanBuffer = '';
+    this.manualInput = '';
+    this.scannedTicket = null;
+    this.salarySummary = null;
+    this.lastQrCode = null;
   }
 
-  // ===== Helper لتحديث الجدول محليًا بدون reload =====
   private upsertExitTicketRow(
     ticketId: number | string,
     plate: string,
     price: number | null | undefined,
     isCollectedByCashier: boolean
-  ) {
+  ): void {
     const numericPrice = Number(price ?? 0);
     const gateNumber = this.auth.getGateData()?.gateNumber;
     const gate = gateNumber != null ? String(gateNumber) : '';
@@ -839,223 +1166,4 @@ export class ExitgateComponent {
 
     this.applyFilters();
   }
-
-  // ===== List =====
-  reloadList() {
-    const startOfDay = new Date();
-    startOfDay.setHours(0, 0, 0, 0);
-
-    this.loadTicketsForExit(startOfDay.toISOString());
-  }
-
-  gates(): string[] {
-    return Array.from(new Set(this.tickets.map((t) => t.gate))).sort();
-  }
-
-  applyFilters() {
-    const q = this.q.trim().toLowerCase();
-    this.filtered = this.tickets.filter((t) => {
-      const info = t.info?.toLowerCase() ?? '';
-      const okQ =
-        !q || t.plate.toLowerCase().includes(q) || String(t.id).includes(q) || info.includes(q);
-      const okG = !this.gate || t.gate === this.gate;
-      return okQ && okG;
-    });
-    this.page = 1;
-  }
-
-  // ===== NFC read card =====
-  async readCard() {
-    if (this.readingCard) return;
-    this.readingCard = true;
-
-    try {
-      const uid = await this.nfc.readUID();
-      const normalized = String(uid).trim().toUpperCase();
-
-      // (Subscriber)
-      this.scanBuffer = '';
-      this.manualInput = normalized;
-      this.lastQrCode = null;
-
-      this.fetchSalaryForCard(normalized);
-    } catch (err: any) {
-      console.error(err);
-      this.toast.error(err?.message || 'تعذر قراءة الكارت. تأكد من توصيل وتشغيل قارئ الـ NFC.');
-    } finally {
-      this.readingCard = false;
-    }
-  }
-
-  // ===== Daily collect (supervisor / cashier) =====
-  collectDailyForGate() {
-    if (this.collectLoading) return;
-
-    this.collectLoading = true;
-    this.collectSummary = null;
-
-    this.svc.collectDailyTickets().subscribe({
-      next: (res: CollectDailyTicketsResponse) => {
-        this.collectSummary = res;
-        this.toast.success(this.t('collectDailyOk'));
-
-        this.reloadList();
-      },
-      error: (err) => {
-        console.error('collectDailyForGate error', err);
-        this.toast.fromProblem(err);
-        this.collectLoading = false;
-        this.collectSummary = null;
-      },
-      complete: () => {
-        this.collectLoading = false;
-      },
-    });
-  }
-
-  submitSupervisorCollect() {
-    const user = this.supervisorUsername.trim();
-    const pwd = this.supervisorPassword;
-    const gateNumber = this.auth.getGateData()?.gateNumber ?? null;
-    const gateType = this.auth.getGateData()?.gateType ?? null;
-
-    if (!user || !pwd) {
-      this.supervisorCollectError = 'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر';
-      return;
-    }
-
-    this.supervisorCollectError = null;
-    this.supervisorCollectLoading = true;
-    this.collectSummary = null;
-
-    this.svc
-      .collectDailyTicketsAsSupervisor({
-        userName: user,
-        password: pwd,
-        gateType: gateType,
-        gateNumber: gateNumber,
-      })
-      .subscribe({
-        next: (res: CollectDailyTicketsResponse) => {
-          this.collectSummary = res;
-          this.toast.success(this.t('admit_done'));
-
-          this.reloadList();
-        },
-        error: (err) => {
-          console.error('submitSupervisorCollect error', err);
-          this.supervisorCollectError = 'فشل الدخول كـ Supervisor. تأكد من البيانات أو الصلاحيات.';
-          this.toast.fromProblem(err);
-          this.supervisorCollectLoading = false;
-        },
-        complete: () => {
-          this.supervisorCollectLoading = false;
-        },
-      });
-  }
-
-  onCollectClick() {
-    if (this.isSupervisor) {
-      this.collectDailyForGate();
-      return;
-    }
-
-    this.openSupervisorCollectModal();
-  }
-
-  openSupervisorCollectModal() {
-    this.supervisorUsername = '';
-    this.supervisorPassword = '';
-    this.supervisorCollectError = null;
-    this.collectSummary = null;
-    this.showSupervisorCollectModal = true;
-  }
-
-  closeSupervisorCollectModal() {
-    if (this.supervisorCollectLoading) return;
-    this.showSupervisorCollectModal = false;
-    this.supervisorUsername = '';
-    this.supervisorPassword = '';
-    this.supervisorCollectError = null;
-    this.collectSummary = null;
-  }
-
-  finishSupervisorCollect() {
-    this.auth.updateToken(this.cashierToken ?? '');
-    this.closeSupervisorCollectModal();
-  }
-
-  // ===== Helpers =====
-  private t(key: string) {
-    return this.dict[this.lang.current]?.[key] ?? key;
-  }
-
-  private resetScanState() {
-    this.scanBuffer = '';
-    this.manualInput = '';
-    this.scannedTicket = null;
-    this.salarySummary = null;
-    this.lastQrCode = null;
-  }
-
-  submitQrFromInput() {
-    let code = this.scanBuffer?.trim();
-    if (!code) {
-      this.scanningQR = false;
-      return;
-    }
-
-    if (code.startsWith('"') && code.endsWith('"') && code.length > 1) {
-      code = code.substring(1, code.length - 1).trim();
-    }
-
-    this.scanningQR = false;
-    this.lastQrCode = code;
-
-    this.manualInput = '';
-    this.scannedTicket = null;
-    this.salarySummary = null;
-    this.addingExitTicket = false;
-    this.exitTicketAdded = false;
-
-    this.fetchTicketAndSalaryByQr(code);
-  }
-
-  collectCashier() {
-    if (this.cashierConfirming || !this.salarySummary) {
-      return;
-    }
-
-     const ticketId =
-      this.scannedTicket?.id != null
-        ? String(this.scannedTicket.id)
-        : this.salarySummary.ticketId;  
-
-    if (!ticketId) {
-      this.toast.error('لا يمكن تحصيل المبلغ: لا يوجد رقم تذكرة متاح.');
-      return;
-    }
-
-    this.cashierConfirming = true;
-
-    this.svc.collectCashier(ticketId).subscribe({
-      next: (ok) => {
-        if (ok) {
-          this.salarySummary = {
-            ...this.salarySummary!,
-            isCollectByCashier: true,
-          };
-          this.toast.success(this.t('cashier_collected_yes'));
-        }
-      },
-      error: (err) => {
-        console.error('collectCashier error', err);
-        this.toast.fromProblem(err);
-      },
-      complete: () => {
-        this.cashierConfirming = false;
-      },
-    });
-  }
-
 }

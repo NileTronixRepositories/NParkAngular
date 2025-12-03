@@ -8,13 +8,14 @@
     <div class="card-body p-4 p-md-5">
       <div class="text-center mb-4">
         <div class="brand fs-2 fw-bold">
-          <span class="text-danger">N</span
-          ><span class="text-secondary">{{ 'brandSuffix' | t }}</span>
+          <span class="text-danger">N</span>
+          <span class="text-secondary">{{ 'brandSuffix' | t }}</span>
         </div>
         <div class="text-muted">{{ 'signInToContinue' | t }}</div>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="submit()">
+        <!-- Username -->
         <div class="mb-3">
           <label class="form-label">{{ 'username' | t }}</label>
           <input
@@ -31,6 +32,7 @@
           </div>
         </div>
 
+        <!-- Password -->
         <div class="mb-3">
           <label class="form-label">{{ 'password' | t }}</label>
           <div class="input-group">
@@ -57,7 +59,9 @@
           </div>
         </div>
 
-        <!-- <div *ngIf="roleIsGateCashier()" class="row">
+        <!-- (Gate fields موجودة في الفورم بس UI متشال حالياً) -->
+        <!--
+        <div *ngIf="roleIsGateCashier()" class="row">
           <div class="col-12 col-md-6 mb-3">
             <label class="form-label">{{ 'gateType' | t }}</label>
             <select class="form-select" formControlName="gateType">
@@ -88,7 +92,8 @@
               {{ 'gateNumberRequired' | t }}
             </div>
           </div>
-        </div> -->
+        </div>
+        -->
 
         <div class="d-flex justify-content-between align-items-center mb-4">
           <div class="form-check">
@@ -98,11 +103,13 @@
               id="remember"
               formControlName="remember"
             />
-            <label class="form-check-label" for="remember">{{ 'rememberMe' | t }}</label>
+            <label class="form-check-label" for="remember">
+              {{ 'rememberMe' | t }}
+            </label>
           </div>
-          <a class="small text-decoration-none" routerLink="/forgot-password">{{
-            'forgotPassword' | t
-          }}</a>
+          <a class="small text-decoration-none" routerLink="/forgot-password">
+            {{ 'forgotPassword' | t }}
+          </a>
         </div>
 
         <button class="btn btn-danger w-100" [disabled]="loading">
@@ -118,83 +125,110 @@
   </div>
 </div>
 
-<!-- First-time change modal -->
-<div
-  class="modal d-block"
-  tabindex="-1"
-  *ngIf="showChangeModal"
-  role="dialog"
-  style="z-index: 1060"
->
-  <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">{{ 'changeAdminCreds' | t }}</h5>
-      </div>
-      <div class="modal-body">
-        <form [formGroup]="changeForm" (ngSubmit)="saveNewCredentials()">
-          <!-- UserName -->
-          <div class="mb-2">
-            <label class="form-label small">{{ 'username' | t }}</label>
-            <input
-              class="form-control form-control-sm"
-              type="text"
-              formControlName="userName"
-              autocomplete="off"
-            />
-          </div>
+<!-- First-time change modal (Popup + Backdrop) -->
+<div *ngIf="showChangeModal" class="change-modal-backdrop" role="dialog" aria-modal="true">
+  <div class="change-modal-card">
+    <div class="change-modal-header">
+      <h5 class="change-modal-title">{{ 'changeAdminCreds' | t }}</h5>
 
-          <!-- Old Password -->
-          <div class="mb-2">
-            <label class="form-label small">{{ 'password' | t }}</label>
-            <input
-              class="form-control form-control-sm"
-              type="password"
-              formControlName="password"
-            />
-          </div>
-
-          <!-- New Password -->
-          <div class="mb-2">
-            <label class="form-label small">{{ 'newPassword' | t }}</label>
-            <input
-              class="form-control form-control-sm"
-              type="password"
-              formControlName="newPassword"
-            />
-          </div>
-
-          <!-- Confirm Password -->
-          <div class="mb-2">
-            <label class="form-label small">{{ 'confirmPassword' | t }}</label>
-            <input
-              class="form-control form-control-sm"
-              type="password"
-              formControlName="confirmPassword"
-            />
-          </div>
-
-          <div *ngIf="changeError" class="alert alert-danger small mt-2">
-            {{ changeError }}
-          </div>
-
-          <div class="d-flex justify-content-end gap-2 mt-3">
-            <button
-              type="button"
-              class="btn btn-outline-secondary btn-sm"
-              (click)="showChangeModal = false"
-              [disabled]="changeLoading"
-            >
-              {{ 'cancel' | t }}
-            </button>
-            <button type="submit" class="btn btn-success btn-sm" [disabled]="changeLoading">
-              <span *ngIf="!changeLoading">{{ 'save' | t }}</span>
-              <span *ngIf="changeLoading" class="spinner-border spinner-border-sm"></span>
-            </button>
-          </div>
-        </form>
-      </div>
+      <button
+        type="button"
+        class="change-modal-close"
+        (click)="showChangeModal = false"
+        [disabled]="changeLoading"
+        aria-label="Close"
+      >
+        &times;
+      </button>
     </div>
+
+    <p class="change-modal-subtitle">
+      {{ 'tempPasswordNotice' | t }}
+    </p>
+
+    <form [formGroup]="changeForm" (ngSubmit)="saveNewCredentials()">
+      <!-- UserName -->
+      <div class="mb-3">
+        <label class="form-label small">{{ 'username' | t }}</label>
+        <input
+          class="form-control form-control-sm"
+          type="text"
+          formControlName="userName"
+          autocomplete="off"
+        />
+      </div>
+
+      <!-- Old Password -->
+      <div class="mb-3">
+        <label class="form-label small">{{ 'password' | t }}</label>
+        <div class="password-wrapper">
+          <input
+            class="form-control form-control-sm"
+            [type]="showOldPwd ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="off"
+          />
+          <button type="button" class="eye-btn" (click)="showOldPwd = !showOldPwd">
+            <i [class]="showOldPwd ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- New Password -->
+      <div class="mb-3">
+        <label class="form-label small">{{ 'newPassword' | t }}</label>
+        <div class="password-wrapper">
+          <input
+            class="form-control form-control-sm"
+            [type]="showNewPwd ? 'text' : 'password'"
+            formControlName="newPassword"
+            autocomplete="off"
+          />
+          <button type="button" class="eye-btn" (click)="showNewPwd = !showNewPwd">
+            <i [class]="showNewPwd ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- Confirm Password -->
+      <div class="mb-3">
+        <label class="form-label small">{{ 'confirmPassword' | t }}</label>
+        <div class="password-wrapper">
+          <input
+            class="form-control form-control-sm"
+            [type]="showConfirmPwd ? 'text' : 'password'"
+            formControlName="confirmPassword"
+            autocomplete="off"
+          />
+          <button type="button" class="eye-btn" (click)="showConfirmPwd = !showConfirmPwd">
+            <i [class]="showConfirmPwd ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          </button>
+        </div>
+      </div>
+
+      <div *ngIf="changeForm.hasError('mismatch')" class="alert alert-danger small mt-2">
+        {{ 'pwdMismatch' | t }}
+      </div>
+
+      <div *ngIf="changeError" class="alert alert-danger small mt-2">
+        {{ changeError }}
+      </div>
+
+      <div class="change-modal-footer">
+        <button
+          type="button"
+          class="btn btn-outline-secondary btn-sm"
+          (click)="showChangeModal = false"
+          [disabled]="changeLoading"
+        >
+          {{ 'cancel' | t }}
+        </button>
+        <button type="submit" class="btn btn-success btn-sm" [disabled]="changeLoading">
+          <span *ngIf="!changeLoading">{{ 'save' | t }}</span>
+          <span *ngIf="changeLoading" class="spinner-border spinner-border-sm"></span>
+        </button>
+      </div>
+    </form>
   </div>
 </div>
 

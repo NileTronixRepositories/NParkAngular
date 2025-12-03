@@ -67,4 +67,8 @@ export class IssueTicketBlockComponent {
   onClearCardSummary(event: Event) {
     this.clearCardSummaryClicked.emit(event);
   }
+
+  onCardNumberChange(value: string): void {
+    this.cardNumberChange.emit(value);
+  }
 }

@@ -1,17 +1,118 @@
 .min-vh-70 {
   min-height: 70vh;
 }
+
 .login-card {
   max-width: 420px;
   margin: 2rem auto;
   border-radius: 1rem;
 }
+
 .brand {
   letter-spacing: 1px;
 }
-.modal .modal-content {
+
+/* ===== First-time change popup (backdrop + card) ===== */
+
+.change-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.6); /* خلفية غامقة شفافة */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1060;
+}
+
+/* الكارت نفسه */
+.change-modal-card {
+  width: 100%;
+  max-width: 430px;
+  background: #ffffff;
+  border-radius: 18px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.35);
+  padding: 1.4rem 1.7rem 1.2rem;
+}
+
+/* الهيدر */
+.change-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.25rem;
+}
+
+.change-modal-title {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 600;
+}
+
+/* زرار الـ X */
+.change-modal-close {
+  border: none;
+  background: transparent;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  color: #9ca3af;
+}
+
+.change-modal-close:hover:not(:disabled) {
+  color: #4b5563;
+}
+
+/* سطر توضيحي تحت العنوان */
+.change-modal-subtitle {
+  margin: 0 0 0.9rem;
+  font-size: 0.82rem;
+  color: #6b7280;
+}
+
+/* فوتر الأزرار */
+.change-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+/* تخفيف حواف المودال الأصلي لو مستخدم Bootstrap في أماكن تانية */
+.modal .modal-content,
+.modal-content {
   border-radius: 12px;
 }
-.modal .modal-header {
+
+.modal .modal-header,
+.modal-header {
   border-bottom: none;
+}
+/* Wrapper to align input + eye button */
+.password-wrapper {
+  position: relative;
+}
+
+.password-wrapper input {
+  padding-right: 38px; /* مساحة للزر */
+}
+
+.eye-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.eye-btn:hover {
+  color: #111827;
+}
+
+.eye-btn i {
+  font-size: 1rem;
 }

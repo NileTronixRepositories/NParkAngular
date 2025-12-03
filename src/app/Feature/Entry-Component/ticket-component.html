@@ -2,7 +2,7 @@
   <!-- 3 BLOCKS -->
   <div class="row g-3 mb-3">
     <!-- Block 1: Gate Devices -->
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-3">
       <app-gate-devices-block-component
         [t]="t"
         [gatePeripheral]="gatePeripheral"
@@ -14,7 +14,7 @@
     </div>
 
     <!-- Block 2: Issue Ticket -->
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-3">
       <app-issue-ticket-block-component
         [t]="t"
         [isRTL]="i18n.isRTL()"
@@ -41,7 +41,7 @@
     </div>
 
     <!-- Block 3: Tickets Table + Collect Summary -->
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-3">
       <app-tickets-table-block-component
         [t]="t"
         [isRTL]="i18n.isRTL()"
@@ -87,7 +87,8 @@
             <div class="d-flex justify-content-between mb-1">
               <span class="fw-semibold">{{ t('total_collected_amount') }}</span>
               <span class="mono">
-                {{ collectSummary.totalPriceCollected | number : '1.0-2' }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}
+                {{ collectSummary.totalPriceCollected | number : '1.0-2' }}
+                {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}
               </span>
             </div>
 
@@ -114,7 +115,9 @@
                   <tr *ngFor="let d of collectSummary.ticketCollectDetails">
                     <td class="mono">{{ d.ticketNumber }}</td>
                     <td>{{ d.collectedAt | date : 'short' }}</td>
-                    <td class="mono">{{ d.price | number : '1.0-2' }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}</td>
+                    <td class="mono">
+                      {{ d.price | number : '1.0-2' }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}
+                    </td>
                   </tr>
                 </tbody>
               </table>
@@ -133,6 +136,17 @@
           </div>
         </div>
       </div>
+    </div>
+
+    <!-- Block 1.5: Search Block -->
+    <div class="col-12 col-lg-3">
+      <app-search-block-component
+        [placeholder]="t('search_tickets_placeholder')"
+        [searching]="searchingTickets"
+        [results]="searchResults"
+        (searchQuery)="onSearchTickets($event)"
+        (resultSelected)="onTicketSelected($event)"
+      ></app-search-block-component>
     </div>
   </div>
 
@@ -218,7 +232,8 @@
             <div class="d-flex justify-content-between mb-1">
               <span class="fw-semibold">{{ t('total_collected_amount') }}</span>
               <span class="mono">
-                {{ collectSummary.totalPriceCollected | number : '1.0-2' }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}
+                {{ collectSummary.totalPriceCollected | number : '1.0-2' }}
+                {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}
               </span>
             </div>
 
@@ -245,7 +260,9 @@
                   <tr *ngFor="let d of collectSummary.ticketCollectDetails">
                     <td class="mono">{{ d.ticketNumber }}</td>
                     <td>{{ d.collectedAt | date : 'short' }}</td>
-                    <td class="mono">{{ d.price | number : '1.0-2' }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}</td>
+                    <td class="mono">
+                      {{ d.price | number : '1.0-2' }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}
+                    </td>
                   </tr>
                 </tbody>
               </table>

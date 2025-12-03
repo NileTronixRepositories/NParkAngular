@@ -1,0 +1,97 @@
+<div class="card h-100 shadow-soft search-card">
+  <!-- Header -->
+  <div class="card-header search-card__header">
+    <div class="search-card__title">
+      <div class="search-card__icon">
+        <i class="bi bi-search"></i>
+      </div>
+      <div class="search-card__text">
+        <div class="search-card__title-main">بحث سريع</div>
+        <div class="search-card__title-sub">ابحث برقم التذكرة، اللوحة، أو الكارت</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Body -->
+  <div class="card-body">
+    <!-- Search Input -->
+    <div class="search-input-wrapper">
+      <div class="input-group">
+        <span class="input-group-text">
+          <i class="bi bi-search"></i>
+        </span>
+
+        <input
+          type="text"
+          class="form-control search-input"
+          [(ngModel)]="searchText"
+          (ngModelChange)="onSearchInput($event)"
+          (focus)="onInputFocus()"
+          [placeholder]="placeholder"
+          autocomplete="off"
+        />
+
+        <button
+          *ngIf="searchText"
+          class="btn btn-outline-secondary"
+          type="button"
+          (click)="clearSearch()"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </div>
+
+      <!-- Loading Spinner -->
+      <div *ngIf="searching" class="search-loading">
+        <span class="spinner-border spinner-border-sm me-2"></span>
+        <span class="small text-muted">جاري البحث...</span>
+      </div>
+    </div>
+
+    <!-- Results as horizontal "strips" -->
+    <div *ngIf="showResults" class="search-results">
+      <ng-container *ngIf="results.length > 0; else emptyState">
+        <div
+          class="result-item"
+          *ngFor="let ticket of results; trackBy: trackByTicketNumber"
+          (click)="selectResult(ticket)"
+        >
+          <div class="result-main">
+            <div class="result-main-left">
+              <span class="result-id mono">
+                {{ ticket.ticketNumber || ticket.id }}
+              </span>
+
+              <span
+                class="result-status"
+                [class.result-status--collected]="ticket.isCollectedByCashier"
+              >
+                {{ ticket.isCollectedByCashier ? 'مُحصّلة' : 'غير مُحصّلة' }}
+              </span>
+            </div>
+
+            <div class="result-main-right" *ngIf="ticket.price !== undefined">
+              <span class="result-price"> {{ ticket.price | number : '1.0-0' }} ر.س </span>
+            </div>
+          </div>
+
+          <div class="result-details">
+            <span class="small text-muted">
+              <i class="bi bi-clock"></i>
+              {{ ticket.time | date : 'short' }}
+            </span>
+
+            <span class="small text-muted" *ngIf="ticket.info"> • {{ ticket.info }} </span>
+          </div>
+        </div>
+      </ng-container>
+
+      <ng-template #emptyState>
+        <div class="empty-state">
+          <i class="bi bi-inbox fs-4 text-muted opacity-50"></i>
+          <div class="small text-muted mt-2">لا توجد نتائج</div>
+        </div>
+      </ng-template>
+    </div>
+  </div>
+</div>

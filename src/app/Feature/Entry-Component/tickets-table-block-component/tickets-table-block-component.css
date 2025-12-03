@@ -193,7 +193,13 @@
   border-radius: 999px;
 }
 
-/* فونت mono */
+/* mono */
 :host-context(.tickets-theme) .mono {
   font-family: var(--ticket-font-mono);
+}
+:host-context(.tickets-theme) .tickets-collect-btn {
+  padding-inline: 0.5rem;
+  padding-block: 0.1rem;
+  font-size: 0.75rem;
+  border-radius: 999px;
 }

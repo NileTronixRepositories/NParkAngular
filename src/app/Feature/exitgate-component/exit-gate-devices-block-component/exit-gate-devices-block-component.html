@@ -15,7 +15,13 @@
             <i class="bi bi-pc-display text-muted"></i>
             <span class="device-name">{{ 'pc_device' | t }}</span>
           </div>
-          <span class="badge pill" [class.bg-success-subtle]="gp.hasPc" [class.text-success]="gp.hasPc" [class.bg-danger-subtle]="!gp.hasPc" [class.text-danger]="!gp.hasPc">
+          <span
+            class="badge pill"
+            [class.bg-success-subtle]="gp.hasPc"
+            [class.text-success]="gp.hasPc"
+            [class.bg-danger-subtle]="!gp.hasPc"
+            [class.text-danger]="!gp.hasPc"
+          >
             {{ gp.hasPc ? ('device_connected' | t) : ('device_not_connected' | t) }}
           </span>
         </div>
@@ -32,13 +38,50 @@
             <i class="bi bi-camera-video text-muted"></i>
             <span class="device-name">{{ 'lpr_device' | t }}</span>
           </div>
-          <span class="badge pill" [class.bg-success-subtle]="gp.hasLpr" [class.text-success]="gp.hasLpr" [class.bg-danger-subtle]="!gp.hasLpr" [class.text-danger]="!gp.hasLpr">
+          <span
+            class="badge pill"
+            [class.bg-success-subtle]="gp.hasLpr"
+            [class.text-success]="gp.hasLpr"
+            [class.bg-danger-subtle]="!gp.hasLpr"
+            [class.text-danger]="!gp.hasLpr"
+          >
             {{ gp.hasLpr ? ('device_connected' | t) : ('device_not_connected' | t) }}
           </span>
         </div>
 
         <div class="mt-1" *ngIf="gp.lprIp">
           <span class="device-ip mono">{{ gp.lprIp }}</span>
+        </div>
+      </div>
+
+      <!-- Ticket Number Search Section -->
+      <div class="ticket-search-section mt-3 pt-3 border-top">
+        <label class="form-label small fw-semibold">
+          {{ 'search_ticket_number' | t }}
+        </label>
+        <div class="input-group input-group-sm">
+          <input
+            type="text"
+            class="form-control mono"
+            [(ngModel)]="ticketNumber"
+            [placeholder]="'ticket_number_placeholder' | t"
+            (keyup.enter)="searchTicketByNumber()"
+          />
+          <button
+            class="btn btn-outline-primary"
+            type="button"
+            (click)="searchTicketByNumber()"
+            [disabled]="!canSearchTicket"
+            [title]="'search_ticket' | t"
+          >
+            <span *ngIf="!searchingTicket">
+              <i class="bi bi-search"></i>
+            </span>
+            <span *ngIf="searchingTicket" class="spinner-border spinner-border-sm"></span>
+          </button>
+        </div>
+        <div class="small text-muted mt-1">
+          {{ 'search_ticket_hint' | t }}
         </div>
       </div>
     </ng-container>

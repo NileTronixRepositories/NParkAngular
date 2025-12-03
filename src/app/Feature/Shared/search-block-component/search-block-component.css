@@ -1,0 +1,159 @@
+.search-card {
+  border: 1px solid var(--border, #e5e7eb);
+  border-radius: 12px;
+}
+
+.search-card__header {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  padding: 1rem;
+  border-radius: 12px 12px 0 0;
+  border: none;
+}
+
+.search-card__title {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.search-card__icon {
+  font-size: 1.5rem;
+  opacity: 0.9;
+}
+
+.search-card__title-main {
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.search-card__title-sub {
+  font-size: 0.75rem;
+  opacity: 0.85;
+}
+
+.search-input-wrapper {
+  position: relative;
+}
+
+.search-input {
+  border-radius: 8px;
+  padding: 0.5rem 1rem;
+  font-size: 0.95rem;
+}
+
+.search-input:focus {
+  box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.search-loading {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem 0.25rem;
+  margin-top: 0.5rem;
+}
+
+/* هنا النتائج جوه البلوك مش absolute */
+.search-results {
+  margin-top: 0.75rem;
+  border-radius: 10px;
+  border: 1px solid #e5e7eb;
+  background: #ffffff;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+/* strip style */
+.result-item {
+  padding: 0.7rem 0.9rem;
+  cursor: pointer;
+  border-bottom: 1px solid #f3f4f6;
+  transition: background-color 0.16s ease, transform 0.08s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  position: relative;
+}
+
+.result-item::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 0;
+  top: 0.4rem;
+  bottom: 0.4rem;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #667eea, #764ba2);
+}
+
+.result-item:last-child {
+  border-bottom: none;
+}
+
+.result-item:hover {
+  background-color: #f9fafb;
+  transform: translateY(-1px);
+}
+
+.result-main {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.result-main-left {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.result-main-right {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.result-id {
+  font-family: 'Courier New', monospace;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #111827;
+}
+
+.result-status {
+  font-size: 0.7rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: #fee2e2;
+  color: #b91c1c;
+}
+
+.result-status--collected {
+  background: #dcfce7;
+  color: #15803d;
+}
+
+.result-price {
+  font-size: 0.8rem;
+  color: #4b5563;
+}
+
+.result-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-inline-start: 0.5rem;
+}
+
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 1.5rem;
+  color: #9ca3af;
+}
+
+.mono {
+  font-family: 'Courier New', Courier, monospace;
+}

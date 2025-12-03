@@ -11,6 +11,9 @@
 
 app-footer-component {
   margin-top: auto;
+  display: block;
+  width: 100%;
+  z-index: 10;
 }
 
 .floating-logo {

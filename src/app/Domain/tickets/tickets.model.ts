@@ -37,11 +37,20 @@ export interface TicketDetailsDto {
   totalPrice: number;
 }
 
+/**
+ * Raw row from API used for entry/exit tables
+ */
 export interface TicketEntryDto {
   startDate: string;
-  id?: string; // Internal GUID
-  ticketId?: string; // Alternative Internal GUID field
+
+  // Internal GUIDs
+  id?: string;
+  Id?: string;
+  ticketId?: string;
+  TicketId?: string;
+
   ticketNumber: string;
+
   price: number;
   isCollectedByCashier: boolean;
 
@@ -60,6 +69,9 @@ export interface TicketEntryDto {
 
   plate?: string;
   Plate?: string;
+
+  gate?: string;
+  Gate?: string;
 }
 
 export interface TicketTableResponseDto {
@@ -92,9 +104,11 @@ export interface CollectDailyTicketsResponse {
   gateId: number;
   gateName: string;
   date: string;
+
   totalAmount: number;
   totalPriceCollected: number;
   totalTicketsCollected: number;
+
   ticketCollectDetails: {
     collectedAt: string;
     ticketNumber: string;
@@ -103,7 +117,7 @@ export interface CollectDailyTicketsResponse {
 }
 
 export interface CalculateSalaryResponse {
-  ticketId: string; 
+  ticketId: string;
   totalSalary: number;
   enterDate: string;
   isExitValid: boolean;

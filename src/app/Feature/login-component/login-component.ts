@@ -1,7 +1,15 @@
 import { Component, Inject, inject } from '@angular/core';
+import {
+  AbstractControl,
+  FormBuilder,
+  ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
+  Validators,
+} from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { FormBuilder, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+
 import { AuthService } from '../../Services/Auth/auth-service';
 import { ToastServices } from '../../Services/Toster/toast-services';
 import { LanguageService } from '../../Services/i18n/language-service';
@@ -88,6 +96,7 @@ import { GateComponent } from '../gate-component/gate-component';
   ],
 })
 export class LoginComponent {
+  // ====== DI ======
   private fb = inject(FormBuilder);
   private auth = inject(AuthService);
   private router = inject(Router);
@@ -95,11 +104,31 @@ export class LoginComponent {
   private toast = inject(ToastServices);
   public lang = inject(LanguageService);
 
+  // ====== UI State ======
   loading = false;
   showPassword = false;
   errorToast: string | null = null;
   GateType = GateType;
 
+  showGatePopup = false;
+  showChangeModal = false;
+  changeLoading = false;
+  changeError: string | null = null;
+
+  showOldPwd = false;
+  showNewPwd = false;
+  showConfirmPwd = false;
+
+  // ====== Validators ======
+  readonly passwordsMatchValidator: ValidatorFn = (
+    group: AbstractControl
+  ): ValidationErrors | null => {
+    const newPwd = group.get('newPassword')?.value;
+    const confirmPwd = group.get('confirmPassword')?.value;
+    return newPwd === confirmPwd ? null : { mismatch: true };
+  };
+
+  // ====== Forms ======
   form = this.fb.group({
     username: ['', [Validators.required]],
     password: ['', [Validators.required]],
@@ -108,12 +137,6 @@ export class LoginComponent {
     gateNumber: [1, [Validators.required, Validators.min(1)]],
   });
 
-  showGatePopup = false;
-  showChangeModal = false;
-  changeLoading = false;
-  changeError: string | null = null;
-
-  // === First-time change form: 4 fields ===
   changeForm = this.fb.group(
     {
       userName: ['', [Validators.required]],
@@ -121,28 +144,24 @@ export class LoginComponent {
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
     },
-    { validators: this.passwordsMatch }
+    { validators: this.passwordsMatchValidator }
   );
 
   constructor(@Inject(I18N_DICT) private dict: I18nDict) {}
 
-  private t(key: string) {
+  // ترجمة بسيطة من الـ dict المحلي
+  private t(key: string): string {
     return this.dict[this.lang.current]?.[key] ?? key;
   }
 
-  passwordsMatch(group: any) {
-    const newPwd = group.get('newPassword')?.value;
-    const confirmPwd = group.get('confirmPassword')?.value;
-    return newPwd === confirmPwd ? null : { mismatch: true };
-  }
-
+  // ====== Helpers ======
   roleIsGateCashier(): boolean {
     const role = this.auth.role;
     return role === 'EntranceCashier' || role === 'ExitCashier' || role === 'Supervisor';
   }
 
-  // ========== SUBMIT LOGIN ==========
-  submit() {
+  // ====== SUBMIT LOGIN ======
+  submit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
@@ -151,13 +170,12 @@ export class LoginComponent {
     const username = (this.form.value.username ?? '').trim();
     const password = this.form.value.password ?? '';
 
-    // 🎯 الحالة الخاصة: Admin / Admin123 → افتح Modal بس، بدون API
+    // Admin / Admin123 → First-time modal فقط (لا تغيير في اللوجيك)
     if (username === 'Admin' && password === 'Admin123') {
       this.openFirstTimeModal(username, password);
       return;
     }
 
-    // 🔁 باقي الحالات → login عادي
     this.loading = true;
 
     const dto = {
@@ -174,19 +192,18 @@ export class LoginComponent {
         this.toast?.success?.(this.t('successLogin'));
         this.navigateAfterLogin();
       },
-      error: (err: any) => {
+      error: (err: unknown) => {
         this.loading = false;
         this.toast?.fromProblem?.(err);
       },
     });
   }
 
-  private openFirstTimeModal(username: string, password: string) {
+  private openFirstTimeModal(username: string, password: string): void {
     this.showChangeModal = true;
     this.changeError = null;
     this.changeLoading = false;
 
-    // نملأ الفورم الأولية من شاشة اللوجين
     this.changeForm.reset({
       userName: username,
       password: password,
@@ -197,7 +214,7 @@ export class LoginComponent {
     this.toast?.success?.(this.t('tempPasswordNotice'));
   }
 
-  navigateAfterLogin() {
+  navigateAfterLogin(): void {
     const role = this.auth.role;
 
     if (role === 'EntranceCashier' || role === 'ExitCashier' || role === 'Supervisor') {
@@ -214,8 +231,8 @@ export class LoginComponent {
     this.router.navigate(['/overview']);
   }
 
-  // ========== SUBMIT FIRST-TIME CREDENTIALS ==========
-  saveNewCredentials() {
+  // ====== SUBMIT FIRST-TIME CREDENTIALS ======
+  saveNewCredentials(): void {
     if (this.changeForm.invalid) {
       this.changeForm.markAllAsTouched();
       return;
@@ -239,7 +256,7 @@ export class LoginComponent {
     this.changeError = null;
     this.changeLoading = true;
 
-    const body = {
+    const body: LoginFirstTimeCommand = {
       userName,
       password,
       newPassword,
@@ -250,15 +267,12 @@ export class LoginComponent {
       next: (res) => {
         this.changeLoading = false;
 
-        // ✅ نجاح: 204 No Content
-        if (res.status === 204) {
+        if (res.status === 204 || (res.status >= 200 && res.status < 300)) {
           this.toast?.success?.(this.t('successPwdUpdated'));
         } else {
-          // لو الـ API رجّع 200 أو أي 2xx تاني
           this.toast?.success?.(this.t('successPwdUpdated'));
         }
 
-        // نرجّعه لشاشة اللوجين: نقفل المودال + نعمل Reset للفورم الأساسية
         this.showChangeModal = false;
 
         this.form.reset({
@@ -272,19 +286,19 @@ export class LoginComponent {
       error: (err: any) => {
         this.changeLoading = false;
 
-        // نستخرج رسالة الخطأ من الـ API (لو موجودة)
         const apiMessage =
-          err?.error?.message || err?.error?.detail || 'حدث خطأ أثناء تغيير كلمة المرور';
+          err?.error?.message || err?.error?.detail || this.t('adminFirstTimeMissing');
 
-        // نعرضها للـ User
-        this.toast?.fromProblem ? this.toast.fromProblem(err) : this.toast?.success?.(apiMessage); // fallback بسيط لو مفيش fromProblem
+        if (this.toast?.fromProblem) {
+          this.toast.fromProblem(err);
+        } else {
+          this.toast?.success?.(apiMessage);
+        }
 
-        // برضه نرجّعه لشاشة اللوجين: نقفل المودال
         this.showChangeModal = false;
 
-        // تقدر تختار تعمل Reset للفورم أو تسيب الـ username زي ما هو:
         this.form.reset({
-          username: userName, // أو خليه فاضي لو حابب
+          username: userName,
           password: '',
           remember: true,
           gateType: this.GateType.Entrance,

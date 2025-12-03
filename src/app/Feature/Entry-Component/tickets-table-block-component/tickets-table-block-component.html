@@ -1,4 +1,5 @@
 <div class="card h-100 shadow-soft tickets-card">
+  <!-- Header -->
   <div class="card-header tickets-card__header">
     <div class="tickets-card__title">
       <div class="tickets-card__icon">
@@ -24,6 +25,7 @@
     </div>
   </div>
 
+  <!-- Body -->
   <div class="card-body p-0 d-flex flex-column">
     <div class="tickets-table-wrapper">
       <div class="table-responsive tickets-table-scroll">
@@ -37,12 +39,17 @@
           </thead>
 
           <tbody>
-            <tr *ngFor="let ticket of pageItems" class="tickets-row">
+            <tr *ngFor="let ticket of pageItems; trackBy: trackByTicket" class="tickets-row">
+              <!-- Col 1: Ticket / Customer info -->
               <td>
-                <ng-container *ngIf="ticket.info as ti; else structuredInfo">
-                  <span class="mono tickets-id">{{ ti }}</span>
+                <!-- لو info موجودة نعرضها كـ mono ID -->
+                <ng-container *ngIf="ticket.info; else structuredInfo">
+                  <span class="mono tickets-id">
+                    {{ ticket.info }}
+                  </span>
                 </ng-container>
 
+                <!-- عرض structured info (اسم – موبايل – كارت) -->
                 <ng-template #structuredInfo>
                   <ng-container
                     *ngIf="
@@ -62,29 +69,61 @@
                   </ng-container>
                 </ng-template>
 
+                <!-- fallback: TicketNumber / Id -->
                 <ng-template #fallbackId>
-                  <span class="mono tickets-id">{{ ticket.ticketNumber || ticket.id }}</span>
+                  <span class="mono tickets-id">
+                    {{ ticket.ticketNumber || ticket.id }}
+                  </span>
                 </ng-template>
               </td>
 
+              <!-- Col 2: Time -->
               <td class="text-center text-muted">
                 {{ ticket.time | date : 'shortTime' }}
               </td>
 
+              <!-- Col 3: Fees + Collect -->
               <td class="text-end">
-                <span class="mono tickets-amount">
-                  {{ ticket.price ?? 0 | number : '1.0-2' }} {{ isRTL ? 'ج.م' : 'EGP' }}
-                </span>
+                <div class="d-flex flex-column align-items-end gap-1">
+                  <div>
+                    <span class="mono tickets-amount">
+                      {{ ticket.price ?? 0 | number : '1.0-2' }}
+                      {{ isRTL ? 'ج.م' : 'EGP' }}
+                    </span>
 
-                <span *ngIf="ticket.isCollectedByCashier" class="badge bg-success-soft ms-1">
-                  {{ t('cashier_collected_short') }}
-                </span>
+                    <span *ngIf="ticket.isCollectedByCashier" class="badge bg-success-soft ms-1">
+                      {{ t('cashier_collected_short') }}
+                    </span>
+                  </div>
+
+                  <!-- <button
+                    *ngIf="!ticket.isCollectedByCashier"
+                    class="btn btn-sm btn-outline-success tickets-collect-btn"
+                    [disabled]="isCollecting(ticket.id) || loading"
+                    (click)="onCollectClick(ticket.id); $event.stopPropagation()"
+                  >
+                    <ng-container *ngIf="!isCollecting(ticket.id); else collectingSpinner">
+                      {{ t('collect') }}
+                    </ng-container>
+                    <ng-template #collectingSpinner>
+                      <span class="spinner-border spinner-border-sm"></span>
+                    </ng-template>
+                  </button> -->
+                </div>
               </td>
             </tr>
 
+            <!-- Empty state -->
             <tr *ngIf="!pageItems.length && !loading">
               <td colspan="3" class="text-center text-muted py-4">
                 {{ t('no_tickets') }}
+              </td>
+            </tr>
+
+            <!-- Loading state -->
+            <tr *ngIf="loading">
+              <td colspan="3" class="text-center py-4">
+                <span class="spinner-border spinner-border-sm"></span>
               </td>
             </tr>
           </tbody>
@@ -92,6 +131,7 @@
       </div>
     </div>
 
+    <!-- Footer -->
     <div
       class="tickets-footer d-flex justify-content-between align-items-center p-2 border-top mt-auto flex-wrap gap-2"
     >

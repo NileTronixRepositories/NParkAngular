@@ -20,7 +20,6 @@
     monospace;
 }
 
-/* Cards عامة */
 .tickets-theme .shadow-soft {
   box-shadow: var(--ticket-shadow-soft);
   border: 0;

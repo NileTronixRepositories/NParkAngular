@@ -10,12 +10,15 @@
     <!-- QR preview / placeholder -->
     <div class="qr-preview">
       <ng-container *ngIf="currentIssuedQr; else noQr">
+        <!-- الحالة العادية: صورة جاهزة (data:image/...) -->
         <img
-          *ngIf="currentIssuedQrType === 'image'"
+          *ngIf="currentIssuedQrType === 'image' || !currentIssuedQrType"
           [src]="currentIssuedQr"
           alt="Ticket QR"
           class="img-fluid rounded border"
         />
+
+        <!-- في حال جالك نص أو base64 بدون prefix -->
         <img
           *ngIf="currentIssuedQrType === 'text'"
           [src]="qrDataUrl(currentIssuedQr!)"
@@ -54,15 +57,16 @@
         <input
           type="text"
           class="form-control form-control-sm flex-grow-1"
-          [(ngModel)]="card"
+          [(ngModel)]="cardNumber"
+          (ngModelChange)="onCardNumberChange($event)"
           [placeholder]="t('cardNumber')"
         />
       </div>
     </div>
 
-    <div class="mt-1 small text-muted" *ngIf="card">
+    <div class="mt-1 small text-muted" *ngIf="cardNumber">
       {{ t('cardNumber') }}:
-      <span class="mono">{{ card }}</span>
+      <span class="mono">{{ cardNumber }}</span>
     </div>
 
     <!-- Card summary + Subscriber -->
@@ -133,7 +137,7 @@
               type="button"
               class="btn btn-sm btn-primary"
               (click)="onCreateSubscriberTicket()"
-              [disabled]="adding || !card.trim()"
+              [disabled]="adding || !cardNumber || !cardNumber.trim()"
             >
               <i class="bi bi-plus-circle"></i>
               <span class="ms-1">{{ t('issue_ticket_subscriber') }}</span>
@@ -165,7 +169,9 @@
         <div class="d-flex justify-content-between" *ngIf="lastIssuedPrice !== null">
           <span class="small fw-semibold">{{ t('price') }}</span>
           <div class="d-flex align-items-center gap-2">
-            <span class="mono">{{ lastIssuedPrice | number : '1.0-2' }} {{ isRTL ? 'ج.م' : 'EGP' }}</span>
+            <span class="mono">
+              {{ lastIssuedPrice | number : '1.0-2' }} {{ isRTL ? 'ج.م' : 'EGP' }}
+            </span>
             <span *ngIf="lastIssuedCollected" class="badge bg-success">
               {{ t('cashier_collected_short') }}
             </span>

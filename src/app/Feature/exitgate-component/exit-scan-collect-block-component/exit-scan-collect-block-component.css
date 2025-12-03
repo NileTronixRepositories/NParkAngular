@@ -38,7 +38,7 @@
   color: var(--muted);
 }
 
-/* summary block after scan */
+/* summary block بعد scan */
 :host .summary {
   background: #fff;
   border: 1px solid var(--border);

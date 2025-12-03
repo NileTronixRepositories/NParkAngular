@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, Output } from '@angular/core';
+import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { TicketDto, CollectDailyTicketsResponse } from '../../../Domain/tickets/tickets.model';
 import { TranslatePipePipe } from '../../../Services/i18n/translate-pipe-pipe';
 import { CommonModule } from '@angular/common';
@@ -6,11 +6,14 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-exit-tickets-table-block-component',
+  standalone: true,
   imports: [TranslatePipePipe, CommonModule, FormsModule],
   templateUrl: './exit-tickets-table-block-component.html',
   styleUrl: './exit-tickets-table-block-component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExitTicketsTableBlockComponent {
+  // ========== Inputs ==========
   @Input() tickets: TicketDto[] = [];
   @Input() page = 1;
   @Input() pageSize = 10;
@@ -24,9 +27,10 @@ export class ExitTicketsTableBlockComponent {
   @Input() supervisorCollectError: string | null = null;
 
   @Input() showSupervisorCollectModal = false;
-  @Input() supervisorUsername: string = '';
-  @Input() supervisorPassword: string = '';
+  @Input() supervisorUsername = '';
+  @Input() supervisorPassword = '';
 
+  // ========== Outputs ==========
   @Output() pageChange = new EventEmitter<number>();
   @Output() collectClick = new EventEmitter<void>();
   @Output() collectSummaryClose = new EventEmitter<void>();
@@ -39,56 +43,81 @@ export class ExitTicketsTableBlockComponent {
 
   Math = Math;
 
+  // ========== Getters ==========
   get currentDate(): Date {
     return new Date();
   }
 
-  pageItems() {
+  get hasTickets(): boolean {
+    return (this.tickets?.length ?? 0) > 0;
+  }
+
+  get pageItems(): TicketDto[] {
+    if (!this.tickets?.length) return [];
     const start = (this.page - 1) * this.pageSize;
     return this.tickets.slice(start, start + this.pageSize);
   }
 
-  pagesCount() {
-    return Math.max(1, Math.ceil(this.tickets.length / this.pageSize));
+  get pagesCount(): number {
+    const total = this.tickets?.length ?? 0;
+    return Math.max(1, Math.ceil(total / this.pageSize || 1));
   }
 
-  onPrev() {
-    if (this.page > 1) {
-      this.pageChange.emit(this.page - 1);
-    }
+  get canGoPrev(): boolean {
+    return this.page > 1;
   }
 
-  onNext() {
-    if (this.page < this.pagesCount()) {
-      this.pageChange.emit(this.page + 1);
-    }
+  get canGoNext(): boolean {
+    return this.page < this.pagesCount;
   }
 
-  onCollectClick() {
+  get rangeStart(): number {
+    return this.hasTickets ? (this.page - 1) * this.pageSize + 1 : 0;
+    // 👆 كده مش هنشوف 1–0 لما مفيش تذاكر
+  }
+
+  get rangeEnd(): number {
+    return this.hasTickets ? Math.min(this.page * this.pageSize, this.tickets.length) : 0;
+  }
+
+  // ========== Pagination actions ==========
+  onPrev(): void {
+    if (!this.canGoPrev) return;
+    this.pageChange.emit(this.page - 1);
+  }
+
+  onNext(): void {
+    if (!this.canGoNext) return;
+    this.pageChange.emit(this.page + 1);
+  }
+
+  // ========== Collect today & summary ==========
+  onCollectClick(): void {
     this.collectClick.emit();
   }
 
-  onCollectSummaryClose() {
+  onCollectSummaryClose(): void {
     this.collectSummaryClose.emit();
   }
 
-  onSupervisorUsernameChange(value: string) {
+  // ========== Supervisor modal bindings ==========
+  onSupervisorUsernameChange(value: string): void {
     this.supervisorUsernameChange.emit(value);
   }
 
-  onSupervisorPasswordChange(value: string) {
+  onSupervisorPasswordChange(value: string): void {
     this.supervisorPasswordChange.emit(value);
   }
 
-  onSubmitSupervisorCollect() {
+  onSubmitSupervisorCollect(): void {
     this.submitSupervisorCollect.emit();
   }
 
-  onCloseSupervisorCollectModal() {
+  onCloseSupervisorCollectModal(): void {
     this.closeSupervisorCollectModal.emit();
   }
 
-  onFinishSupervisorCollect() {
+  onFinishSupervisorCollect(): void {
     this.finishSupervisorCollect.emit();
   }
 }

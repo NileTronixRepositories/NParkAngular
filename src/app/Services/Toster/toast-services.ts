@@ -15,7 +15,16 @@ export class ToastServices {
     return this.lang.current ?? 'ar';
   }
 
-  private defaultTitles = {
+  private readonly defaultTitles: Record<
+    AppLang,
+    {
+      success: string;
+      warn: string;
+      error: string;
+      unexpected: string;
+      unknown: string;
+    }
+  > = {
     ar: {
       success: 'تم بنجاح',
       warn: 'تحذير',
@@ -32,6 +41,7 @@ export class ToastServices {
     },
   };
 
+  // ========== BASIC TOASTS ==========
   success(message: string, title?: string) {
     const lang = this.currentLang();
     this.toastr.success(message, title ?? this.defaultTitles[lang].success);
@@ -47,49 +57,88 @@ export class ToastServices {
     this.toastr.error(message, title ?? this.defaultTitles[lang].error);
   }
 
+  // ========== UNIFIED ERROR HANDLER ==========
+
   fromProblem(err: any) {
     const lang = this.currentLang();
     const t = this.defaultTitles[lang];
 
-    try {
-      const pd = err?.error;
-      if (!pd) {
-        this.error(t.unexpected);
-        return;
-      }
-
-      const title = pd.title || t.error;
-      const detail = pd.detail || pd.message || '';
-
-      const errors = pd.errors;
-
-      // errors: [{ code, message, ... }]
-      if (Array.isArray(errors) && errors.length) {
-        for (const e of errors) {
-          this.error(e.message || e.code || detail || title, title);
-        }
-        return;
-      }
-
-      if (errors && typeof errors === 'object') {
-        for (const key of Object.keys(errors)) {
-          const msgs = errors[key];
-          if (Array.isArray(msgs)) {
-            msgs.forEach((m: any) => this.error(m || detail || title, key));
-          } else if (msgs) {
-            this.error(msgs.toString(), key);
-          }
-        }
-        return;
-      }
-
-      if (detail) {
-        this.error(detail, title);
-      } else {
-        this.error(title);
-      }
-    } catch {
-      this.error(t.unknown);
+    if (!err) {
+      this.error(t.unexpected, t.error);
+      return;
     }
+
+    const backendMessage = this.extractBackendMessage(err);
+
+    if (backendMessage) {
+      this.toastr.error(backendMessage, t.error);
+      return;
+    }
+
+    const status = err?.status;
+
+    if (status === 0) {
+      this.error(lang === 'ar' ? 'لا يوجد اتصال بالخادم' : 'Cannot connect to server', t.error);
+      return;
+    }
+
+    if (status >= 500) {
+      this.error(lang === 'ar' ? 'حدث خطأ في الخادم' : 'Server error occurred', t.error);
+      return;
+    }
+
+    if (status === 404) {
+      this.error(
+        lang === 'ar' ? 'لم يتم العثور على البيانات المطلوبة' : 'Requested resource not found',
+        t.error
+      );
+      return;
+    }
+
+    this.error(t.unexpected, t.error);
+  }
+
+  // ========== PRIVATE HELPERS ==========
+
+  private extractBackendMessage(err: any): string | null {
+    const response = err?.error ?? err;
+
+    if (!response || typeof response !== 'object') {
+      return null;
+    }
+
+    if (typeof response.detail === 'string' && response.detail.trim()) {
+      return response.detail.trim();
+    }
+
+    // 2) errors:
+    if (Array.isArray(response.errors) && response.errors.length > 0) {
+      const first = response.errors[0];
+
+      if (typeof first === 'string' && first.trim()) {
+        return first.trim();
+      }
+
+      if (first && typeof first === 'object') {
+        const msgFromErrorObj =
+          (first.message && String(first.message).trim()) ||
+          (first.description && String(first.description).trim());
+
+        if (msgFromErrorObj) {
+          return msgFromErrorObj;
+        }
+      }
+    }
+
+    const possibleKeys = ['message', 'Message', 'error', 'title', 'description'];
+
+    for (const key of possibleKeys) {
+      const val = (response as any)[key];
+      if (typeof val === 'string' && val.trim()) {
+        return val.trim();
+      }
+    }
+
+    return null;
   }
 }

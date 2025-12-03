@@ -6,6 +6,7 @@
   background: #fff;
 }
 
+/* Status colors */
 :host-context(.tickets-theme) .theme-green {
   background: var(--ticket-green-soft);
   color: var(--ticket-green);
@@ -18,7 +19,18 @@
   border-color: var(--ticket-red-soft-border);
 }
 
-    /* Mono font helper (لو استخدمته في الـ IP) */
+/* Mono font helper (IP, plate, ...) */
 :host-context(.tickets-theme) .mono {
   font-family: var(--ticket-font-mono);
+}
+
+/* Optional: tweak manual LPR input layout if needed */
+:host-context(.tickets-theme) .manual-lpr-input-group {
+  max-width: 260px;
+}
+
+:host-context(.tickets-theme) .manual-lpr-input {
+  font-family: var(--ticket-font-mono);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }

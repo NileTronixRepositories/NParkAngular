@@ -40,7 +40,7 @@
             <input
               type="text"
               class="form-control manual-lpr-input"
-              [ngModel]="lprPlate"
+              [ngModel]="manualLprPlate"
               (ngModelChange)="onPlateChange($event)"
               [placeholder]="t('plate')"
             />
@@ -48,8 +48,8 @@
               class="btn btn-outline-primary"
               type="button"
               (click)="onCreateTicketClicked()"
-              [disabled]="adding || !lprPlate.trim()"
-              title="إصدار تذكرة بالرقم المدخل"
+              [disabled]="adding || !manualLprPlate.trim()"
+              [title]="t('create_ticket')"
             >
               <i class="bi bi-send"></i>
             </button>

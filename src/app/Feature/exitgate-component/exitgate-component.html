@@ -6,14 +6,15 @@
 >
   <div class="row g-3 mb-3">
     <!-- Block 1: Gate Devices + Manual Plate -->
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-3">
       <app-exit-gate-devices-block-component
         [gatePeripheral]="gatePeripheral"
+        (searchTicketNumber)="onSearchTicketNumber($event)"
       ></app-exit-gate-devices-block-component>
     </div>
 
     <!-- Block 2: Scan & Collect (Exit) -->
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-3">
       <app-exit-scan-collect-block-component
         [scanningQR]="scanningQR"
         [scanning]="scanning"
@@ -43,7 +44,7 @@
     </div>
 
     <!-- Block 3: Tickets table (OUT) + Collect Today + Supervisor Modal -->
-    <div class="col-12 col-lg-4">
+    <div class="col-12 col-lg-3">
       <app-exit-tickets-table-block-component
         [tickets]="filtered"
         [page]="page"
@@ -66,6 +67,16 @@
         (closeSupervisorCollectModal)="closeSupervisorCollectModal()"
         (finishSupervisorCollect)="finishSupervisorCollect()"
       ></app-exit-tickets-table-block-component>
+    </div>
+    <!-- Block 1.5: Search Block -->
+    <div class="col-12 col-lg-3">
+      <app-search-block-component
+        [placeholder]="t('search_tickets_placeholder')"
+        [searching]="searchingTickets"
+        [results]="searchResults"
+        (searchQuery)="onSearchTickets($event)"
+        (resultSelected)="onTicketSelected($event)"
+      ></app-search-block-component>
     </div>
   </div>
 </div>
