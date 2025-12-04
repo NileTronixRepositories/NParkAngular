@@ -5,6 +5,7 @@ import {
   Output,
   EventEmitter,
   ChangeDetectionStrategy,
+  ChangeDetectorRef,
 } from '@angular/core';
 import { GateDevicePeripheral } from '../../../Domain/Auth/auth.models';
 import { CommonModule } from '@angular/common';
@@ -15,6 +16,8 @@ import { LanguageService } from '../../../Services/i18n/language-service';
 import { TicketsServices } from '../../../Services/Tickets/tickets-services';
 import { ToastServices } from '../../../Services/Toster/toast-services';
 import { TicketDto } from '../../../Domain/tickets/tickets.model';
+import { Subject } from 'rxjs';
+import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
   selector: 'app-exit-gate-devices-block-component',
@@ -27,6 +30,7 @@ import { TicketDto } from '../../../Domain/tickets/tickets.model';
 export class ExitGateDevicesBlockComponent {
   @Input() gatePeripheral: GateDevicePeripheral | null = null;
   @Output() ticketSelected = new EventEmitter<TicketDto>();
+  @Output() searchTicketNumber = new EventEmitter<string>();
 
   // Manual plate capture
   manualPlate = '';
@@ -35,14 +39,23 @@ export class ExitGateDevicesBlockComponent {
   // Ticket number search
   ticketNumber = '';
   searchingTicket = false;
-  @Output() searchTicketNumber = new EventEmitter<string>();
+  searchResults: TicketDto[] = [];
+  showResults = false;
+
+  private searchSubject = new Subject<string>();
 
   constructor(
     public lang: LanguageService,
     @Inject(I18N_DICT) private readonly dict: I18nDict,
     private readonly ticketsSvc: TicketsServices,
-    private readonly toast: ToastServices
-  ) {}
+    private readonly toast: ToastServices,
+    private readonly cdr: ChangeDetectorRef
+  ) {
+    // Debounce search like Quick Search
+    this.searchSubject.pipe(debounceTime(300), distinctUntilChanged()).subscribe((query) => {
+      this.performSearch(query);
+    });
+  }
 
   t(key: string): string {
     return this.dict[this.lang.current]?.[key] ?? key;
@@ -66,26 +79,83 @@ export class ExitGateDevicesBlockComponent {
       next: (_ok) => {
         this.toast.success(this.t('send_manual_plate'));
         this.manualPlate = '';
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('submitManualPlate error', err);
         this.toast.fromProblem(err);
+        this.cdr.markForCheck();
       },
       complete: () => {
         this.manualPlateSubmitting = false;
+        this.cdr.markForCheck();
       },
     });
   }
 
+  onSearchInput(value: string): void {
+    this.ticketNumber = value;
+    this.searchSubject.next(value);
+    this.showResults = !!value.trim();
+    this.cdr.markForCheck();
+  }
+
   searchTicketByNumber(): void {
     const number = this.ticketNumber?.trim();
-    if (!number || this.searchingTicket) return;
+    if (!number) return;
+
+    this.searchSubject.next(number);
+  }
+
+  private performSearch(query: string): void {
+    if (!query?.trim()) {
+      this.searchResults = [];
+      this.showResults = false;
+      this.cdr.markForCheck();
+      return;
+    }
 
     this.searchingTicket = true;
-    this.searchTicketNumber.emit(number);
+    this.cdr.markForCheck();
 
-    setTimeout(() => {
-      this.searchingTicket = false;
-    }, 1000);
+    this.ticketsSvc.searchTickets(query).subscribe({
+      next: (results) => {
+        this.searchResults = results;
+        this.showResults = results.length > 0;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('searchTickets error', err);
+        this.toast.fromProblem(err);
+        this.searchResults = [];
+        this.showResults = false;
+        this.cdr.markForCheck();
+      },
+      complete: () => {
+        this.searchingTicket = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  selectResult(ticket: TicketDto): void {
+    const identifier = ticket.ticketNumber || String(ticket.id);
+    this.ticketSelected.emit(ticket);
+    this.searchTicketNumber.emit(identifier);
+    this.ticketNumber = '';
+    this.searchResults = [];
+    this.showResults = false;
+    this.cdr.markForCheck();
+  }
+
+  clearSearch(): void {
+    this.ticketNumber = '';
+    this.searchResults = [];
+    this.showResults = false;
+    this.cdr.markForCheck();
+  }
+
+  trackByTicketNumber(_index: number, item: TicketDto): string {
+    return (item.ticketNumber ?? item.id ?? _index).toString();
   }
 }

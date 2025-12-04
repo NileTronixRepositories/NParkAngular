@@ -7,8 +7,8 @@ import { VisitorServices } from './../../Services/VisitorServices/visitor-servic
 import { DurationType } from '../../Domain/Subscription-type/subscription-type.models';
 import { RepeatedPricingDto } from '../../Domain/VisitorDTO/visitorPriceSchema.model';
 
-// نفس خدمة اللغة المستخدمة في باقي الشاشات
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
+import { ToastServices } from '../../Services/Toster/toast-services';
 
 @Component({
   selector: 'app-visitor-component',
@@ -20,6 +20,7 @@ import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 export class VisitorComponent implements OnInit {
   // ===== DI =====
   private visitorServices = inject(VisitorServices);
+  private toast = inject(ToastServices);
   i18n = inject(LanguageService);
 
   // ===== i18n =====
@@ -104,8 +105,8 @@ export class VisitorComponent implements OnInit {
     },
   };
   t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
-  dir = () => this.i18n.dir();
-  isRTL = () => this.i18n.isRTL();
+  dir = computed(() => this.i18n.dir());
+  isRTL = computed(() => this.i18n.isRTL());
 
   // ===== State =====
   loading = signal(false);
@@ -116,7 +117,7 @@ export class VisitorComponent implements OnInit {
   active = signal<RepeatedPricingDto | null>(null);
 
   /**
-   * qty: { itemId -> count } (يعكس الترتيب 1..N في picked)
+   * qty: { itemId -> count } 
    */
   qty = signal<Record<string, number>>({});
 
@@ -207,7 +208,7 @@ export class VisitorComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.error.set(this.t('failed_load'));
+        this.toast.fromProblem(err);
         this.loading.set(false);
       },
     });
@@ -236,7 +237,7 @@ export class VisitorComponent implements OnInit {
       },
       error: (err) => {
         console.error(err);
-        this.error.set(this.t('failed_load_order'));
+        this.toast.fromProblem(err);
         this.loading.set(false);
       },
     });
@@ -251,19 +252,19 @@ export class VisitorComponent implements OnInit {
     }));
 
     if (orderSchema.length === 0) {
-      alert(this.t('please_select_one'));
+      this.toast.warn(this.t('please_select_one'));
       return;
     }
 
     this.visitorServices.addOrder(orderSchema).subscribe({
       next: () => {
-        alert(this.t('order_added'));
+        this.toast.success(this.t('order_added'));
         this.clearPicked();
         this.loadOrder();
       },
       error: (err) => {
         console.error(err);
-        alert(this.t('failed_add_order'));
+        this.toast.fromProblem(err);
       },
     });
   }

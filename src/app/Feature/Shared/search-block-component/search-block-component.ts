@@ -1,10 +1,11 @@
-import { Component, EventEmitter, Input, Output, OnDestroy } from '@angular/core';
+import { Component, EventEmitter, Input, Output, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 import { TicketDto } from '../../../Domain/tickets/tickets.model';
+import { LanguageService, AppLang } from '../../../Services/i18n/language-service';
 
 @Component({
   selector: 'app-search-block-component',
@@ -14,7 +15,31 @@ import { TicketDto } from '../../../Domain/tickets/tickets.model';
   styleUrl: './search-block-component.css',
 })
 export class SearchBlockComponent implements OnDestroy {
-  @Input() placeholder = 'ابحث برقم التذكرة، اللوحة، أو الكارت';
+  // ===== i18n =====
+  readonly i18n = inject(LanguageService);
+  private dict: Record<AppLang, Record<string, string>> = {
+    ar: {
+      quick_search: 'بحث سريع',
+      search_subtitle: 'ابحث برقم التذكرة، اللوحة، أو الكارت',
+      searching: 'جاري البحث...',
+      collected: 'مُحصّلة',
+      not_collected: 'غير مُحصّلة',
+      no_results: 'لا توجد نتائج',
+      currency: 'ج.م',
+    },
+    en: {
+      quick_search: 'Quick Search',
+      search_subtitle: 'Search by ticket, plate, or card number',
+      searching: 'Searching...',
+      collected: 'Collected',
+      not_collected: 'Not collected',
+      no_results: 'No results',
+      currency: 'EGP',
+    },
+  };
+  t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
+
+  @Input() placeholder = '';
   @Input() searching = false;
   @Input() results: TicketDto[] = [];
 

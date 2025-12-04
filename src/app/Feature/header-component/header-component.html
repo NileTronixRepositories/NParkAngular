@@ -5,9 +5,12 @@
     </a>
 
     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-      <ul class="navbar-nav">
-        <app-switch-language class="m-2"></app-switch-language>
-        <button class="btn btn-outline-secondary btn-sm m-2" (click)="logout()">Logout</button>
+      <ul class="navbar-nav align-items-center gap-2">
+        <app-switch-language></app-switch-language>
+        <button class="logout-btn" (click)="logout()">
+          <i class="bi bi-box-arrow-right"></i>
+          <span>Logout</span>
+        </button>
       </ul>
     </div>
   </div>

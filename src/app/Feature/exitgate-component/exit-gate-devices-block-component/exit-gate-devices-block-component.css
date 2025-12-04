@@ -37,3 +37,32 @@
 :host .manual-plate-section {
   padding: 12px 0;
 }
+
+/* Search Results Dropdown */
+:host .search-results-dropdown {
+  max-height: 200px;
+  overflow-y: auto;
+  background: var(--bg, #fff);
+  border: 1px solid var(--border, #dee2e6);
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+:host .search-result-item {
+  padding: 10px 12px;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+  border-bottom: 1px solid var(--border, #dee2e6);
+}
+
+:host .search-result-item:last-child {
+  border-bottom: none;
+}
+
+:host .search-result-item:hover {
+  background-color: var(--primary-soft, rgba(79, 70, 229, 0.08));
+}
+
+:host .result-id {
+  color: var(--primary, #4f46e5);
+}

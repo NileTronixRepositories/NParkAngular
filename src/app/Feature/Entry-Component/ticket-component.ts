@@ -1,4 +1,4 @@
-import { Component, ElementRef, ViewChild, inject, signal, OnInit } from '@angular/core';
+import { Component, ElementRef, ViewChild, inject, signal, OnInit, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -259,6 +259,14 @@ export class TicketComponent implements OnInit {
       collected: 'تم التحصيل',
       actions: 'الإجراءات',
       save: 'حفظ',
+      enter_plate_first: 'يرجى إدخال رقم السيارة أولاً',
+      no_card_for_subscriber: 'لا يوجد رقم كارت لعميل مشترك',
+      qr_invalid_warning: 'تم إصدار التذكرة بنجاح، لكن QR code غير صالح.',
+      enter_supervisor_creds: 'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر',
+      supervisor_login_failed: 'فشل الدخول كـ Supervisor. تأكد من البيانات أو الصلاحيات.',
+      enter_card_first: 'يرجى إدخال رقم الكارت أولاً',
+      no_card_summary: 'لا توجد بيانات عضوية لهذا الكارت',
+      nfc_read_error: 'تعذر قراءة الكارت. تأكد من تشغيل قارئ الـ NFC.',
 
       // Search
       search_tickets_placeholder: 'ابحث برقم التذكرة، اللوحة، أو الكارت',
@@ -276,7 +284,6 @@ export class TicketComponent implements OnInit {
       scanner_ready: 'Scanner ready',
       scan_label: 'Scan QR / Paste Code',
       scan_placeholder: 'Focus here then scan...',
-      // fetching_details: 'Fetching ticket details...',
       id: 'ID',
       plate: 'Plate',
       start: 'Start',
@@ -349,6 +356,13 @@ export class TicketComponent implements OnInit {
       collected: 'Collected',
       actions: 'Actions',
       save: 'Save',
+      enter_plate_first: 'Please enter vehicle number first',
+      no_card_for_subscriber: 'No card number for subscriber',
+      qr_invalid_warning: 'Ticket issued successfully, but QR code is invalid.',
+      enter_supervisor_creds: 'Please enter supervisor username and password',
+      supervisor_login_failed: 'Supervisor login failed. Check credentials or permissions.',
+      enter_card_first: 'Please enter card number first',
+      nfc_read_error: 'Failed to read card. Make sure NFC reader is running.',
 
       // Search
       search_tickets_placeholder: 'Search by ticket, plate, or card number',
@@ -356,8 +370,8 @@ export class TicketComponent implements OnInit {
   };
 
   t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
-  dir = () => this.i18n.dir();
-  isRTL = () => this.i18n.isRTL();
+  dir = computed(() => this.i18n.dir());
+  isRTL = computed(() => this.i18n.isRTL());
 
   // =======================
   // Lifecycle
@@ -471,7 +485,7 @@ export class TicketComponent implements OnInit {
 
     const trimmed = vehicleNumber?.trim();
     if (vehicleNumber !== undefined && !trimmed) {
-      this.toast.warn('يرجى إدخال رقم السيارة أولاً');
+      this.toast.warn(this.t('enter_plate_first'));
       return;
     }
 
@@ -501,7 +515,7 @@ export class TicketComponent implements OnInit {
 
     const card = this.cardNumber?.trim();
     if (!card) {
-      this.toast.warn('لا يوجد رقم كارت لعميل مشترك');
+      this.toast.warn(this.t('no_card_for_subscriber'));
       return;
     }
 
@@ -560,9 +574,7 @@ export class TicketComponent implements OnInit {
       this.currentIssuedQr = null;
       this.currentIssuedQrType = null;
 
-      this.toast.error(
-        'تم إصدار التذكرة بنجاح، لكن QR code غير صالح. برجاء مراجعة إعدادات الطابعة أو خدمة الـ QR.'
-      );
+      this.toast.error(this.t('qr_invalid_warning'));
 
       this.loadTicketsForEntry();
       return;
@@ -868,7 +880,7 @@ export class TicketComponent implements OnInit {
     const gateType = gateData?.gateType ?? null;
 
     if (!user || !pwd) {
-      this.supervisorCollectError = 'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر';
+      this.supervisorCollectError = this.t('enter_supervisor_creds');
       return;
     }
 
@@ -1010,7 +1022,7 @@ export class TicketComponent implements OnInit {
   loadCardSummary(cardNumber?: string): void {
     const cn = (cardNumber ?? this.cardNumber)?.trim().toUpperCase();
     if (!cn) {
-      this.toast.warn('يرجى إدخال رقم الكارت أولاً');
+      this.toast.warn(this.t('enter_card_first'));
       return;
     }
 
@@ -1065,7 +1077,7 @@ export class TicketComponent implements OnInit {
       this.loadCardSummary(normalized);
     } catch (err: any) {
       console.error(err);
-      this.toast.error(err?.message || 'تعذر قراءة الكارت. تأكد من تشغيل قارئ الـ NFC.');
+      this.toast.error(err?.message || this.t('nfc_read_error'));
     } finally {
       this.readingCard.set(false);
     }

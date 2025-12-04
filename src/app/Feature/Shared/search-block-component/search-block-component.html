@@ -6,8 +6,8 @@
         <i class="bi bi-search"></i>
       </div>
       <div class="search-card__text">
-        <div class="search-card__title-main">بحث سريع</div>
-        <div class="search-card__title-sub">ابحث برقم التذكرة، اللوحة، أو الكارت</div>
+        <div class="search-card__title-main">{{ t('quick_search') }}</div>
+        <div class="search-card__title-sub">{{ t('search_subtitle') }}</div>
       </div>
     </div>
   </div>
@@ -27,7 +27,7 @@
           [(ngModel)]="searchText"
           (ngModelChange)="onSearchInput($event)"
           (focus)="onInputFocus()"
-          [placeholder]="placeholder"
+          [placeholder]="placeholder || t('search_subtitle')"
           autocomplete="off"
         />
 
@@ -44,7 +44,7 @@
       <!-- Loading Spinner -->
       <div *ngIf="searching" class="search-loading">
         <span class="spinner-border spinner-border-sm me-2"></span>
-        <span class="small text-muted">جاري البحث...</span>
+        <span class="small text-muted">{{ t('searching') }}</span>
       </div>
     </div>
 
@@ -66,12 +66,14 @@
                 class="result-status"
                 [class.result-status--collected]="ticket.isCollectedByCashier"
               >
-                {{ ticket.isCollectedByCashier ? 'مُحصّلة' : 'غير مُحصّلة' }}
+                {{ ticket.isCollectedByCashier ? t('collected') : t('not_collected') }}
               </span>
             </div>
 
             <div class="result-main-right" *ngIf="ticket.price !== undefined">
-              <span class="result-price"> {{ ticket.price | number : '1.0-0' }} ر.س </span>
+              <span class="result-price">
+                {{ ticket.price | number : '1.0-0' }} {{ t('currency') }}
+              </span>
             </div>
           </div>
 
@@ -89,7 +91,7 @@
       <ng-template #emptyState>
         <div class="empty-state">
           <i class="bi bi-inbox fs-4 text-muted opacity-50"></i>
-          <div class="small text-muted mt-2">لا توجد نتائج</div>
+          <div class="small text-muted mt-2">{{ t('no_results') }}</div>
         </div>
       </ng-template>
     </div>

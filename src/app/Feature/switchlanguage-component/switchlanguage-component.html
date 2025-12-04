@@ -1,6 +1,11 @@
-<div class="lang-switch">
-  <button class="btn btn-outline-secondary btn-sm" (click)="toggle()">
-    <!-- <span class="flag" [class.ar]="isRTL()" [class.en]="!isRTL()"></span> -->
-    <span class="label">{{ label() }}</span>
-  </button>
+<div class="lang-toggle" (click)="toggle()">
+  <span class="lang-option" [class.active]="isRTL()">
+    <span class="lang-icon">🇪🇬</span>
+    <span class="lang-text">عربي</span>
+  </span>
+  <span class="lang-option" [class.active]="!isRTL()">
+    <span class="lang-icon">🇬🇧</span>
+    <span class="lang-text">EN</span>
+  </span>
+  <span class="slider" [class.rtl]="isRTL()"></span>
 </div>

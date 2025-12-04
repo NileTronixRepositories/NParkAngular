@@ -1,5 +1,4 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject } from 'rxjs';
+import { Injectable, signal, computed } from '@angular/core';
 
 export type AppLang = 'ar' | 'en';
 type Lang = AppLang;
@@ -13,33 +12,33 @@ export const APP_LANG_LS_KEY = 'app.lang';
 export class LanguageService {
   private readonly LS_KEY = APP_LANG_LS_KEY;
 
-  private _current: AppLang = this.getInitialLang();
-  private langSubject = new BehaviorSubject<AppLang>(this._current);
-  public lang$ = this.langSubject.asObservable();
+  // ===== Reactive signals =====
+  private readonly _current = signal<AppLang>(this.getInitialLang());
 
+  /** Current language as signal (reactive) */
+  readonly currentSignal = this._current.asReadonly();
+
+  /** Current language (getter for backwards compatibility) */
   get current(): AppLang {
-    return this._current;
+    return this._current();
   }
 
-  set(lang: AppLang) {
-    if (lang === this._current) return;
+  /** Computed signal for RTL check */
+  readonly isRTL = computed(() => this._current() === 'ar');
 
-    this._current = lang;
+  /** Computed signal for direction */
+  readonly dir = computed(() => (this._current() === 'ar' ? 'rtl' : 'ltr'));
+
+  set(lang: AppLang) {
+    if (lang === this._current()) return;
+
+    this._current.set(lang);
     localStorage.setItem(this.LS_KEY, lang);
     this.applyDomDirection(lang);
-    this.langSubject.next(lang);
   }
 
   toggle() {
-    this.set(this._current === 'ar' ? 'en' : 'ar');
-  }
-
-  isRTL(lang: AppLang = this._current) {
-    return lang === 'ar';
-  }
-
-  dir(lang: AppLang = this._current) {
-    return this.isRTL(lang) ? 'rtl' : 'ltr';
+    this.set(this._current() === 'ar' ? 'en' : 'ar');
   }
 
   // -------- private helpers --------
@@ -50,7 +49,8 @@ export class LanguageService {
     const initial: AppLang =
       saved ?? (navigator.language && navigator.language.startsWith('ar') ? 'ar' : 'en');
 
-    this.applyDomDirection(initial);
+    // Apply direction on init (setTimeout to ensure DOM is ready)
+    setTimeout(() => this.applyDomDirection(initial), 0);
     return initial;
   }
 
@@ -58,5 +58,8 @@ export class LanguageService {
     const dir = lang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.setAttribute('lang', lang);
     document.documentElement.setAttribute('dir', dir);
+    document.body.setAttribute('dir', dir);
+    document.body.classList.toggle('rtl', lang === 'ar');
+    document.body.classList.toggle('ltr', lang === 'en');
   }
 }

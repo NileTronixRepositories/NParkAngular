@@ -63,10 +63,20 @@
           <input
             type="text"
             class="form-control mono"
-            [(ngModel)]="ticketNumber"
+            [ngModel]="ticketNumber"
+            (ngModelChange)="onSearchInput($event)"
             [placeholder]="'ticket_number_placeholder' | t"
             (keyup.enter)="searchTicketByNumber()"
+            autocomplete="off"
           />
+          <button
+            *ngIf="ticketNumber"
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="clearSearch()"
+          >
+            <i class="bi bi-x-lg"></i>
+          </button>
           <button
             class="btn btn-outline-primary"
             type="button"
@@ -80,6 +90,46 @@
             <span *ngIf="searchingTicket" class="spinner-border spinner-border-sm"></span>
           </button>
         </div>
+
+        <!-- Search Results Dropdown -->
+        <div *ngIf="showResults" class="search-results-dropdown mt-1">
+          <ng-container *ngIf="searchResults.length > 0; else noResults">
+            <div
+              class="search-result-item"
+              *ngFor="let ticket of searchResults; trackBy: trackByTicketNumber"
+              (click)="selectResult(ticket)"
+            >
+              <div class="d-flex justify-content-between align-items-center">
+                <span class="result-id mono fw-bold">
+                  {{ ticket.ticketNumber || ticket.id }}
+                </span>
+                <span
+                  class="badge"
+                  [class.bg-success-subtle]="ticket.isCollectedByCashier"
+                  [class.text-success]="ticket.isCollectedByCashier"
+                  [class.bg-warning-subtle]="!ticket.isCollectedByCashier"
+                  [class.text-warning]="!ticket.isCollectedByCashier"
+                >
+                  {{
+                    ticket.isCollectedByCashier
+                      ? ('cashierCollectedShort' | t)
+                      : ('cashier_not_collected' | t)
+                  }}
+                </span>
+              </div>
+              <div class="small text-muted">
+                <i class="bi bi-clock"></i> {{ ticket.time | date : 'short' }}
+                <span *ngIf="ticket.plate"> • {{ ticket.plate }}</span>
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #noResults>
+            <div class="text-center text-muted small py-2">
+              {{ 'no_search_results' | t }}
+            </div>
+          </ng-template>
+        </div>
+
         <div class="small text-muted mt-1">
           {{ 'search_ticket_hint' | t }}
         </div>

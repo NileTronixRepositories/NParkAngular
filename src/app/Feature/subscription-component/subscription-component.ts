@@ -11,6 +11,7 @@ import {
 import { SubscriptionType } from '../../Services/subscription-type/subscription-type';
 
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
+import { ToastServices } from '../../Services/Toster/toast-services';
 
 import {
   PricingSchemaAddDto,
@@ -39,6 +40,7 @@ type FormShape = {
 export class SubscriptionComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(SubscriptionType);
+  private toast = inject(ToastServices);
   public DurationType = DurationType;
 
   // ===== i18n =====
@@ -106,6 +108,9 @@ export class SubscriptionComponent implements OnInit {
       time_window_off: '-',
       loading: 'جاري التحميل…',
       total_label: 'إجمالي',
+      added_success: 'تمت الإضافة بنجاح',
+      updated_success: 'تم التعديل بنجاح',
+      deleted_success: 'تم الحذف بنجاح',
     },
     en: {
       title: 'Pricing Scheme',
@@ -169,6 +174,9 @@ export class SubscriptionComponent implements OnInit {
       time_window_off: '-',
       loading: 'Loading…',
       total_label: 'Total',
+      added_success: 'Added successfully',
+      updated_success: 'Updated successfully',
+      deleted_success: 'Deleted successfully',
     },
   };
   t = (key: string) => this.dict[this.i18n.current]?.[key] ?? key;
@@ -453,8 +461,12 @@ export class SubscriptionComponent implements OnInit {
       next: () => {
         this.loadRows();
         this.saving.set(false);
+        this.toast.success(this.t('deleted_success'));
       },
-      error: () => this.saving.set(false),
+      error: (err) => {
+        this.saving.set(false);
+        this.toast.fromProblem(err);
+      },
     });
   }
 
@@ -480,10 +492,11 @@ export class SubscriptionComponent implements OnInit {
             this.loadRows();
             this.saving.set(false);
             this.resetForm();
+            this.toast.success(this.t('updated_success'));
           },
           error: (err) => {
             this.saving.set(false);
-            this.handleApiError(err);
+            this.toast.fromProblem(err);
           },
         });
       } else {
@@ -498,16 +511,17 @@ export class SubscriptionComponent implements OnInit {
             this.loadRows();
             this.saving.set(false);
             this.resetForm();
+            this.toast.success(this.t('added_success'));
           },
           error: (err) => {
             this.saving.set(false);
-            this.handleApiError(err);
+            this.toast.fromProblem(err);
           },
         });
       }
-    } catch (error) {
+    } catch (error: any) {
       this.saving.set(false);
-      alert('Error preparing data: ' + error);
+      this.toast.error(error?.message ?? this.t('unexpected_error'));
     }
   }
 
@@ -544,43 +558,10 @@ export class SubscriptionComponent implements OnInit {
     }
 
     if (errors.length > 0) {
-      alert(this.t('errors_title') + '\n' + errors.join('\n'));
+      this.toast.warn(errors.join('، '), this.t('errors_title'));
       return false;
     }
     return true;
-  }
-
-  private handleApiError(err: any) {
-    if (err?.error) {
-      let errorMessage = this.t('server_error') + '\n\n';
-
-      if (err.error.errors) {
-        errorMessage += this.t('validation_errors') + '\n';
-        Object.keys(err.error.errors).forEach((field) => {
-          errorMessage += `• ${field}: ${err.error.errors[field].join(', ')}\n`;
-        });
-      } else if (err.error.title) {
-        errorMessage += `Title: ${err.error.title}\n`;
-      }
-
-      if (err.error.status) {
-        errorMessage += `${this.t('status')}: ${err.error.status}\n`;
-      }
-
-      if (err.error.traceId) {
-        errorMessage += `${this.t('traceId')}: ${err.error.traceId}\n`;
-      }
-
-      if (err.error.type) {
-        errorMessage += `${this.t('type')}: ${err.error.type}\n`;
-      }
-
-      alert(errorMessage);
-    } else if (err?.message) {
-      alert(this.t('conn_error') + ': ' + err.message);
-    } else {
-      alert(this.t('unexpected_error'));
-    }
   }
 
   cancelEdit() {

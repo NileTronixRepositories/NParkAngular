@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserDto, UserCreateDto, UserUpdateDto, RoleDto } from '../../Domain/Users/user.model';
@@ -90,8 +90,8 @@ export class Users {
   };
 
   t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
-  dir = () => this.i18n.dir();
-  isRTL = () => this.i18n.isRTL();
+  dir = computed(() => this.i18n.dir());
+  isRTL = computed(() => this.i18n.isRTL());
 
   users: UserDto[] = [];
   loading = false;
