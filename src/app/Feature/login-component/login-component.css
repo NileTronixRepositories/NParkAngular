@@ -2,14 +2,160 @@
   min-height: 70vh;
 }
 
+.login-wrapper.page-rtl,
+.login-wrapper.page-ltr {
+  padding: 20px 0;
+  /* background: #f6f8fb; */
+  color: #2f3b46;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
 .login-card {
   max-width: 420px;
   margin: 2rem auto;
-  border-radius: 1rem;
+  border-radius: 16px;
+  overflow: hidden;
 }
+
+.card {
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: all 0.25s ease;
+  backdrop-filter: blur(8px);
+  background: #ffffff;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+}
+
+.card--glass {
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.12);
+}
+
+.fancy-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.fancy-card::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(216, 31, 42, 0.08) 0%, transparent 70%);
+  z-index: 0;
+}
+
+.fancy-card > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ===== Brand NPark ===== */
 
 .brand {
   letter-spacing: 1px;
+}
+
+.brand-n {
+  color: #d81f2a;   
+}
+
+.brand-text {
+  color: #6c757d; 
+}
+
+/* ===== Inputs (نفس فورم الاشتراكات) ===== */
+
+.form-label {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #374151;
+}
+
+.form-control,
+.form-select {
+  border-radius: 10px;
+  padding: 0.55rem 0.9rem;
+  border: 1px solid #e1e5eb;
+  transition: all 0.2s ease;
+  background-color: rgba(255, 255, 255, 0.9);
+  color: #111827;
+  font-size: 0.92rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+  border-color: #d81f2a;
+  box-shadow: 0 0 0 0.18rem rgba(216, 31, 42, 0.18);
+  background-color: #ffffff;
+}
+
+/* Password input + eye button inside input-group */
+.input-group .form-control {
+  padding-right: 3rem;
+}
+
+/* ===== Buttons (نفس الثيم الأخضر) ===== */
+
+.btn {
+  border-radius: 10px;
+  padding: 0.55rem 1.2rem;
+  font-weight: 600;
+  border: none;
+  transition: all 0.2s ease;
+  font-size: 0.95rem;
+}
+
+.btn-primary {
+  background: #4a814a;
+  box-shadow: 0 4px 10px rgba(74, 129, 74, 0.3);
+}
+
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(74, 129, 74, 0.35);
+  background: #3b6a3b;
+}
+
+.btn-outline-secondary {
+  border-radius: 10px;
+  border-width: 1px;
+}
+
+/* Spinner داخل الزرار */
+.btn .spinner-border {
+  width: 1rem;
+  height: 1rem;
+  border-width: 0.14em;
+}
+
+/* ===== Remember me / رابط نسيان الباسورد ===== */
+
+.form-check-input {
+  cursor: pointer;
+}
+
+.form-check-label {
+  font-size: 0.85rem;
+  color: #4b5563;
+}
+
+a.small {
+  font-size: 0.8rem;
+  color: #4b5b68;
+}
+
+a.small:hover {
+  color: #d81f2a;
 }
 
 /* ===== First-time change popup (backdrop + card) ===== */
@@ -17,14 +163,13 @@
 .change-modal-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(15, 23, 42, 0.6); /* خلفية غامقة شفافة */
+  background: rgba(15, 23, 42, 0.6);
   display: flex;
   align-items: center;
   justify-content: center;
   z-index: 1060;
 }
 
-/* الكارت نفسه */
 .change-modal-card {
   width: 100%;
   max-width: 430px;
@@ -34,7 +179,6 @@
   padding: 1.4rem 1.7rem 1.2rem;
 }
 
-/* الهيدر */
 .change-modal-header {
   display: flex;
   align-items: center;
@@ -48,7 +192,6 @@
   font-weight: 600;
 }
 
-/* زرار الـ X */
 .change-modal-close {
   border: none;
   background: transparent;
@@ -63,14 +206,12 @@
   color: #4b5563;
 }
 
-/* سطر توضيحي تحت العنوان */
 .change-modal-subtitle {
   margin: 0 0 0.9rem;
   font-size: 0.82rem;
   color: #6b7280;
 }
 
-/* فوتر الأزرار */
 .change-modal-footer {
   display: flex;
   justify-content: flex-end;
@@ -78,23 +219,14 @@
   margin-top: 0.9rem;
 }
 
-/* تخفيف حواف المودال الأصلي لو مستخدم Bootstrap في أماكن تانية */
-.modal .modal-content,
-.modal-content {
-  border-radius: 12px;
-}
+/* ===== Password wrapper في المودال ===== */
 
-.modal .modal-header,
-.modal-header {
-  border-bottom: none;
-}
-/* Wrapper to align input + eye button */
 .password-wrapper {
   position: relative;
 }
 
 .password-wrapper input {
-  padding-right: 38px; /* مساحة للزر */
+  padding-right: 38px;
 }
 
 .eye-btn {
@@ -115,4 +247,16 @@
 
 .eye-btn i {
   font-size: 1rem;
+}
+
+/* ===== Mobile tweaks ===== */
+
+@media (max-width: 576px) {
+  .login-card {
+    margin: 1.5rem 1rem;
+  }
+
+  .card-body {
+    padding: 1.5rem !important;
+  }
 }

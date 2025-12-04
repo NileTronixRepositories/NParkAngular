@@ -170,7 +170,7 @@ export class LoginComponent {
     const username = (this.form.value.username ?? '').trim();
     const password = this.form.value.password ?? '';
 
-    // Admin / Admin123 → First-time modal فقط (لا تغيير في اللوجيك)
+    // Admin / Admin123 → First-time modal فقط
     if (username === 'Admin' && password === 'Admin123') {
       this.openFirstTimeModal(username, password);
       return;
@@ -211,6 +211,7 @@ export class LoginComponent {
       confirmPassword: '',
     });
 
+    // رسالة إرشادية بسيطة
     this.toast?.success?.(this.t('tempPasswordNotice'));
   }
 
@@ -267,11 +268,7 @@ export class LoginComponent {
       next: (res) => {
         this.changeLoading = false;
 
-        if (res.status === 204 || (res.status >= 200 && res.status < 300)) {
-          this.toast?.success?.(this.t('successPwdUpdated'));
-        } else {
-          this.toast?.success?.(this.t('successPwdUpdated'));
-        }
+        this.toast?.success?.(this.t('successPwdUpdated'));
 
         this.showChangeModal = false;
 
@@ -292,7 +289,7 @@ export class LoginComponent {
         if (this.toast?.fromProblem) {
           this.toast.fromProblem(err);
         } else {
-          this.toast?.success?.(apiMessage);
+          this.toast?.error?.(apiMessage);
         }
 
         this.showChangeModal = false;

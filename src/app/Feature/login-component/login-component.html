@@ -1,17 +1,17 @@
 <div
-  class="container d-flex align-items-center justify-content-center min-vh-70"
+  class="container d-flex align-items-center justify-content-center min-vh-70 login-wrapper"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
 >
-  <div class="card shadow border-0 login-card">
+  <div class="card card--glass fancy-card shadow-sm login-card">
     <div class="card-body p-4 p-md-5">
       <div class="text-center mb-4">
         <div class="brand fs-2 fw-bold">
-          <span class="text-danger">N</span>
-          <span class="text-secondary">{{ 'brandSuffix' | t }}</span>
+          <span class="brand-n">N</span>
+          <span class="brand-text">{{ 'brandSuffix' | t }}</span>
         </div>
-        <div class="text-muted">{{ 'signInToContinue' | t }}</div>
+        <div class="text-muted small">{{ 'signInToContinue' | t }}</div>
       </div>
 
       <form [formGroup]="form" (ngSubmit)="submit()">
@@ -59,7 +59,7 @@
           </div>
         </div>
 
-        <!-- (Gate fields موجودة في الفورم بس UI متشال حالياً) -->
+        <!-- Gate fields موجودة في الفورم بس UI متشال حالياً -->
         <!--
         <div *ngIf="roleIsGateCashier()" class="row">
           <div class="col-12 col-md-6 mb-3">
@@ -112,7 +112,7 @@
           </a>
         </div>
 
-        <button class="btn btn-danger w-100" [disabled]="loading">
+        <button class="btn btn-primary w-100" [disabled]="loading">
           <span *ngIf="!loading">{{ 'signIn' | t }}</span>
           <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
         </button>
