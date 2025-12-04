@@ -33,7 +33,6 @@ export interface AuthResponse {
 export class AuthService {
   private http = inject(HttpClient);
   private toast = inject(ToastServices);
-  // ⛔ مهم: ما نحقنش TicketsServices هنا عشان ما نعملش دائرة
   // private ticketsService = inject(TicketsServices);
 
   private gateData: GateDevicePeripheral | null = null;

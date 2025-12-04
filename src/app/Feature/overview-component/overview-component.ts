@@ -1,12 +1,5 @@
-// src/app/Feature/overview-component/overview-component.ts
-import { CommonModule } from '@angular/common';
-import {
-  Component,
-  computed,
-  signal,
-  OnInit,
-  OnDestroy,
-} from '@angular/core';
+ import { CommonModule } from '@angular/common';
+import { Component, computed, signal, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { LanguageService } from '../../Services/i18n/language-service';
@@ -27,9 +20,9 @@ type NotificationType = 'IN' | 'OUT' | 'COLLECTED';
 interface UiNotification {
   id: number;
   type: NotificationType;
-  titleKey: string; // مفتاح الترجمة (مثلاً: 'notif_in_title')
+  titleKey: string; 
   message: string;
-  time: string; // "13:20"
+  time: string; 
 }
 
 @Component({
@@ -195,40 +188,26 @@ export class OverviewComponent implements OnInit, OnDestroy {
     return total > 0 ? (this.collectedRevenue() / total) * 100 : 0;
   });
 
-  currentVehiclesInside = computed(
-    () => this.dashboard()?.currentVehiclesInside ?? 0
-  );
-  estimatedFreeSlots = computed(
-    () => this.dashboard()?.estimatedFreeSlots ?? 0
-  );
-  occupancyPercentage = computed(
-    () => this.dashboard()?.occupancyPercentage ?? 0
-  );
+  currentVehiclesInside = computed(() => this.dashboard()?.currentVehiclesInside ?? 0);
+  estimatedFreeSlots = computed(() => this.dashboard()?.estimatedFreeSlots ?? 0);
+  occupancyPercentage = computed(() => this.dashboard()?.occupancyPercentage ?? 0);
 
   enterTicketsCount = computed(() => this.dashboard()?.enterTicketsCount ?? 0);
   exitTicketsCount = computed(() => this.dashboard()?.exitTicketsCount ?? 0);
-  activeTicketsCount = computed(
-    () => this.dashboard()?.activeTicketsCount ?? 0
-  );
+  activeTicketsCount = computed(() => this.dashboard()?.activeTicketsCount ?? 0);
 
   subscriptionCount = computed(() => this.dashboard()?.subscriptionCount ?? 0);
   membershipsExpiringNext7Days = computed(
     () => this.dashboard()?.membershipsExpiringNext7Days ?? 0
   );
 
-  membershipTicketsCount = computed(
-    () => this.dashboard()?.membershipTicketsCount ?? 0
-  );
-  walkInTicketsCount = computed(
-    () => this.dashboard()?.walkInTicketsCount ?? 0
-  );
+  membershipTicketsCount = computed(() => this.dashboard()?.membershipTicketsCount ?? 0);
+  walkInTicketsCount = computed(() => this.dashboard()?.walkInTicketsCount ?? 0);
 
-  membershipRelatedRevenue = computed(
-    () => this.dashboard()?.membershipRelatedRevenue ?? 0
-  );
+  membershipRelatedRevenue = computed(() => this.dashboard()?.membershipRelatedRevenue ?? 0);
   walkInRevenue = computed(() => this.dashboard()?.walkInRevenue ?? 0);
 
-   membershipRevenuePercent = computed(() => {
+  membershipRevenuePercent = computed(() => {
     const total = this.totalRevenue();
     return total > 0 ? (this.membershipRelatedRevenue() / total) * 100 : 0;
   });
@@ -238,56 +217,30 @@ export class OverviewComponent implements OnInit, OnDestroy {
     return total > 0 ? (this.walkInRevenue() / total) * 100 : 0;
   });
 
-  exceededTicketsCount = computed(
-    () => this.dashboard()?.exceededTicketsCount ?? 0
-  );
-  totalExceedRevenue = computed(
-    () => this.dashboard()?.totalExceedRevenue ?? 0
-  );
-  averageExceedPerTicket = computed(
-    () => this.dashboard()?.averageExceedPerTicket ?? 0
-  );
+  exceededTicketsCount = computed(() => this.dashboard()?.exceededTicketsCount ?? 0);
+  totalExceedRevenue = computed(() => this.dashboard()?.totalExceedRevenue ?? 0);
+  averageExceedPerTicket = computed(() => this.dashboard()?.averageExceedPerTicket ?? 0);
 
-  averageDurationMinutes = computed(
-    () => this.dashboard()?.averageDurationMinutes ?? 0
-  );
-  maxDurationMinutes = computed(
-    () => this.dashboard()?.maxDurationMinutes ?? 0
-  );
+  averageDurationMinutes = computed(() => this.dashboard()?.averageDurationMinutes ?? 0);
+  maxDurationMinutes = computed(() => this.dashboard()?.maxDurationMinutes ?? 0);
 
-  averageDurationHours = computed(() =>
-    Math.floor(this.averageDurationMinutes() / 60)
-  );
-  averageDurationRemainingMinutes = computed(
-    () => this.averageDurationMinutes() % 60
-  );
+  averageDurationHours = computed(() => Math.floor(this.averageDurationMinutes() / 60));
+  averageDurationRemainingMinutes = computed(() => this.averageDurationMinutes() % 60);
   maxDurationHours = computed(() => Math.floor(this.maxDurationMinutes() / 60));
-  maxDurationRemainingMinutes = computed(
-    () => this.maxDurationMinutes() % 60
-  );
+  maxDurationRemainingMinutes = computed(() => this.maxDurationMinutes() % 60);
 
-  busiestGateNumber = computed(
-    () => this.dashboard()?.busiestGateNumber ?? 0
-  );
-  busiestGateTicketsCount = computed(
-    () => this.dashboard()?.busiestGateTicketsCount ?? 0
-  );
+  busiestGateNumber = computed(() => this.dashboard()?.busiestGateNumber ?? 0);
+  busiestGateTicketsCount = computed(() => this.dashboard()?.busiestGateTicketsCount ?? 0);
   topCollectorName = computed(() => this.dashboard()?.topCollectorName ?? 'N/A');
-  topCollectorAmount = computed(
-    () => this.dashboard()?.topCollectorAmount ?? 0
-  );
-  topCollectorTicketsCount = computed(
-    () => this.dashboard()?.topCollectorTicketsCount ?? 0
-  );
+  topCollectorAmount = computed(() => this.dashboard()?.topCollectorAmount ?? 0);
+  topCollectorTicketsCount = computed(() => this.dashboard()?.topCollectorTicketsCount ?? 0);
 
   entryGates = computed(() => this.dashboard()?.entryGates ?? []);
   exitGates = computed(() => this.dashboard()?.exitGates ?? []);
   recentTickets = computed(() => this.dashboard()?.recentTickets ?? []);
 
   // ===== Charts =====
-  private readonly defaultChartHours = [
-    8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18,
-  ];
+  private readonly defaultChartHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
   chartHours = computed(() => {
     const hours = this.dashboard()?.chartHours;
@@ -321,18 +274,12 @@ export class OverviewComponent implements OnInit, OnDestroy {
 
   donutCirc = computed(() => 2 * Math.PI * this.donutRadius);
 
-  membershipStroke = computed(
-    () => (this.membershipRevenuePercent() / 100) * this.donutCirc()
-  );
-  walkInStroke = computed(
-    () => (this.walkInRevenuePercent() / 100) * this.donutCirc()
-  );
-  walkInRotateDeg = computed(
-    () => -90 + (this.membershipRevenuePercent() / 100) * 360
-  );
+  membershipStroke = computed(() => (this.membershipRevenuePercent() / 100) * this.donutCirc());
+  walkInStroke = computed(() => (this.walkInRevenuePercent() / 100) * this.donutCirc());
+  walkInRotateDeg = computed(() => -90 + (this.membershipRevenuePercent() / 100) * 360);
 
   // ===== Live In/Out simple bar counters =====
- liveChartWidth = 360;
+  liveChartWidth = 360;
   liveChartHeight = 140;
 
   readonly liveLeftPadding = 70;
@@ -340,13 +287,10 @@ export class OverviewComponent implements OnInit, OnDestroy {
   readonly liveBarThickness = 32;
   readonly liveBarsGap = 28;
 
-  liveMaxCount = computed(() =>
-    Math.max(this.enterTicketsCount(), this.exitTicketsCount(), 1)
-  );
+  liveMaxCount = computed(() => Math.max(this.enterTicketsCount(), this.exitTicketsCount(), 1));
 
   liveBarWidth(value: number): number {
-    const usable =
-      this.liveChartWidth - this.liveLeftPadding - this.liveRightPadding;
+    const usable = this.liveChartWidth - this.liveLeftPadding - this.liveRightPadding;
     const max = this.liveMaxCount();
     const ratio = max > 0 ? value / max : 0;
     return ratio * usable;
@@ -368,11 +312,11 @@ export class OverviewComponent implements OnInit, OnDestroy {
     return this.liveInBarY() + this.liveBarThickness / 2;
   }
 
-   liveValueYForOut(): number {
+  liveValueYForOut(): number {
     return this.liveOutBarY() + this.liveBarThickness / 2;
   }
 
-   liveLabelX(): number {
+  liveLabelX(): number {
     return this.liveLeftPadding;
   }
 
@@ -383,6 +327,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
   liveLabelYForOut(): number {
     return this.liveOutBarY() + this.liveBarThickness + 18;
   }
+
   // ===== Lifecycle =====
   ngOnInit(): void {
     this.loadDashboard();
@@ -417,7 +362,6 @@ export class OverviewComponent implements OnInit, OnDestroy {
     try {
       await this.dashboardHub.start();
 
-      // ✅ هنا شيلت الـ type annotation من الـ subscribe → Error 2769 يختفي
       // Ticket Added
       this.hubSubscriptions.add(
         this.dashboardHub.ticketAdded$.subscribe((notification) => {
@@ -433,11 +377,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
             };
           });
 
-          this.pushNotification(
-            'IN',
-            'notif_in_title',
-            this.buildInMessage(notification)
-          );
+          this.pushNotification('IN', 'notif_in_title', this.buildInMessage(notification));
 
           this.loadDashboard();
         })
@@ -458,11 +398,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
             };
           });
 
-          this.pushNotification(
-            'OUT',
-            'notif_out_title',
-            this.buildOutMessage(notification)
-          );
+          this.pushNotification('OUT', 'notif_out_title', this.buildOutMessage(notification));
 
           this.loadDashboard();
         })
@@ -493,8 +429,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
 
     const hours = current.chartHours || this.defaultChartHours;
     const chartIn =
-      current.chartIn ||
-      this.buildSeriesFromTotal(current.enterTicketsCount, hours.length);
+      current.chartIn || this.buildSeriesFromTotal(current.enterTicketsCount, hours.length);
 
     const index = hours.indexOf(hour);
     if (index >= 0 && index < chartIn.length) {
@@ -513,8 +448,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
 
     const hours = current.chartHours || this.defaultChartHours;
     const chartOut =
-      current.chartOut ||
-      this.buildSeriesFromTotal(current.exitTicketsCount, hours.length);
+      current.chartOut || this.buildSeriesFromTotal(current.exitTicketsCount, hours.length);
 
     const index = hours.indexOf(hour);
     if (index >= 0 && index < chartOut.length) {
@@ -554,11 +488,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
   }
 
   // ===== Notification helpers =====
-  private pushNotification(
-    type: NotificationType,
-    titleKey: string,
-    message: string
-  ): void {
+  private pushNotification(type: NotificationType, titleKey: string, message: string): void {
     const id = ++this.notificationIdCounter;
     const date = new Date();
     const time = date.toLocaleTimeString('en-GB', {
@@ -586,9 +516,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     });
 
     setTimeout(() => {
-      this.notifications.update((list) =>
-        list.filter((n) => n.id !== id)
-      );
+      this.notifications.update((list) => list.filter((n) => n.id !== id));
     }, 8000);
   }
 
@@ -620,9 +548,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
       : `${gateLabel} - Collected ${pricePart}`;
   }
 
-  private buildCollectedMessage(
-    notification: TicketCollectedNotification
-  ): string {
+  private buildCollectedMessage(notification: TicketCollectedNotification): string {
     const collectorLabel = this.lang.isRTL()
       ? `المحصّل ${notification.collectorName}`
       : `Collector ${notification.collectorName}`;

@@ -178,19 +178,19 @@ export class ConfigurationComponent implements OnInit {
       ticketIdFlag: [true],
       feesFlag: [true],
 
-       pricingSchemaId: [''],
+      pricingSchemaId: [''],
 
       entryGates: this.fb.array([]),
       exitGates: this.fb.array([]),
     });
 
-     this.step1Form.get('entryGatesCount')?.valueChanges.subscribe(() => this.syncGateArrays());
+    this.step1Form.get('entryGatesCount')?.valueChanges.subscribe(() => this.syncGateArrays());
     this.step1Form.get('exitGatesCount')?.valueChanges.subscribe(() => this.syncGateArrays());
 
-     this.modeCtrl.valueChanges.subscribe((mode) => {
+    this.modeCtrl.valueChanges.subscribe((mode) => {
       this.updatePricingSchemaValidator(mode);
     });
- 
+
     this.updatePricingSchemaValidator(this.modeCtrl.value);
   }
 
@@ -253,7 +253,7 @@ export class ConfigurationComponent implements OnInit {
             pricingSchemaId: cfg.pricingSchemaId ?? '',
           });
 
-           this.patchGateArray(this.entryGatesFA, cfg.entryGates || []);
+          this.patchGateArray(this.entryGatesFA, cfg.entryGates || []);
           this.patchGateArray(this.exitGatesFA, cfg.exitGates || []);
         },
         error: (err) => console.error('Failed to load existing configuration', err),
@@ -288,7 +288,7 @@ export class ConfigurationComponent implements OnInit {
 
   private makeGateGroup(defaultNumber: number): FormGroup {
     return this.fb.group({
-      gateId: [null], 
+      gateId: [null],
       gateNumber: [{ value: defaultNumber, disabled: true }, [Validators.min(1)]],
       pcIp: ['', [Validators.required, Validators.pattern(HOST_OR_IP_REGEX)]],
       deviceIp: ['', [Validators.required, Validators.pattern(HOST_OR_IP_REGEX)]],
@@ -310,9 +310,7 @@ export class ConfigurationComponent implements OnInit {
   }
 
   private renumberGateArray(arr: FormArray<FormGroup>) {
-    arr.controls.forEach((fg, i) =>
-      fg.get('gateNumber')?.setValue(i + 1, { emitEvent: false })
-    );
+    arr.controls.forEach((fg, i) => fg.get('gateNumber')?.setValue(i + 1, { emitEvent: false }));
   }
 
   private patchGateArray(arr: FormArray<FormGroup>, data: GateConfigDto[]) {
@@ -322,7 +320,7 @@ export class ConfigurationComponent implements OnInit {
     arr.controls.forEach((fg, i) => {
       const src = data?.[i];
       fg.patchValue({
-        gateId: src?.gateId ?? null,              // ✅ هنا نخزن الـ gateId
+        gateId: src?.gateId ?? null, // ✅ هنا نخزن الـ gateId
         gateNumber: src?.gateNumber ?? i + 1,
         pcIp: src?.pcIp ?? '',
         deviceIp: src?.lprIp ?? '',

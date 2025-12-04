@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
-import { PanelMenuModule } from 'primeng/panelmenu';
+
 import { Subscription } from 'rxjs';
 
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
@@ -12,7 +12,7 @@ import { HeaderComponent } from '../header-component/header-component';
 @Component({
   selector: 'app-shell-component',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, PanelMenuModule, RouterModule, FooterComponent, HeaderComponent],
+  imports: [RouterOutlet, CommonModule, RouterModule, FooterComponent, HeaderComponent],
   templateUrl: './shell-component.html',
   styleUrl: './shell-component.css',
 })
@@ -71,7 +71,7 @@ export class ShellComponent implements OnDestroy {
 
   // Sidebar collapse state
   sidebarCollapsed = signal(false);
-  
+
   gateOpen = false;
   private sub?: Subscription;
 
@@ -107,7 +107,7 @@ export class ShellComponent implements OnDestroy {
   }
 
   toggleSidebar() {
-    this.sidebarCollapsed.update(v => !v);
+    this.sidebarCollapsed.update((v) => !v);
   }
 
   switchLang() {

@@ -23,6 +23,7 @@ import { NfcReaderService } from '../../Services/registration/nfc-reader.service
 import { LanguageService } from '../../Services/i18n/language-service';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
+import { ToastServices } from '../../Services/Toster/toast-services';
 
 @Component({
   selector: 'app-registration-component',
@@ -33,8 +34,12 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
   providers: [
     {
       provide: I18N_DICT,
-      useValue: (<I18nDict>{
+      useValue: <I18nDict>(<unknown>{
         ar: {
+          // ===== Page header =====
+          registrationTitle: 'إدارة الاشتراكات',
+          registrationSubtitle: 'تسجيل اشتراك جديد ومتابعة قائمة المشتركين الحالية',
+
           // ===== Form: subscriber =====
           subscriberCard: 'بيانات المشترك',
           newBadge: 'جديد',
@@ -120,10 +125,15 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           // ===== plate helpers =====
           plateExampleNumbers: '5678',
           plateExampleLetters: 'أ ب ج',
+
           // ===== misc =====
           loading: 'جاري التحميل…',
         },
         en: {
+          // ===== Page header =====
+          registrationTitle: 'Membership management',
+          registrationSubtitle: 'Create a new membership and review the existing list',
+
           // ===== Form: subscriber =====
           subscriberCard: 'Subscriber details',
           newBadge: 'New',
@@ -209,10 +219,11 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           // ===== plate helpers =====
           plateExampleNumbers: '5678',
           plateExampleLetters: 'A B C',
+
           // ===== misc =====
           loading: 'Loading…',
         },
-      }) as I18nDict,
+      }),
     },
   ],
 })
@@ -222,6 +233,8 @@ export class RegistrationComponent implements OnInit {
   private svc = inject(Registrationservice);
   private nfc = inject(NfcReaderService);
   public lang = inject(LanguageService);
+  private toast = inject(ToastServices);
+  private dict = inject<I18nDict>(I18N_DICT as any);
 
   // ===== State (list/paging) =====
   loading = signal(false);
@@ -314,12 +327,53 @@ export class RegistrationComponent implements OnInit {
     this.load();
   }
 
+  // ===== i18n helper =====
+  private t(key: string): string {
+    const langKey = this.lang.current === 'ar' ? 'ar' : 'en';
+    const g: any = (this.dict as any)?.[langKey] ?? {};
+    return g[key] ?? key;
+  }
+
+  // ===== Message extractors (from backend) =====
+  private extractErrorMessage(err: any, fallbackKey: string): string {
+    const fallback = this.t(fallbackKey);
+    const e = err?.error ?? err;
+    if (!e) return fallback;
+
+    if (typeof e === 'string') return e;
+
+    if (e.errors && Array.isArray(e.errors) && e.errors[0]?.message) {
+      return e.errors[0].message;
+    }
+
+    if (e.detail) return e.detail;
+    if (e.title) return e.title;
+
+    return fallback;
+  }
+
+  private extractSuccessMessage(res: any, fallbackKey: string): string {
+    const fallback = this.t(fallbackKey);
+    if (!res) return fallback;
+
+    if (typeof res === 'string') return res;
+    if (res.message) return res.message;
+    if (res.detail) return res.detail;
+
+    return fallback;
+  }
+
   // ===== Data =====
   private loadPricingSchemas() {
     this.loadingSchemas.set(true);
     this.svc.getAll().subscribe({
       next: (list) => this.schemas.set(list ?? []),
-      error: () => this.loadingSchemas.set(false),
+      error: (err) => {
+        console.error(err);
+        const msg = this.extractErrorMessage(err, 'loading');
+        this.toast.error(msg);
+        this.loadingSchemas.set(false);
+      },
       complete: () => this.loadingSchemas.set(false),
     });
   }
@@ -328,7 +382,13 @@ export class RegistrationComponent implements OnInit {
     this.loading.set(true);
     this.svc.getMemberships(this.pageNumber(), this.pageSize()).subscribe({
       next: (res) => this.result.set(res),
-      error: () => this.loading.set(false),
+      error: (err) => {
+        console.error(err);
+        const msg = this.extractErrorMessage(err, 'loadFail' as any);
+        // لو حابب تضيف key مخصوص للتحميل، ضيفه في الـ dict فوق
+        this.toast.error(msg);
+        this.loading.set(false);
+      },
       complete: () => this.loading.set(false),
     });
   }
@@ -381,9 +441,13 @@ export class RegistrationComponent implements OnInit {
       this.form.get('cardNo')?.markAsDirty();
       this.form.get('cardNo')?.markAsTouched();
       this.form.get('cardNo')?.updateValueAndValidity();
+
+      // success toast (local message، مفيش backend هنا)
+      this.toast.success(this.t('readCard'));
     } catch (err: any) {
       console.error(err);
-      alert(err?.message || 'تعذر قراءة الكارت. تأكد من تشغيل قارئ الـ NFC.');
+      const msg = err?.message || 'تعذر قراءة الكارت. تأكد من تشغيل قارئ الـ NFC.';
+      this.toast.error(msg);
     } finally {
       this.readingCard.set(false);
     }
@@ -499,24 +563,21 @@ export class RegistrationComponent implements OnInit {
       ? this.svc.updateMembership(editingId, fd)
       : this.svc.addMembership(fd);
 
-    const dict = this.lang.current === 'ar' ? (I18N_DICT as any).ar : (I18N_DICT as any).en;
-    const successMsg = editingId
-      ? dict?.updateSuccess || 'Updated successfully ✅'
-      : dict?.savedOk || 'Saved successfully ✅';
-    const errorMsg = editingId
-      ? dict?.updateFailed || 'Failed to update.'
-      : dict?.saveFail || 'Failed to save.';
-
     request$.subscribe({
-      next: () => {
-        alert(successMsg);
+      next: (res) => {
+        const successKey = editingId ? 'updateSuccess' : 'savedOk';
+        const msg = this.extractSuccessMessage(res, successKey);
+        this.toast.success(msg);
+
         this.editingId.set(null);
         this.reset();
         this.load();
       },
       error: (err) => {
         console.error(err);
-        alert(errorMsg);
+        const errorKey = editingId ? 'updateFailed' : 'saveFail';
+        const msg = this.extractErrorMessage(err, errorKey);
+        this.toast.error(msg);
         this.saving.set(false);
       },
       complete: () => this.saving.set(false),
@@ -579,20 +640,22 @@ export class RegistrationComponent implements OnInit {
   }
 
   deleteMembership(id: string) {
-    const dict = this.lang.current === 'ar' ? (I18N_DICT as any).ar : (I18N_DICT as any).en;
-    if (!confirm(dict?.deleteConfirm || 'Are you sure?')) {
+    const confirmMsg = this.t('deleteConfirm');
+    if (!confirm(confirmMsg || 'Are you sure?')) {
       return;
     }
 
     this.loading.set(true);
     this.svc.deleteMembership(id).subscribe({
-      next: () => {
-        alert(dict?.deleteSuccess || 'Deleted successfully!');
+      next: (res) => {
+        const msg = this.extractSuccessMessage(res, 'deleteSuccess');
+        this.toast.success(msg);
         this.load();
       },
       error: (err) => {
         console.error(err);
-        alert(dict?.deleteFailed || 'Failed to delete.');
+        const msg = this.extractErrorMessage(err, 'deleteFailed');
+        this.toast.error(msg);
         this.loading.set(false);
       },
       complete: () => this.loading.set(false),

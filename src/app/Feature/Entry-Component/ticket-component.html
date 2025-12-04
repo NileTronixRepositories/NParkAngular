@@ -1,4 +1,22 @@
 <div class="tickets-theme container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
+  <!-- Page Header -->
+  <div class="page-header mb-4 fade-in-down">
+    <div class="header-content">
+      <div class="header-icon-wrapper">
+        <i class="bi bi-box-arrow-in-right header-icon"></i>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">
+          {{ t('entry') }}
+          <span class="gate-badge" *ngIf="gatePeripheral?.gateNumber">
+            <span class="gate-label">{{ t('gate') }}</span>
+            <span class="gate-value">{{ gatePeripheral?.gateNumber }}</span>
+          </span>
+        </h1>
+        <p class="page-subtitle">{{ t('tickets_entry_title') }}</p>
+      </div>
+    </div>
+  </div>
   <!-- 3 BLOCKS -->
   <div class="row g-3 mb-3">
     <!-- Block 1: Gate Devices -->

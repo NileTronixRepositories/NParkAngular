@@ -1,5 +1,5 @@
 <div
-  class="container-fluid"
+  class="container-fluid config-page"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
@@ -65,7 +65,10 @@
             <div class="settings-grid">
               <!-- MODE -->
               <div class="settings-group">
-                <span class="settings-title">{{ 'Price Type' | t }}</span>
+                <div class="settings-header">
+                  <i class="bi bi-currency-exchange"></i>
+                  <span class="settings-title">{{ 'Price Type' | t }}</span>
+                </div>
                 <div class="row-inline">
                   <mat-checkbox
                     [checked]="modeCtrl.value === 'entry'"
@@ -85,7 +88,10 @@
 
               <!-- CAPTURE MODE -->
               <div class="settings-group">
-                <span class="settings-title">{{ 'Image Capture Mode' | t }}</span>
+                <div class="settings-header">
+                  <i class="bi bi-camera-video"></i>
+                  <span class="settings-title">{{ 'Image Capture Mode' | t }}</span>
+                </div>
                 <mat-radio-group formControlName="captureMode" class="row-inline">
                   <mat-radio-button value="LPR">{{ 'lpr' | t }}</mat-radio-button>
                   <mat-radio-button value="SCANNER">{{ 'scanner' | t }}</mat-radio-button>
@@ -94,7 +100,10 @@
 
               <!-- PRINT TYPE -->
               <div class="settings-group">
-                <span class="settings-title">{{ 'printType' | t }}</span>
+                <div class="settings-header">
+                  <i class="bi bi-printer"></i>
+                  <span class="settings-title">{{ 'printType' | t }}</span>
+                </div>
                 <mat-radio-group formControlName="printType" class="row-inline">
                   <mat-radio-button value="QR">{{ 'qr' | t }}</mat-radio-button>
                   <mat-radio-button value="RFID">{{ 'rfid' | t }}</mat-radio-button>
@@ -103,7 +112,10 @@
 
               <!-- OPTIONS -->
               <div class="settings-group">
-                <span class="settings-title">{{ 'Ticket Options' | t }}</span>
+                <div class="settings-header">
+                  <i class="bi bi-ticket-perforated"></i>
+                  <span class="settings-title">{{ 'Ticket Options' | t }}</span>
+                </div>
                 <div class="row-inline">
                   <mat-checkbox formControlName="dateTimeFlag">
                     {{ 'Date Time' | t }}
@@ -120,12 +132,11 @@
               </div>
 
               <!-- PRICING SCHEMA (ENTRY ONLY) -->
-              <div
-                class="settings-group"
-                *ngIf="modeCtrl.value === 'entry'"
-                style="grid-column: span 2"
-              >
-                <span class="settings-title">{{ 'Pricing Schema' | t }}</span>
+              <div class="settings-group settings-group--wide" *ngIf="modeCtrl.value === 'entry'">
+                <div class="settings-header">
+                  <i class="bi bi-tags"></i>
+                  <span class="settings-title">{{ 'Pricing Schema' | t }}</span>
+                </div>
                 <mat-form-field appearance="outline" class="w-100">
                   <mat-label>{{ 'Pricing Schema' | t }}</mat-label>
                   <mat-select formControlName="pricingSchemaId">
@@ -283,53 +294,131 @@
       </mat-horizontal-stepper>
     </mat-card>
 
-    <!-- ===================== SUMMARY CARD ===================== -->
-    <mat-card class="summary mat-elevation-z2">
-      <h3 class="sum-title">{{ 'summary' | t }}</h3>
-
-      <div class="sum-line">
-        <span class="muted">{{ 'entryGatesCount' | t }}</span>
-        <span class="bold">{{ summaryForView.entryGatesCount }}</span>
+    <!-- ===================== SUMMARY SIDEBAR ===================== -->
+    <div class="summary-wrapper">
+      <!-- Page Header -->
+      <div class="page-header">
+        <div class="header-icon">
+          <i class="bi bi-gear-fill"></i>
+        </div>
+        <div class="header-text">
+          <h1>{{ 'configuration' | t }}</h1>
+          <p>{{ 'configurationSubtitle' | t }}</p>
+        </div>
       </div>
 
-      <div class="sum-line">
-        <span class="muted">{{ 'exitGatesCount' | t }}</span>
-        <span class="bold">{{ summaryForView.exitGatesCount }}</span>
-      </div>
+      <!-- Summary Card -->
+      <mat-card class="summary mat-elevation-z2">
+        <div class="sum-header">
+          <i class="bi bi-clipboard-data"></i>
+          <h3 class="sum-title">{{ 'summary' | t }}</h3>
+        </div>
 
-      <div class="sum-line">
-        <span class="muted">{{ 'allowedParkingSlots' | t }}</span>
-        <span class="bold">{{ summaryForView.allowedParkingSlots }}</span>
-      </div>
+        <div class="sum-content">
+          <div class="sum-line">
+            <div class="sum-label">
+              <i class="bi bi-door-open"></i>
+              <span>{{ 'entryGatesCount' | t }}</span>
+            </div>
+            <span class="sum-value badge-primary">{{ summaryForView.entryGatesCount }}</span>
+          </div>
 
-      <div class="sum-line">
-        <span class="muted">{{ 'gracePeriodMinutes' | t }}</span>
-        <span class="bold">{{ summaryForView.gracePeriodMinutes }}</span>
-      </div>
+          <div class="sum-line">
+            <div class="sum-label">
+              <i class="bi bi-door-closed"></i>
+              <span>{{ 'exitGatesCount' | t }}</span>
+            </div>
+            <span class="sum-value badge-primary">{{ summaryForView.exitGatesCount }}</span>
+          </div>
 
-      <div class="sum-line">
-        <span class="muted">{{ 'FeesType' | t }}</span>
-        <span class="bold">
-          {{ summaryForView.mode === 'entry' ? ('entry' | t) : ('exit' | t) }}
-        </span>
-      </div>
+          <div class="sum-line">
+            <div class="sum-label">
+              <i class="bi bi-car-front"></i>
+              <span>{{ 'allowedParkingSlots' | t }}</span>
+            </div>
+            <span class="sum-value badge-success">{{ summaryForView.allowedParkingSlots }}</span>
+          </div>
 
-      <div class="sum-line">
-        <span class="muted">{{ 'captureMode' | t }}</span>
-        <span class="bold">{{ summaryForView.captureMode }}</span>
-      </div>
+          <div class="sum-line">
+            <div class="sum-label">
+              <i class="bi bi-clock-history"></i>
+              <span>{{ 'gracePeriodMinutes' | t }}</span>
+            </div>
+            <span class="sum-value badge-warning">{{ summaryForView.gracePeriodMinutes }} min</span>
+          </div>
 
-      <div class="sum-line">
-        <span class="muted">{{ 'printType' | t }}</span>
-        <span class="bold">{{ summaryForView.printType }}</span>
-      </div>
+          <div class="sum-divider"></div>
 
-      <div class="sum-line">
-        <span class="muted">{{ 'startDate' | t }}</span>
-        <span class="bold">
-          {{ summaryForView.ticketCard.startDate | date : 'yyyy-MM-dd' }}
-        </span>
-      </div>
-    </mat-card>
+          <div class="sum-line">
+            <div class="sum-label">
+              <i class="bi bi-currency-dollar"></i>
+              <span>{{ 'FeesType' | t }}</span>
+            </div>
+            <span class="sum-value badge-info">
+              {{ summaryForView.mode === 'entry' ? ('entry' | t) : ('exit' | t) }}
+            </span>
+          </div>
+
+          <div class="sum-line">
+            <div class="sum-label">
+              <i class="bi bi-camera"></i>
+              <span>{{ 'captureMode' | t }}</span>
+            </div>
+            <span class="sum-value">{{ summaryForView.captureMode }}</span>
+          </div>
+
+          <div class="sum-line">
+            <div class="sum-label">
+              <i class="bi bi-printer"></i>
+              <span>{{ 'printType' | t }}</span>
+            </div>
+            <span class="sum-value">{{ summaryForView.printType }}</span>
+          </div>
+
+          <div class="sum-line">
+            <div class="sum-label">
+              <i class="bi bi-calendar-event"></i>
+              <span>{{ 'startDate' | t }}</span>
+            </div>
+            <span class="sum-value">
+              {{ summaryForView.ticketCard.startDate | date : 'yyyy-MM-dd' }}
+            </span>
+          </div>
+        </div>
+
+        <!-- Step Progress -->
+        <div class="sum-progress">
+          <div
+            class="progress-item"
+            [class.completed]="stepIndex >= 0"
+            [class.active]="stepIndex === 0"
+          >
+            <div class="progress-icon">
+              <i
+                class="bi"
+                [class.bi-check-lg]="stepIndex > 0"
+                [class.bi-1-circle-fill]="stepIndex === 0"
+              ></i>
+            </div>
+            <span>{{ 'basics' | t }}</span>
+          </div>
+          <div class="progress-line" [class.active]="stepIndex >= 1"></div>
+          <div
+            class="progress-item"
+            [class.completed]="stepIndex >= 1"
+            [class.active]="stepIndex === 1"
+          >
+            <div class="progress-icon">
+              <i
+                class="bi"
+                [class.bi-check-lg]="stepIndex > 1"
+                [class.bi-2-circle-fill]="stepIndex <= 1"
+              ></i>
+            </div>
+            <span>{{ 'modeAndSettings' | t }}</span>
+          </div>
+        </div>
+      </mat-card>
+    </div>
   </div>
 </div>

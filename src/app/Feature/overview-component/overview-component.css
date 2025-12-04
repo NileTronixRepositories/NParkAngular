@@ -3,23 +3,98 @@
   padding: 2rem 1.5rem;
   /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
   min-height: 100vh;
- }
+}
 
+/* ==========================
+   Page Header (Dark + Red accent مثل Visitor)
+   ========================== */
 .page-header {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
   margin-bottom: 2rem;
 }
 
-.page-title {
-  font-size: 2rem;
-  font-weight: 700;
-  color: #1a202c;
-  margin-bottom: 0.25rem;
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05));
+  transform: skewX(-20deg);
+  pointer-events: none;
 }
 
-.page-subtitle {
-  color: #64748b;
-  font-size: 0.95rem;
+.page-header .header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.page-header .header-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  background: rgba(229, 57, 53, 0.15); /* NPark Red tint */
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(229, 57, 53, 0.3);
+}
+
+.page-header .header-icon {
+  font-size: 1.75rem;
+  color: #ef5350; /* Light red */
+}
+
+.page-header .header-text {
+  flex: 1;
+}
+
+.page-header .page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
   margin: 0;
+  line-height: 1.2;
+  color: #f8fafc;
+}
+
+.page-header .page-subtitle {
+  margin: 0.25rem 0 0;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+/* RTL strip direction for header */
+.page-rtl .page-header::before {
+  right: auto;
+  left: 0;
+  transform: skewX(20deg);
+}
+
+/* Header entrance animation */
+.fade-in-down {
+  animation: fadeInDown 0.35s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* ===== Loading & Error States ===== */
@@ -74,11 +149,7 @@
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(
-    90deg,
-    var(--accent-color) 0%,
-    var(--accent-light) 100%
-  );
+  background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-light) 100%);
 }
 
 .kpi-card:hover {
@@ -114,11 +185,7 @@
   align-items: center;
   justify-content: center;
   font-size: 1.75rem;
-  background: linear-gradient(
-    135deg,
-    var(--accent-color) 0%,
-    var(--accent-light) 100%
-  );
+  background: linear-gradient(135deg, var(--accent-color) 0%, var(--accent-light) 100%);
   color: white;
   flex-shrink: 0;
 }
@@ -488,7 +555,6 @@
   font-size: 1.125rem;
   font-weight: 600;
   color: #1a202c;
-  margin-bottom: 0.25rem;
 }
 
 .performer-stats {
@@ -602,7 +668,11 @@
     padding: 1rem;
   }
 
-  .page-title {
+  .page-header {
+    padding: 1.25rem 1rem;
+  }
+
+  .page-header .page-title {
     font-size: 1.5rem;
   }
 
@@ -645,6 +715,7 @@
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
 }
+
 /* ==========================
    Live Notifications
    ========================== */

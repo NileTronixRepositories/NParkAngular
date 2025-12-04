@@ -42,7 +42,7 @@ import { SearchBlockComponent } from '../Shared/search-block-component/search-bl
       provide: I18N_DICT,
       useValue: <I18nDict>{
         ar: {
-          exitTicket: 'تذكرة الخروج',
+          exitTicket: 'بوابة الخروج',
           EXIT: 'خروج',
           readyToCollect: 'جاهز للتحصيل',
           scanHint: 'امسح التذكرة من اليمين لعرض التفاصيل والتحصيل',
@@ -164,7 +164,7 @@ import { SearchBlockComponent } from '../Shared/search-block-component/search-bl
           searching: 'جاري البحث...',
         },
         en: {
-          exitTicket: 'Exit Ticket',
+          exitTicket: 'Exit Gate',
           EXIT: 'EXIT',
           readyToCollect: 'Ready to collect',
           scanHint: 'Scan the ticket to view details and collect.',

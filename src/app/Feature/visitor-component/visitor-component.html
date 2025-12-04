@@ -1,22 +1,34 @@
 <div class="visitors-theme container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
+  <!-- Page Header -->
+  <div class="page-header mb-4 fade-in-down">
+    <div class="header-content">
+      <div class="header-icon-wrapper">
+        <i class="bi bi-person-vcard header-icon"></i>
+      </div>
+      <div class="header-text">
+        <h1 class="page-title">{{ t('visitor') }}</h1>
+        <p class="page-subtitle">{{ t('all_records') }}</p>
+      </div>
+    </div>
+  </div>
+
   <div class="row g-4">
     <!-- ===== Block 1: All data ===== -->
     <div class="col-12 col-xl-4">
-      <div class="card fancy-card shadow-soft h-100">
+      <div class="card shadow-soft h-100">
         <div class="card-header d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-collection"></i>
-            <h5 class="mb-0 fw-bold">{{ t('all_records') }}</h5>
+            <h5 class="mb-0 fw-bold text-dark">{{ t('all_records') }}</h5>
           </div>
           <div class="d-flex align-items-center gap-2">
-            <span class="badge pill badge--info">{{ t('block1') }}</span>
+            <span class="badge pill badge-secondary-soft">{{ t('block1') }}</span>
           </div>
         </div>
 
         <div class="card-body">
           <!-- Toolbar -->
-          <div class="toolbar sticky-top">
-            <div class="search">
+          <div class="toolbar sticky-top mb-3">
+            <div class="search-wrap w-100">
               <i class="bi bi-search"></i>
               <input
                 class="form-control"
@@ -25,20 +37,16 @@
                 (ngModelChange)="q.set($event)"
               />
             </div>
-            <button
-              class="btn btn-outline-secondary btn-icon"
-              (click)="fetch()"
-              [title]="t('reload')"
-            >
+            <button class="btn btn-light btn-icon ms-2" (click)="fetch()" [title]="t('reload')">
               <i class="bi bi-arrow-repeat"></i>
             </button>
           </div>
 
           <div *ngIf="loading()" class="text-center py-4">
-            <div class="spinner-border"></div>
+            <div class="spinner-border text-primary"></div>
           </div>
 
-          <div class="list-wrap">
+          <div class="list-wrap custom-scrollbar">
             <ul class="list-unstyled list-grid">
               <li
                 *ngFor="let item of filtered(); trackBy: trackById"
@@ -48,12 +56,18 @@
                 <button class="row-main" (click)="select(item)">
                   <div class="row-title">
                     <span class="name">{{ item.name }}</span>
-                    <span class="muted">#{{ item.id | slice : 0 : 8 }}</span>
+                    <span class="muted font-monospace">#{{ item.id | slice : 0 : 8 }}</span>
                   </div>
                   <div class="row-meta">
-                    <span class="chip chip--soft">{{ badgeFor(item) }}</span>
-                    <span class="chip chip--price">{{ item.price }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}</span>
-                    <span class="chip" [class.ok]="item.isRepeated" [class.no]="!item.isRepeated">
+                    <span class="badge pill badge-secondary-soft">{{ badgeFor(item) }}</span>
+                    <span class="badge pill badge-primary-soft"
+                      >{{ item.price }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}</span
+                    >
+                    <span
+                      class="badge pill"
+                      [class.badge-success-soft]="item.isRepeated"
+                      [class.badge-warning-soft]="!item.isRepeated"
+                    >
                       {{ item.isRepeated ? t('repeated_badge_true') : t('repeated_badge_false') }}
                     </span>
                   </div>
@@ -61,14 +75,14 @@
 
                 <div class="row-actions">
                   <button
-                    class="btn btn-sm btn-outline-secondary btn-icon"
+                    class="btn btn-sm btn-light btn-icon text-secondary"
                     [title]="t('details_btn')"
                     (click)="select(item)"
                   >
                     <i class="bi bi-eye"></i>
                   </button>
                   <button
-                    class="btn btn-sm btn-primary arrow-btn"
+                    class="btn btn-sm btn-primary btn-icon arrow-btn"
                     [title]="t('send_to_block2')"
                     (click)="addToPicked(item)"
                   >
@@ -79,9 +93,11 @@
             </ul>
 
             <div *ngIf="!loading() && filtered().length === 0" class="empty-state">
-              <i class="bi bi-inboxes"></i>
-              <div>{{ t('no_results') }}</div>
-              <small class="muted">{{ t('try_another_keyword') }}</small>
+              <div class="empty-icon">
+                <i class="bi bi-inboxes"></i>
+              </div>
+              <div class="empty-text">{{ t('no_results') }}</div>
+              <small class="text-muted">{{ t('try_another_keyword') }}</small>
             </div>
           </div>
         </div>
@@ -90,16 +106,15 @@
 
     <!-- ===== Block 2: Picked + Order ===== -->
     <div class="col-12 col-xl-4">
-      <div class="card fancy-card shadow-soft h-100">
+      <div class="card shadow-soft h-100">
         <div class="card-header d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-list-ol"></i>
-            <h5 class="mb-0 fw-bold">{{ t('selected_order') }}</h5>
+            <h5 class="mb-0 fw-bold text-dark">{{ t('selected_order') }}</h5>
           </div>
           <div class="d-flex align-items-center gap-2">
-            <span class="badge pill badge--warning">{{ t('block2') }}</span>
+            <span class="badge pill badge-warning-soft">{{ t('block2') }}</span>
             <button
-              class="btn btn-sm btn-outline-danger"
+              class="btn btn-sm btn-light text-danger"
               (click)="clearPicked()"
               [disabled]="picked().length === 0"
               [title]="t('clear')"
@@ -110,7 +125,11 @@
         </div>
 
         <div class="card-body">
-          <div cdkDropList (cdkDropListDropped)="dropReorder($event)" class="picked-list">
+          <div
+            cdkDropList
+            (cdkDropListDropped)="dropReorder($event)"
+            class="picked-list custom-scrollbar"
+          >
             <div
               class="picked-row"
               *ngFor="let p of picked(); let i = index; trackBy: trackById"
@@ -126,22 +145,26 @@
                 <div class="content">
                   <div class="title">{{ p.name }}</div>
                   <div class="meta">
-                    <span class="chip chip--soft">{{ badgeFor(p) }}</span>
-                    <span class="chip chip--price">{{ p.price }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}</span>
+                    <span class="badge pill badge-secondary-soft me-1">{{ badgeFor(p) }}</span>
+                    <span class="badge pill badge-primary-soft"
+                      >{{ p.price }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}</span
+                    >
                   </div>
                 </div>
               </button>
 
-              <!-- Count (عرض فقط) -->
+              <!-- Count -->
               <div class="qty-controls d-flex align-items-center gap-2">
-                <span class="count-badge">{{ t('count_label') }}: {{ qty()[p.id] || 1 }}</span>
+                <span class="badge pill badge-light border badge-primary-soft"
+                  >{{ t('count_label') }}: {{ qty()[p.id] || 1 }}</span
+                >
               </div>
 
-              <!-- حذف من picked -->
+              <!-- Delete -->
               <div class="picked-actions d-flex align-items-center gap-2">
                 <button
                   type="button"
-                  class="btn btn-sm btn-outline-danger"
+                  class="btn btn-sm btn-light text-danger btn-icon"
                   (click)="removeFromPicked(p)"
                   [title]="t('clear')"
                 >
@@ -150,16 +173,18 @@
               </div>
             </div>
 
-            <div *ngIf="picked().length === 0" class="empty">
-              <i class="bi bi-arrow-left-right me-2"></i>
-              {{ t('drag_here') }}
+            <div *ngIf="picked().length === 0" class="empty-state">
+              <div class="empty-icon">
+                <i class="bi bi-arrow-left-right"></i>
+              </div>
+              <div class="empty-text">{{ t('drag_here') }}</div>
             </div>
           </div>
         </div>
 
-        <div class="text-center mb-3">
+        <div class="card-footer bg-white border-top-0 p-3 text-center">
           <button
-            class="btn btn-primary px-4"
+            class="btn btn-primary px-4 w-100"
             [disabled]="picked().length === 0"
             (click)="submitOrder()"
           >
@@ -172,30 +197,31 @@
 
     <!-- ===== Block 3: Details ===== -->
     <div class="col-12 col-xl-4">
-      <div class="card fancy-card shadow-soft h-100">
+      <div class="card shadow-soft h-100">
         <div class="card-header d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-info-circle"></i>
-            <h5 class="mb-0 fw-bold">{{ t('details') }}</h5>
+            <h5 class="mb-0 fw-bold text-dark">{{ t('details') }}</h5>
           </div>
-          <span class="badge pill badge--success">{{ t('block3') }}</span>
+          <span class="badge pill badge-success-soft">{{ t('block3') }}</span>
         </div>
 
         <div class="card-body">
           <ng-container *ngIf="active(); else noSel">
-            <div class="details">
-              <div class="hero">
+            <div class="details fade-in">
+              <div class="hero mb-4">
                 <div class="hero-title">
                   {{ active()!.name }}
-                  <span class="hero-tag">{{ t('pricing') }}</span>
+                  <span class="badge pill badge-secondary-soft ms-2">{{ t('pricing') }}</span>
                 </div>
-                <div class="hero-sub">#{{ active()!.id }}</div>
+                <div class="hero-sub font-monospace">#{{ active()!.id }}</div>
               </div>
 
-              <div class="grid">
+              <div class="grid d-flex flex-column gap-3">
                 <div class="kv">
                   <div class="k"><i class="bi bi-cash-coin"></i> {{ t('price') }}</div>
-                  <div class="v">{{ active()!.price }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}</div>
+                  <div class="v text-primary">
+                    {{ active()!.price }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}
+                  </div>
                 </div>
                 <div class="kv">
                   <div class="k"><i class="bi bi-clock-history"></i> {{ t('type') }}</div>
@@ -209,9 +235,9 @@
                   <div class="k"><i class="bi bi-repeat"></i> {{ t('repeated') }}</div>
                   <div class="v">
                     <span
-                      class="chip"
-                      [class.ok]="active()!.isRepeated"
-                      [class.no]="!active()!.isRepeated"
+                      class="badge pill"
+                      [class.badge-success-soft]="active()!.isRepeated"
+                      [class.badge-warning-soft]="!active()!.isRepeated"
                     >
                       {{ active()!.isRepeated ? t('yes') : t('no') }}
                     </span>
@@ -219,7 +245,7 @@
                 </div>
               </div>
 
-              <div class="hint">
+              <div class="hint mt-4 p-3 bg-light rounded-3 text-muted small">
                 <i class="bi bi-info-circle me-1"></i>
                 {{ t('hint_click_update') }}
               </div>
@@ -227,9 +253,11 @@
           </ng-container>
 
           <ng-template #noSel>
-            <div class="no-sel">
-              <i class="bi bi-hand-index-thumb"></i>
-              <p>{{ t('select_record') }}</p>
+            <div class="empty-state h-100 d-flex flex-column justify-content-center">
+              <div class="empty-icon">
+                <i class="bi bi-hand-index-thumb"></i>
+              </div>
+              <div class="empty-text">{{ t('select_record') }}</div>
             </div>
           </ng-template>
         </div>

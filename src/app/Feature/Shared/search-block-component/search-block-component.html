@@ -13,17 +13,17 @@
   </div>
 
   <!-- Body -->
-  <div class="card-body">
+  <div class="card-body p-3">
     <!-- Search Input -->
-    <div class="search-input-wrapper">
-      <div class="input-group">
-        <span class="input-group-text">
+    <div class="search-input-wrapper mb-3">
+      <div class="input-group input-group-lg">
+        <span class="input-group-text bg-white border-end-0 text-muted">
           <i class="bi bi-search"></i>
         </span>
 
         <input
           type="text"
-          class="form-control search-input"
+          class="form-control border-start-0 ps-0 search-input"
           [(ngModel)]="searchText"
           (ngModelChange)="onSearchInput($event)"
           (focus)="onInputFocus()"
@@ -33,7 +33,7 @@
 
         <button
           *ngIf="searchText"
-          class="btn btn-outline-secondary"
+          class="btn btn-outline-secondary border-start-0"
           type="button"
           (click)="clearSearch()"
         >
@@ -42,56 +42,61 @@
       </div>
 
       <!-- Loading Spinner -->
-      <div *ngIf="searching" class="search-loading">
-        <span class="spinner-border spinner-border-sm me-2"></span>
+      <div *ngIf="searching" class="search-loading fade-in">
+        <div class="spinner-border spinner-border-sm text-primary me-2" role="status"></div>
         <span class="small text-muted">{{ t('searching') }}</span>
       </div>
     </div>
 
     <!-- Results as horizontal "strips" -->
-    <div *ngIf="showResults" class="search-results">
+    <div *ngIf="showResults" class="search-results custom-scrollbar">
       <ng-container *ngIf="results.length > 0; else emptyState">
         <div
           class="result-item"
           *ngFor="let ticket of results; trackBy: trackByTicketNumber"
           (click)="selectResult(ticket)"
         >
-          <div class="result-main">
-            <div class="result-main-left">
+          <div class="result-content">
+            <div class="result-header">
               <span class="result-id mono">
+                <i class="bi bi-ticket-perforated me-1"></i>
                 {{ ticket.ticketNumber || ticket.id }}
               </span>
 
               <span
-                class="result-status"
-                [class.result-status--collected]="ticket.isCollectedByCashier"
+                class="badge pill"
+                [class.badge-success-soft]="ticket.isCollectedByCashier"
+                [class.badge-warning-soft]="!ticket.isCollectedByCashier"
               >
                 {{ ticket.isCollectedByCashier ? t('collected') : t('not_collected') }}
               </span>
             </div>
 
-            <div class="result-main-right" *ngIf="ticket.price !== undefined">
-              <span class="result-price">
-                {{ ticket.price | number : '1.0-0' }} {{ t('currency') }}
+            <div class="result-details">
+              <span class="detail-item">
+                <i class="bi bi-clock"></i>
+                {{ ticket.time | date : 'short' }}
+              </span>
+              <span class="detail-item" *ngIf="ticket.info">
+                <i class="bi bi-info-circle"></i>
+                {{ ticket.info }}
               </span>
             </div>
           </div>
 
-          <div class="result-details">
-            <span class="small text-muted">
-              <i class="bi bi-clock"></i>
-              {{ ticket.time | date : 'short' }}
-            </span>
-
-            <span class="small text-muted" *ngIf="ticket.info"> • {{ ticket.info }} </span>
+          <div class="result-price-tag" *ngIf="ticket.price !== undefined">
+            <span class="price-value">{{ ticket.price | number : '1.0-0' }}</span>
+            <span class="price-currency">{{ t('currency') }}</span>
           </div>
         </div>
       </ng-container>
 
       <ng-template #emptyState>
         <div class="empty-state">
-          <i class="bi bi-inbox fs-4 text-muted opacity-50"></i>
-          <div class="small text-muted mt-2">{{ t('no_results') }}</div>
+          <div class="empty-icon">
+            <i class="bi bi-search"></i>
+          </div>
+          <div class="empty-text">{{ t('no_results') }}</div>
         </div>
       </ng-template>
     </div>

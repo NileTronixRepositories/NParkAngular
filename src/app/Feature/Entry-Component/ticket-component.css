@@ -25,3 +25,123 @@
   border: 0;
   border-radius: var(--ticket-radius);
 }
+
+/* ==========================
+   Page Header
+   ========================== */
+.page-header {
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  border-radius: 16px;
+  padding: 1.5rem 2rem;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+
+.page-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 200px;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05));
+  transform: skewX(-20deg);
+  pointer-events: none;
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  position: relative;
+  z-index: 1;
+}
+
+.header-icon-wrapper {
+  width: 56px;
+  height: 56px;
+  background: rgba(59, 130, 246, 0.2);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+  border: 1px solid rgba(59, 130, 246, 0.3);
+}
+
+.header-icon {
+  font-size: 1.75rem;
+  color: #60a5fa;
+}
+
+.header-text {
+  flex: 1;
+}
+
+.page-title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  color: #f8fafc;
+}
+
+.page-subtitle {
+  margin: 0.25rem 0 0;
+  color: #94a3b8;
+  font-size: 0.95rem;
+}
+
+/* Gate Badge */
+.gate-badge {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  border-radius: 8px;
+  padding: 0.25rem 0.75rem;
+  gap: 0.5rem;
+}
+
+.gate-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #34d399;
+  font-weight: 600;
+}
+
+.gate-value {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #10b981;
+  font-family: var(--ticket-font-mono);
+}
+
+/* Animation */
+.fade-in-down {
+  animation: fadeInDown 0.5s ease-out forwards;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* RTL Support */
+.page-rtl .page-header::before {
+  right: auto;
+  left: 0;
+  transform: skewX(20deg);
+}
