@@ -1166,3 +1166,189 @@
   font-size: 0.8rem;
   text-align: center;
 }
+/* Membership tooltip extra styles */
+.membership-tooltip .tooltip-list {
+  max-height: 220px;
+  overflow-y: auto;
+  margin-top: 0.5rem;
+}
+
+.membership-tooltip .tooltip-item {
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.membership-tooltip .tooltip-item:last-child {
+  border-bottom: none;
+}
+
+.membership-tooltip .tooltip-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.membership-tooltip .tooltip-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.membership-tooltip .tooltip-vehicle {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.membership-tooltip .tooltip-meta {
+  margin-top: 0.1rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.membership-tooltip .tooltip-more {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: end;
+}
+.membership-card {
+  position: relative;
+}
+
+/* علشان العناصر تبان clickable */
+.membership-card .clickable-stat {
+  position: relative;
+  padding-inline-end: 0.75rem;
+}
+
+/* Hint tooltip الصغيرة على الهوفر */
+.membership-hint-tooltip {
+  position: absolute;
+  bottom: -1.6rem;
+  inset-inline-start: 0;
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  background: #111827;
+  color: #f9fafb;
+  font-size: 0.7rem;
+  white-space: nowrap;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.35);
+  z-index: 10;
+}
+
+/* RTL alignment */
+.page-rtl .membership-hint-tooltip {
+  inset-inline-start: auto;
+  inset-inline-end: 0;
+}
+
+/* Panel بتاع الداتا */
+.membership-details {
+  margin-top: 0.9rem;
+  padding: 0.75rem 0.8rem;
+  border-radius: 12px;
+  background: #fff7ed;
+  border: 1px dashed rgba(248, 171, 85, 0.8);
+}
+
+/* Header جوه الـ panel */
+.membership-details-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+  font-size: 0.8rem;
+  color: #92400e;
+}
+
+.membership-details-header .badge-pill {
+  padding: 0.2rem 0.7rem;
+  border-radius: 999px;
+  background: #fed7aa;
+  font-weight: 600;
+}
+
+.membership-details-header .membership-count {
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+/* Body list */
+.membership-details-body {
+  max-height: 190px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+/* Row */
+.membership-row {
+  padding: 0.4rem 0.45rem;
+  border-radius: 0.6rem;
+  background: rgba(255, 255, 255, 0.9);
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.membership-row:hover {
+  background: #fffbeb;
+}
+
+/* Main line: name + vehicle */
+.membership-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+}
+
+.membership-name {
+  font-weight: 600;
+  color: #111827;
+}
+
+.membership-vehicle {
+  font-family: 'Courier New', monospace;
+  font-size: 0.76rem;
+  color: #6b7280;
+}
+
+/* Meta line: plan + dates */
+.membership-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  font-size: 0.72rem;
+  color: #6b7280;
+}
+
+.membership-plan {
+  font-weight: 500;
+}
+
+.membership-dates {
+  opacity: 0.85;
+}
+
+/* Empty state */
+.membership-empty {
+  text-align: center;
+  font-size: 0.8rem;
+  color: #9ca3af;
+  padding: 0.4rem 0;
+}
+
+@media (max-width: 768px) {
+  .membership-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .membership-details {
+    margin-top: 0.6rem;
+  }
+}

@@ -44,6 +44,22 @@ export interface TicketAdminDto {
   ticketInfo: string;
 }
 
+export interface MembershipBaseDto {
+  id: string;
+  name: string;
+  phone: string;
+  nationalId: string;
+  vehicleNumber: string;
+  cardNumber: string;
+  pricingSchemeName: string;
+  createdAt: string;
+  endDate: string;
+}
+
+export type ActiveMembershipDto = MembershipBaseDto;
+export type InactiveMembershipDto = MembershipBaseDto;
+export type ExpiringMembershipDto = MembershipBaseDto;
+
 export interface DashboardDto {
   date: string;
 

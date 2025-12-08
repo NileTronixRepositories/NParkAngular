@@ -275,80 +275,132 @@
 
       <!-- Memberships -->
       <div class="col-12 col-md-6 col-xl-3">
-        <div class="kpi-card kpi-card--orange">
+        <div class="kpi-card kpi-card--orange membership-card">
           <div class="kpi-icon">
             <i class="bi bi-people"></i>
           </div>
+
           <div class="kpi-content">
             <div class="kpi-label">{{ 'memberships' | t }}</div>
 
-            <!-- Total count -->
+            <!-- Total -->
             <div class="kpi-value">{{ subscriptionCount() }}</div>
 
             <!-- Expiring next 7 days -->
             <div class="kpi-stats">
-              <div class="stat stat--warning" *ngIf="membershipsExpiringNext7Days() > 0">
+              <div
+                class="stat stat--warning clickable-stat"
+                *ngIf="membershipsExpiringNext7Days() > 0"
+                (click)="toggleMembershipView('expiring')"
+                (mouseenter)="showMembershipHint('expiring')"
+                (mouseleave)="hideMembershipHint()"
+              >
                 <i class="bi bi-exclamation-triangle"></i>
                 <span>
                   {{ 'expiringNext7Days' | t }}:
                   {{ membershipsExpiringNext7Days() }}
                 </span>
+
+                <div
+                  class="membership-hint-tooltip"
+                  *ngIf="membershipHintVisible() && membershipHintType() === 'expiring'"
+                >
+                  {{ 'showMoreDetails' | t }}
+                </div>
               </div>
             </div>
 
-            <!-- Active / Inactive + Tooltip -->
+            <!-- Active / Inactive -->
             <div class="kpi-stats memberships-stats">
               <!-- Active -->
               <div
                 class="stat stat--success clickable-stat"
-                (mouseenter)="showMembershipDetails('active')"
-                (mouseleave)="hideMembershipDetails()"
+                (click)="toggleMembershipView('active')"
+                (mouseenter)="showMembershipHint('active')"
+                (mouseleave)="hideMembershipHint()"
               >
                 <i class="bi bi-check-circle"></i>
                 <span>
                   {{ 'active' | t }}:
                   {{ activeSubscriptionCount() }}
                 </span>
+
+                <div
+                  class="membership-hint-tooltip"
+                  *ngIf="membershipHintVisible() && membershipHintType() === 'active'"
+                >
+                  {{ 'showMoreDetails' | t }}
+                </div>
               </div>
 
               <!-- Inactive -->
               <div
                 class="stat stat--muted clickable-stat"
-                (mouseenter)="showMembershipDetails('inactive')"
-                (mouseleave)="hideMembershipDetails()"
+                (click)="toggleMembershipView('inactive')"
+                (mouseenter)="showMembershipHint('inactive')"
+                (mouseleave)="hideMembershipHint()"
               >
                 <i class="bi bi-slash-circle"></i>
                 <span>
                   {{ 'inactive' | t }}:
                   {{ inactiveSubscriptionCount() }}
                 </span>
+
+                <div
+                  class="membership-hint-tooltip"
+                  *ngIf="membershipHintVisible() && membershipHintType() === 'inactive'"
+                >
+                  {{ 'showMoreDetails' | t }}
+                </div>
+              </div>
+            </div>
+
+            <!-- 🔽 Expanded membership details on click -->
+            <div class="membership-details" *ngIf="selectedMembershipView() as view">
+              <div class="membership-details-header">
+                <span class="badge-pill">
+                  <ng-container [ngSwitch]="view">
+                    <span *ngSwitchCase="'active'">
+                      {{ 'active' | t }}
+                    </span>
+                    <span *ngSwitchCase="'inactive'">
+                      {{ 'inactive' | t }}
+                    </span>
+                    <span *ngSwitchCase="'expiring'">
+                      {{ 'expiringNext7Days' | t }}
+                    </span>
+                  </ng-container>
+                </span>
+
+                <span class="membership-count">
+                  {{ getMembershipList(view).length }}
+                  {{ 'memberships' | t }}
+                </span>
               </div>
 
-              <!-- Membership tooltip -->
-              <div
-                class="membership-tooltip"
-                *ngIf="membershipTooltipVisible() && membershipTooltipType() as t"
-              >
-                <div class="tooltip-title">
-                  {{ t === 'active' ? ('active' | t) : ('inactive' | t) }}
+              <div class="membership-details-body">
+                <div class="membership-row" *ngFor="let m of getMembershipList(view)">
+                  <div class="membership-main">
+                    <span class="membership-name">{{ m.name }}</span>
+                    <span class="membership-vehicle">
+                      {{ m.vehicleNumber || m.cardNumber }}
+                    </span>
+                  </div>
+
+                  <div class="membership-meta">
+                    <span class="membership-plan">
+                      {{ m.pricingSchemeName }}
+                    </span>
+                    <span>·</span>
+                    <span class="membership-dates">
+                      {{ m.createdAt | date : 'shortDate' }} →
+                      {{ m.endDate | date : 'shortDate' }}
+                    </span>
+                  </div>
                 </div>
 
-                <div class="tooltip-row">
-                  <span class="tooltip-label">{{ 'count' | t }}</span>
-                  <span class="tooltip-value">
-                    {{ t === 'active' ? activeSubscriptionCount() : inactiveSubscriptionCount() }}
-                  </span>
-                </div>
-
-                <div class="tooltip-row">
-                  <span class="tooltip-label">{{ 'percentage' | t }}</span>
-                  <span class="tooltip-value">
-                    {{
-                      t === 'active'
-                        ? (activeSubscriptionPercent() | number : '1.0-0')
-                        : (inactiveSubscriptionPercent() | number : '1.0-0')
-                    }}%
-                  </span>
+                <div class="membership-empty" *ngIf="getMembershipList(view).length === 0">
+                  {{ lang.isRTL() ? 'لا توجد بيانات' : 'No data' }}
                 </div>
               </div>
             </div>

@@ -8,8 +8,10 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import {
   DashboardDto,
   TicketInsideParkDto,
-  TicketTodayDto,
   TicketAdminDto,
+  ActiveMembershipDto,
+  InactiveMembershipDto,
+  ExpiringMembershipDto,
 } from '../../Domain/OverView/overview.model';
 import { OverviewServices } from '../../Services/OverView/overview-services';
 import { DashboardHubService } from '../../Services/OverView/dashboard-hub.service';
@@ -23,7 +25,7 @@ import { TicketsServices } from '../../Services/Tickets/tickets-services';
 import { TicketDto } from '../../Domain/tickets/tickets.model';
 
 type NotificationType = 'IN' | 'OUT' | 'COLLECTED';
-type MembershipTooltipType = 'active' | 'inactive';
+type MembershipViewType = 'active' | 'inactive' | 'expiring';
 type TicketsTodayTooltipType = 'entry' | 'exit';
 
 interface UiNotification {
@@ -105,6 +107,8 @@ interface UiNotification {
           notif_in_title: 'تذكرة دخول جديدة',
           notif_out_title: 'تذكرة خروج',
           notif_collected_title: 'تحصيل تذكرة',
+
+          showMoreDetails: 'عرض تفاصيل أكثر',
         },
         en: {
           overview: 'Dashboard',
@@ -167,6 +171,8 @@ interface UiNotification {
           notif_in_title: 'New entry ticket',
           notif_out_title: 'Exit ticket',
           notif_collected_title: 'Ticket collected',
+
+          showMoreDetails: 'Show more details',
         },
       }),
     },
@@ -192,6 +198,18 @@ export class OverviewComponent implements OnInit, OnDestroy {
   todayEntryTickets = signal<TicketAdminDto[]>([]);
   todayExitTickets = signal<TicketAdminDto[]>([]);
 
+  // Membership details
+  activeMemberships = signal<ActiveMembershipDto[]>([]);
+  inactiveMemberships = signal<InactiveMembershipDto[]>([]);
+  expiringMemberships = signal<ExpiringMembershipDto[]>([]);
+
+  // أي View مفتوح حاليًا (Active / Inactive / Expiring)
+  selectedMembershipView = signal<MembershipViewType | null>(null);
+
+  // Hover hint (show more details)
+  membershipHintVisible = signal<boolean>(false);
+  membershipHintType = signal<MembershipViewType | null>(null);
+
   // Search
   searchingTickets = false;
   searchResults: TicketDto[] = [];
@@ -201,12 +219,8 @@ export class OverviewComponent implements OnInit, OnDestroy {
   private notificationIdCounter = 0;
   private hubSubscriptions = new Subscription();
 
-  // Tooltips
-  membershipTooltipVisible = signal<boolean>(false);
-  membershipTooltipType = signal<MembershipTooltipType | null>(null);
-
+  // Tooltips أخرى
   occupancyTooltipVisible = signal<boolean>(false);
-
   ticketsTodayTooltipVisible = signal<boolean>(false);
   ticketsTodayTooltipType = signal<TicketsTodayTooltipType | null>(null);
 
@@ -393,6 +407,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
 
         this.syncOccupancyWithTicketsInside();
         this.loadTodayTickets();
+        this.loadMembershipDetails();
       },
       error: (err) => {
         console.error('Error loading dashboard', err);
@@ -402,7 +417,6 @@ export class OverviewComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Occupancy + list of inside tickets */
   private syncOccupancyWithTicketsInside(): void {
     this.overviewServices.getTicketsInsidePark().subscribe({
       next: (tickets) => {
@@ -435,8 +449,6 @@ export class OverviewComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** ✅ Entry / Exit tickets for today */
-  /** ✅ Entry / Exit tickets for today */
   private loadTodayTickets(): void {
     this.overviewServices.getTicketsForEntryAdmin().subscribe({
       next: (list) => this.todayEntryTickets.set(list ?? []),
@@ -447,6 +459,65 @@ export class OverviewComponent implements OnInit, OnDestroy {
       next: (list) => this.todayExitTickets.set(list ?? []),
       error: (err) => console.error('Error loading today exit tickets', err),
     });
+  }
+
+  private loadMembershipDetails(): void {
+    this.overviewServices.getActiveMemberships().subscribe({
+      next: (list) => this.activeMemberships.set(list ?? []),
+      error: (err) => console.error('Error loading active memberships', err),
+    });
+
+    this.overviewServices.getInactiveMemberships().subscribe({
+      next: (list) => this.inactiveMemberships.set(list ?? []),
+      error: (err) => console.error('Error loading inactive memberships', err),
+    });
+
+    this.overviewServices.getMembershipsExpireNextSevenDays().subscribe({
+      next: (list) => this.expiringMemberships.set(list ?? []),
+      error: (err) => console.error('Error loading expiring memberships', err),
+    });
+  }
+
+  // ===== Membership view logic =====
+  toggleMembershipView(type: MembershipViewType): void {
+    const current = this.selectedMembershipView();
+    this.selectedMembershipView.set(current === type ? null : type);
+  }
+
+  showMembershipHint(type: MembershipViewType): void {
+    this.membershipHintType.set(type);
+    this.membershipHintVisible.set(true);
+  }
+
+  hideMembershipHint(): void {
+    this.membershipHintVisible.set(false);
+  }
+
+  getMembershipList(view: MembershipViewType) {
+    if (view === 'active') return this.activeMemberships();
+    if (view === 'inactive') return this.inactiveMemberships();
+    return this.expiringMemberships();
+  }
+
+  // ===== Tickets Today tooltip =====
+  showTicketsTodayDetails(type: TicketsTodayTooltipType): void {
+    this.ticketsTodayTooltipType.set(type);
+    this.ticketsTodayTooltipVisible.set(true);
+  }
+
+  hideTicketsTodayDetails(): void {
+    this.ticketsTodayTooltipVisible.set(false);
+  }
+
+  // ===== Occupancy tooltip =====
+  showOccupancyDetails(): void {
+    if (this.ticketsInside().length > 0) {
+      this.occupancyTooltipVisible.set(true);
+    }
+  }
+
+  hideOccupancyDetails(): void {
+    this.occupancyTooltipVisible.set(false);
   }
 
   // ===== SignalR =====
@@ -566,37 +637,6 @@ export class OverviewComponent implements OnInit, OnDestroy {
     const mins = minutes % 60;
     if (hours > 0) return `${hours}h ${mins}m`;
     return `${mins}m`;
-  }
-
-  // Membership tooltip
-  showMembershipDetails(type: MembershipTooltipType): void {
-    this.membershipTooltipType.set(type);
-    this.membershipTooltipVisible.set(true);
-  }
-
-  hideMembershipDetails(): void {
-    this.membershipTooltipVisible.set(false);
-  }
-
-  // Occupancy tooltip
-  showOccupancyDetails(): void {
-    if (this.ticketsInside().length > 0) {
-      this.occupancyTooltipVisible.set(true);
-    }
-  }
-
-  hideOccupancyDetails(): void {
-    this.occupancyTooltipVisible.set(false);
-  }
-
-  // Tickets Today tooltip
-  showTicketsTodayDetails(type: TicketsTodayTooltipType): void {
-    this.ticketsTodayTooltipType.set(type);
-    this.ticketsTodayTooltipVisible.set(true);
-  }
-
-  hideTicketsTodayDetails(): void {
-    this.ticketsTodayTooltipVisible.set(false);
   }
 
   // Search tickets
