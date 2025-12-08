@@ -41,7 +41,7 @@ export class ToastServices {
     },
   };
 
-  // ========== BASIC TOASTS ==========
+  // ================== BASIC TOASTS ==================
   success(message: string, title?: string) {
     const lang = this.currentLang();
     this.toastr.success(message, title ?? this.defaultTitles[lang].success);
@@ -57,8 +57,7 @@ export class ToastServices {
     this.toastr.error(message, title ?? this.defaultTitles[lang].error);
   }
 
-  // ========== UNIFIED ERROR HANDLER ==========
-
+  // ================== UNIFIED ERROR HANDLER ==================
   fromProblem(err: any) {
     const lang = this.currentLang();
     const t = this.defaultTitles[lang];
@@ -71,22 +70,25 @@ export class ToastServices {
     const backendMessage = this.extractBackendMessage(err);
 
     if (backendMessage) {
-      this.toastr.error(backendMessage, t.error);
+      this.error(backendMessage, t.error);
       return;
     }
 
     const status = err?.status;
 
+    // Network error
     if (status === 0) {
       this.error(lang === 'ar' ? 'لا يوجد اتصال بالخادم' : 'Cannot connect to server', t.error);
       return;
     }
 
+    // 5xx
     if (status >= 500) {
       this.error(lang === 'ar' ? 'حدث خطأ في الخادم' : 'Server error occurred', t.error);
       return;
     }
 
+    // 404
     if (status === 404) {
       this.error(
         lang === 'ar' ? 'لم يتم العثور على البيانات المطلوبة' : 'Requested resource not found',
@@ -98,70 +100,95 @@ export class ToastServices {
     this.error(t.unexpected, t.error);
   }
 
-  // ========== PRIVATE HELPERS ==========
-
+  // ================== PRIVATE HELPERS ==================
   private extractBackendMessage(err: any): string | null {
-    const response = err?.error ?? err;
+    // Angular HttpErrorResponse => err.error OR custom throwError(() => error)
+    let raw = err?.error ?? err;
 
-    if (!response || typeof response !== 'object') {
+    // لو السيرفر رجّع Blob / ProgressEvent ملناش رسالة نظيفة
+    if (raw instanceof ProgressEvent) {
       return null;
     }
 
-    // 1) Check for detail field (RFC 7807 Problem Details)
-    if (typeof response.detail === 'string' && response.detail.trim()) {
-      return response.detail.trim();
+    // لو string: ممكن يكون JSON string أو رسالة مباشرة
+    if (typeof raw === 'string') {
+      const trimmed = raw.trim();
+      if (!trimmed) return null;
+
+      // جرّب تفكّه كـ JSON
+      if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+        try {
+          raw = JSON.parse(trimmed);
+        } catch {
+          // مش JSON، اعتبرها رسالة وخلاص
+          return trimmed;
+        }
+      } else {
+        // رسالة نصية مباشرة من الباك
+        return trimmed;
+      }
     }
 
-    // 2) Check for errors field
-    if (response.errors) {
-      // Handle array format: errors: ["message1", "message2"]
-      if (Array.isArray(response.errors) && response.errors.length > 0) {
-        const first = response.errors[0];
+    if (!raw || typeof raw !== 'object') {
+      return null;
+    }
 
-        if (typeof first === 'string' && first.trim()) {
-          return first.trim();
-        }
+    const response: any = raw;
+    const messages: string[] = [];
 
-        if (first && typeof first === 'object') {
-          const msgFromErrorObj =
-            (first.message && String(first.message).trim()) ||
-            (first.description && String(first.description).trim());
+    // 1) detail (RFC 7807 ProblemDetails)
+    if (typeof response.detail === 'string' && response.detail.trim()) {
+      messages.push(response.detail.trim());
+    }
 
-          if (msgFromErrorObj) {
-            return msgFromErrorObj;
+    // 2) errors
+    const errors = response.errors;
+    if (errors) {
+      if (Array.isArray(errors)) {
+        for (const e of errors) {
+          if (!e) continue;
+
+          if (typeof e === 'string' && e.trim()) {
+            messages.push(e.trim());
+          } else if (typeof e === 'object') {
+            const m =
+              (e as any).message || (e as any).description || (e as any).error || (e as any).title;
+            if (typeof m === 'string' && m.trim()) {
+              messages.push(m.trim());
+            }
           }
         }
       }
 
-      // Handle ASP.NET validation errors format: errors: { "field": ["message1", "message2"], ... }
-      if (typeof response.errors === 'object' && !Array.isArray(response.errors)) {
-        const errorMessages: string[] = [];
-
-        for (const key of Object.keys(response.errors)) {
-          const fieldErrors = response.errors[key];
+      if (!Array.isArray(errors) && typeof errors === 'object') {
+        for (const key of Object.keys(errors)) {
+          const fieldErrors = (errors as any)[key];
           if (Array.isArray(fieldErrors)) {
             for (const msg of fieldErrors) {
               if (typeof msg === 'string' && msg.trim()) {
-                errorMessages.push(msg.trim());
+                messages.push(msg.trim());
               }
             }
           }
         }
-
-        if (errorMessages.length > 0) {
-          return errorMessages[0];
-        }
       }
     }
 
-    // 3) Check common message fields
+    if (messages.length > 0) {
+      return Array.from(new Set(messages)).join('\n');
+    }
+
     const possibleKeys = ['message', 'Message', 'error', 'title', 'description'];
 
     for (const key of possibleKeys) {
-      const val = (response as any)[key];
+      const val = response[key];
       if (typeof val === 'string' && val.trim()) {
         return val.trim();
       }
+    }
+
+    if (typeof err?.statusText === 'string' && err.statusText.trim()) {
+      return err.statusText.trim();
     }
 
     return null;

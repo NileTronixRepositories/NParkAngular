@@ -16,6 +16,7 @@ export interface TicketDto {
   customerName?: string | null;
   phone?: string | null;
   cardNumber?: string | null;
+  plateNumber?: string;
 }
 
 export interface IssuedTicketResponse {

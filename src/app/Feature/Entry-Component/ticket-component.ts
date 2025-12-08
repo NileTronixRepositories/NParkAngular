@@ -188,7 +188,6 @@ export class TicketComponent implements OnInit {
       scanner_ready: 'الماسح جاهز',
       scan_label: 'امسح QR / ألصق الكود',
       scan_placeholder: 'ضع المؤشر هنا ثم امسح...',
-      // fetching_details: 'جاري جلب تفاصيل التذكرة...',
       id: 'المعرّف',
       plate: 'رقم السيارة',
       start: 'البداية',
@@ -267,7 +266,6 @@ export class TicketComponent implements OnInit {
       enter_card_first: 'يرجى إدخال رقم الكارت أولاً',
       no_card_summary: 'لا توجد بيانات عضوية لهذا الكارت',
       nfc_read_error: 'تعذر قراءة الكارت. تأكد من تشغيل قارئ الـ NFC.',
-
       // Search
       search_tickets_placeholder: 'ابحث برقم التذكرة، اللوحة، أو الكارت',
     },
@@ -363,7 +361,6 @@ export class TicketComponent implements OnInit {
       supervisor_login_failed: 'Supervisor login failed. Check credentials or permissions.',
       enter_card_first: 'Please enter card number first',
       nfc_read_error: 'Failed to read card. Make sure NFC reader is running.',
-
       // Search
       search_tickets_placeholder: 'Search by ticket, plate, or card number',
     },
@@ -384,6 +381,14 @@ export class TicketComponent implements OnInit {
   }
 
   // =======================
+  // Shared backend error handler
+  // =======================
+  private handleBackendError(context: string, err: any): void {
+    console.error(context, err);
+    this.toast.fromProblem(err);
+  }
+
+  // =======================
   // Gate / Auth init
   // =======================
   private initGatePeripheral(): void {
@@ -397,8 +402,7 @@ export class TicketComponent implements OnInit {
         this.gatePeripheral = res?.gateDevicePeripheral ?? this.auth.getGateData();
       },
       error: (err) => {
-        console.error('CheckGate error', err);
-        this.toast.fromProblem(err);
+        this.handleBackendError('CheckGate error', err);
         this.gatePeripheral = this.auth.getGateData();
       },
     });
@@ -422,8 +426,7 @@ export class TicketComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('Gate/GetAll error', err);
-        this.toast.fromProblem(err);
+        this.handleBackendError('Gate/GetAll error (all gates)', err);
       },
       complete: () => {
         this.gateLoading = false;
@@ -439,8 +442,7 @@ export class TicketComponent implements OnInit {
         this.gatesList = (all ?? []).filter((g) => g.gateType === GateType.Entrance);
       },
       error: (err) => {
-        console.error('Gate/GetAll error', err);
-        this.toast.fromProblem(err);
+        this.handleBackendError('Gate/GetAll error (entry gates)', err);
       },
       complete: () => {
         this.gateLoading = false;
@@ -464,8 +466,7 @@ export class TicketComponent implements OnInit {
         this.loadTicketsForEntry();
       },
       error: (err) => {
-        console.error('selectGate error', err);
-        this.toast.fromProblem(err);
+        this.handleBackendError('selectGate error', err);
       },
       complete: () => {
         this.gateSaving = false;
@@ -500,8 +501,7 @@ export class TicketComponent implements OnInit {
       .subscribe({
         next: (res) => this.handleIssuedTicketResponse(res),
         error: (e) => {
-          console.error('AddTicket (normal) error', e);
-          this.toast.fromProblem(e);
+          this.handleBackendError('AddTicket (normal) error', e);
           this.adding = false;
         },
         complete: () => {
@@ -530,8 +530,7 @@ export class TicketComponent implements OnInit {
       .subscribe({
         next: (res) => this.handleIssuedTicketResponse(res),
         error: (e) => {
-          console.error('AddTicket (subscriber) error', e);
-          this.toast.fromProblem(e);
+          this.handleBackendError('AddTicket (subscriber) error', e);
           this.adding = false;
         },
         complete: () => {
@@ -574,6 +573,7 @@ export class TicketComponent implements OnInit {
       this.currentIssuedQr = null;
       this.currentIssuedQrType = null;
 
+      // هنا الرسالة محلية لأنها حالة خاصة (API رجع قيمة غير قابلة للاستخدام)
       this.toast.error(this.t('qr_invalid_warning'));
 
       this.loadTicketsForEntry();
@@ -862,8 +862,7 @@ export class TicketComponent implements OnInit {
         this.loadTicketsForEntry();
       },
       error: (err) => {
-        console.error('collectDailyForGate error', err);
-        this.toast.fromProblem(err);
+        this.handleBackendError('collectDailyForGate error', err);
         this.collectSummary = null;
       },
       complete: () => {
@@ -902,9 +901,9 @@ export class TicketComponent implements OnInit {
           this.loadTicketsForEntry();
         },
         error: (err) => {
-          console.error('submitSupervisorCollect error', err);
-          this.supervisorCollectError = 'فشل الدخول كـ Supervisor. تأكد من البيانات أو الصلاحيات.';
-          this.toast.fromProblem(err);
+          this.handleBackendError('submitSupervisorCollect error', err);
+          // نخلي الـ error من الباك يظهر في التوستر فقط
+          this.supervisorCollectError = null;
           this.supervisorCollectLoading = false;
         },
         complete: () => {
@@ -961,11 +960,11 @@ export class TicketComponent implements OnInit {
     this.scanning = true;
     this.scannedTicket = null;
 
+    // جاهز لو حبيت تفعل Endpoint بعدين
     // this.ticketsSvc.getTicketByQr(code).subscribe({
     //   next: (t) => (this.scannedTicket = t),
     //   error: (err) => {
-    //     console.error('getTicketByQr error', err);
-    //     this.toast.fromProblem(err);
+    //     this.handleBackendError('getTicketByQr error', err);
     //   },
     //   complete: () => {
     //     this.scanning = false;
@@ -982,8 +981,7 @@ export class TicketComponent implements OnInit {
         this.loadTicketsForEntry();
       },
       error: (err) => {
-        console.error('collect error', err);
-        this.toast.fromProblem(err);
+        this.handleBackendError('collect error', err);
       },
       complete: () => {
         this.collecting = false;
@@ -1007,7 +1005,7 @@ export class TicketComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.toast.fromProblem(err);
+        this.handleBackendError('collectTicketFromTable error', err);
         this.collectingTicketId = null;
       },
       complete: () => {
@@ -1038,9 +1036,8 @@ export class TicketComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('getCardSummary error', err);
+        this.handleBackendError('getCardSummary error', err);
         this.cardSummary = null;
-        this.toast.fromProblem(err);
       },
       complete: () => {
         this.loadingCardSummary = false;
@@ -1077,6 +1074,7 @@ export class TicketComponent implements OnInit {
       this.loadCardSummary(normalized);
     } catch (err: any) {
       console.error(err);
+      // ده Error محلي (NFC) مش من الباك
       this.toast.error(err?.message || this.t('nfc_read_error'));
     } finally {
       this.readingCard.set(false);
@@ -1116,7 +1114,7 @@ export class TicketComponent implements OnInit {
         }
       },
       error: (err) => {
-        this.toast.fromProblem(err);
+        this.handleBackendError('confirmCashierCollection error', err);
         this.collectingCashierCash = false;
       },
       complete: () => {
@@ -1126,7 +1124,7 @@ export class TicketComponent implements OnInit {
   }
 
   // =======================
-  // Real-time search handlers (FAKE endpoint)
+  // Real-time search handlers
   // =======================
   onSearchTickets(query: string): void {
     if (!query?.trim()) {
@@ -1141,8 +1139,7 @@ export class TicketComponent implements OnInit {
         this.searchResults = results;
       },
       error: (err) => {
-        console.error('searchTickets error', err);
-        this.toast.fromProblem(err);
+        this.handleBackendError('searchTickets error', err);
       },
       complete: () => {
         this.searchingTickets = false;
@@ -1165,6 +1162,7 @@ export class TicketComponent implements OnInit {
     this.ticketsSvc.calculateSalaryByTicketNumber(identifier).subscribe({
       next: (salary) => {
         if (!salary) {
+          // هنا الحالة أن الـ API رجّع 200 بس بدون داتا
           this.toast.error(
             this.i18n.current === 'ar'
               ? 'لم يتم العثور على بيانات التذكرة'
@@ -1183,6 +1181,7 @@ export class TicketComponent implements OnInit {
 
         this.currentIssuedQr = null;
         this.currentIssuedQrType = null;
+
         if (this._cashierCollected) {
           this.toast.warn(
             this.i18n.current === 'ar'
@@ -1198,9 +1197,9 @@ export class TicketComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('calculateTicketSalary error', err);
-        this.toast.fromProblem(err);
+        this.handleBackendError('calculateTicketSalary error', err);
 
+        // fallback من الداتا اللي في الجدول لو حصل Error من الباك
         this.lastIssuedTicketId = ticket.id ?? null;
         this.lastIssuedTicketInfo = ticket.info ?? null;
         this.lastIssuedPrice = ticket.price ?? null;
@@ -1300,10 +1299,9 @@ export class TicketComponent implements OnInit {
         }
       },
       error: (err) => {
-        console.error('loadTicketsForEntry error', err);
+        this.handleBackendError('loadTicketsForEntry error', err);
         this.tickets = [];
         this.applyFilters();
-        this.toast.fromProblem(err);
       },
       complete: () => {
         this.loading = false;

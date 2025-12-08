@@ -8,61 +8,43 @@
    Page Header
    ========================== */
 .page-header {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border-radius: 16px;
-  padding: 1.5rem 2rem;
-  color: #fff;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-  position: relative;
-  overflow: hidden;
-  margin-bottom: 2rem;
+  background: transparent;
+  padding: 0.5rem 0;
+  color: #1a202c;
+  margin-bottom: 1.5rem;
 
   display: flex;
   flex-wrap: wrap;
-  align-items: stretch;
+  align-items: center;
   justify-content: space-between;
-  column-gap: 2rem;
-  row-gap: 1rem;
+  gap: 1rem;
 }
 
+/* strip القديمة ملغية */
 .page-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 220px;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06));
-  transform: skewX(-20deg);
-  pointer-events: none;
+  display: none;
 }
 
 .page-header .header-content {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
-  position: relative;
-  z-index: 1;
-
-  flex: 1 1 260px;
-  min-width: 220px;
+  gap: 1rem;
 }
 
 .page-header .header-icon-wrapper {
-  width: 56px;
-  height: 56px;
-  background: rgba(229, 57, 53, 0.15);
-  border-radius: 12px;
+  width: 42px;
+  height: 42px;
+  background: rgba(229, 57, 53, 0.1);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(229, 57, 53, 0.3);
+  color: #ef5350;
 }
 
 .page-header .header-icon {
-  font-size: 1.75rem;
-  color: #ef5350;
+  font-size: 1.25rem;
+  color: currentColor;
 }
 
 .page-header .header-text {
@@ -70,98 +52,95 @@
 }
 
 .page-header .page-title {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   font-weight: 700;
   margin: 0;
   line-height: 1.2;
-  color: #f8fafc;
+  color: #1e293b;
 }
 
 .page-header .page-subtitle {
-  margin: 0.25rem 0 0;
-  color: #94a3b8;
-  font-size: 0.95rem;
+  margin: 0;
+  color: #64748b;
+  font-size: 0.875rem;
 }
 
-/* ===== Header Search  ===== */
+/* ===== Header Search (simple input) ===== */
 .page-header .header-search {
-  position: relative;
-
-  flex: 0 0 360px;
+  flex: 0 0 420px;
   max-width: 100%;
-  align-self: center;
-  z-index: 1;
-}
-
-.page-header .header-search .search-card {
-  background: rgba(15, 23, 42, 0.7);
-  backdrop-filter: blur(10px);
-  border-radius: 14px;
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.45);
-  padding: 0.85rem 0.9rem;
-
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 0.35rem;
 }
 
-.page-header .header-search .search-card__header {
-  background: transparent;
-  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
-  padding-bottom: 0.4rem;
-  margin-bottom: 0.35rem;
-}
-
-.page-header .header-search .search-card__title-main {
-  color: #e5e7eb;
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-.page-header .header-search .search-card__title-sub {
-  color: #9ca3af;
-  font-size: 0.75rem;
-}
-
-.page-header .header-search .search-card__icon {
-  color: #f97373;
-}
-
-.page-header .header-search input[type='text'],
-.page-header .header-search .search-input {
-  width: 100%;
-  border-radius: 10px;
-  border: 1px solid rgba(148, 163, 184, 0.5);
-  background: rgba(15, 23, 42, 0.85);
-  padding: 0.45rem 0.7rem;
-  font-size: 0.85rem;
-  color: #e5e7eb;
-  outline: none;
-}
-
-.page-header .header-search input[type='text']::placeholder,
-.page-header .header-search .search-input::placeholder {
-  color: #6b7280;
+.header-search-label {
   font-size: 0.8rem;
+  font-weight: 500;
+  color: #64748b;
 }
 
-.page-header .header-search input[type='text']:focus,
-.page-header .header-search .search-input:focus {
-  border-color: #f97373;
-  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.6);
+.header-search-subtitle {
+  font-size: 0.75rem;
+  color: #94a3b8;
 }
 
-/* results area لو موجودة */
-.page-header .header-search .search-results {
-  max-height: 180px;
+/* الصندوق البسيط بتاع السيرش */
+.header-search-main {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 999px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.header-search-main i {
+  font-size: 1rem;
+  color: #94a3b8;
+}
+
+.header-search-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  width: 100%;
+  font-size: 0.85rem;
+  color: #0f172a;
+}
+
+.header-search-input::placeholder {
+  color: #9ca3af;
+}
+
+/* dropdown بسيط للنتائج */
+.header-search-results {
+  margin-top: 0.35rem;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  max-height: 200px;
   overflow-y: auto;
+  padding: 0.4rem 0;
 }
 
-/* RTL strip direction for header */
-.page-rtl .page-header::before {
-  right: auto;
-  left: 0;
-  transform: skewX(20deg);
+.header-search-result-item {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  color: #0f172a;
+  cursor: pointer;
+}
+
+.header-search-result-item:hover {
+  background: #f1f5f9;
+}
+
+/* RTL: نعكس ترتيب الأيقونة والإنبوت */
+.page-rtl .header-search-main {
+  flex-direction: row-reverse;
 }
 
 /* Header entrance animation */
@@ -182,10 +161,6 @@
 
 /* ===== Responsive for header + search ===== */
 @media (max-width: 992px) {
-  .page-header {
-    padding: 1.25rem 1.2rem;
-  }
-
   .page-header .page-title {
     font-size: 1.5rem;
   }
@@ -200,7 +175,6 @@
   .page-header {
     flex-direction: column;
     align-items: stretch;
-    padding: 1.1rem 1rem;
   }
 
   .page-header .header-content {
@@ -214,37 +188,14 @@
   }
 }
 
-@media (max-width: 768px) {
-  .page-header .header-search {
-    width: 100%;
-    margin-top: 1rem;
-  }
-}
-
-/* RTL strip direction for header */
+/* RTL strip direction for header - Removed */
 .page-rtl .page-header::before {
-  right: auto;
-  left: 0;
-  transform: skewX(20deg);
+  display: none;
 }
 
-/* Header entrance animation */
-.fade-in-down {
-  animation: fadeInDown 0.35s ease-out;
-}
-
-@keyframes fadeInDown {
-  from {
-    opacity: 0;
-    transform: translateY(-8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* ===== Loading & Error States ===== */
+/* ==========================
+   Loading & Error States
+   ========================== */
 .loading-state,
 .error-state {
   display: flex;
@@ -329,12 +280,16 @@
   --accent-light: #fbbf24;
 }
 
-/* cards التي فيها تولتيب تبقى أعلى شوية */
+/* cards التي فيها تفاعل */
 .occupancy-card,
 .tickets-today-card,
 .kpi-card--orange {
   position: relative;
   z-index: 2;
+}
+
+.occupancy-card {
+  cursor: pointer;
 }
 
 .kpi-icon {
@@ -837,15 +792,11 @@
 }
 
 /* ==========================
-   Responsive
+   Responsive (global)
    ========================== */
 @media (max-width: 768px) {
   .overview {
     padding: 1rem;
-  }
-
-  .page-header {
-    padding: 1.25rem 1rem;
   }
 
   .page-header .page-title {
@@ -1013,7 +964,7 @@
 }
 
 /* ==========================
-   Membership / Occupancy / Tickets Tooltips
+   Membership / Occupancy / Tickets Tooltips (old card-level)
    ========================== */
 
 .memberships-stats {
@@ -1032,10 +983,8 @@
   color: #6b7280;
 }
 
-/* base style لكل التولتيبات */
-.membership-tooltip,
-.occupancy-tooltip,
-.tickets-today-tooltip {
+/* membership hint only */
+.membership-tooltip {
   position: absolute;
   top: 100%;
   inset-inline-start: 0;
@@ -1048,171 +997,7 @@
   z-index: 30;
 }
 
-/* فروقات بسيطة لكل نوع */
-.membership-tooltip {
-  min-width: 210px;
-}
-
-.occupancy-tooltip,
-.tickets-today-tooltip {
-  min-width: 260px;
-}
-
-/* membership tooltip */
-.membership-tooltip .tooltip-title {
-  font-weight: 600;
-  margin-bottom: 0.25rem;
-}
-
-.membership-tooltip .tooltip-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding-top: 0.15rem;
-}
-
-.membership-tooltip .tooltip-label {
-  color: #6b7280;
-}
-
-.membership-tooltip .tooltip-value {
-  font-weight: 600;
-  color: #111827;
-}
-
-/* occupancy tooltip */
-.occupancy-tooltip .tooltip-title {
-  font-weight: 600;
-  margin-bottom: 0.1rem;
-}
-
-.occupancy-tooltip .tooltip-subtitle {
-  font-size: 0.78rem;
-  color: #6b7280;
-  margin-bottom: 0.5rem;
-}
-
-.occupancy-tooltip .tooltip-list {
-  max-height: 200px;
-  overflow-y: auto;
-}
-
-.occupancy-tooltip .tooltip-item {
-  padding: 0.3rem 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.occupancy-tooltip .tooltip-item:last-child {
-  border-bottom: none;
-}
-
-.occupancy-tooltip .ticket-number {
-  font-weight: 600;
-  color: #111827;
-}
-
-.occupancy-tooltip .ticket-meta {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-.occupancy-tooltip .tooltip-more {
-  margin-top: 0.25rem;
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-align: end;
-}
-
-/* tickets today tooltip */
-.tickets-today-tooltip .tooltip-title {
-  font-weight: 600;
-  margin-bottom: 0.5rem;
-}
-
-.tickets-today-tooltip .tooltip-list {
-  max-height: 220px;
-  overflow-y: auto;
-}
-
-.tickets-today-tooltip .tooltip-item {
-  padding: 0.3rem 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.tickets-today-tooltip .tooltip-item:last-child {
-  border-bottom: none;
-}
-
-.tickets-today-tooltip .ticket-number {
-  font-weight: 600;
-  color: #111827;
-}
-
-.tickets-today-tooltip .ticket-meta {
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-.tickets-today-tooltip .tooltip-more {
-  margin-top: 0.25rem;
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-align: end;
-}
-
-.tickets-today-tooltip .tooltip-empty {
-  padding: 0.5rem 0;
-  color: #9ca3af;
-  font-size: 0.8rem;
-  text-align: center;
-}
-/* Membership tooltip extra styles */
-.membership-tooltip .tooltip-list {
-  max-height: 220px;
-  overflow-y: auto;
-  margin-top: 0.5rem;
-}
-
-.membership-tooltip .tooltip-item {
-  padding: 0.3rem 0;
-  border-bottom: 1px solid #e5e7eb;
-}
-
-.membership-tooltip .tooltip-item:last-child {
-  border-bottom: none;
-}
-
-.membership-tooltip .tooltip-main {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.5rem;
-}
-
-.membership-tooltip .tooltip-name {
-  font-weight: 600;
-  color: #111827;
-}
-
-.membership-tooltip .tooltip-vehicle {
-  font-size: 0.78rem;
-  color: #6b7280;
-}
-
-.membership-tooltip .tooltip-meta {
-  margin-top: 0.1rem;
-  font-size: 0.75rem;
-  color: #6b7280;
-  display: flex;
-  gap: 0.25rem;
-  flex-wrap: wrap;
-}
-
-.membership-tooltip .tooltip-more {
-  margin-top: 0.25rem;
-  font-size: 0.75rem;
-  color: #6b7280;
-  text-align: end;
-}
+/* ===== New membership details panel (click) ===== */
 .membership-card {
   position: relative;
 }
@@ -1350,5 +1135,124 @@
 
   .membership-details {
     margin-top: 0.6rem;
+  }
+}
+
+/* ==========================
+   Global Data Modal (Popup)
+   ========================== */
+
+.data-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 1100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.data-modal {
+  width: 100%;
+  max-width: 640px;
+  max-height: 80vh;
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.data-modal--rtl {
+  direction: rtl;
+}
+
+.data-modal__header {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to right, #f8fafc, #eef2ff);
+}
+
+.data-modal__title {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #111827;
+}
+
+.data-modal__close {
+  border: none;
+  background: transparent;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  color: #6b7280;
+}
+
+.data-modal__close:hover {
+  color: #111827;
+}
+
+.data-modal__body {
+  padding: 0.75rem 1rem 1rem;
+  overflow-y: auto;
+}
+
+.data-modal__subtitle {
+  font-size: 0.85rem;
+  color: #6b7280;
+  margin-bottom: 0.75rem;
+}
+
+.data-modal__list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.data-modal__item {
+  padding: 0.5rem 0.6rem;
+  border-radius: 0.75rem;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  font-size: 0.82rem;
+}
+
+.data-modal__item-main {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.data-modal__ticket-number {
+  font-weight: 600;
+  color: #111827;
+}
+
+.data-modal__ticket-meta {
+  color: #6b7280;
+}
+
+.data-modal__item-extra {
+  font-size: 0.78rem;
+  color: #6b7280;
+}
+
+.data-modal__empty {
+  text-align: center;
+  font-size: 0.85rem;
+  color: #9ca3af;
+  padding: 0.75rem 0;
+}
+
+@media (max-width: 576px) {
+  .data-modal {
+    max-height: 90vh;
   }
 }

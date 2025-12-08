@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { Observable, of, catchError, map } from 'rxjs';
+import { Observable, of, catchError, map, throwError } from 'rxjs';
 
 import {
   TicketDto,
@@ -69,18 +69,10 @@ export class TicketsServices {
       map((res: any) => res as IssuedTicketResponse),
       catchError((err) => {
         this.logError('addTicket', err);
-        return of(null);
+        return throwError(() => err);
       })
     );
   }
-
-  // --- Ticket details by QR ---
-
-  // getTicketByQr(code: string): Observable<TicketDetailsDto> {
-  //   return this.core.getTicketByQr(code);
-  // }
-
-  // --- Salary ---
 
   calculateTicketSalary(qrCode: string): Observable<CalculateSalaryResponse | null> {
     return this.salary.calculateTicketSalary(qrCode);

@@ -5,9 +5,11 @@ import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-issue-ticket-block-component',
+  standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './issue-ticket-block-component.html',
-  styleUrl: './issue-ticket-block-component.css',
+  // ✅ لازم تبقى styleUrls مش styleUrl
+  styleUrls: ['./issue-ticket-block-component.css'],
 })
 export class IssueTicketBlockComponent {
   @Input({ required: true }) t!: (key: string) => string;
@@ -45,26 +47,30 @@ export class IssueTicketBlockComponent {
   }
 
   qrDataUrl(text: string): string {
-    return `data:text/plain,${encodeURIComponent(text)}`;
+    return `data:text/plain,${encodeURIComponent(text ?? '')}`;
   }
 
-  onReadCard() {
+  onReadCard(): void {
+    if (this.readingCard || this.adding) return;
     this.readCardClicked.emit();
   }
 
-  onCreateTicket() {
+  onCreateTicket(): void {
+    if (this.adding || this.readingCard) return;
     this.createTicketClicked.emit();
   }
 
-  onCreateSubscriberTicket() {
+  onCreateSubscriberTicket(): void {
+    if (this.adding || this.readingCard) return;
     this.createSubscriberTicketClicked.emit();
   }
 
-  onConfirmCashier() {
+  onConfirmCashier(): void {
+    if (!this.lastIssuedTicketId || this.lastIssuedCollected || this.cashierConfirming) return;
     this.confirmCashierClicked.emit();
   }
 
-  onClearCardSummary(event: Event) {
+  onClearCardSummary(event: Event): void {
     this.clearCardSummaryClicked.emit(event);
   }
 

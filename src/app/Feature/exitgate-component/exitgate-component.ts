@@ -320,7 +320,6 @@ export class ExitgateComponent {
   searchingTickets = false;
   searchResults: TicketDto[] = [];
 
-  // ✅ بحث رقم التذكرة جاي من Gate Devices
   searchingTicketNumber = false;
 
   // ====== QR / Manual input / salary ======

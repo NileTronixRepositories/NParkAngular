@@ -1,9 +1,3 @@
-import { CommonModule } from '@angular/common';
-import { Component, computed, signal, OnInit, OnDestroy } from '@angular/core';
-import { Subscription } from 'rxjs';
-
-import { LanguageService } from '../../Services/i18n/language-service';
-import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import {
   DashboardDto,
@@ -20,13 +14,25 @@ import {
   TicketExitedNotification,
   TicketCollectedNotification,
 } from '../../Domain/OverView/dashboard-notifications.model';
-import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
 import { TicketDto } from '../../Domain/tickets/tickets.model';
+import { FormsModule } from '@angular/forms';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Subscription, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
+import { LanguageService } from '../../Services/i18n/language-service';
+import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 
 type NotificationType = 'IN' | 'OUT' | 'COLLECTED';
 type MembershipViewType = 'active' | 'inactive' | 'expiring';
 type TicketsTodayTooltipType = 'entry' | 'exit';
+type DataModalType =
+  | 'occupancy'
+  | 'ticketsEntry'
+  | 'ticketsExit'
+  | 'membershipActive'
+  | 'membershipInactive'
+  | 'membershipExpiring';
 
 interface UiNotification {
   id: number;
@@ -39,7 +45,7 @@ interface UiNotification {
 @Component({
   selector: 'app-overview-component',
   standalone: true,
-  imports: [CommonModule, TranslatePipePipe, SearchBlockComponent],
+  imports: [CommonModule, TranslatePipePipe, FormsModule],
   templateUrl: './overview-component.html',
   styleUrls: ['./overview-component.css'],
   providers: [
@@ -203,9 +209,6 @@ export class OverviewComponent implements OnInit, OnDestroy {
   inactiveMemberships = signal<InactiveMembershipDto[]>([]);
   expiringMemberships = signal<ExpiringMembershipDto[]>([]);
 
-  // أي View مفتوح حاليًا (Active / Inactive / Expiring)
-  selectedMembershipView = signal<MembershipViewType | null>(null);
-
   // Hover hint (show more details)
   membershipHintVisible = signal<boolean>(false);
   membershipHintType = signal<MembershipViewType | null>(null);
@@ -213,16 +216,22 @@ export class OverviewComponent implements OnInit, OnDestroy {
   // Search
   searchingTickets = false;
   searchResults: TicketDto[] = [];
+  searchQuery = '';
+  searchAttempted = false;
+  private searchSubject = new Subject<string>();
 
   // Notifications
   notifications = signal<UiNotification[]>([]);
   private notificationIdCounter = 0;
   private hubSubscriptions = new Subscription();
 
-  // Tooltips أخرى
+  // Tooltips القديمة (مش مستخدمة في الـ UI دلوقتي كـ hover)
   occupancyTooltipVisible = signal<boolean>(false);
   ticketsTodayTooltipVisible = signal<boolean>(false);
   ticketsTodayTooltipType = signal<TicketsTodayTooltipType | null>(null);
+
+  // Global modal state
+  activeModal = signal<DataModalType | null>(null);
 
   // ===== Computed =====
   totalRevenue = computed(() => this.dashboard()?.totalRevenue ?? 0);
@@ -245,16 +254,6 @@ export class OverviewComponent implements OnInit, OnDestroy {
   subscriptionCount = computed(() => this.dashboard()?.subscriptionCount ?? 0);
   activeSubscriptionCount = computed(() => this.dashboard()?.activeSubscriptionCount ?? 0);
   inactiveSubscriptionCount = computed(() => this.dashboard()?.inactiveSubscriptionCount ?? 0);
-
-  activeSubscriptionPercent = computed(() => {
-    const total = this.subscriptionCount();
-    return total > 0 ? (this.activeSubscriptionCount() / total) * 100 : 0;
-  });
-
-  inactiveSubscriptionPercent = computed(() => {
-    const total = this.subscriptionCount();
-    return total > 0 ? (this.inactiveSubscriptionCount() / total) * 100 : 0;
-  });
 
   membershipsExpiringNext7Days = computed(
     () => this.dashboard()?.membershipsExpiringNext7Days ?? 0
@@ -283,16 +282,8 @@ export class OverviewComponent implements OnInit, OnDestroy {
   averageDurationMinutes = computed(() => this.dashboard()?.averageDurationMinutes ?? 0);
   maxDurationMinutes = computed(() => this.dashboard()?.maxDurationMinutes ?? 0);
 
-  averageDurationHours = computed(() => Math.floor(this.averageDurationMinutes() / 60));
-  averageDurationRemainingMinutes = computed(() => this.averageDurationMinutes() % 60);
-  maxDurationHours = computed(() => Math.floor(this.maxDurationMinutes() / 60));
-  maxDurationRemainingMinutes = computed(() => this.maxDurationMinutes() % 60);
-
   busiestGateNumber = computed(() => this.dashboard()?.busiestGateNumber ?? 0);
   busiestGateTicketsCount = computed(() => this.dashboard()?.busiestGateTicketsCount ?? 0);
-  topCollectorName = computed(() => this.dashboard()?.topCollectorName ?? 'N/A');
-  topCollectorAmount = computed(() => this.dashboard()?.topCollectorAmount ?? 0);
-  topCollectorTicketsCount = computed(() => this.dashboard()?.topCollectorTicketsCount ?? 0);
 
   entryGates = computed(() => this.dashboard()?.entryGates ?? []);
   exitGates = computed(() => this.dashboard()?.exitGates ?? []);
@@ -388,6 +379,13 @@ export class OverviewComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadDashboard();
     this.connectToHub();
+
+    // Live Search Setup
+    this.hubSubscriptions.add(
+      this.searchSubject.pipe(debounceTime(300), distinctUntilChanged()).subscribe((query) => {
+        this.performSearch(query);
+      })
+    );
   }
 
   ngOnDestroy(): void {
@@ -478,12 +476,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ===== Membership view logic =====
-  toggleMembershipView(type: MembershipViewType): void {
-    const current = this.selectedMembershipView();
-    this.selectedMembershipView.set(current === type ? null : type);
-  }
-
+  // ===== Membership UI logic (Popup) =====
   showMembershipHint(type: MembershipViewType): void {
     this.membershipHintType.set(type);
     this.membershipHintVisible.set(true);
@@ -493,31 +486,33 @@ export class OverviewComponent implements OnInit, OnDestroy {
     this.membershipHintVisible.set(false);
   }
 
-  getMembershipList(view: MembershipViewType) {
-    if (view === 'active') return this.activeMemberships();
-    if (view === 'inactive') return this.inactiveMemberships();
-    return this.expiringMemberships();
-  }
-
-  // ===== Tickets Today tooltip =====
-  showTicketsTodayDetails(type: TicketsTodayTooltipType): void {
-    this.ticketsTodayTooltipType.set(type);
-    this.ticketsTodayTooltipVisible.set(true);
-  }
-
-  hideTicketsTodayDetails(): void {
-    this.ticketsTodayTooltipVisible.set(false);
-  }
-
-  // ===== Occupancy tooltip =====
-  showOccupancyDetails(): void {
-    if (this.ticketsInside().length > 0) {
-      this.occupancyTooltipVisible.set(true);
+  openMembershipModal(type: MembershipViewType): void {
+    if (type === 'active') {
+      this.activeModal.set('membershipActive');
+    } else if (type === 'inactive') {
+      this.activeModal.set('membershipInactive');
+    } else {
+      this.activeModal.set('membershipExpiring');
     }
   }
 
-  hideOccupancyDetails(): void {
-    this.occupancyTooltipVisible.set(false);
+  // ===== Tickets Today (now click -> modal) =====
+  showTicketsTodayDetails(type: TicketsTodayTooltipType): void {
+    if (type === 'entry') {
+      this.activeModal.set('ticketsEntry');
+    } else {
+      this.activeModal.set('ticketsExit');
+    }
+  }
+
+  // ===== Occupancy (click -> modal) =====
+  showOccupancyDetails(): void {
+    this.activeModal.set('occupancy');
+  }
+
+  // ===== Global Modal control =====
+  closeModal(): void {
+    this.activeModal.set(null);
   }
 
   // ===== SignalR =====
@@ -639,15 +634,37 @@ export class OverviewComponent implements OnInit, OnDestroy {
     return `${mins}m`;
   }
 
-  // Search tickets
-  onSearchTickets(query: string): void {
-    if (!query.trim()) {
+  // ===== Search tickets =====
+  onSearchInput(term: string): void {
+    const value = term.trim();
+    this.searchQuery = value;
+
+    if (!value) {
       this.searchResults = [];
+      this.searchAttempted = false;
       this.searchingTickets = false;
       return;
     }
 
+    this.searchSubject.next(value);
+  }
+
+  onSearchTickets(): void {
+    const query = this.searchQuery.trim();
+    this.performSearch(query);
+  }
+
+  private performSearch(query: string): void {
+    if (!query) {
+      this.searchResults = [];
+      this.searchingTickets = false;
+      this.searchAttempted = false;
+      return;
+    }
+
     this.searchingTickets = true;
+    this.searchAttempted = true;
+
     this.ticketsService.searchTickets(query).subscribe({
       next: (results) => {
         this.searchResults = results ?? [];
@@ -663,6 +680,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
 
   onTicketSelected(ticket: TicketDto): void {
     console.log('Selected ticket:', ticket);
+    // TODO: فتح صفحة تفاصيل أو مودال للتذكرة
   }
 
   // Notifications
