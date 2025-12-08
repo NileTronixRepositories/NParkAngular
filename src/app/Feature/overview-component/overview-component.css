@@ -1,12 +1,11 @@
 /* ===== Page Layout ===== */
 .overview {
   padding: 2rem 1.5rem;
-  /* background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); */
   min-height: 100vh;
 }
 
 /* ==========================
-   Page Header (Dark + Red accent مثل Visitor)
+   Page Header
    ========================== */
 .page-header {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
@@ -17,6 +16,13 @@
   position: relative;
   overflow: hidden;
   margin-bottom: 2rem;
+
+  display: flex;
+  flex-wrap: wrap;
+  align-items: stretch;
+  justify-content: space-between;
+  column-gap: 2rem;
+  row-gap: 1rem;
 }
 
 .page-header::before {
@@ -24,9 +30,9 @@
   position: absolute;
   top: 0;
   right: 0;
-  width: 200px;
+  width: 220px;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05));
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.06));
   transform: skewX(-20deg);
   pointer-events: none;
 }
@@ -37,12 +43,15 @@
   gap: 1.5rem;
   position: relative;
   z-index: 1;
+
+  flex: 1 1 260px;
+  min-width: 220px;
 }
 
 .page-header .header-icon-wrapper {
   width: 56px;
   height: 56px;
-  background: rgba(229, 57, 53, 0.15); /* NPark Red tint */
+  background: rgba(229, 57, 53, 0.15);
   border-radius: 12px;
   display: flex;
   align-items: center;
@@ -53,7 +62,7 @@
 
 .page-header .header-icon {
   font-size: 1.75rem;
-  color: #ef5350; /* Light red */
+  color: #ef5350;
 }
 
 .page-header .header-text {
@@ -72,6 +81,144 @@
   margin: 0.25rem 0 0;
   color: #94a3b8;
   font-size: 0.95rem;
+}
+
+/* ===== Header Search  ===== */
+.page-header .header-search {
+  position: relative;
+
+  flex: 0 0 360px;
+  max-width: 100%;
+  align-self: center;
+  z-index: 1;
+}
+
+.page-header .header-search .search-card {
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(10px);
+  border-radius: 14px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.45);
+  padding: 0.85rem 0.9rem;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.page-header .header-search .search-card__header {
+  background: transparent;
+  border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+  padding-bottom: 0.4rem;
+  margin-bottom: 0.35rem;
+}
+
+.page-header .header-search .search-card__title-main {
+  color: #e5e7eb;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+.page-header .header-search .search-card__title-sub {
+  color: #9ca3af;
+  font-size: 0.75rem;
+}
+
+.page-header .header-search .search-card__icon {
+  color: #f97373;
+}
+
+.page-header .header-search input[type='text'],
+.page-header .header-search .search-input {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(148, 163, 184, 0.5);
+  background: rgba(15, 23, 42, 0.85);
+  padding: 0.45rem 0.7rem;
+  font-size: 0.85rem;
+  color: #e5e7eb;
+  outline: none;
+}
+
+.page-header .header-search input[type='text']::placeholder,
+.page-header .header-search .search-input::placeholder {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+
+.page-header .header-search input[type='text']:focus,
+.page-header .header-search .search-input:focus {
+  border-color: #f97373;
+  box-shadow: 0 0 0 1px rgba(248, 113, 113, 0.6);
+}
+
+/* results area لو موجودة */
+.page-header .header-search .search-results {
+  max-height: 180px;
+  overflow-y: auto;
+}
+
+/* RTL strip direction for header */
+.page-rtl .page-header::before {
+  right: auto;
+  left: 0;
+  transform: skewX(20deg);
+}
+
+/* Header entrance animation */
+.fade-in-down {
+  animation: fadeInDown 0.35s ease-out;
+}
+
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ===== Responsive for header + search ===== */
+@media (max-width: 992px) {
+  .page-header {
+    padding: 1.25rem 1.2rem;
+  }
+
+  .page-header .page-title {
+    font-size: 1.5rem;
+  }
+
+  .page-header .header-search {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 1.1rem 1rem;
+  }
+
+  .page-header .header-content {
+    flex: 1 1 auto;
+  }
+
+  .page-header .header-search {
+    width: 100%;
+    margin-top: 0.5rem;
+    align-self: stretch;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header .header-search {
+    width: 100%;
+    margin-top: 1rem;
+  }
 }
 
 /* RTL strip direction for header */
@@ -128,9 +275,11 @@
   color: #ef4444;
 }
 
-/* ===== KPI Cards ===== */
+/* ==========================
+   KPI Cards
+   ========================== */
 .kpi-card {
-  background: white;
+  background: #ffffff;
   border-radius: 16px;
   padding: 1.5rem;
   display: flex;
@@ -139,7 +288,7 @@
   border: 1px solid #e2e8f0;
   transition: all 0.3s ease;
   position: relative;
-  overflow: hidden;
+  overflow: visible; /* للسماح للتولتيب يطلع برا */
 }
 
 .kpi-card::before {
@@ -150,6 +299,8 @@
   right: 0;
   height: 4px;
   background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-light) 100%);
+  border-radius: 16px 16px 0 0;
+  pointer-events: none;
 }
 
 .kpi-card:hover {
@@ -157,6 +308,7 @@
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.15);
 }
 
+/* accent colors per card */
 .kpi-card--blue {
   --accent-color: #3b82f6;
   --accent-light: #60a5fa;
@@ -175,6 +327,14 @@
 .kpi-card--orange {
   --accent-color: #f59e0b;
   --accent-light: #fbbf24;
+}
+
+/* cards التي فيها تولتيب تبقى أعلى شوية */
+.occupancy-card,
+.tickets-today-card,
+.kpi-card--orange {
+  position: relative;
+  z-index: 2;
 }
 
 .kpi-icon {
@@ -234,7 +394,9 @@
   color: #f59e0b;
 }
 
-/* ===== Cards ===== */
+/* ==========================
+   Generic Cards
+   ========================== */
 .card {
   background: white;
   border-radius: 16px;
@@ -269,6 +431,7 @@
   padding: 1.5rem;
 }
 
+/* legend dots */
 .legend {
   display: flex;
   align-items: center;
@@ -308,7 +471,9 @@
   background: #ef4444;
 }
 
-/* ===== Donut Chart ===== */
+/* ==========================
+   Donut Chart
+   ========================== */
 .donut-chart {
   max-width: 200px;
   margin: 0 auto;
@@ -374,13 +539,15 @@
   font-weight: 600;
 }
 
-/* ===== Generic axis text ===== */
+/* Generic axis text */
 .axis-label {
   font-size: 0.75rem;
   fill: #64748b;
 }
 
-/* ===== Stats Grid ===== */
+/* ==========================
+   Stats Grid
+   ========================== */
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -450,7 +617,9 @@
   color: #1a202c;
 }
 
-/* ===== Tables ===== */
+/* ==========================
+   Tables
+   ========================== */
 .table-responsive {
   overflow-x: auto;
 }
@@ -515,7 +684,9 @@
   border-radius: 4px;
 }
 
-/* ===== Performer Cards ===== */
+/* ==========================
+   Performer Cards
+   ========================== */
 .performer-item {
   display: flex;
   align-items: center;
@@ -562,7 +733,9 @@
   color: #64748b;
 }
 
-/* ===== Live In/Out Card Styles ===== */
+/* ==========================
+   Live In/Out Card & Chart
+   ========================== */
 .live-card .card-header {
   align-items: center;
 }
@@ -619,7 +792,6 @@
   background: #ec4899;
 }
 
-/* ===== Live In/Out Bar Chart ===== */
 .bar-chart {
   max-width: 100%;
   height: auto;
@@ -649,7 +821,9 @@
   pointer-events: none;
 }
 
-/* ===== RTL Support ===== */
+/* ==========================
+   RTL Support
+   ========================== */
 .page-rtl .kpi-card,
 .page-rtl .stat,
 .page-rtl .stat-item,
@@ -662,7 +836,9 @@
   text-align: right;
 }
 
-/* ===== Responsive ===== */
+/* ==========================
+   Responsive
+   ========================== */
 @media (max-width: 768px) {
   .overview {
     padding: 1rem;
@@ -695,7 +871,9 @@
   }
 }
 
-/* ===== Button Styles ===== */
+/* ==========================
+   Buttons
+   ========================== */
 .btn {
   padding: 0.5rem 1rem;
   border-radius: 8px;
@@ -719,7 +897,6 @@
 /* ==========================
    Live Notifications
    ========================== */
-
 .notifications-container {
   position: fixed;
   top: 1.25rem;
@@ -833,4 +1010,159 @@
     opacity: 1;
     transform: translateY(0) translateX(0);
   }
+}
+
+/* ==========================
+   Membership / Occupancy / Tickets Tooltips
+   ========================== */
+
+.memberships-stats {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.35rem;
+}
+
+.clickable-stat {
+  cursor: pointer;
+}
+
+.stat--muted {
+  color: #6b7280;
+}
+
+/* base style لكل التولتيبات */
+.membership-tooltip,
+.occupancy-tooltip,
+.tickets-today-tooltip {
+  position: absolute;
+  top: 100%;
+  inset-inline-start: 0;
+  margin-top: 0.5rem;
+  background: #ffffff;
+  border-radius: 0.75rem;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
+  padding: 0.75rem 1rem;
+  font-size: 0.8rem;
+  z-index: 30;
+}
+
+/* فروقات بسيطة لكل نوع */
+.membership-tooltip {
+  min-width: 210px;
+}
+
+.occupancy-tooltip,
+.tickets-today-tooltip {
+  min-width: 260px;
+}
+
+/* membership tooltip */
+.membership-tooltip .tooltip-title {
+  font-weight: 600;
+  margin-bottom: 0.25rem;
+}
+
+.membership-tooltip .tooltip-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 0.15rem;
+}
+
+.membership-tooltip .tooltip-label {
+  color: #6b7280;
+}
+
+.membership-tooltip .tooltip-value {
+  font-weight: 600;
+  color: #111827;
+}
+
+/* occupancy tooltip */
+.occupancy-tooltip .tooltip-title {
+  font-weight: 600;
+  margin-bottom: 0.1rem;
+}
+
+.occupancy-tooltip .tooltip-subtitle {
+  font-size: 0.78rem;
+  color: #6b7280;
+  margin-bottom: 0.5rem;
+}
+
+.occupancy-tooltip .tooltip-list {
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.occupancy-tooltip .tooltip-item {
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.occupancy-tooltip .tooltip-item:last-child {
+  border-bottom: none;
+}
+
+.occupancy-tooltip .ticket-number {
+  font-weight: 600;
+  color: #111827;
+}
+
+.occupancy-tooltip .ticket-meta {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.occupancy-tooltip .tooltip-more {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: end;
+}
+
+/* tickets today tooltip */
+.tickets-today-tooltip .tooltip-title {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.tickets-today-tooltip .tooltip-list {
+  max-height: 220px;
+  overflow-y: auto;
+}
+
+.tickets-today-tooltip .tooltip-item {
+  padding: 0.3rem 0;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.tickets-today-tooltip .tooltip-item:last-child {
+  border-bottom: none;
+}
+
+.tickets-today-tooltip .ticket-number {
+  font-weight: 600;
+  color: #111827;
+}
+
+.tickets-today-tooltip .ticket-meta {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.tickets-today-tooltip .tooltip-more {
+  margin-top: 0.25rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+  text-align: end;
+}
+
+.tickets-today-tooltip .tooltip-empty {
+  padding: 0.5rem 0;
+  color: #9ca3af;
+  font-size: 0.8rem;
+  text-align: center;
 }

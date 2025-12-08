@@ -1,11 +1,16 @@
- import { CommonModule } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Component, computed, signal, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs';
 
 import { LanguageService } from '../../Services/i18n/language-service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
-import { DashboardDto } from '../../Domain/OverView/overview.model';
+import {
+  DashboardDto,
+  TicketInsideParkDto,
+  TicketTodayDto,
+  TicketAdminDto,
+} from '../../Domain/OverView/overview.model';
 import { OverviewServices } from '../../Services/OverView/overview-services';
 import { DashboardHubService } from '../../Services/OverView/dashboard-hub.service';
 import {
@@ -13,22 +18,26 @@ import {
   TicketExitedNotification,
   TicketCollectedNotification,
 } from '../../Domain/OverView/dashboard-notifications.model';
+import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
+import { TicketsServices } from '../../Services/Tickets/tickets-services';
+import { TicketDto } from '../../Domain/tickets/tickets.model';
 
-// === UI Notification model ===
 type NotificationType = 'IN' | 'OUT' | 'COLLECTED';
+type MembershipTooltipType = 'active' | 'inactive';
+type TicketsTodayTooltipType = 'entry' | 'exit';
 
 interface UiNotification {
   id: number;
   type: NotificationType;
-  titleKey: string; 
+  titleKey: string;
   message: string;
-  time: string; 
+  time: string;
 }
 
 @Component({
   selector: 'app-overview-component',
   standalone: true,
-  imports: [CommonModule, TranslatePipePipe],
+  imports: [CommonModule, TranslatePipePipe, SearchBlockComponent],
   templateUrl: './overview-component.html',
   styleUrls: ['./overview-component.css'],
   providers: [
@@ -49,6 +58,7 @@ interface UiNotification {
           entry: 'دخول',
           exit: 'خروج',
           active: 'نشط',
+          inactive: 'غير نشط',
           memberships: 'الاشتراكات',
           total: 'الإجمالي',
           expiringNext7Days: 'تنتهي خلال 7 أيام',
@@ -89,8 +99,9 @@ interface UiNotification {
           error: 'حدث خطأ في تحميل البيانات',
           retry: 'إعادة المحاولة',
           egp: 'ج.م',
+          count: 'العدد',
+          percentage: 'النسبة',
 
-          // Notifications
           notif_in_title: 'تذكرة دخول جديدة',
           notif_out_title: 'تذكرة خروج',
           notif_collected_title: 'تحصيل تذكرة',
@@ -109,6 +120,7 @@ interface UiNotification {
           entry: 'Entry',
           exit: 'Exit',
           active: 'Active',
+          inactive: 'Inactive',
           memberships: 'Memberships',
           total: 'Total',
           expiringNext7Days: 'Expiring in 7 days',
@@ -149,8 +161,9 @@ interface UiNotification {
           error: 'Error loading data',
           retry: 'Retry',
           egp: 'EGP',
+          count: 'Count',
+          percentage: 'Percentage',
 
-          // Notifications
           notif_in_title: 'New entry ticket',
           notif_out_title: 'Exit ticket',
           notif_collected_title: 'Ticket collected',
@@ -165,20 +178,39 @@ export class OverviewComponent implements OnInit, OnDestroy {
   constructor(
     public readonly lang: LanguageService,
     private readonly overviewServices: OverviewServices,
-    private readonly dashboardHub: DashboardHubService
+    private readonly dashboardHub: DashboardHubService,
+    private readonly ticketsService: TicketsServices
   ) {}
 
-  // ===== Dashboard State =====
+  // ===== State =====
   dashboard = signal<DashboardDto | null>(null);
   loading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
 
-  // ===== Notifications State =====
+  // Tickets lists
+  ticketsInside = signal<TicketInsideParkDto[]>([]);
+  todayEntryTickets = signal<TicketAdminDto[]>([]);
+  todayExitTickets = signal<TicketAdminDto[]>([]);
+
+  // Search
+  searchingTickets = false;
+  searchResults: TicketDto[] = [];
+
+  // Notifications
   notifications = signal<UiNotification[]>([]);
   private notificationIdCounter = 0;
   private hubSubscriptions = new Subscription();
 
-  // ===== KPI / Stats computed =====
+  // Tooltips
+  membershipTooltipVisible = signal<boolean>(false);
+  membershipTooltipType = signal<MembershipTooltipType | null>(null);
+
+  occupancyTooltipVisible = signal<boolean>(false);
+
+  ticketsTodayTooltipVisible = signal<boolean>(false);
+  ticketsTodayTooltipType = signal<TicketsTodayTooltipType | null>(null);
+
+  // ===== Computed =====
   totalRevenue = computed(() => this.dashboard()?.totalRevenue ?? 0);
   collectedRevenue = computed(() => this.dashboard()?.collectedRevenue ?? 0);
   pendingRevenue = computed(() => this.dashboard()?.pendingRevenue ?? 0);
@@ -197,6 +229,19 @@ export class OverviewComponent implements OnInit, OnDestroy {
   activeTicketsCount = computed(() => this.dashboard()?.activeTicketsCount ?? 0);
 
   subscriptionCount = computed(() => this.dashboard()?.subscriptionCount ?? 0);
+  activeSubscriptionCount = computed(() => this.dashboard()?.activeSubscriptionCount ?? 0);
+  inactiveSubscriptionCount = computed(() => this.dashboard()?.inactiveSubscriptionCount ?? 0);
+
+  activeSubscriptionPercent = computed(() => {
+    const total = this.subscriptionCount();
+    return total > 0 ? (this.activeSubscriptionCount() / total) * 100 : 0;
+  });
+
+  inactiveSubscriptionPercent = computed(() => {
+    const total = this.subscriptionCount();
+    return total > 0 ? (this.inactiveSubscriptionCount() / total) * 100 : 0;
+  });
+
   membershipsExpiringNext7Days = computed(
     () => this.dashboard()?.membershipsExpiringNext7Days ?? 0
   );
@@ -239,7 +284,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
   exitGates = computed(() => this.dashboard()?.exitGates ?? []);
   recentTickets = computed(() => this.dashboard()?.recentTickets ?? []);
 
-  // ===== Charts =====
+  // Charts
   private readonly defaultChartHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
 
   chartHours = computed(() => {
@@ -269,19 +314,16 @@ export class OverviewComponent implements OnInit, OnDestroy {
     return this.buildSeriesFromTotal(totalOut, hours.length);
   });
 
-  // ===== Donut chart (revenue breakdown) =====
+  // Donut chart
   donutRadius = 58;
-
   donutCirc = computed(() => 2 * Math.PI * this.donutRadius);
-
   membershipStroke = computed(() => (this.membershipRevenuePercent() / 100) * this.donutCirc());
   walkInStroke = computed(() => (this.walkInRevenuePercent() / 100) * this.donutCirc());
   walkInRotateDeg = computed(() => -90 + (this.membershipRevenuePercent() / 100) * 360);
 
-  // ===== Live In/Out simple bar counters =====
+  // Live In/Out bars
   liveChartWidth = 360;
   liveChartHeight = 140;
-
   readonly liveLeftPadding = 70;
   readonly liveRightPadding = 24;
   readonly liveBarThickness = 32;
@@ -339,7 +381,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     this.dashboardHub.stop();
   }
 
-  // ===== API Calls =====
+  // ===== API =====
   loadDashboard(): void {
     this.loading.set(true);
     this.errorMessage.set(null);
@@ -348,6 +390,9 @@ export class OverviewComponent implements OnInit, OnDestroy {
       next: (dto) => {
         this.loading.set(false);
         this.dashboard.set(dto);
+
+        this.syncOccupancyWithTicketsInside();
+        this.loadTodayTickets();
       },
       error: (err) => {
         console.error('Error loading dashboard', err);
@@ -357,16 +402,60 @@ export class OverviewComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ===== SignalR Real-time =====
+  /** Occupancy + list of inside tickets */
+  private syncOccupancyWithTicketsInside(): void {
+    this.overviewServices.getTicketsInsidePark().subscribe({
+      next: (tickets) => {
+        this.ticketsInside.set(tickets ?? []);
+
+        this.dashboard.update((current) => {
+          if (!current) return current;
+
+          const currentInside = tickets.length;
+          const prevTotalSlots =
+            (current.currentVehiclesInside ?? 0) + (current.estimatedFreeSlots ?? 0);
+          const totalSlots =
+            prevTotalSlots > 0 ? prevTotalSlots : currentInside + (current.estimatedFreeSlots ?? 0);
+
+          const freeSlots =
+            totalSlots > 0 ? Math.max(totalSlots - currentInside, 0) : current.estimatedFreeSlots;
+
+          const occupancy =
+            totalSlots > 0 ? (currentInside / totalSlots) * 100 : current.occupancyPercentage;
+
+          return {
+            ...current,
+            currentVehiclesInside: currentInside,
+            estimatedFreeSlots: freeSlots,
+            occupancyPercentage: occupancy,
+          };
+        });
+      },
+      error: (err) => console.error('Error syncing occupancy', err),
+    });
+  }
+
+  /** ✅ Entry / Exit tickets for today */
+  /** ✅ Entry / Exit tickets for today */
+  private loadTodayTickets(): void {
+    this.overviewServices.getTicketsForEntryAdmin().subscribe({
+      next: (list) => this.todayEntryTickets.set(list ?? []),
+      error: (err) => console.error('Error loading today entry tickets', err),
+    });
+
+    this.overviewServices.getTicketsForExitAdmin().subscribe({
+      next: (list) => this.todayExitTickets.set(list ?? []),
+      error: (err) => console.error('Error loading today exit tickets', err),
+    });
+  }
+
+  // ===== SignalR =====
   private async connectToHub(): Promise<void> {
     try {
       await this.dashboardHub.start();
 
-      // Ticket Added
       this.hubSubscriptions.add(
         this.dashboardHub.ticketAdded$.subscribe((notification) => {
-          console.log('OVERVIEW: ticket added', notification);
-
           this.updateChartIn(notification.hour);
 
           this.dashboard.update((current) => {
@@ -383,11 +472,8 @@ export class OverviewComponent implements OnInit, OnDestroy {
         })
       );
 
-      // Ticket Exited
       this.hubSubscriptions.add(
         this.dashboardHub.ticketExited$.subscribe((notification) => {
-          console.log('OVERVIEW: ticket exited', notification);
-
           this.updateChartOut(notification.hour);
 
           this.dashboard.update((current) => {
@@ -404,11 +490,8 @@ export class OverviewComponent implements OnInit, OnDestroy {
         })
       );
 
-      // Ticket Collected
       this.hubSubscriptions.add(
         this.dashboardHub.ticketCollected$.subscribe((notification) => {
-          console.log('OVERVIEW: ticket collected', notification);
-
           this.pushNotification(
             'COLLECTED',
             'notif_collected_title',
@@ -481,13 +564,68 @@ export class OverviewComponent implements OnInit, OnDestroy {
   formatDuration(minutes: number): string {
     const hours = Math.floor(minutes / 60);
     const mins = minutes % 60;
-    if (hours > 0) {
-      return `${hours}h ${mins}m`;
-    }
+    if (hours > 0) return `${hours}h ${mins}m`;
     return `${mins}m`;
   }
 
-  // ===== Notification helpers =====
+  // Membership tooltip
+  showMembershipDetails(type: MembershipTooltipType): void {
+    this.membershipTooltipType.set(type);
+    this.membershipTooltipVisible.set(true);
+  }
+
+  hideMembershipDetails(): void {
+    this.membershipTooltipVisible.set(false);
+  }
+
+  // Occupancy tooltip
+  showOccupancyDetails(): void {
+    if (this.ticketsInside().length > 0) {
+      this.occupancyTooltipVisible.set(true);
+    }
+  }
+
+  hideOccupancyDetails(): void {
+    this.occupancyTooltipVisible.set(false);
+  }
+
+  // Tickets Today tooltip
+  showTicketsTodayDetails(type: TicketsTodayTooltipType): void {
+    this.ticketsTodayTooltipType.set(type);
+    this.ticketsTodayTooltipVisible.set(true);
+  }
+
+  hideTicketsTodayDetails(): void {
+    this.ticketsTodayTooltipVisible.set(false);
+  }
+
+  // Search tickets
+  onSearchTickets(query: string): void {
+    if (!query.trim()) {
+      this.searchResults = [];
+      this.searchingTickets = false;
+      return;
+    }
+
+    this.searchingTickets = true;
+    this.ticketsService.searchTickets(query).subscribe({
+      next: (results) => {
+        this.searchResults = results ?? [];
+        this.searchingTickets = false;
+      },
+      error: (err) => {
+        console.error('Search error:', err);
+        this.searchResults = [];
+        this.searchingTickets = false;
+      },
+    });
+  }
+
+  onTicketSelected(ticket: TicketDto): void {
+    console.log('Selected ticket:', ticket);
+  }
+
+  // Notifications
   private pushNotification(type: NotificationType, titleKey: string, message: string): void {
     const id = ++this.notificationIdCounter;
     const date = new Date();
@@ -508,9 +646,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
         },
       ];
 
-      if (next.length > 5) {
-        next.shift();
-      }
+      if (next.length > 5) next.shift();
 
       return next;
     });

@@ -74,6 +74,21 @@
   background: var(--bg-soft, #f9fafb);
 }
 
+/* Clickable rows */
+:host .clickable-row {
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+:host .clickable-row:focus {
+  outline: 2px solid #2563eb;
+  outline-offset: -2px;
+}
+
+:host .clickable-row:hover {
+  background: #f3f4ff !important;
+}
+
 /* mono text */
 :host .mono {
   font-family: 'SF Mono', 'Segoe UI Mono', 'Roboto Mono', monospace;

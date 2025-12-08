@@ -90,6 +90,10 @@ export class TicketsServices {
     return this.salary.calculateSubscriberSalary(cardNumber);
   }
 
+  calculateSalaryByTicketNumber(ticketNumber: string): Observable<CalculateSalaryResponse | null> {
+    return this.salary.calculateSalaryByTicketNumber(ticketNumber);
+  }
+
   // --- Collect / Exit ---
 
   collect(id: number | string): Observable<boolean> {

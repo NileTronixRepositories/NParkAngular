@@ -40,6 +40,7 @@ export class ExitTicketsTableBlockComponent {
   @Output() submitSupervisorCollect = new EventEmitter<void>();
   @Output() closeSupervisorCollectModal = new EventEmitter<void>();
   @Output() finishSupervisorCollect = new EventEmitter<void>();
+  @Output() ticketSelected = new EventEmitter<TicketDto>();
 
   Math = Math;
 
@@ -119,5 +120,9 @@ export class ExitTicketsTableBlockComponent {
 
   onFinishSupervisorCollect(): void {
     this.finishSupervisorCollect.emit();
+  }
+
+  onTicketRowClick(ticket: TicketDto): void {
+    this.ticketSelected.emit(ticket);
   }
 }

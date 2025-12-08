@@ -598,16 +598,26 @@ export class ExitgateComponent {
 
   onTicketSelected(ticket: TicketDto): void {
     const identifier = ticket.ticketNumber || String(ticket.id);
-    this.toast.success(
-      this.lang.current === 'ar'
-        ? `تم اختيار التذكرة: ${identifier}`
-        : `Selected ticket: ${identifier}`
-    );
+    const summaryText = ticket.info ? ` - ${ticket.info}` : '';
+
+    if (ticket.isCollectedByCashier) {
+      this.toast.warn(
+        this.lang.current === 'ar'
+          ? `التذكرة ${identifier} تم تحصيلها مسبقًا${summaryText}`
+          : `Ticket ${identifier} was already collected${summaryText}`
+      );
+    } else {
+      this.toast.success(
+        this.lang.current === 'ar'
+          ? `تم اختيار التذكرة: ${identifier}${summaryText}`
+          : `Selected ticket: ${identifier}${summaryText}`
+      );
+    }
+
     this.onSearchTicketNumber(identifier);
     this.searchResults = [];
   }
 
-  /** ✅ Search by ticket number coming from Gate Devices block */
   onGateDeviceSearchTicket(ticketNumber: string): void {
     const trimmed = ticketNumber?.trim();
     if (!trimmed || this.searchingTicketNumber) return;
@@ -681,13 +691,23 @@ export class ExitgateComponent {
 
     this.addingExitTicket = false;
     this.exitTicketAdded = false;
+    this.searchingManual = true;
 
-    this.svc.calculateTicketSalary(trimmed).subscribe({
+    // Use calculateSalaryByTicketNumber which tries ticket number endpoint first, then falls back to QR
+    this.svc.calculateSalaryByTicketNumber(trimmed).subscribe({
       next: (summary) => {
         this.salarySummary = summary;
+
+        if (!summary) {
+          this.toast.error(
+            this.lang.current === 'ar'
+              ? 'لم يتم العثور على بيانات التذكرة'
+              : 'Ticket data not found'
+          );
+        }
       },
       error: (err) => {
-        this.handleError('calculateTicketSalary', err);
+        this.handleError('calculateSalaryByTicketNumber', err);
       },
       complete: () => {
         this.searchingManual = false;

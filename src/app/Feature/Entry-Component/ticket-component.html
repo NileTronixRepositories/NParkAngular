@@ -68,6 +68,7 @@
         [loading]="loading"
         [collectingTicketId]="collectingTicketId"
         (collectTicket)="collectTicketFromTable($event)"
+        (ticketSelected)="onTicketSelected($event)"
       ></app-tickets-table-block-component>
 
       <div class="mt-2 d-flex flex-column gap-2">

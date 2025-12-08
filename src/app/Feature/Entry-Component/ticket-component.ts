@@ -1151,9 +1151,66 @@ export class TicketComponent implements OnInit {
   }
 
   onTicketSelected(ticket: TicketDto): void {
-    // TODO: Handle selected ticket (e.g., show details, collect, etc.)
-    console.log('Selected ticket:', ticket);
-    this.toast.success(`Selected ticket #${ticket.ticketNumber || ticket.id}`);
+    this.searchResults = [];
+
+    const identifier = ticket.ticketNumber || String(ticket.id);
+    const summaryText = ticket.info ? ` - ${ticket.info}` : '';
+
+    this.toast.success(
+      this.i18n.current === 'ar'
+        ? `جاري تحميل بيانات التذكرة: ${identifier}${summaryText}`
+        : `Loading ticket data: ${identifier}${summaryText}`
+    );
+
+    this.ticketsSvc.calculateSalaryByTicketNumber(identifier).subscribe({
+      next: (salary) => {
+        if (!salary) {
+          this.toast.error(
+            this.i18n.current === 'ar'
+              ? 'لم يتم العثور على بيانات التذكرة'
+              : 'Ticket data not found'
+          );
+          return;
+        }
+
+        this.lastIssuedTicketId = salary.ticketId ?? ticket.id ?? null;
+        this.lastIssuedTicketInfo = ticket.info ?? null;
+        this.lastIssuedPrice = salary.totalSalary ?? ticket.price ?? null;
+        this.lastIssuedCreatedAt = salary.enterDate ?? ticket.time ?? null;
+        this.lastIssuedVehicleNumber = ticket.plate ?? null;
+
+        this._cashierCollected = salary.isCollectByCashier ?? ticket.isCollectedByCashier ?? false;
+
+        this.currentIssuedQr = null;
+        this.currentIssuedQrType = null;
+        if (this._cashierCollected) {
+          this.toast.warn(
+            this.i18n.current === 'ar'
+              ? `التذكرة ${identifier} تم تحصيلها مسبقًا${summaryText}`
+              : `Ticket ${identifier} was already collected${summaryText}`
+          );
+        } else {
+          this.toast.success(
+            this.i18n.current === 'ar'
+              ? `تم اختيار التذكرة: ${identifier}${summaryText}`
+              : `Selected ticket: ${identifier}${summaryText}`
+          );
+        }
+      },
+      error: (err) => {
+        console.error('calculateTicketSalary error', err);
+        this.toast.fromProblem(err);
+
+        this.lastIssuedTicketId = ticket.id ?? null;
+        this.lastIssuedTicketInfo = ticket.info ?? null;
+        this.lastIssuedPrice = ticket.price ?? null;
+        this.lastIssuedCreatedAt = ticket.time ?? null;
+        this.lastIssuedVehicleNumber = ticket.plate ?? null;
+        this._cashierCollected = ticket.isCollectedByCashier ?? false;
+        this.currentIssuedQr = null;
+        this.currentIssuedQrType = null;
+      },
+    });
   }
 
   private markTicketAsCashierCollected(ticketId: string | number): void {
@@ -1166,9 +1223,6 @@ export class TicketComponent implements OnInit {
     this.applyFilters();
   }
 
-  // =======================
-  // List / Filters
-  // =======================
   gates(): string[] {
     return Array.from(new Set(this.tickets.map((t) => t.gate))).sort();
   }

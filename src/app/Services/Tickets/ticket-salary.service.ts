@@ -33,7 +33,7 @@ export class TicketSalaryService {
       .pipe(
         catchError((err) => {
           this.logError('POST /Ticket/CalculateQrCodeTicketSalary', err);
-           return throwError(() => err);
+          return throwError(() => err);
         })
       );
   }
@@ -50,7 +50,26 @@ export class TicketSalaryService {
       .pipe(
         catchError((err) => {
           this.logError('POST /Ticket/CalculateSalaryForSubscriberCommand', err);
-           return throwError(() => err);
+          return throwError(() => err);
+        })
+      );
+  }
+
+  /** Calculate salary by ticket number (uses QR code endpoint but passes ticket number) */
+  calculateSalaryByTicketNumber(ticketNumber: string): Observable<CalculateSalaryResponse | null> {
+    const trimmed = ticketNumber?.trim();
+    if (!trimmed) return of(null);
+
+    // Try with ticketNumber parameter first
+    const body = { ticketNumber: trimmed };
+
+    return this.http
+      .post<CalculateSalaryResponse>(this.endpoint('CalculateTicketNumberSalary'), body)
+      .pipe(
+        catchError((err) => {
+          this.logError('POST /Ticket/CalculateTicketNumberSalary', err);
+          // Fallback: try with qrCode parameter (ticket number might be the QR content)
+          return this.calculateTicketSalary(trimmed);
         })
       );
   }

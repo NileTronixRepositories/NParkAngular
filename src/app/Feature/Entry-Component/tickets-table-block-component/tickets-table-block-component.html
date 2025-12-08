@@ -39,17 +39,21 @@
           </thead>
 
           <tbody>
-            <tr *ngFor="let ticket of pageItems; trackBy: trackByTicket" class="tickets-row">
+            <tr
+              *ngFor="let ticket of pageItems; trackBy: trackByTicket"
+              class="tickets-row clickable-row"
+              (click)="onTicketRowClick(ticket)"
+              role="button"
+              tabindex="0"
+            >
               <!-- Col 1: Ticket / Customer info -->
               <td>
-                <!-- لو info موجودة نعرضها كـ mono ID -->
                 <ng-container *ngIf="ticket.info; else structuredInfo">
                   <span class="mono tickets-id">
                     {{ ticket.info }}
                   </span>
                 </ng-container>
 
-                <!-- عرض structured info (اسم – موبايل – كارت) -->
                 <ng-template #structuredInfo>
                   <ng-container
                     *ngIf="
@@ -69,7 +73,6 @@
                   </ng-container>
                 </ng-template>
 
-                <!-- fallback: TicketNumber / Id -->
                 <ng-template #fallbackId>
                   <span class="mono tickets-id">
                     {{ ticket.ticketNumber || ticket.id }}

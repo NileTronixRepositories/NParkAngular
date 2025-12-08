@@ -107,29 +107,54 @@ export class ToastServices {
       return null;
     }
 
+    // 1) Check for detail field (RFC 7807 Problem Details)
     if (typeof response.detail === 'string' && response.detail.trim()) {
       return response.detail.trim();
     }
 
-    // 2) errors:
-    if (Array.isArray(response.errors) && response.errors.length > 0) {
-      const first = response.errors[0];
+    // 2) Check for errors field
+    if (response.errors) {
+      // Handle array format: errors: ["message1", "message2"]
+      if (Array.isArray(response.errors) && response.errors.length > 0) {
+        const first = response.errors[0];
 
-      if (typeof first === 'string' && first.trim()) {
-        return first.trim();
+        if (typeof first === 'string' && first.trim()) {
+          return first.trim();
+        }
+
+        if (first && typeof first === 'object') {
+          const msgFromErrorObj =
+            (first.message && String(first.message).trim()) ||
+            (first.description && String(first.description).trim());
+
+          if (msgFromErrorObj) {
+            return msgFromErrorObj;
+          }
+        }
       }
 
-      if (first && typeof first === 'object') {
-        const msgFromErrorObj =
-          (first.message && String(first.message).trim()) ||
-          (first.description && String(first.description).trim());
+      // Handle ASP.NET validation errors format: errors: { "field": ["message1", "message2"], ... }
+      if (typeof response.errors === 'object' && !Array.isArray(response.errors)) {
+        const errorMessages: string[] = [];
 
-        if (msgFromErrorObj) {
-          return msgFromErrorObj;
+        for (const key of Object.keys(response.errors)) {
+          const fieldErrors = response.errors[key];
+          if (Array.isArray(fieldErrors)) {
+            for (const msg of fieldErrors) {
+              if (typeof msg === 'string' && msg.trim()) {
+                errorMessages.push(msg.trim());
+              }
+            }
+          }
+        }
+
+        if (errorMessages.length > 0) {
+          return errorMessages[0];
         }
       }
     }
 
+    // 3) Check common message fields
     const possibleKeys = ['message', 'Message', 'error', 'title', 'description'];
 
     for (const key of possibleKeys) {

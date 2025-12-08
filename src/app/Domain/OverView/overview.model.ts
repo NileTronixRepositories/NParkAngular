@@ -1,4 +1,3 @@
- 
 export type TicketAction = 'IN' | 'OUT';
 
 export interface GateTicketsSummaryDto {
@@ -18,10 +17,41 @@ export interface OverviewTicketDto {
   time: string;
 }
 
+export interface TicketInsideParkDto {
+  startDate: string;
+  ticketNumber: string;
+  price: number;
+  isCollectedByCashier: boolean;
+  ticketInfo?: string | null;
+  id: string;
+}
+
+export interface TicketTodayDto {
+  ticketId: string;
+  gateId: string;
+  startDate: string;
+  price: number;
+  isSubscriber: boolean;
+  vehicleNumber: string;
+}
+
+export interface TicketAdminDto {
+  id: string;
+  startDate: string;
+  ticketNumber: string;
+  price: number;
+  isCollectedByCashier: boolean;
+  ticketInfo: string;
+}
+
 export interface DashboardDto {
   date: string;
 
+  // Subscriptions
   subscriptionCount: number;
+  activeSubscriptionCount: number;
+  inactiveSubscriptionCount: number;
+
   enterTicketsCount: number;
   exitTicketsCount: number;
 
@@ -62,4 +92,3 @@ export interface DashboardDto {
   chartOut?: number[];
   recentTickets?: OverviewTicketDto[];
 }
- 

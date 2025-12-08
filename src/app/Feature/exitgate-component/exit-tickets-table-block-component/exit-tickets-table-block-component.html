@@ -18,9 +18,15 @@
         </thead>
 
         <tbody>
-          <tr *ngFor="let t of pageItems">
+          <tr
+            *ngFor="let t of pageItems"
+            class="clickable-row"
+            (click)="onTicketRowClick(t)"
+            role="button"
+            tabindex="0"
+          >
             <td class="mono">
-              {{ t.ticketNumber || t.id }}
+              {{ t.info || t.plate }}
             </td>
             <td>{{ t.time | date : 'shortTime' }}</td>
             <td>

@@ -20,6 +20,7 @@ export class TicketsTableBlockComponent {
   @Input() collectingTicketId: string | null = null;
 
   @Output() collectTicket = new EventEmitter<string>();
+  @Output() ticketSelected = new EventEmitter<TicketDto>();
 
   page = 1;
   pageSize = 10;
@@ -47,6 +48,10 @@ export class TicketsTableBlockComponent {
 
   onCollectClick(ticketId: string | number): void {
     this.collectTicket.emit(String(ticketId));
+  }
+
+  onTicketRowClick(ticket: TicketDto): void {
+    this.ticketSelected.emit(ticket);
   }
 
   trackByTicket(index: number, item: TicketDto): string | number {

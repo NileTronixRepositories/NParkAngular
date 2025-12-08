@@ -87,6 +87,15 @@
   background: #f3f4ff;
 }
 
+:host-context(.tickets-theme) .clickable-row {
+  cursor: pointer;
+}
+
+:host-context(.tickets-theme) .clickable-row:focus {
+  outline: 2px solid var(--ticket-accent, #1d4ed8);
+  outline-offset: -2px;
+}
+
 :host-context(.tickets-theme) .tickets-row td {
   font-size: 0.8rem;
 }
