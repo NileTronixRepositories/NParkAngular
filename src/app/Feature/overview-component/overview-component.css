@@ -1,4 +1,6 @@
-/* ===== Page Layout ===== */
+/* ==========================
+   Layout
+   ========================== */
 .overview {
   padding: 2rem 1.5rem;
   min-height: 100vh;
@@ -21,7 +23,8 @@
 }
 
 /* strip القديمة ملغية */
-.page-header::before {
+.page-header::before,
+.page-rtl .page-header::before {
   display: none;
 }
 
@@ -65,7 +68,7 @@
   font-size: 0.875rem;
 }
 
-/* ===== Header Search (simple input) ===== */
+/* ===== Header Search ===== */
 .page-header .header-search {
   flex: 0 0 420px;
   max-width: 100%;
@@ -85,7 +88,6 @@
   color: #94a3b8;
 }
 
-/* الصندوق البسيط بتاع السيرش */
 .header-search-main {
   display: flex;
   align-items: center;
@@ -115,7 +117,7 @@
   color: #9ca3af;
 }
 
-/* dropdown بسيط للنتائج */
+/* نتائج البحث */
 .header-search-results {
   margin-top: 0.35rem;
   border-radius: 12px;
@@ -138,12 +140,12 @@
   background: #f1f5f9;
 }
 
-/* RTL: نعكس ترتيب الأيقونة والإنبوت */
+/* RTL for search */
 .page-rtl .header-search-main {
   flex-direction: row-reverse;
 }
 
-/* Header entrance animation */
+/* Header animation */
 .fade-in-down {
   animation: fadeInDown 0.35s ease-out;
 }
@@ -157,40 +159,6 @@
     opacity: 1;
     transform: translateY(0);
   }
-}
-
-/* ===== Responsive for header + search ===== */
-@media (max-width: 992px) {
-  .page-header .page-title {
-    font-size: 1.5rem;
-  }
-
-  .page-header .header-search {
-    flex: 1 1 100%;
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 768px) {
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .page-header .header-content {
-    flex: 1 1 auto;
-  }
-
-  .page-header .header-search {
-    width: 100%;
-    margin-top: 0.5rem;
-    align-self: stretch;
-  }
-}
-
-/* RTL strip direction for header - Removed */
-.page-rtl .page-header::before {
-  display: none;
 }
 
 /* ==========================
@@ -227,6 +195,68 @@
 }
 
 /* ==========================
+   Generic Cards
+   ========================== */
+.card {
+  background: white;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.card-header {
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to bottom, #ffffff, #f8fafc);
+}
+
+.card-title {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1a202c;
+  margin: 0;
+}
+
+.card-body {
+  padding: 1.5rem;
+}
+
+/* كروت مضغوطة (للسكشن السفلي مثلاً) */
+.card-compact .card-header {
+  padding: 0.6rem 0.9rem;
+}
+
+.card-compact .card-body {
+  padding: 0.6rem 0.9rem;
+}
+
+.card-compact .table th,
+.card-compact .table td {
+  padding: 0.45rem 0.75rem;
+}
+
+.card-compact .performer-item,
+.card-compact .stat-item {
+  padding: 0.6rem 0.7rem;
+}
+
+/* كارت الجداول في الآخر + إصلاح الـ z-index */
+.table-card {
+  position: relative;
+  z-index: 1;
+}
+
+/* ==========================
    KPI Cards
    ========================== */
 .kpi-card {
@@ -239,7 +269,7 @@
   border: 1px solid #e2e8f0;
   transition: all 0.3s ease;
   position: relative;
-  overflow: visible; /* للسماح للتولتيب يطلع برا */
+  overflow: clip;
 }
 
 .kpi-card::before {
@@ -280,7 +310,7 @@
   --accent-light: #fbbf24;
 }
 
-/* cards التي فيها تفاعل */
+/* cards مع تفاعل */
 .occupancy-card,
 .tickets-today-card,
 .kpi-card--orange {
@@ -349,44 +379,13 @@
   color: #f59e0b;
 }
 
+.stat--muted {
+  color: #6b7280;
+}
+
 /* ==========================
-   Generic Cards
+   Legend + Dots
    ========================== */
-.card {
-  background: white;
-  border-radius: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
-  overflow: hidden;
-  transition: all 0.3s ease;
-}
-
-.card:hover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px);
-}
-
-.card-header {
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid #e2e8f0;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: linear-gradient(to bottom, #ffffff, #f8fafc);
-}
-
-.card-title {
-  font-size: 1.125rem;
-  font-weight: 600;
-  color: #1a202c;
-  margin: 0;
-}
-
-.card-body {
-  padding: 1.5rem;
-}
-
-/* legend dots */
 .legend {
   display: flex;
   align-items: center;
@@ -607,6 +606,7 @@
   background: #f8fafc;
 }
 
+/* Badges */
 .badge {
   display: inline-block;
   padding: 0.375rem 0.75rem;
@@ -695,7 +695,7 @@
   align-items: center;
 }
 
-.header-content {
+.live-card .header-content {
   display: flex;
   align-items: center;
   gap: 0.75rem;
@@ -774,52 +774,6 @@
   font-weight: 600;
   fill: #ffffff;
   pointer-events: none;
-}
-
-/* ==========================
-   RTL Support
-   ========================== */
-.page-rtl .kpi-card,
-.page-rtl .stat,
-.page-rtl .stat-item,
-.page-rtl .performer-item {
-  direction: rtl;
-}
-
-.page-rtl .table th,
-.page-rtl .table td {
-  text-align: right;
-}
-
-/* ==========================
-   Responsive (global)
-   ========================== */
-@media (max-width: 768px) {
-  .overview {
-    padding: 1rem;
-  }
-
-  .page-header .page-title {
-    font-size: 1.5rem;
-  }
-
-  .kpi-value {
-    font-size: 1.5rem;
-  }
-
-  .kpi-icon {
-    width: 50px;
-    height: 50px;
-    font-size: 1.5rem;
-  }
-
-  .legend {
-    flex-wrap: wrap;
-  }
-
-  .stat-grid {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* ==========================
@@ -964,9 +918,8 @@
 }
 
 /* ==========================
-   Membership / Occupancy / Tickets Tooltips (old card-level)
+   Membership / Occupancy Tooltips
    ========================== */
-
 .memberships-stats {
   position: relative;
   display: flex;
@@ -979,11 +932,7 @@
   cursor: pointer;
 }
 
-.stat--muted {
-  color: #6b7280;
-}
-
-/* membership hint only */
+/* membership hint (قديمة) */
 .membership-tooltip {
   position: absolute;
   top: 100%;
@@ -997,18 +946,17 @@
   z-index: 30;
 }
 
-/* ===== New membership details panel (click) ===== */
+/* كارت الميمبرشيب */
 .membership-card {
   position: relative;
 }
 
-/* علشان العناصر تبان clickable */
 .membership-card .clickable-stat {
   position: relative;
   padding-inline-end: 0.75rem;
 }
 
-/* Hint tooltip الصغيرة على الهوفر */
+/* Hint الصغيرة على الهوفر */
 .membership-hint-tooltip {
   position: absolute;
   bottom: -1.6rem;
@@ -1023,7 +971,6 @@
   z-index: 10;
 }
 
-/* RTL alignment */
 .page-rtl .membership-hint-tooltip {
   inset-inline-start: auto;
   inset-inline-end: 0;
@@ -1038,7 +985,6 @@
   border: 1px dashed rgba(248, 171, 85, 0.8);
 }
 
-/* Header جوه الـ panel */
 .membership-details-header {
   display: flex;
   align-items: center;
@@ -1060,7 +1006,6 @@
   opacity: 0.9;
 }
 
-/* Body list */
 .membership-details-body {
   max-height: 190px;
   overflow-y: auto;
@@ -1069,7 +1014,6 @@
   gap: 0.45rem;
 }
 
-/* Row */
 .membership-row {
   padding: 0.4rem 0.45rem;
   border-radius: 0.6rem;
@@ -1083,7 +1027,6 @@
   background: #fffbeb;
 }
 
-/* Main line: name + vehicle */
 .membership-main {
   display: flex;
   justify-content: space-between;
@@ -1102,7 +1045,6 @@
   color: #6b7280;
 }
 
-/* Meta line: plan + dates */
 .membership-meta {
   display: flex;
   flex-wrap: wrap;
@@ -1119,7 +1061,6 @@
   opacity: 0.85;
 }
 
-/* Empty state */
 .membership-empty {
   text-align: center;
   font-size: 0.8rem;
@@ -1127,21 +1068,9 @@
   padding: 0.4rem 0;
 }
 
-@media (max-width: 768px) {
-  .membership-main {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .membership-details {
-    margin-top: 0.6rem;
-  }
-}
-
 /* ==========================
    Global Data Modal (Popup)
    ========================== */
-
 .data-modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1249,6 +1178,83 @@
   font-size: 0.85rem;
   color: #9ca3af;
   padding: 0.75rem 0;
+}
+
+/* ==========================
+   RTL Support
+   ========================== */
+.page-rtl .kpi-card,
+.page-rtl .stat,
+.page-rtl .stat-item,
+.page-rtl .performer-item {
+  direction: rtl;
+}
+
+.page-rtl .table th,
+.page-rtl .table td {
+  text-align: right;
+}
+
+/* ==========================
+   Responsive
+   ========================== */
+@media (max-width: 992px) {
+  .page-header .page-title {
+    font-size: 1.5rem;
+  }
+
+  .page-header .header-search {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .overview {
+    padding: 1rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .page-header .header-content {
+    flex: 1 1 auto;
+  }
+
+  .page-header .header-search {
+    width: 100%;
+    margin-top: 0.5rem;
+    align-self: stretch;
+  }
+
+  .kpi-value {
+    font-size: 1.5rem;
+  }
+
+  .kpi-icon {
+    width: 50px;
+    height: 50px;
+    font-size: 1.5rem;
+  }
+
+  .legend {
+    flex-wrap: wrap;
+  }
+
+  .stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .membership-main {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .membership-details {
+    margin-top: 0.6rem;
+  }
 }
 
 @media (max-width: 576px) {

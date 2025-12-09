@@ -32,7 +32,8 @@ type DataModalType =
   | 'ticketsExit'
   | 'membershipActive'
   | 'membershipInactive'
-  | 'membershipExpiring';
+  | 'membershipExpiring'
+  | 'ticketDetails';
 
 interface UiNotification {
   id: number;
@@ -232,6 +233,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
 
   // Global modal state
   activeModal = signal<DataModalType | null>(null);
+  selectedTicket = signal<TicketDto | null>(null);
 
   // ===== Computed =====
   totalRevenue = computed(() => this.dashboard()?.totalRevenue ?? 0);
@@ -680,7 +682,10 @@ export class OverviewComponent implements OnInit, OnDestroy {
 
   onTicketSelected(ticket: TicketDto): void {
     console.log('Selected ticket:', ticket);
-    // TODO: فتح صفحة تفاصيل أو مودال للتذكرة
+    this.selectedTicket.set(ticket);
+    this.activeModal.set('ticketDetails');
+    this.searchQuery = '';
+    this.searchResults = [];
   }
 
   // Notifications
