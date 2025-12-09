@@ -22,6 +22,7 @@ import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { Subscription, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
+import { OverviewTourService } from '../../Services/OverView/overview-tour.service';
 
 type NotificationType = 'IN' | 'OUT' | 'COLLECTED';
 type MembershipViewType = 'active' | 'inactive' | 'expiring';
@@ -116,6 +117,9 @@ interface UiNotification {
           notif_collected_title: 'تحصيل تذكرة',
 
           showMoreDetails: 'عرض تفاصيل أكثر',
+
+          // 👇 جديد لزر الهيلب
+          helpTour: 'شرح الواجهة',
         },
         en: {
           overview: 'Dashboard',
@@ -180,6 +184,8 @@ interface UiNotification {
           notif_collected_title: 'Ticket collected',
 
           showMoreDetails: 'Show more details',
+
+          helpTour: 'Help tour',
         },
       }),
     },
@@ -192,7 +198,9 @@ export class OverviewComponent implements OnInit, OnDestroy {
     public readonly lang: LanguageService,
     private readonly overviewServices: OverviewServices,
     private readonly dashboardHub: DashboardHubService,
-    private readonly ticketsService: TicketsServices
+    private readonly ticketsService: TicketsServices,
+
+    private readonly overviewTour: OverviewTourService
   ) {}
 
   // ===== State =====
@@ -345,6 +353,27 @@ export class OverviewComponent implements OnInit, OnDestroy {
     return ratio * usable;
   }
 
+  liveBarX(value: number): number {
+    if (this.lang.isRTL()) {
+      // Start from right side
+      // X = TotalWidth - PaddingRight - BarWidth?
+      // No, Padding is conceptual "LeftPadding" (Labels area).
+      // In RTL, "LeftPadding" (70px) becomes the space for labels on the Right.
+      // So labels are at X ~ 360-70.
+      // Bars grow to the Left?
+      // Let's assume standard mirroring:
+      // LTR: Labels | Bars ->
+      // RTL: <- Bars | Labels
+
+      // So in RTL, Label is at X ~ 290.
+      // Bar starts at X = 360 - 70 - BarWidth.
+      // Wait, `liveLeftPadding` is 70.
+
+      return this.liveChartWidth - this.liveLeftPadding - this.liveBarWidth(value);
+    }
+    return this.liveLeftPadding;
+  }
+
   liveInBarY(): number {
     return 30;
   }
@@ -354,6 +383,14 @@ export class OverviewComponent implements OnInit, OnDestroy {
   }
 
   liveValueX(value: number): number {
+    // Center of the bar
+    if (this.lang.isRTL()) {
+      const barW = this.liveBarWidth(value);
+      // Bar starts at (Width - Padding - BarWidth)
+      // Center = (Width - Padding - BarWidth) + BarWidth/2
+      //        = Width - Padding - BarWidth/2
+      return this.liveChartWidth - this.liveLeftPadding - barW / 2;
+    }
     return this.liveLeftPadding + this.liveBarWidth(value) / 2;
   }
 
@@ -366,7 +403,11 @@ export class OverviewComponent implements OnInit, OnDestroy {
   }
 
   liveLabelX(): number {
-    return this.liveLeftPadding;
+    // Label starts at padding
+    // In LTR: x = 70 (text-anchor="end" effectively, or start)
+    // The HTML uses text-anchor="start".
+    // In RTL: should be on the Right side.
+    return this.lang.isRTL() ? this.liveChartWidth - this.liveLeftPadding : this.liveLeftPadding;
   }
 
   liveLabelYForIn(): number {
@@ -393,6 +434,11 @@ export class OverviewComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.hubSubscriptions.unsubscribe();
     this.dashboardHub.stop();
+  }
+
+  // 👇 جديد — استدعاء التور من زر الهيلب
+  startAdminTour(): void {
+    this.overviewTour.startTour();
   }
 
   // ===== API =====

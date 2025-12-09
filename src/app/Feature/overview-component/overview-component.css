@@ -134,15 +134,11 @@
   font-size: 0.8rem;
   color: #0f172a;
   cursor: pointer;
+  text-align: start;
 }
 
 .header-search-result-item:hover {
   background: #f1f5f9;
-}
-
-/* RTL for search */
-.page-rtl .header-search-main {
-  flex-direction: row-reverse;
 }
 
 /* Header animation */
@@ -231,7 +227,7 @@
   padding: 1.5rem;
 }
 
-/* كروت مضغوطة (للسكشن السفلي مثلاً) */
+/* كروت مضغوطة */
 .card-compact .card-header {
   padding: 0.6rem 0.9rem;
 }
@@ -250,7 +246,6 @@
   padding: 0.6rem 0.7rem;
 }
 
-/* كارت الجداول في الآخر + إصلاح الـ z-index */
 .table-card {
   position: relative;
   z-index: 1;
@@ -276,8 +271,7 @@
   content: '';
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline: 0; /* Updated */
   height: 4px;
   background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-light) 100%);
   border-radius: 16px 16px 0 0;
@@ -310,7 +304,6 @@
   --accent-light: #fbbf24;
 }
 
-/* cards مع تفاعل */
 .occupancy-card,
 .tickets-today-card,
 .kpi-card--orange {
@@ -404,23 +397,18 @@
 .dot--blue {
   background: #3b82f6;
 }
-
 .dot--pink {
   background: #ec4899;
 }
-
 .dot--purple {
   background: #8b5cf6;
 }
-
 .dot--cyan {
   background: #06b6d4;
 }
-
 .dot--green {
   background: #10b981;
 }
-
 .dot--red {
   background: #ef4444;
 }
@@ -448,7 +436,6 @@
 .donut-seg--purple {
   stroke: #8b5cf6;
 }
-
 .donut-seg--cyan {
   stroke: #06b6d4;
 }
@@ -493,7 +480,6 @@
   font-weight: 600;
 }
 
-/* Generic axis text */
 .axis-label {
   font-size: 0.75rem;
   fill: #64748b;
@@ -538,19 +524,15 @@
 .stat-icon--blue {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
-
 .stat-icon--green {
   background: linear-gradient(135deg, #10b981, #059669);
 }
-
 .stat-icon--purple {
   background: linear-gradient(135deg, #8b5cf6, #7c3aed);
 }
-
 .stat-icon--red {
   background: linear-gradient(135deg, #ef4444, #dc2626);
 }
-
 .stat-icon--orange {
   background: linear-gradient(135deg, #f59e0b, #d97706);
 }
@@ -590,7 +572,7 @@
 
 .table th {
   padding: 0.875rem 1rem;
-  text-align: left;
+  text-align: start; /* Updated */
   font-weight: 600;
   color: #475569;
   border-bottom: 2px solid #e2e8f0;
@@ -619,12 +601,10 @@
   background: #dbeafe;
   color: #1e40af;
 }
-
 .badge--green {
   background: #d1fae5;
   color: #065f46;
 }
-
 .badge--pink {
   background: #fce7f3;
   color: #9f1239;
@@ -716,7 +696,23 @@
   height: 8px;
   border-radius: 999px;
   background: #ef4444;
-  box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
 .live-text {
@@ -742,7 +738,6 @@
 .legend-color--blue {
   background: #3b82f6;
 }
-
 .legend-color--pink {
   background: #ec4899;
 }
@@ -805,7 +800,7 @@
 .notifications-container {
   position: fixed;
   top: 1.25rem;
-  right: 1.25rem;
+  inset-inline-end: 1.25rem; /* Updated - logical */
   z-index: 1050;
   display: flex;
   flex-direction: column;
@@ -814,10 +809,7 @@
   margin-top: 120px;
 }
 
-.notifications-container-rtl {
-  right: auto;
-  left: 1.25rem;
-}
+/* Removed hardcoded .notifications-container-rtl override */
 
 .notification {
   display: flex;
@@ -846,11 +838,9 @@
 .notification--in .notification-icon {
   background: rgba(59, 130, 246, 0.08);
 }
-
 .notification--out .notification-icon {
   background: rgba(244, 114, 182, 0.08);
 }
-
 .notification--collected .notification-icon {
   background: rgba(34, 197, 94, 0.08);
 }
@@ -895,16 +885,14 @@
 }
 
 .notification--in {
-  border-left: 3px solid #3b82f6;
-}
-
+  border-inline-start: 3px solid #3b82f6;
+} /* Updated */
 .notification--out {
-  border-left: 3px solid #ec4899;
-}
-
+  border-inline-start: 3px solid #ec4899;
+} /* Updated */
 .notification--collected {
-  border-left: 3px solid #22c55e;
-}
+  border-inline-start: 3px solid #22c55e;
+} /* Updated */
 
 @keyframes notif-slide-in {
   from {
@@ -932,35 +920,20 @@
   cursor: pointer;
 }
 
-/* membership hint (قديمة) */
-.membership-tooltip {
-  position: absolute;
-  top: 100%;
-  inset-inline-start: 0;
-  margin-top: 0.5rem;
-  background: #ffffff;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
-  padding: 0.75rem 1rem;
-  font-size: 0.8rem;
-  z-index: 30;
-}
-
-/* كارت الميمبرشيب */
 .membership-card {
   position: relative;
 }
 
 .membership-card .clickable-stat {
   position: relative;
-  padding-inline-end: 0.75rem;
+  padding-inline-end: 0.75rem; /* Updated */
 }
 
 /* Hint الصغيرة على الهوفر */
 .membership-hint-tooltip {
   position: absolute;
   bottom: -1.6rem;
-  inset-inline-start: 0;
+  inset-inline-start: 0; /* Updated */
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
   background: #111827;
@@ -971,10 +944,7 @@
   z-index: 10;
 }
 
-.page-rtl .membership-hint-tooltip {
-  inset-inline-start: auto;
-  inset-inline-end: 0;
-}
+/* Removed .page-rtl .membership-hint-tooltip override */
 
 /* Panel بتاع الداتا */
 .membership-details {
@@ -1181,21 +1151,6 @@
 }
 
 /* ==========================
-   RTL Support
-   ========================== */
-.page-rtl .kpi-card,
-.page-rtl .stat,
-.page-rtl .stat-item,
-.page-rtl .performer-item {
-  direction: rtl;
-}
-
-.page-rtl .table th,
-.page-rtl .table td {
-  text-align: right;
-}
-
-/* ==========================
    Responsive
    ========================== */
 @media (max-width: 992px) {
@@ -1261,4 +1216,132 @@
   .data-modal {
     max-height: 90vh;
   }
+}
+
+.btn-help-tour {
+  border-radius: 999px;
+  font-size: 0.8rem;
+  padding-inline: 0.9rem; /* Updated */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* ==========================
+   Shepherd Tour - Custom Theme
+   ========================== */
+.np-shepherd-step.shepherd-element {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(148, 163, 184, 0.1);
+  max-width: 400px;
+  z-index: 9999;
+  font-family: inherit;
+  overflow: hidden;
+  border: none;
+}
+
+/* RTL override class if applied by JS */
+/* We just ensure direction is rtl */
+.np-shepherd-rtl.shepherd-element {
+  direction: rtl;
+}
+
+/* Header */
+.np-shepherd-step .shepherd-header {
+  background: linear-gradient(to right, #f8fafc, #eff6ff);
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid #e2e8f0;
+  border-radius: 16px 16px 0 0;
+  display: flex;
+  align-items: center;
+}
+
+.np-shepherd-step .shepherd-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+  flex: 1;
+}
+
+.np-shepherd-step .shepherd-cancel-icon {
+  color: #94a3b8;
+  font-size: 1.25rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  margin-inline-start: 1rem; /* Updated */
+}
+
+.np-shepherd-step .shepherd-cancel-icon:hover {
+  color: #ef4444;
+}
+
+/* Body */
+.np-shepherd-step .shepherd-text {
+  padding: 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #334155;
+  background: #ffffff;
+  text-align: start; /* Updated */
+}
+
+/* Footer & Buttons */
+.np-shepherd-step .shepherd-footer {
+  padding: 0 1.25rem 1.25rem 1.25rem;
+  background: #ffffff;
+  border-radius: 0 0 16px 16px;
+  display: flex;
+  justify-content: flex-end; /* Updated to flex-end so Next is always at the end */
+  gap: 0.5rem;
+}
+
+/* In RTL, flex-end is Left. We want "Next" (which is last child) to be on the Left?
+   No. In RTL, Next (Forward) usually points Left compared to start.
+   Wait. English: [Next >]. Placed on Right.
+   Arabic: [< التالي]. Placed on Left?
+   If flex-direction: row (default). justify-content: flex-end.
+   LTR: starts Left, ends Right. Items at Right. [ ... Prev Next]. Correct.
+   RTL: starts Right, ends Left. Items at Left. [Next Prev ... ].
+   Result: [Next] [Prev]. Next is on the far Left.
+   Is that natural?
+   Arabic UI usually puts Primary actions on the "End" (Left side). Yes.
+*/
+
+.np-shepherd-step .shepherd-button {
+  background: #f1f5f9;
+  color: #475569;
+  border: none;
+  font-weight: 600;
+  font-size: 0.85rem;
+  padding: 0.6rem 1.2rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  /* margin-right: 0.5rem; Removed */
+}
+
+.np-shepherd-step .shepherd-button:hover {
+  background: #e2e8f0;
+  color: #1e293b;
+}
+
+/* Primary button (usually the last one "Next" or "Finish") */
+.np-shepherd-step .shepherd-button:last-child {
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  color: #ffffff;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
+}
+
+.np-shepherd-step .shepherd-button:last-child:hover {
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
+}
+
+/* Arrow */
+.np-shepherd-step.shepherd-element .shepherd-arrow,
+.np-shepherd-step.shepherd-element .shepherd-arrow::before {
+  background: #ffffff;
 }

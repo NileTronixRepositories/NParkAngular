@@ -492,7 +492,7 @@ button[mat-stroked-button] {
   flex: 1;
   height: 2px;
   background: #e2e8f0;
-  margin: 0 -10px 14px; /* Align with icons */
+  margin: 0 -10px 14px;
 }
 
 .progress-line.active {
@@ -500,16 +500,12 @@ button[mat-stroked-button] {
 }
 
 /* RTL Support */
-[dir='rtl'] .layout {
-  grid-template-columns: 340px 1fr;
-}
-
 [dir='rtl'] .header-text {
   text-align: right;
 }
 
 [dir='rtl'] .actions {
-  justify-content: flex-end; /* Or flex-start if buttons should flip? Usually buttons stay end */
+  justify-content: flex-end;
 }
 
 [dir='rtl'] .mat-step-header .mat-step-icon {
