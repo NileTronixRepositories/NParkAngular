@@ -26,7 +26,7 @@
             tabindex="0"
           >
             <td class="mono">
-              {{ t.info || t.plate }}
+              {{ t.info || t.plate || t.ticketNumber }}
             </td>
             <td>{{ t.time | date : 'shortTime' }}</td>
             <td>

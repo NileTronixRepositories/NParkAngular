@@ -757,18 +757,31 @@ export class OverviewComponent implements OnInit, OnDestroy {
       : `${gateLabel} - Ticket #${notification.ticketId}`;
   }
 
-  private buildOutMessage(notification: TicketExitedNotification): string {
-    const gateLabel = this.lang.isRTL()
-      ? `بوابة ${notification.gateNumber}`
-      : `Gate ${notification.gateNumber}`;
+  private buildOutMessage(notification: any): string {
+    const gateLabel = notification.gateNumber
+      ? `${notification.gateNumber}`
+      : this.lang.isRTL()
+      ? 'بوابة خروج'
+      : 'Exit gate';
 
-    const pricePart = this.lang.isRTL()
+    const hasPrice =
+      notification.price !== null &&
+      notification.price !== undefined &&
+      typeof notification.price === 'number';
+
+    if (!hasPrice) {
+      return this.lang.isRTL()
+        ? `${gateLabel} - تم تحصيل تذكرة خروج`
+        : `${gateLabel} - Exit ticket collected`;
+    }
+
+    const priceText = this.lang.isRTL()
       ? `${notification.price.toFixed(2)} ج.م`
       : `${notification.price.toFixed(2)} EGP`;
 
     return this.lang.isRTL()
-      ? `${gateLabel} - تحصيل ${pricePart}`
-      : `${gateLabel} - Collected ${pricePart}`;
+      ? `${gateLabel} - تحصيل ${priceText}`
+      : `${gateLabel} - Collected ${priceText}`;
   }
 
   private buildCollectedMessage(notification: TicketCollectedNotification): string {
