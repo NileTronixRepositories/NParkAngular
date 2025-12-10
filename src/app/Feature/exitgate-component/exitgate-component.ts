@@ -1,4 +1,4 @@
-import { Component, Inject, inject } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -24,6 +24,11 @@ import { ExitScanCollectBlockComponent } from './exit-scan-collect-block-compone
 import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-component/exit-tickets-table-block-component';
 import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
 import { ExitTourService } from '../../Services/Exit/exit-tour.service';
+
+// 🔔 NEW: SignalR dashboard hub + notifications model + Subscription
+import { DashboardHubService } from '../../Services/OverView/dashboard-hub.service';
+import { TicketExitedNotification } from '../../Domain/OverView/dashboard-notifications.model';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-exitgate-component',
@@ -163,6 +168,9 @@ import { ExitTourService } from '../../Services/Exit/exit-tour.service';
           search_tickets: 'بحث التذاكر',
           no_search_results: 'لا توجد نتائج',
           searching: 'جاري البحث...',
+
+          // 🔔 NEW: نص للـ Notification لو حبيت تستخدمه مستقبلاً
+          exit_notification_title: 'تذكرة خروج جديدة',
         },
         en: {
           exitTicket: 'Exit Gate',
@@ -285,12 +293,15 @@ import { ExitTourService } from '../../Services/Exit/exit-tour.service';
           search_tickets: 'Search Tickets',
           no_search_results: 'No results found',
           searching: 'Searching...',
+
+          // 🔔 NEW
+          exit_notification_title: 'New exit ticket',
         },
       },
     },
   ],
 })
-export class ExitgateComponent {
+export class ExitgateComponent implements OnInit, OnDestroy {
   // ====== Injects ======
   private readonly svc = inject(TicketsServices);
   private readonly gateSvc = inject(GateServices);
@@ -298,6 +309,10 @@ export class ExitgateComponent {
   private readonly toast = inject(ToastServices);
   private readonly nfc = inject(NfcReaderService);
   private readonly exitTour = inject(ExitTourService);
+
+  // 🔔 NEW: SignalR Hub
+  private readonly dashboardHub = inject(DashboardHubService);
+  private readonly hubSubscriptions = new Subscription();
 
   startTour(): void {
     this.exitTour.startTour();
@@ -388,6 +403,12 @@ export class ExitgateComponent {
     this.initGatePeripheral();
     this.loadExitGates();
     this.reloadList();
+    this.initSignalRExitNotifications(); // 🔔 NEW
+  }
+
+  ngOnDestroy(): void {
+    this.hubSubscriptions.unsubscribe();
+    this.dashboardHub.stop();
   }
 
   // ========= Init helpers =========
@@ -423,6 +444,42 @@ export class ExitgateComponent {
   private handleError(operation: string, err: any): void {
     console.error(`${operation} error`, err);
     this.toast.fromProblem(err);
+  }
+
+  // ========= 🔔 SignalR Exit Notifications =========
+
+  /**
+   * Connect to DashboardHubService and listen to TicketExited notifications.
+   * لما يحصل خروج من أي بوابة، بنحدّث الـ list + نطلع Toast.
+   */
+  private initSignalRExitNotifications(): void {
+    // نضمن إن الـ Hub متوصل (idempotent)
+    this.dashboardHub
+      .start()
+      .catch((err) => console.error('DashboardHub (Exitgate) connection error', err));
+
+    // نسمع على TicketExited stream
+    this.hubSubscriptions.add(
+      this.dashboardHub.ticketExited$.subscribe((n: TicketExitedNotification) => {
+        // 1) نحدّث جدول التذاكر وإجمالي اليوم
+        this.reloadList();
+
+        // 2) Notification للي واقف على شاشة الخروج
+        const msg = this.buildExitNotificationMessage(n);
+        this.toast.success(msg);
+      })
+    );
+  }
+
+  private buildExitNotificationMessage(n: TicketExitedNotification): string {
+    const gateLabel = this.lang.current === 'ar' ? `بوابة ${n.gateNumber}` : `Gate ${n.gateNumber}`;
+
+    const priceText =
+      this.lang.current === 'ar' ? `${n.price.toFixed(2)} ج.م` : `${n.price.toFixed(2)} EGP`;
+
+    return this.lang.current === 'ar'
+      ? `${gateLabel} - تم خروج التذكرة رقم ${n.ticketId} بمبلغ ${priceText}`
+      : `${gateLabel} - Ticket #${n.ticketId} exited with amount ${priceText}`;
   }
 
   // ========= Gates =========
