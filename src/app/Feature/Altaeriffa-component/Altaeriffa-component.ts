@@ -17,6 +17,7 @@ import {
   PricingSchemaAddDto,
   PricingSchemaUpdateDto,
 } from '../../Domain/Subscription-type/subscription-type.models';
+import { AltaeriffaTourService } from '../../Services/AltaeriffaTour/Altaeriffa-tour.service';
 
 type FormShape = {
   id: FormControl<string | null>;
@@ -41,6 +42,7 @@ export class AltaeriffaComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(SubscriptionType);
   private toast = inject(ToastServices);
+  private AltaeriffaTourService = inject(AltaeriffaTourService);
   public DurationType = DurationType;
 
   // ===== i18n =====
@@ -179,6 +181,11 @@ export class AltaeriffaComponent implements OnInit {
       deleted_success: 'Deleted successfully',
     },
   };
+
+  startTour() {
+    this.AltaeriffaTourService.startTour();
+  }
+
   t = (key: string) => this.dict[this.i18n.current]?.[key] ?? key;
   dir = computed(() => this.i18n.dir());
   isRTL = computed(() => this.i18n.isRTL());

@@ -1,21 +1,32 @@
 <div class="subscription-page container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- Page Header -->
   <div class="page-header mb-4 fade-in-down">
-    <div class="header-content">
-      <div class="header-icon-wrapper">
-        <i class="bi bi-badge-ad header-icon"></i>
+    <div class="header-row">
+      <div class="header-content">
+        <div class="header-icon-wrapper">
+          <i class="bi bi-badge-ad header-icon"></i>
+        </div>
+        <div class="header-text">
+          <h1 class="page-title">{{ t('title') }}</h1>
+          <p class="page-subtitle">{{ t('list_title') }}</p>
+        </div>
       </div>
-      <div class="header-text">
-        <h1 class="page-title">{{ t('title') }}</h1>
-        <p class="page-subtitle">{{ t('list_title') }}</p>
-      </div>
+
+      <button
+        type="button"
+        class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center gap-2 btn-help-tour"
+        (click)="startTour()"
+      >
+        <i class="bi bi-question-circle"></i>
+        <span>{{ t('visitor') === 'الزائر' ? 'شرح الواجهة' : 'Guide' }}</span>
+      </button>
     </div>
   </div>
 
   <div class="row g-4">
     <!-- ==== Table ==== -->
     <div class="col-12 col-lg-7">
-      <div class="card shadow-soft h-100">
+      <div class="card shadow-soft h-100 subscription-table-card">
         <div class="card-header d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
             <h6 class="mb-0 fw-bold text-dark">{{ t('list_title') }}</h6>
@@ -35,7 +46,9 @@
 
         <!-- Table -->
         <div class="card-body p-0 table-responsive">
-          <table class="table table-hover align-middle mb-0 table-striped table-modern">
+          <table
+            class="table table-hover align-middle mb-0 table-striped table-modern subscription-table"
+          >
             <thead class="table-light sticky-top">
               <tr>
                 <th class="text-center" style="width: 60px">{{ t('col_index') }}</th>
@@ -70,7 +83,7 @@
                   </span>
                 </td>
                 <td class="text-end">
-                  <div class="btn-group">
+                  <div class="btn-group subscription-actions">
                     <button
                       class="btn btn-sm btn-light text-primary"
                       (click)="edit(r)"
@@ -107,8 +120,8 @@
         <div class="card-footer bg-white border-top-0 py-3">
           <div class="d-flex align-items-center justify-content-between">
             <span class="small text-muted">
-              {{ t('total_label') }} {{ totalItems() }} — {{ t('page') }} {{ page() }} {{ t('of') }}
-              {{ totalPages() }}
+              {{ t('total_label') }} {{ totalItems() }} — {{ t('page') }} {{ page() }}
+              {{ t('of') }} {{ totalPages() }}
             </span>
 
             <div class="btn-group" dir="ltr">
@@ -131,9 +144,10 @@
         </div>
       </div>
     </div>
+
     <!-- ==== Form ==== -->
     <div class="col-12 col-lg-5">
-      <div class="card shadow-soft h-100">
+      <div class="card shadow-soft h-100 subscription-form-card">
         <div class="card-header d-flex align-items-center justify-content-between">
           <div class="d-flex align-items-center gap-2">
             <h5 class="mb-0 fw-bold text-dark">{{ editingId() ? t('edit') : t('add') }}</h5>
@@ -163,7 +177,10 @@
           <!-- Field: Duration Type -->
           <div class="mb-4">
             <label class="form-label">{{ t('duration_type') }}</label>
-            <div class="btn-group w-100 mode-toggle shadow-sm" role="group">
+            <div
+              class="btn-group w-100 mode-toggle shadow-sm subscription-duration-toggle"
+              role="group"
+            >
               <button
                 type="button"
                 class="btn"
@@ -219,7 +236,7 @@
           </div>
 
           <!-- Time Window -->
-          <div class="row g-3 mb-4" *ngIf="showRangeWindow()">
+          <div class="row g-3 mb-4 subscription-time-window" *ngIf="showRangeWindow()">
             <div class="col-6">
               <label class="form-label">{{ t('from') }}</label>
               <input type="time" class="form-control" formControlName="startTime" />
@@ -275,7 +292,7 @@
           </div>
 
           <!-- Price -->
-          <div class="mb-4">
+          <div class="mb-4 subscription-price-field">
             <label class="form-label">{{ t('price_label') }}</label>
             <div class="input-group input-group-lg">
               <span class="input-group-text bg-light border-end-0">
@@ -299,7 +316,9 @@
         </div>
 
         <!-- Form Actions -->
-        <div class="card-footer d-flex gap-2 justify-content-end p-3 bg-white border-top-0">
+        <div
+          class="card-footer d-flex gap-2 justify-content-end p-3 bg-white border-top-0 subscription-form-actions"
+        >
           <button class="btn btn-light" type="button" (click)="resetForm()">
             <i class="bi bi-arrow-repeat me-1"></i> {{ t('reset') }}
           </button>

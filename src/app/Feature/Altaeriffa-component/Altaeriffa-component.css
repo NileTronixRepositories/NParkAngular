@@ -23,6 +23,13 @@
   overflow: hidden;
 }
 
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+}
+
 .page-header::before {
   content: '';
   position: absolute;
@@ -287,4 +294,171 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.3s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+/* الكونتينر الأساسي للستيب */
+.subscription-page .np-shepherd-step.shepherd-element {
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.25);
+  background: #ffffff;
+  max-width: 420px;
+  font-family: inherit;
+}
+
+/* الهيدر */
+.subscription-page .np-shepherd-step .shepherd-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.9rem 1rem 0.75rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  color: #e2e8f0;
+  border-radius: 16px 16px 0 0;
+}
+
+/* العنوان + البادج */
+.subscription-page .np-shepherd-step .shepherd-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.subscription-page .np-shepherd-step .step-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: rgba(148, 163, 184, 0.15);
+  color: #e2e8f0;
+  font-size: 0.7rem;
+  border: 1px solid rgba(148, 163, 184, 0.6);
+}
+
+/* زرار الإغلاق */
+.subscription-page .np-shepherd-step .shepherd-cancel-icon {
+  color: #cbd5e1;
+  transition: color 0.2s ease, transform 0.1s ease;
+}
+
+.subscription-page .np-shepherd-step .shepherd-cancel-icon:hover {
+  color: #f97373;
+  transform: scale(1.05);
+}
+
+/* المحتوى */
+.subscription-page .np-shepherd-step .shepherd-text {
+  padding: 1rem 1.1rem 0.35rem;
+  font-size: 0.9rem;
+  color: #334155;
+  line-height: 1.55;
+}
+
+.subscription-page .np-shepherd-step .shepherd-text p {
+  margin-bottom: 0;
+}
+
+/* الفوتر + الأزرار */
+.subscription-page .np-shepherd-step .shepherd-footer {
+  padding: 0.75rem 1.1rem 0.9rem;
+  border-top: 1px solid #e2e8f0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  border-radius: 0 0 16px 16px;
+}
+
+/* زرار أساسي (Next / Finish) */
+.subscription-page .np-shepherd-step .shepherd-button {
+  border-radius: 999px;
+  padding: 0.35rem 0.95rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  border: 1px solid transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.subscription-page .np-shepherd-step .shepherd-button:not(.shepherd-button-secondary) {
+  background: var(--brand-red);
+  border-color: var(--brand-red);
+  color: #ffffff;
+  box-shadow: 0 4px 10px rgba(229, 57, 53, 0.35);
+}
+
+.subscription-page .np-shepherd-step .shepherd-button:not(.shepherd-button-secondary):hover {
+  background: var(--brand-red-hover);
+  border-color: var(--brand-red-hover);
+  transform: translateY(-1px);
+}
+
+.subscription-page .np-shepherd-step .shepherd-button-secondary {
+  background: #ffffff;
+  color: #64748b;
+  border-color: #cbd5e1;
+}
+
+.subscription-page .np-shepherd-step .shepherd-button-secondary:hover {
+  background: #f8fafc;
+  color: #334155;
+}
+
+.subscription-page .np-shepherd-rtl.shepherd-element {
+  direction: rtl;
+}
+
+.subscription-page .np-shepherd-rtl .shepherd-footer {
+  flex-direction: row-reverse;
+}
+
+.subscription-page .np-shepherd-step .shepherd-button i.bi {
+  font-size: 0.85rem;
+}
+
+.shepherd-modal-overlay-container.shepherd-modal-is-visible {
+  background: rgba(15, 23, 42, 0.55) !important;
+}
+
+.shepherd-enabled.shepherd-target {
+  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.35);
+  border-radius: 12px;
+  transition: box-shadow 0.2s ease;
 }
