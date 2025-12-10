@@ -84,6 +84,7 @@ const HOST_OR_IP_REGEX =
           captureMode: 'طريقة الالتقاط',
           lpr: 'LPR كاميرا',
           scanner: 'ScannerID كاميرا',
+          both: 'كلاهما',
           printType: 'أنواع التذاكر',
           qr: 'QR',
           rfid: 'RFID',
@@ -117,6 +118,7 @@ const HOST_OR_IP_REGEX =
           captureMode: 'Capture mode',
           lpr: 'LPR Cam',
           scanner: 'Scanner Cam',
+          both: 'Both',
           printType: 'Ticket types',
           qr: 'QR',
           rfid: 'RFID',
@@ -131,7 +133,7 @@ const HOST_OR_IP_REGEX =
           pcIpLabel: 'PC IP address',
           deviceIpLabel: 'Device IP address',
           back: 'Back',
-          save: 'Save',
+          save: 'Back',
           summary: 'Summary',
           startDate: 'Start Date',
           notSet: 'Not set',
@@ -146,7 +148,7 @@ export class ConfigurationComponent implements OnInit {
   pricingSchemas: PricingSchemaDto[] = [];
 
   stepIndex = 0;
-  modeCtrl = new FormControl<Mode>('entry', { nonNullable: true }); // priceType
+  modeCtrl = new FormControl<Mode>('entry', { nonNullable: true });
   step1Form!: FormGroup;
   step2Form!: FormGroup;
   saving = false;
@@ -168,8 +170,8 @@ export class ConfigurationComponent implements OnInit {
 
     // Step 2
     this.step2Form = this.fb.group({
-      captureMode: ['LPR'], // LPR | SCANNER
-      printType: ['QR'], // QR | RFID
+      captureMode: ['LPR'], // 'LPR' | 'SCANNER' | 'BOTH'
+      printType: ['QR'],
 
       startDate: [new Date()],
       ticketIdPrefix: ['TK', [Validators.maxLength(10)]],
@@ -234,8 +236,20 @@ export class ConfigurationComponent implements OnInit {
 
           this.syncGateArrays();
 
-          const captureMode =
-            cfg.vehiclePassengerData === VehiclePassengerData.Lpr ? 'LPR' : 'SCANNER';
+          // ✅ Handle LPR / SCANNER / BOTH
+          let captureMode: 'LPR' | 'SCANNER' | 'BOTH' = 'LPR';
+          switch (cfg.vehiclePassengerData) {
+            case VehiclePassengerData.Lpr:
+              captureMode = 'LPR';
+              break;
+            case VehiclePassengerData.ScannerId:
+              captureMode = 'SCANNER';
+              break;
+            case VehiclePassengerData.Both:
+              captureMode = 'BOTH';
+              break;
+          }
+
           const printType = cfg.printType === PrintType.QrCode ? 'QR' : 'RFID';
           const mode: Mode = cfg.priceType === PriceType.Exit ? 'exit' : 'entry';
 
@@ -320,7 +334,7 @@ export class ConfigurationComponent implements OnInit {
     arr.controls.forEach((fg, i) => {
       const src = data?.[i];
       fg.patchValue({
-        gateId: src?.gateId ?? null, // ✅ هنا نخزن الـ gateId
+        gateId: src?.gateId ?? null,
         gateNumber: src?.gateNumber ?? i + 1,
         pcIp: src?.pcIp ?? '',
         deviceIp: src?.lprIp ?? '',
@@ -372,7 +386,7 @@ export class ConfigurationComponent implements OnInit {
       const lprIp = deviceIp || pcIp;
 
       return {
-        gateId: g['gateId'] ?? null, // ✅ لو بوابة قديمة هيبقى id، لو جديدة null
+        gateId: g['gateId'] ?? null,
         gateNumber: i + 1,
         lprIp,
         pcIp,
@@ -385,12 +399,22 @@ export class ConfigurationComponent implements OnInit {
       const lprIp = deviceIp || pcIp;
 
       return {
-        gateId: g['gateId'] ?? null, // ✅ نفس الفكرة
+        gateId: g['gateId'] ?? null,
         gateNumber: i + 1,
         lprIp,
         pcIp,
       };
     });
+
+    // ✅ Handle LPR / SCANNER / BOTH
+    let vehiclePassengerData: VehiclePassengerData;
+    if (s2.captureMode === 'LPR') {
+      vehiclePassengerData = VehiclePassengerData.Lpr;
+    } else if (s2.captureMode === 'SCANNER') {
+      vehiclePassengerData = VehiclePassengerData.ScannerId;
+    } else {
+      vehiclePassengerData = VehiclePassengerData.Both;
+    }
 
     return {
       entryGatesCount: s1.entryGatesCount,
@@ -398,8 +422,7 @@ export class ConfigurationComponent implements OnInit {
       allowedParkingSlots: s1.allowedParkingSlots,
       priceType: this.modeCtrl.value === 'entry' ? PriceType.Entry : PriceType.Exit,
       gracePeriodMinutes: s1.gracePeriodMinutes,
-      vehiclePassengerData:
-        s2.captureMode === 'LPR' ? VehiclePassengerData.Lpr : VehiclePassengerData.ScannerId,
+      vehiclePassengerData,
       printType: s2.printType === 'QR' ? PrintType.QrCode : PrintType.Rfid,
       dateTimeFlag: !!s2.dateTimeFlag,
       ticketIdFlag: !!s2.ticketIdFlag,

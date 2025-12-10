@@ -75,6 +75,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  /* Push to the end (Left in RTL, Right in LTR) */
+  margin-inline-start: auto;
 }
 
 .header-search-label {
@@ -271,7 +273,7 @@
   content: '';
   position: absolute;
   top: 0;
-  inset-inline: 0; /* Updated */
+  inset-inline: 0;
   height: 4px;
   background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-light) 100%);
   border-radius: 16px 16px 0 0;
@@ -572,7 +574,7 @@
 
 .table th {
   padding: 0.875rem 1rem;
-  text-align: start; /* Updated */
+  text-align: start;
   font-weight: 600;
   color: #475569;
   border-bottom: 2px solid #e2e8f0;
@@ -800,7 +802,7 @@
 .notifications-container {
   position: fixed;
   top: 1.25rem;
-  inset-inline-end: 1.25rem; /* Updated - logical */
+  inset-inline-end: 1.25rem;
   z-index: 1050;
   display: flex;
   flex-direction: column;
@@ -808,8 +810,6 @@
   max-width: 320px;
   margin-top: 120px;
 }
-
-/* Removed hardcoded .notifications-container-rtl override */
 
 .notification {
   display: flex;
@@ -886,13 +886,13 @@
 
 .notification--in {
   border-inline-start: 3px solid #3b82f6;
-} /* Updated */
+}
 .notification--out {
   border-inline-start: 3px solid #ec4899;
-} /* Updated */
+}
 .notification--collected {
   border-inline-start: 3px solid #22c55e;
-} /* Updated */
+}
 
 @keyframes notif-slide-in {
   from {
@@ -926,14 +926,14 @@
 
 .membership-card .clickable-stat {
   position: relative;
-  padding-inline-end: 0.75rem; /* Updated */
+  padding-inline-end: 0.75rem;
 }
 
 /* Hint الصغيرة على الهوفر */
 .membership-hint-tooltip {
   position: absolute;
   bottom: -1.6rem;
-  inset-inline-start: 0; /* Updated */
+  inset-inline-start: 0;
   padding: 0.25rem 0.6rem;
   border-radius: 999px;
   background: #111827;
@@ -943,8 +943,6 @@
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.35);
   z-index: 10;
 }
-
-/* Removed .page-rtl .membership-hint-tooltip override */
 
 /* Panel بتاع الداتا */
 .membership-details {
@@ -1221,127 +1219,9 @@
 .btn-help-tour {
   border-radius: 999px;
   font-size: 0.8rem;
-  padding-inline: 0.9rem; /* Updated */
+  padding-inline: 0.9rem;
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
 }
 
-/* ==========================
-   Shepherd Tour - Custom Theme
-   ========================== */
-.np-shepherd-step.shepherd-element {
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.25), 0 0 0 1px rgba(148, 163, 184, 0.1);
-  max-width: 400px;
-  z-index: 9999;
-  font-family: inherit;
-  overflow: hidden;
-  border: none;
-}
-
-/* RTL override class if applied by JS */
-/* We just ensure direction is rtl */
-.np-shepherd-rtl.shepherd-element {
-  direction: rtl;
-}
-
-/* Header */
-.np-shepherd-step .shepherd-header {
-  background: linear-gradient(to right, #f8fafc, #eff6ff);
-  padding: 1rem 1.25rem;
-  border-bottom: 1px solid #e2e8f0;
-  border-radius: 16px 16px 0 0;
-  display: flex;
-  align-items: center;
-}
-
-.np-shepherd-step .shepherd-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: #1e293b;
-  margin: 0;
-  flex: 1;
-}
-
-.np-shepherd-step .shepherd-cancel-icon {
-  color: #94a3b8;
-  font-size: 1.25rem;
-  cursor: pointer;
-  transition: color 0.2s;
-  margin-inline-start: 1rem; /* Updated */
-}
-
-.np-shepherd-step .shepherd-cancel-icon:hover {
-  color: #ef4444;
-}
-
-/* Body */
-.np-shepherd-step .shepherd-text {
-  padding: 1.25rem;
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: #334155;
-  background: #ffffff;
-  text-align: start; /* Updated */
-}
-
-/* Footer & Buttons */
-.np-shepherd-step .shepherd-footer {
-  padding: 0 1.25rem 1.25rem 1.25rem;
-  background: #ffffff;
-  border-radius: 0 0 16px 16px;
-  display: flex;
-  justify-content: flex-end; /* Updated to flex-end so Next is always at the end */
-  gap: 0.5rem;
-}
-
-/* In RTL, flex-end is Left. We want "Next" (which is last child) to be on the Left?
-   No. In RTL, Next (Forward) usually points Left compared to start.
-   Wait. English: [Next >]. Placed on Right.
-   Arabic: [< التالي]. Placed on Left?
-   If flex-direction: row (default). justify-content: flex-end.
-   LTR: starts Left, ends Right. Items at Right. [ ... Prev Next]. Correct.
-   RTL: starts Right, ends Left. Items at Left. [Next Prev ... ].
-   Result: [Next] [Prev]. Next is on the far Left.
-   Is that natural?
-   Arabic UI usually puts Primary actions on the "End" (Left side). Yes.
-*/
-
-.np-shepherd-step .shepherd-button {
-  background: #f1f5f9;
-  color: #475569;
-  border: none;
-  font-weight: 600;
-  font-size: 0.85rem;
-  padding: 0.6rem 1.2rem;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  /* margin-right: 0.5rem; Removed */
-}
-
-.np-shepherd-step .shepherd-button:hover {
-  background: #e2e8f0;
-  color: #1e293b;
-}
-
-/* Primary button (usually the last one "Next" or "Finish") */
-.np-shepherd-step .shepherd-button:last-child {
-  background: linear-gradient(135deg, #3b82f6, #2563eb);
-  color: #ffffff;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.25);
-}
-
-.np-shepherd-step .shepherd-button:last-child:hover {
-  background: linear-gradient(135deg, #2563eb, #1d4ed8);
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(59, 130, 246, 0.35);
-}
-
-/* Arrow */
-.np-shepherd-step.shepherd-element .shepherd-arrow,
-.np-shepherd-step.shepherd-element .shepherd-arrow::before {
-  background: #ffffff;
-}

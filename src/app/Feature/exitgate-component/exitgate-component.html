@@ -23,6 +23,15 @@
         </h1>
         <p class="page-subtitle">{{ t('ticketsExit') }}</p>
       </div>
+      <!-- Tour Button -->
+      <button
+        type="button"
+        class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center gap-2 btn-help-tour"
+        (click)="startTour()"
+      >
+        <i class="bi bi-question-circle"></i>
+        <span>{{ t('exitTicket') === 'بوابة الخروج' ? 'شرح الواجهة' : 'Guide' }}</span>
+      </button>
     </div>
   </div>
 

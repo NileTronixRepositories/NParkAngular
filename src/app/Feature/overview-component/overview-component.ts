@@ -118,7 +118,7 @@ interface UiNotification {
 
           showMoreDetails: 'عرض تفاصيل أكثر',
 
-          // 👇 جديد لزر الهيلب
+          // زر شرح الواجهة
           helpTour: 'شرح الواجهة',
         },
         en: {
@@ -199,7 +199,6 @@ export class OverviewComponent implements OnInit, OnDestroy {
     private readonly overviewServices: OverviewServices,
     private readonly dashboardHub: DashboardHubService,
     private readonly ticketsService: TicketsServices,
-
     private readonly overviewTour: OverviewTourService
   ) {}
 
@@ -234,7 +233,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
   private notificationIdCounter = 0;
   private hubSubscriptions = new Subscription();
 
-  // Tooltips القديمة (مش مستخدمة في الـ UI دلوقتي كـ hover)
+  // Tooltips (مش مستخدمة في الـ UI دلوقتي كـ hover)
   occupancyTooltipVisible = signal<boolean>(false);
   ticketsTodayTooltipVisible = signal<boolean>(false);
   ticketsTodayTooltipType = signal<TicketsTodayTooltipType | null>(null);
@@ -355,20 +354,6 @@ export class OverviewComponent implements OnInit, OnDestroy {
 
   liveBarX(value: number): number {
     if (this.lang.isRTL()) {
-      // Start from right side
-      // X = TotalWidth - PaddingRight - BarWidth?
-      // No, Padding is conceptual "LeftPadding" (Labels area).
-      // In RTL, "LeftPadding" (70px) becomes the space for labels on the Right.
-      // So labels are at X ~ 360-70.
-      // Bars grow to the Left?
-      // Let's assume standard mirroring:
-      // LTR: Labels | Bars ->
-      // RTL: <- Bars | Labels
-
-      // So in RTL, Label is at X ~ 290.
-      // Bar starts at X = 360 - 70 - BarWidth.
-      // Wait, `liveLeftPadding` is 70.
-
       return this.liveChartWidth - this.liveLeftPadding - this.liveBarWidth(value);
     }
     return this.liveLeftPadding;
@@ -386,9 +371,6 @@ export class OverviewComponent implements OnInit, OnDestroy {
     // Center of the bar
     if (this.lang.isRTL()) {
       const barW = this.liveBarWidth(value);
-      // Bar starts at (Width - Padding - BarWidth)
-      // Center = (Width - Padding - BarWidth) + BarWidth/2
-      //        = Width - Padding - BarWidth/2
       return this.liveChartWidth - this.liveLeftPadding - barW / 2;
     }
     return this.liveLeftPadding + this.liveBarWidth(value) / 2;
@@ -403,10 +385,6 @@ export class OverviewComponent implements OnInit, OnDestroy {
   }
 
   liveLabelX(): number {
-    // Label starts at padding
-    // In LTR: x = 70 (text-anchor="end" effectively, or start)
-    // The HTML uses text-anchor="start".
-    // In RTL: should be on the Right side.
     return this.lang.isRTL() ? this.liveChartWidth - this.liveLeftPadding : this.liveLeftPadding;
   }
 
@@ -436,7 +414,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     this.dashboardHub.stop();
   }
 
-  // 👇 جديد — استدعاء التور من زر الهيلب
+  // ===== Help Tour (زرار شرح الواجهة) =====
   startAdminTour(): void {
     this.overviewTour.startTour();
   }

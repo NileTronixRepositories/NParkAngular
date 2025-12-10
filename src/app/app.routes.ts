@@ -69,14 +69,14 @@ export const routes: Routes = [
         ],
       },
 
-      // Subscription (Altaeriffa)
+      // Altaeriffa
       {
-        path: 'subscription',
+        path: 'Altaeriffa',
         canActivate: [authGuard],
         data: { roles: ['Admin'] },
         loadComponent: () =>
-          import('./Feature/subscription-component/subscription-component').then(
-            (m) => m.SubscriptionComponent
+          import('./Feature/Altaeriffa-component/Altaeriffa-component').then(
+            (m) => m.AltaeriffaComponent
           ),
       },
 

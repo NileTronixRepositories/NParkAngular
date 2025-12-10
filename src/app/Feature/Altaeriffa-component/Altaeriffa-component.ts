@@ -31,13 +31,13 @@ type FormShape = {
 };
 
 @Component({
-  selector: 'app-subscription-component',
+  selector: 'app-Altaeriffa-component',
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterModule],
-  templateUrl: './subscription-component.html',
-  styleUrl: './subscription-component.css',
+  templateUrl: './Altaeriffa-component.html',
+  styleUrl: './Altaeriffa-component.css',
 })
-export class SubscriptionComponent implements OnInit {
+export class AltaeriffaComponent implements OnInit {
   private fb = inject(FormBuilder);
   private api = inject(SubscriptionType);
   private toast = inject(ToastServices);

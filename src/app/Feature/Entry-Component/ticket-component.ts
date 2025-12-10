@@ -24,6 +24,7 @@ import { GateDevicesBlockComponent } from './gate-devices-block-component/gate-d
 import { IssueTicketBlockComponent } from './issue-ticket-block-component/issue-ticket-block-component';
 import { TicketsTableBlockComponent } from './tickets-table-block-component/tickets-table-block-component';
 import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
+import { EntryTourService } from '../../Services/Entry/entry-tour.service';
 
 @Component({
   selector: 'app-ticket-component',
@@ -49,6 +50,11 @@ export class TicketComponent implements OnInit {
   private readonly auth = inject(AuthService);
   private readonly nfc = inject(NfcReaderService);
   private readonly toast = inject(ToastServices);
+  private readonly entryTour = inject(EntryTourService);
+
+  startTour(): void {
+    this.entryTour.startTour();
+  }
 
   // =======================
   // Gate selection

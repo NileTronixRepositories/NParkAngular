@@ -6,6 +6,7 @@ export enum PriceType {
 export enum VehiclePassengerData {
   Lpr = 0,
   ScannerId = 1,
+  Both = 2,
 }
 
 export enum PrintType {

@@ -11,10 +11,8 @@ export class OverviewTourService {
   private readonly injector = inject(Injector);
 
   constructor() {
-    // Automatically rebuild/restart tour if language changes while active
     effect(
       () => {
-        // dep: access signal to track changes
         this.lang.currentSignal();
 
         if (this.tour && this.tour.isActive()) {
@@ -37,6 +35,12 @@ export class OverviewTourService {
 
   private t(ar: string, en: string): string {
     return this.isRTL ? ar : en;
+  }
+
+  private pos(base: 'top' | 'bottom' | 'left' | 'right'): string {
+    if (base === 'bottom') return 'bottom-start';
+    if (base === 'top') return 'top-start';
+    return base;
   }
 
   startTour(): void {
@@ -77,136 +81,160 @@ export class OverviewTourService {
       },
     } as any);
 
-    // 1) Tour Button
-    this.addStep({
-      id: 'overview-help',
-      titleAr: 'شرح لوحة المعلومات',
-      titleEn: 'Overview help tour',
-      textAr: 'من هنا تقدر تشغّل شرح تفاعلي سريع لواجهة لوحة المعلومات في أي وقت.',
-      textEn:
-        'You can start an interactive guided tour of this dashboard from this Help button at any time.',
-      attachTo: '.btn-help-tour',
-      position: 'bottom',
-      hasBack: false,
-    });
+    // تعريف الخطوات كـ Data
+    const stepsData = [
+      {
+        id: 'overview-help',
+        titleAr: 'شرح لوحة المعلومات',
+        titleEn: 'Overview help tour',
+        textAr: 'من هنا تقدر تشغّل شرح تفاعلي سريع لواجهة لوحة المعلومات في أي وقت.',
+        textEn:
+          'You can start an interactive guided tour of this dashboard from this Help button at any time.',
+        attachTo: '.btn-help-tour',
+        position: 'bottom',
+        hasBack: false,
+      },
+      {
+        id: 'overview-header',
+        titleAr: 'لوحة المعلومات',
+        titleEn: 'Dashboard header',
+        textAr: 'هنا عنوان لوحة المعلومات مع وصف سريع لكونها ملخص لإحصائيات اليوم.',
+        textEn: "Here you see the dashboard title and a short description of today's statistics.",
+        attachTo: '.page-header',
+        position: 'bottom',
+      },
+      {
+        id: 'overview-search',
+        titleAr: 'البحث عن التذاكر',
+        titleEn: 'Ticket search',
+        textAr: 'استخدم البحث للعثور السريع على تذكرة عن طريق رقم التذكرة أو اللوحة أو رقم الكارت.',
+        textEn: 'Use this search box to quickly find a ticket by ticket number, plate, or card.',
+        attachTo: '.header-search-main',
+        position: 'bottom',
+      },
+      {
+        id: 'overview-kpis',
+        titleAr: 'المؤشرات الرئيسية (KPIs)',
+        titleEn: 'Key KPIs',
+        textAr:
+          'هذه الكروت تعرض أهم الأرقام: إجمالي الإيرادات، الإشغال، عدد التذاكر اليوم، وحالة الاشتراكات.',
+        textEn:
+          "These cards show the main KPIs: total revenue, occupancy, today's tickets, and memberships.",
+        attachTo: '.overview-kpi-section',
+        position: 'top',
+      },
+      {
+        id: 'overview-revenue',
+        titleAr: 'أنواع العملاء والإيرادات',
+        titleEn: 'Revenue breakdown',
+        textAr: 'هنا ترى كيف يتوزع الدخل بين الاشتراكات والزوار، مع عدد التذاكر وقيمة كل نوع.',
+        textEn: 'Here you can see how revenue is split between memberships and walk-in customers.',
+        attachTo: '.overview-revenue-card',
+        position: 'top',
+      },
+      {
+        id: 'overview-live',
+        titleAr: 'الدخول/الخروج المباشر',
+        titleEn: 'Live In/Out',
+        textAr: 'الشارت الحي يوضح عدد التذاكر الداخلة والخارجة الآن، ويتحدث تلقائيًا.',
+        textEn:
+          'This live chart shows how many tickets are entering and exiting right now, updating automatically.',
+        attachTo: '.live-card',
+        position: 'top',
+      },
+      {
+        id: 'overview-gates',
+        titleAr: 'أداء البوابات',
+        titleEn: 'Gate performance',
+        textAr:
+          'هذه الجداول تعرض أداء بوابات الدخول والخروج، وأعلى البوابات نشاطًا، وإحصائيات التجاوزات.',
+        textEn:
+          'These tables show how each gate is performing plus analytics about exceeded tickets.',
+        attachTo: '.overview-entry-gates-card',
+        position: 'top',
+      },
+    ];
 
-    // 2) Header
-    this.addStep({
-      id: 'overview-header',
-      titleAr: 'لوحة المعلومات',
-      titleEn: 'Dashboard header',
-      textAr: 'هنا عنوان لوحة المعلومات مع وصف سريع لكونها ملخص لإحصائيات اليوم.',
-      textEn: "Here you see the dashboard title and a short description of today's statistics.",
-      attachTo: '.page-header',
-      position: 'bottom',
-    });
+    const totalSteps = stepsData.length;
 
-    // 3) Search
-    this.addStep({
-      id: 'overview-search',
-      titleAr: 'البحث عن التذاكر',
-      titleEn: 'Ticket search',
-      textAr: 'استخدم البحث للعثور السريع على تذكرة عن طريق رقم التذكرة أو اللوحة أو رقم الكارت.',
-      textEn: 'Use this search box to quickly find a ticket by ticket number, plate, or card.',
-      attachTo: '.header-search-main',
-      position: 'bottom',
-    });
+    // Loop and add steps
+    stepsData.forEach((step, index) => {
+      const stepNum = index + 1;
+      const isLast = index === totalSteps - 1;
 
-    // 4) KPIs
-    this.addStep({
-      id: 'overview-kpis',
-      titleAr: 'المؤشرات الرئيسية (KPIs)',
-      titleEn: 'Key KPIs',
-      textAr:
-        'هذه الكروت تعرض أهم الأرقام: إجمالي الإيرادات، الإشغال، عدد التذاكر اليوم، وحالة الاشتراكات.',
-      textEn:
-        "These cards show the main KPIs: total revenue, occupancy, today's tickets, and memberships.",
-      attachTo: '.overview-kpi-section',
-      position: 'top',
-    });
+      // Add "Step X of Y" to title
+      const progressAr = `<span class="step-badge">${stepNum} / ${totalSteps}</span>`;
+      const progressEn = `<span class="step-badge">${stepNum} / ${totalSteps}</span>`;
 
-    // 5) Revenue
-    this.addStep({
-      id: 'overview-revenue',
-      titleAr: 'أنواع العملاء والإيرادات',
-      titleEn: 'Revenue breakdown',
-      textAr: 'هنا ترى كيف يتوزع الدخل بين الاشتراكات والزوار، مع عدد التذاكر وقيمة كل نوع.',
-      textEn: 'Here you can see how revenue is split between memberships and walk-in customers.',
-      attachTo: '.overview-revenue-card',
-      position: 'top',
-    });
+      const fullTitleAr = `${step.titleAr} ${progressAr}`;
+      const fullTitleEn = `${step.titleEn} ${progressEn}`;
 
-    // 6) Live
-    this.addStep({
-      id: 'overview-live',
-      titleAr: 'الدخول/الخروج المباشر',
-      titleEn: 'Live In/Out',
-      textAr: 'الشارت الحي يوضح عدد التذاكر الداخلة والخارجة الآن، ويتحدث تلقائيًا.',
-      textEn:
-        'This live chart shows how many tickets are entering and exiting right now, updating automatically.',
-      attachTo: '.overview-live-card',
-      position: 'top',
-    });
-
-    // 7) Gates
-    this.addStep({
-      id: 'overview-gates',
-      titleAr: 'أداء البوابات',
-      titleEn: 'Gate performance',
-      textAr:
-        'هذه الجداول تعرض أداء بوابات الدخول والخروج، وأعلى البوابات نشاطًا، وإحصائيات التجاوزات.',
-      textEn:
-        'These tables show how each gate is performing plus analytics about exceeded tickets.',
-      attachTo: '.overview-entry-gates-card',
-      position: 'top',
-      isLast: true,
+      this.addStep({
+        id: step.id,
+        title: this.t(fullTitleAr, fullTitleEn),
+        text: this.t(step.textAr, step.textEn),
+        attachTo: step.attachTo,
+        position: step.position as any,
+        hasBack: step.hasBack !== false,
+        isLast: isLast,
+      });
     });
   }
 
-  // ======= Helper to reduce duplication =======
   private addStep(config: {
     id: string;
-    titleAr: string;
-    titleEn: string;
-    textAr: string;
-    textEn: string;
+    title: string;
+    text: string;
     attachTo: string;
     position: 'top' | 'bottom' | 'left' | 'right';
     hasBack?: boolean;
     isLast?: boolean;
   }) {
-    const buttons = [];
+    const buttons: { text: string; action: () => void; secondary?: boolean }[] = [];
 
-    // Back button
-    if (config.hasBack !== false) {
+    // Back Button with Icon
+    if (config.hasBack) {
+      const backText = this.isRTL
+        ? `<i class="bi bi-arrow-right"></i> السابق`
+        : `<i class="bi bi-arrow-left"></i> Previous`;
+
       buttons.push({
-        text: this.t('السابق', 'Previous'),
+        text: backText,
         action: () => this.tour?.back(),
-      });
+        secondary: true, // mark for styling if needed
+      } as any);
     }
 
-    // Next/Finish button
+    // Next / Finish Button with Icon
     if (config.isLast) {
+      const finishText = this.isRTL
+        ? `إنهاء <i class="bi bi-check-lg"></i>`
+        : `Finish <i class="bi bi-check-lg"></i>`;
+
       buttons.push({
-        text: this.t('إنهاء', 'Finish'),
+        text: finishText,
         action: () => this.tour?.complete(),
       });
     } else {
+      const nextText = this.isRTL
+        ? `التالي <i class="bi bi-arrow-left"></i>`
+        : `Next <i class="bi bi-arrow-right"></i>`;
+
       buttons.push({
-        text: this.t('التالي', 'Next'),
+        text: nextText,
         action: () => this.tour?.next(),
       });
     }
 
-    this.tour.addStep({
+    this.tour?.addStep({
       id: config.id,
-      title: this.t(config.titleAr, config.titleEn),
-      text: this.t(config.textAr, config.textEn),
+      title: config.title,
+      text: config.text,
       attachTo: {
         element: config.attachTo,
-        on: config.position,
+        on: this.pos(config.position),
       },
-      buttons: buttons,
+      buttons,
     });
   }
 }

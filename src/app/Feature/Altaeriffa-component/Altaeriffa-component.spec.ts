@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { SubscriptionComponent } from './subscription-component';
+import { AltaeriffaComponent } from './Altaeriffa-component';
 
-describe('SubscriptionComponent', () => {
-  let component: SubscriptionComponent;
-  let fixture: ComponentFixture<SubscriptionComponent>;
+describe('AltaeriffaComponent', () => {
+  let component: AltaeriffaComponent;
+  let fixture: ComponentFixture<AltaeriffaComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [SubscriptionComponent],
+      imports: [AltaeriffaComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(SubscriptionComponent);
+    fixture = TestBed.createComponent(AltaeriffaComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });
