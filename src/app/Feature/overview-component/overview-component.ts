@@ -22,6 +22,7 @@ import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { Subscription, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
+import { OverviewTourService } from '../../Services/OverView/overview-tour.service';
 
 type NotificationType = 'IN' | 'OUT' | 'COLLECTED';
 type MembershipViewType = 'active' | 'inactive' | 'expiring';
@@ -116,6 +117,9 @@ interface UiNotification {
           notif_collected_title: 'تحصيل تذكرة',
 
           showMoreDetails: 'عرض تفاصيل أكثر',
+
+          // زر شرح الواجهة
+          helpTour: 'شرح الواجهة',
         },
         en: {
           overview: 'Dashboard',
@@ -180,6 +184,8 @@ interface UiNotification {
           notif_collected_title: 'Ticket collected',
 
           showMoreDetails: 'Show more details',
+
+          helpTour: 'Help tour',
         },
       }),
     },
@@ -192,7 +198,8 @@ export class OverviewComponent implements OnInit, OnDestroy {
     public readonly lang: LanguageService,
     private readonly overviewServices: OverviewServices,
     private readonly dashboardHub: DashboardHubService,
-    private readonly ticketsService: TicketsServices
+    private readonly ticketsService: TicketsServices,
+    private readonly overviewTour: OverviewTourService
   ) {}
 
   // ===== State =====
@@ -226,7 +233,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
   private notificationIdCounter = 0;
   private hubSubscriptions = new Subscription();
 
-  // Tooltips القديمة (مش مستخدمة في الـ UI دلوقتي كـ hover)
+  // Tooltips (مش مستخدمة في الـ UI دلوقتي كـ hover)
   occupancyTooltipVisible = signal<boolean>(false);
   ticketsTodayTooltipVisible = signal<boolean>(false);
   ticketsTodayTooltipType = signal<TicketsTodayTooltipType | null>(null);
@@ -345,6 +352,13 @@ export class OverviewComponent implements OnInit, OnDestroy {
     return ratio * usable;
   }
 
+  liveBarX(value: number): number {
+    if (this.lang.isRTL()) {
+      return this.liveChartWidth - this.liveLeftPadding - this.liveBarWidth(value);
+    }
+    return this.liveLeftPadding;
+  }
+
   liveInBarY(): number {
     return 30;
   }
@@ -354,6 +368,11 @@ export class OverviewComponent implements OnInit, OnDestroy {
   }
 
   liveValueX(value: number): number {
+    // Center of the bar
+    if (this.lang.isRTL()) {
+      const barW = this.liveBarWidth(value);
+      return this.liveChartWidth - this.liveLeftPadding - barW / 2;
+    }
     return this.liveLeftPadding + this.liveBarWidth(value) / 2;
   }
 
@@ -366,7 +385,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
   }
 
   liveLabelX(): number {
-    return this.liveLeftPadding;
+    return this.lang.isRTL() ? this.liveChartWidth - this.liveLeftPadding : this.liveLeftPadding;
   }
 
   liveLabelYForIn(): number {
@@ -393,6 +412,11 @@ export class OverviewComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.hubSubscriptions.unsubscribe();
     this.dashboardHub.stop();
+  }
+
+  // ===== Help Tour (زرار شرح الواجهة) =====
+  startAdminTour(): void {
+    this.overviewTour.startTour();
   }
 
   // ===== API =====

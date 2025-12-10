@@ -75,6 +75,8 @@
   display: flex;
   flex-direction: column;
   gap: 0.35rem;
+  /* Push to the end (Left in RTL, Right in LTR) */
+  margin-inline-start: auto;
 }
 
 .header-search-label {
@@ -134,15 +136,11 @@
   font-size: 0.8rem;
   color: #0f172a;
   cursor: pointer;
+  text-align: start;
 }
 
 .header-search-result-item:hover {
   background: #f1f5f9;
-}
-
-/* RTL for search */
-.page-rtl .header-search-main {
-  flex-direction: row-reverse;
 }
 
 /* Header animation */
@@ -231,7 +229,7 @@
   padding: 1.5rem;
 }
 
-/* كروت مضغوطة (للسكشن السفلي مثلاً) */
+/* كروت مضغوطة */
 .card-compact .card-header {
   padding: 0.6rem 0.9rem;
 }
@@ -250,7 +248,6 @@
   padding: 0.6rem 0.7rem;
 }
 
-/* كارت الجداول في الآخر + إصلاح الـ z-index */
 .table-card {
   position: relative;
   z-index: 1;
@@ -276,8 +273,7 @@
   content: '';
   position: absolute;
   top: 0;
-  left: 0;
-  right: 0;
+  inset-inline: 0;
   height: 4px;
   background: linear-gradient(90deg, var(--accent-color) 0%, var(--accent-light) 100%);
   border-radius: 16px 16px 0 0;
@@ -310,7 +306,6 @@
   --accent-light: #fbbf24;
 }
 
-/* cards مع تفاعل */
 .occupancy-card,
 .tickets-today-card,
 .kpi-card--orange {
@@ -404,23 +399,18 @@
 .dot--blue {
   background: #3b82f6;
 }
-
 .dot--pink {
   background: #ec4899;
 }
-
 .dot--purple {
   background: #8b5cf6;
 }
-
 .dot--cyan {
   background: #06b6d4;
 }
-
 .dot--green {
   background: #10b981;
 }
-
 .dot--red {
   background: #ef4444;
 }
@@ -448,7 +438,6 @@
 .donut-seg--purple {
   stroke: #8b5cf6;
 }
-
 .donut-seg--cyan {
   stroke: #06b6d4;
 }
@@ -493,7 +482,6 @@
   font-weight: 600;
 }
 
-/* Generic axis text */
 .axis-label {
   font-size: 0.75rem;
   fill: #64748b;
@@ -538,19 +526,15 @@
 .stat-icon--blue {
   background: linear-gradient(135deg, #3b82f6, #2563eb);
 }
-
 .stat-icon--green {
   background: linear-gradient(135deg, #10b981, #059669);
 }
-
 .stat-icon--purple {
   background: linear-gradient(135deg, #8b5cf6, #7c3aed);
 }
-
 .stat-icon--red {
   background: linear-gradient(135deg, #ef4444, #dc2626);
 }
-
 .stat-icon--orange {
   background: linear-gradient(135deg, #f59e0b, #d97706);
 }
@@ -590,7 +574,7 @@
 
 .table th {
   padding: 0.875rem 1rem;
-  text-align: left;
+  text-align: start;
   font-weight: 600;
   color: #475569;
   border-bottom: 2px solid #e2e8f0;
@@ -619,12 +603,10 @@
   background: #dbeafe;
   color: #1e40af;
 }
-
 .badge--green {
   background: #d1fae5;
   color: #065f46;
 }
-
 .badge--pink {
   background: #fce7f3;
   color: #9f1239;
@@ -716,7 +698,23 @@
   height: 8px;
   border-radius: 999px;
   background: #ef4444;
-  box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.2);
+  box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-red {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(239, 68, 68, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+  }
 }
 
 .live-text {
@@ -742,7 +740,6 @@
 .legend-color--blue {
   background: #3b82f6;
 }
-
 .legend-color--pink {
   background: #ec4899;
 }
@@ -805,18 +802,13 @@
 .notifications-container {
   position: fixed;
   top: 1.25rem;
-  right: 1.25rem;
+  inset-inline-end: 1.25rem;
   z-index: 1050;
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
   max-width: 320px;
   margin-top: 120px;
-}
-
-.notifications-container-rtl {
-  right: auto;
-  left: 1.25rem;
 }
 
 .notification {
@@ -846,11 +838,9 @@
 .notification--in .notification-icon {
   background: rgba(59, 130, 246, 0.08);
 }
-
 .notification--out .notification-icon {
   background: rgba(244, 114, 182, 0.08);
 }
-
 .notification--collected .notification-icon {
   background: rgba(34, 197, 94, 0.08);
 }
@@ -895,15 +885,13 @@
 }
 
 .notification--in {
-  border-left: 3px solid #3b82f6;
+  border-inline-start: 3px solid #3b82f6;
 }
-
 .notification--out {
-  border-left: 3px solid #ec4899;
+  border-inline-start: 3px solid #ec4899;
 }
-
 .notification--collected {
-  border-left: 3px solid #22c55e;
+  border-inline-start: 3px solid #22c55e;
 }
 
 @keyframes notif-slide-in {
@@ -932,21 +920,6 @@
   cursor: pointer;
 }
 
-/* membership hint (قديمة) */
-.membership-tooltip {
-  position: absolute;
-  top: 100%;
-  inset-inline-start: 0;
-  margin-top: 0.5rem;
-  background: #ffffff;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.18);
-  padding: 0.75rem 1rem;
-  font-size: 0.8rem;
-  z-index: 30;
-}
-
-/* كارت الميمبرشيب */
 .membership-card {
   position: relative;
 }
@@ -969,11 +942,6 @@
   white-space: nowrap;
   box-shadow: 0 6px 16px rgba(15, 23, 42, 0.35);
   z-index: 10;
-}
-
-.page-rtl .membership-hint-tooltip {
-  inset-inline-start: auto;
-  inset-inline-end: 0;
 }
 
 /* Panel بتاع الداتا */
@@ -1181,21 +1149,6 @@
 }
 
 /* ==========================
-   RTL Support
-   ========================== */
-.page-rtl .kpi-card,
-.page-rtl .stat,
-.page-rtl .stat-item,
-.page-rtl .performer-item {
-  direction: rtl;
-}
-
-.page-rtl .table th,
-.page-rtl .table td {
-  text-align: right;
-}
-
-/* ==========================
    Responsive
    ========================== */
 @media (max-width: 992px) {
@@ -1262,3 +1215,13 @@
     max-height: 90vh;
   }
 }
+
+.btn-help-tour {
+  border-radius: 999px;
+  font-size: 0.8rem;
+  padding-inline: 0.9rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+

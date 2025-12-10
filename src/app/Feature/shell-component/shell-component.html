@@ -9,10 +9,10 @@
       <a class="brand-icon me-1" routerLink="/" *ngIf="sidebarCollapsed()">
         <span class="brand-n">N</span>
       </a>
-      
+
       <!-- Toggle Button -->
-      <button 
-        class="sidebar-toggle" 
+      <button
+        class="sidebar-toggle"
         (click)="toggleSidebar()"
         [attr.aria-label]="sidebarCollapsed() ? 'Expand sidebar' : 'Collapse sidebar'"
       >
@@ -38,7 +38,9 @@
       <!-- Parking section — Admin +EntranceCashier + ExitCashier + Supervisor -->
       <div
         class="nav-section-title"
-        *ngIf="(isAdmin || isEntranceCashier || isExitCashier || isSupervisor) && !sidebarCollapsed()"
+        *ngIf="
+          (isAdmin || isEntranceCashier || isExitCashier || isSupervisor) && !sidebarCollapsed()
+        "
       >
         {{ t('parking') }}
       </div>
@@ -54,7 +56,11 @@
         >
           <i class="bi bi-door-open"></i>
           <span class="nav-text" *ngIf="!sidebarCollapsed()">{{ t('gate') }}</span>
-          <i class="expand-icon bi" [ngClass]="gateOpen ? 'bi-chevron-up' : 'bi-chevron-down'" *ngIf="!sidebarCollapsed()"></i>
+          <i
+            class="expand-icon bi"
+            [ngClass]="gateOpen ? 'bi-chevron-up' : 'bi-chevron-down'"
+            *ngIf="!sidebarCollapsed()"
+          ></i>
         </button>
 
         <div class="submenu" *ngIf="gateOpen && !sidebarCollapsed()">
@@ -98,7 +104,7 @@
       <a
         *ngIf="isAdmin"
         class="nav-item"
-        routerLink="/subscription"
+        routerLink="/Altaeriffa"
         routerLinkActive="active"
         [attr.title]="sidebarCollapsed() ? t('altaeriffa') : null"
       >

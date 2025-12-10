@@ -23,6 +23,7 @@ import { ExitGateDevicesBlockComponent } from './exit-gate-devices-block-compone
 import { ExitScanCollectBlockComponent } from './exit-scan-collect-block-component/exit-scan-collect-block-component';
 import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-component/exit-tickets-table-block-component';
 import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
+import { ExitTourService } from '../../Services/Exit/exit-tour.service';
 
 @Component({
   selector: 'app-exitgate-component',
@@ -296,6 +297,11 @@ export class ExitgateComponent {
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastServices);
   private readonly nfc = inject(NfcReaderService);
+  private readonly exitTour = inject(ExitTourService);
+
+  startTour(): void {
+    this.exitTour.startTour();
+  }
 
   constructor(public lang: LanguageService, @Inject(I18N_DICT) private dict: I18nDict) {}
 

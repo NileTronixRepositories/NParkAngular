@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
 
 import { VisitorServices } from './../../Services/VisitorServices/visitor-services';
+import { VisitorTourService } from '../../Services/VisitorServices/visitor-tour.service';
 import { DurationType } from '../../Domain/Subscription-type/subscription-type.models';
 import { RepeatedPricingDto } from '../../Domain/VisitorDTO/visitorPriceSchema.model';
 
@@ -21,6 +22,11 @@ export class VisitorComponent implements OnInit {
   // ===== DI =====
   private visitorServices = inject(VisitorServices);
   private toast = inject(ToastServices);
+  private visitorTour = inject(VisitorTourService);
+
+  startTour() {
+    this.visitorTour.startTour();
+  }
   i18n = inject(LanguageService);
 
   // ===== i18n =====
@@ -117,7 +123,7 @@ export class VisitorComponent implements OnInit {
   active = signal<RepeatedPricingDto | null>(null);
 
   /**
-   * qty: { itemId -> count } 
+   * qty: { itemId -> count }
    */
   qty = signal<Record<string, number>>({});
 
