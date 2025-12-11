@@ -6,7 +6,7 @@
 >
   <div class="layout">
     <!-- ===================== WIZARD ===================== -->
-    <mat-card class="main">
+    <mat-card class="main config-main-card">
       <mat-horizontal-stepper
         [linear]="true"
         [selectedIndex]="stepIndex"
@@ -14,7 +14,7 @@
       >
         <!-- ===================== STEP 1 ===================== -->
         <mat-step [stepControl]="step1Form" [label]="'basics' | t">
-          <form [formGroup]="step1Form" class="grid">
+          <form [formGroup]="step1Form" class="grid config-step1-form">
             <mat-form-field appearance="outline">
               <mat-label>{{ 'entryGatesCount' | t }}</mat-label>
               <input matInput type="number" formControlName="entryGatesCount" min="1" required />
@@ -62,9 +62,9 @@
         <mat-step [stepControl]="step2Form" [label]="'modeAndSettings' | t">
           <form [formGroup]="step2Form">
             <!-- ===== Settings (Mode / Capture / Print / Options / Pricing) ===== -->
-            <div class="settings-grid">
+            <div class="settings-grid config-step2-settings">
               <!-- MODE -->
-              <div class="settings-group">
+              <div class="settings-group config-mode-group">
                 <div class="settings-header">
                   <i class="bi bi-currency-exchange"></i>
                   <span class="settings-title">{{ 'Price Type' | t }}</span>
@@ -87,7 +87,7 @@
               </div>
 
               <!-- CAPTURE MODE -->
-              <div class="settings-group">
+              <div class="settings-group config-capture-group">
                 <div class="settings-header">
                   <i class="bi bi-camera-video"></i>
                   <span class="settings-title">{{ 'Image Capture Mode' | t }}</span>
@@ -134,7 +134,10 @@
               </div>
 
               <!-- PRICING SCHEMA (ENTRY ONLY) -->
-              <div class="settings-group settings-group--wide" *ngIf="modeCtrl.value === 'entry'">
+              <div
+                class="settings-group settings-group--wide config-pricing-group"
+                *ngIf="modeCtrl.value === 'entry'"
+              >
                 <div class="settings-header">
                   <i class="bi bi-tags"></i>
                   <span class="settings-title">{{ 'Pricing Schema' | t }}</span>
@@ -155,7 +158,7 @@
             </div>
 
             <!-- ===== Tabs for Entry / Exit Gates ===== -->
-            <mat-tab-group class="gates-tabs">
+            <mat-tab-group class="gates-tabs config-gates-tabs">
               <!-- ========== Entry Gates TAB ========== -->
               <mat-tab [label]="'entryGates' | t">
                 <div class="tab-content">
@@ -299,7 +302,7 @@
     <!-- ===================== SUMMARY SIDEBAR ===================== -->
     <div class="summary-wrapper">
       <!-- Page Header -->
-      <div class="page-header">
+      <div class="page-header config-page-header">
         <div class="header-icon">
           <i class="bi bi-gear-fill"></i>
         </div>
@@ -307,10 +310,20 @@
           <h1>{{ 'configuration' | t }}</h1>
           <p>{{ 'configurationSubtitle' | t }}</p>
         </div>
+
+        <button
+          mat-stroked-button
+          type="button"
+          class="btn-config-help-tour"
+          (click)="startConfigTour()"
+        >
+          <i class="bi bi-question-circle me-1"></i>
+          {{ 'helpTour' | t }}
+        </button>
       </div>
 
       <!-- Summary Card -->
-      <mat-card class="summary mat-elevation-z2">
+      <mat-card class="summary mat-elevation-z2 config-summary-card">
         <div class="sum-header">
           <i class="bi bi-clipboard-data"></i>
           <h3 class="sum-title">{{ 'summary' | t }}</h3>
@@ -346,7 +359,9 @@
               <i class="bi bi-clock-history"></i>
               <span>{{ 'gracePeriodMinutes' | t }}</span>
             </div>
-            <span class="sum-value badge-warning">{{ summaryForView.gracePeriodMinutes }} min</span>
+            <span class="sum-value badge-warning">
+              {{ summaryForView.gracePeriodMinutes }} min
+            </span>
           </div>
 
           <div class="sum-divider"></div>

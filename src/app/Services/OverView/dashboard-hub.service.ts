@@ -11,17 +11,13 @@ import {
 export class DashboardHubService {
   private hub?: signalR.HubConnection;
 
-   private readonly ticketAddedSubject = new Subject<TicketAddedNotification>();
+  private readonly ticketAddedSubject = new Subject<TicketAddedNotification>();
   private readonly ticketExitedSubject = new Subject<TicketExitedNotification>();
-  private readonly ticketCollectedSubject =
-    new Subject<TicketCollectedNotification>();
+  private readonly ticketCollectedSubject = new Subject<TicketCollectedNotification>();
 
-  readonly ticketAdded$: Observable<TicketAddedNotification> =
-    this.ticketAddedSubject;
-  readonly ticketExited$: Observable<TicketExitedNotification> =
-    this.ticketExitedSubject;
-  readonly ticketCollected$: Observable<TicketCollectedNotification> =
-    this.ticketCollectedSubject;
+  readonly ticketAdded$: Observable<TicketAddedNotification> = this.ticketAddedSubject;
+  readonly ticketExited$: Observable<TicketExitedNotification> = this.ticketExitedSubject;
+  readonly ticketCollected$: Observable<TicketCollectedNotification> = this.ticketCollectedSubject;
 
   private buildConnection(): void {
     if (this.hub) {
@@ -29,7 +25,7 @@ export class DashboardHubService {
     }
 
     this.hub = new signalR.HubConnectionBuilder()
-      .withUrl('http://192.168.1.12/hubs/notifications', {
+      .withUrl('http://192.168.1.7/hubs/notifications', {
         withCredentials: true,
         accessTokenFactory: () => localStorage.getItem('token') || '',
       })
@@ -37,29 +33,20 @@ export class DashboardHubService {
       .build();
 
     // أحداث SignalR
-    this.hub.on(
-      'TicketAdded',
-      (data: TicketAddedNotification) => {
-        console.log('SignalR: TICKET ADDED', data);
-        this.ticketAddedSubject.next(data);
-      }
-    );
+    this.hub.on('TicketAdded', (data: TicketAddedNotification) => {
+      console.log('SignalR: TICKET ADDED', data);
+      this.ticketAddedSubject.next(data);
+    });
 
-    this.hub.on(
-      'TicketExited',
-      (data: TicketExitedNotification) => {
-        console.log('SignalR: TICKET EXITED', data);
-        this.ticketExitedSubject.next(data);
-      }
-    );
+    this.hub.on('TicketExited', (data: TicketExitedNotification) => {
+      console.log('SignalR: TICKET EXITED', data);
+      this.ticketExitedSubject.next(data);
+    });
 
-    this.hub.on(
-      'TicketCollected',
-      (data: TicketCollectedNotification) => {
-        console.log('SignalR: TICKET COLLECTED', data);
-        this.ticketCollectedSubject.next(data);
-      }
-    );
+    this.hub.on('TicketCollected', (data: TicketCollectedNotification) => {
+      console.log('SignalR: TICKET COLLECTED', data);
+      this.ticketCollectedSubject.next(data);
+    });
   }
 
   /** يبدأ الاتصال (idempotent) */
@@ -83,7 +70,7 @@ export class DashboardHubService {
     }
   }
 
-   async stop(): Promise<void> {
+  async stop(): Promise<void> {
     if (!this.hub) {
       return;
     }

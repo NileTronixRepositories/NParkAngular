@@ -5,6 +5,7 @@ import { UserDto, UserCreateDto, UserUpdateDto, RoleDto } from '../../Domain/Use
 import { UsersServices } from '../../Services/Users/users-services';
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { ToastServices } from '../../Services/Toster/toast-services';
+import { UsersTourService } from '../../Services/Users/users-tour.service';
 
 @Component({
   selector: 'app-users',
@@ -17,6 +18,7 @@ export class Users {
   private svc = inject(UsersServices);
   private toast = inject(ToastServices);
   i18n = inject(LanguageService);
+  private usersTour = inject(UsersTourService);
 
   private dict: Record<AppLang, Record<string, string>> = {
     ar: {
@@ -322,5 +324,14 @@ export class Users {
         },
       });
     }
+  }
+  startUsersTour() {
+    this.usersTour.startTour({
+      ensureFormOpen: () => {
+        if (!this.showForm) {
+          this.openAdd();
+        }
+      },
+    });
   }
 }

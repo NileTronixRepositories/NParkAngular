@@ -1,12 +1,30 @@
 <div class="users-theme container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
-  <div class="d-flex justify-content-between align-items-center mb-3">
-    <h4 class="mb-0 fw-bold">{{ t('users') }}</h4>
-    <button class="btn btn-primary" (click)="openAdd()">
-      <i class="bi bi-plus-lg me-1"></i> {{ t('add_new') }}
-    </button>
+  <!-- Header + Help Tour -->
+  <div class="users-header d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-2">
+      <span class="users-header-pill">
+        <span class="users-header-dot"></span>
+        <span class="users-header-pill-text">{{ t('users') }}</span>
+      </span>
+      <h4 class="mb-0 fw-bold users-header-title">{{ t('users') }}</h4>
+    </div>
+
+    <div class="d-flex align-items-center gap-2">
+      <!-- Help Tour button -->
+      <button type="button" class="btn btn-light btn-help-tour-users" (click)="startUsersTour()">
+        <i class="bi bi-question-circle me-1"></i>
+        <span class="d-none d-sm-inline">{{ 'Help tour' }}</span>
+      </button>
+
+      <!-- Add button -->
+      <button class="btn btn-primary btn-users-add" type="button" (click)="openAdd()">
+        <i class="bi bi-plus-lg me-1"></i> {{ t('add_new') }}
+      </button>
+    </div>
   </div>
 
-  <div class="card shadow-soft mb-3">
+  <!-- Table card -->
+  <div class="card shadow-soft users-table-card mb-3">
     <div class="card-body p-0">
       <div class="table-responsive">
         <table class="table align-middle mb-0">
@@ -15,8 +33,10 @@
               <!-- <th style="width: 80px">{{ t('id') }}</th> -->
               <th>{{ t('name') }}</th>
               <th>{{ t('email') }}</th>
-              <th style="width: 120px">{{ t('role') }}</th>
-              <th style="width: 120px">{{ t('actions') }}</th>
+              <th style="width: 140px">{{ t('role') }}</th>
+              <th style="width: 130px" class="text-end">
+                {{ t('actions') }}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -33,9 +53,11 @@
                 </span>
               </td>
               <td class="text-end">
-                <button class="btn btn-sm btn-outline-primary me-2" (click)="openEdit(u)">
-                  <i class="bi bi-pencil"></i> {{ t('edit') }}
-                </button>
+                <div class="btn-group btn-group-sm users-row-actions" role="group">
+                  <button class="btn btn-outline-primary" type="button" (click)="openEdit(u)">
+                    <i class="bi bi-pencil"></i> {{ t('edit') }}
+                  </button>
+                </div>
               </td>
             </tr>
 
@@ -53,22 +75,30 @@
   </div>
 
   <!-- Inline Form Card -->
-  <div class="card shadow-soft mb-4" *ngIf="showForm">
-    <div class="card-header bg-white d-flex justify-content-between align-items-center">
-      <strong>{{ isEdit ? t('edit_user') : t('add_user') }}</strong>
-      <button class="btn btn-sm btn-outline-secondary" (click)="cancel()" [disabled]="saving">
+  <div class="card shadow-soft users-form-card mb-4" *ngIf="showForm">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center py-2 px-3">
+      <strong class="small">
+        {{ isEdit ? t('edit_user') : t('add_user') }}
+      </strong>
+      <button
+        class="btn btn-sm btn-outline-secondary"
+        type="button"
+        (click)="cancel()"
+        [disabled]="saving"
+      >
         {{ t('close') }}
       </button>
     </div>
 
-    <div class="card-body">
+    <div class="card-body py-3 px-3">
       <form (ngSubmit)="save()">
         <div class="row g-3">
+          <!-- Name -->
           <div class="col-md-4">
-            <label class="form-label">{{ t('name') }}</label>
+            <label class="form-label small mb-1">{{ t('name') }}</label>
             <input
               type="text"
-              class="form-control"
+              class="form-control form-control-sm"
               [(ngModel)]="model.userName"
               name="userName"
               required
@@ -78,10 +108,10 @@
 
           <!-- Email -->
           <div class="col-md-4">
-            <label class="form-label">{{ t('email') }}</label>
+            <label class="form-label small mb-1">{{ t('email') }}</label>
             <input
               type="email"
-              class="form-control"
+              class="form-control form-control-sm"
               [(ngModel)]="model.email"
               name="email"
               required
@@ -91,9 +121,9 @@
 
           <!-- Role dropdown -->
           <div class="col-md-4">
-            <label class="form-label">{{ t('role') }}</label>
+            <label class="form-label small mb-1">{{ t('role') }}</label>
             <select
-              class="form-select"
+              class="form-select form-select-sm users-role-select"
               [(ngModel)]="model.roleId"
               name="roleId"
               required
@@ -104,17 +134,17 @@
                 {{ r.name }}
               </option>
             </select>
-            <small class="form-text text-muted" *ngIf="!isEdit">
+            <small class="form-text text-muted d-block mt-1" *ngIf="!isEdit">
               {{ t('role_hint') }}
             </small>
           </div>
 
           <!-- Password -->
           <div class="col-md-4" *ngIf="!isEdit">
-            <label class="form-label">{{ t('password') }}</label>
+            <label class="form-label small mb-1">{{ t('password') }}</label>
             <input
               type="password"
-              class="form-control"
+              class="form-control form-control-sm users-password-input"
               [(ngModel)]="model.password"
               name="password"
               required
@@ -124,10 +154,10 @@
 
           <!-- Phone -->
           <div class="col-md-4" *ngIf="!isEdit">
-            <label class="form-label">{{ t('phone') }}</label>
+            <label class="form-label small mb-1">{{ t('phone') }}</label>
             <input
               type="text"
-              class="form-control"
+              class="form-control form-control-sm"
               [(ngModel)]="model.phoneNumber"
               name="phoneNumber"
               required
@@ -137,10 +167,10 @@
 
           <!-- National ID -->
           <div class="col-md-4" *ngIf="!isEdit">
-            <label class="form-label">{{ t('nationalId') }}</label>
+            <label class="form-label small mb-1">{{ t('nationalId') }}</label>
             <input
               type="text"
-              class="form-control"
+              class="form-control form-control-sm"
               [(ngModel)]="model.nationalId"
               name="nationalId"
               required
@@ -150,12 +180,12 @@
         </div>
 
         <div class="mt-3 d-flex align-items-center gap-2">
-          <button class="btn btn-success" type="submit" [disabled]="saving">
-            <i class="bi" [ngClass]="isEdit ? 'bi-save' : 'bi-plus-lg'"></i>
+          <button class="btn btn-success btn-sm users-btn-save" type="submit" [disabled]="saving">
+            <i class="bi me-1" [ngClass]="isEdit ? 'bi-save' : 'bi-plus-lg'"></i>
             {{ saving ? t('saving') : isEdit ? t('save') : t('create') }}
           </button>
           <button
-            class="btn btn-outline-secondary"
+            class="btn btn-outline-secondary btn-sm"
             type="button"
             (click)="cancel()"
             [disabled]="saving"

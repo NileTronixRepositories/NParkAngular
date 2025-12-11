@@ -37,10 +37,10 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { I18nDict, I18N_DICT } from '../../Services/i18n/i18n.tokens';
 import { ToastServices } from '../../Services/Toster/toast-services';
+import { ConfigurationTourService } from '../../Services/configuration/configuration-tour.service';
 
 type Mode = 'entry' | 'exit';
 
-// Host OR IPv4
 const HOST_OR_IP_REGEX =
   /^(?=.{1,253}$)(?:(?:[a-zA-Z0-9-]{1,63}\.)+[A-Za-z]{2,63}|(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d))$/;
 
@@ -158,7 +158,8 @@ export class ConfigurationComponent implements OnInit {
     private fb: FormBuilder,
     private svc: Configurationervices,
     public lang: LanguageService,
-    private toast: ToastServices
+    private toast: ToastServices,
+    private configTour: ConfigurationTourService
   ) {
     // Step 1
     this.step1Form = this.fb.group({
@@ -461,5 +462,21 @@ export class ConfigurationComponent implements OnInit {
           this.toast.error('Failed to update configuration');
         },
       });
+  }
+
+  startConfigTour() {
+    this.configTour.startTour({
+      ensureStep1: () => {
+        this.stepIndex = 0;
+      },
+      ensureStep2: () => {
+        this.stepIndex = 1;
+      },
+      ensureModeEntry: () => {
+        if (this.modeCtrl.value !== 'entry') {
+          this.modeCtrl.setValue('entry');
+        }
+      },
+    });
   }
 }

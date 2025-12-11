@@ -92,7 +92,6 @@ export class RegistrationTourService {
       },
     } as any);
 
-    // 1) الهيدر بالكامل
     this.addStep({
       id: 'reg-header',
       titleAr: 'شاشة إدارة الاشتراكات',
@@ -106,7 +105,6 @@ export class RegistrationTourService {
       hasBack: false,
     });
 
-    // 2) زر الهيلب تور
     this.addStep({
       id: 'reg-help',
       titleAr: 'زر شرح الشاشة',
@@ -120,7 +118,6 @@ export class RegistrationTourService {
       hasBack: false,
     });
 
-    // 3) كارت بيانات المشترك
     this.addStep({
       id: 'reg-subscriber-card',
       titleAr: 'بيانات المشترك',
@@ -133,7 +130,6 @@ export class RegistrationTourService {
       position: 'top',
     });
 
-    // 4) كارت نوع الاشتراك
     this.addStep({
       id: 'reg-schema-card',
       titleAr: 'نوع الاشتراك',
@@ -146,7 +142,6 @@ export class RegistrationTourService {
       position: 'top',
     });
 
-    // 5) زر قراءة الكارت
     this.addStep({
       id: 'reg-card-read',
       titleAr: 'قراءة الكارت (NFC)',
@@ -159,7 +154,6 @@ export class RegistrationTourService {
       position: 'bottom',
     });
 
-    // 6) كارت المستندات
     this.addStep({
       id: 'reg-docs-card',
       titleAr: 'المستندات المرفقة',
@@ -172,7 +166,6 @@ export class RegistrationTourService {
       position: 'top',
     });
 
-    // 7) زر حفظ / تحديث
     this.addStep({
       id: 'reg-save',
       titleAr: 'حفظ أو تحديث الاشتراك',
@@ -185,7 +178,6 @@ export class RegistrationTourService {
       position: 'top',
     });
 
-    // 8) كارت الجدول
     this.addStep({
       id: 'reg-list',
       titleAr: 'قائمة الاشتراكات',
@@ -198,7 +190,6 @@ export class RegistrationTourService {
       position: 'top',
     });
 
-    // 9) أزرار التعديل / الحذف لأول صف
     this.addStep({
       id: 'reg-row-actions',
       titleAr: 'إجراءات التعديل والحذف',
@@ -211,7 +202,6 @@ export class RegistrationTourService {
       position: this.pos('left'),
     });
 
-    // 10) اختيار حجم الصفحة
     this.addStep({
       id: 'reg-page-size',
       titleAr: 'حجم الصفحة',
@@ -224,7 +214,6 @@ export class RegistrationTourService {
       position: this.pos('left'),
     });
 
-    // 11) التحكم في الصفحات (أخر خطوة)
     this.addStep({
       id: 'reg-pagination',
       titleAr: 'التنقل بين الصفحات',
