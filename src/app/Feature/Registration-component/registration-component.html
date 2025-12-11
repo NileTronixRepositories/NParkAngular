@@ -31,14 +31,27 @@
         <span class="dot-edit"></span>
         <span>{{ 'updateSubscription' | t }}</span>
       </div>
+
+      <!-- 🔹 Help Tour Button -->
+      <button
+        type="button"
+        class="btn btn-help-tour-registration"
+        (click)="startRegistrationTour()"
+      >
+        <i class="bi bi-question-circle"></i>
+        <span class="btn-help-label d-none d-md-inline">
+          {{ 'helpTour' | t }}
+        </span>
+      </button>
     </div>
   </div>
 
   <!-- ===== 1) Form (Create / Edit Membership) ===== -->
   <form class="registration-form" [formGroup]="form" (ngSubmit)="save()" novalidate>
     <div class="row g-4">
+      <!-- بطاقة بيانات المشترك -->
       <div class="col-12 col-lg-4">
-        <div class="card fancy-card card--glass shadow-sm h-100">
+        <div class="card fancy-card card--glass shadow-sm h-100 reg-card-subscriber">
           <div class="card-header d-flex align-items-center justify-content-between">
             <div class="d-flex align-items-center gap-2">
               <i class="bi bi-person-badge-fill"></i>
@@ -130,7 +143,7 @@
 
       <!-- ===== 2) تفاصيل الاشتراك ===== -->
       <div class="col-12 col-lg-4">
-        <div class="card shadow-sm card--glass h-100">
+        <div class="card shadow-sm card--glass h-100 reg-card-schema">
           <div class="card-header d-flex align-items-center justify-content-between">
             <h5 class="mb-0 fw-bold">{{ 'subscriptionType' | t }}</h5>
             <span *ngIf="loadingSchemas()" class="text-muted small">
@@ -173,7 +186,7 @@
             <div class="mb-3">
               <div class="d-flex gap-2">
                 <button
-                  class="btn btn-outline-primary"
+                  class="btn btn-outline-primary reg-btn-read-card"
                   type="button"
                   (click)="readCard()"
                   [disabled]="readingCard()"
@@ -192,7 +205,7 @@
 
       <!-- ===== 3) المستندات ===== -->
       <div class="col-12 col-lg-4">
-        <div class="card shadow-sm card--glass h-100">
+        <div class="card shadow-sm card--glass h-100 reg-card-docs">
           <div class="card-header d-flex align-items-center justify-content-between">
             <h5 class="mb-0 fw-bold">{{ 'documents' | t }}</h5>
             <span class="badge bg-secondary">
@@ -297,7 +310,7 @@
       </div>
     </div>
 
-    <div class="d-flex gap-2 justify-content-end mt-3">
+    <div class="form-actions d-flex gap-2 justify-content-end mt-3">
       <button
         *ngIf="isEditing()"
         type="button"
@@ -306,7 +319,11 @@
       >
         {{ 'cancelEdit' | t }}
       </button>
-      <button type="submit" class="btn btn-primary" [disabled]="saving() || form.invalid">
+      <button
+        type="submit"
+        class="btn btn-primary reg-btn-submit"
+        [disabled]="saving() || form.invalid"
+      >
         {{
           saving()
             ? ('saving' | t)
@@ -320,14 +337,14 @@
 
   <!-- ===== 2) List (Memberships) ===== -->
   <div class="memberships mt-4">
-    <div class="card shadow-sm card--glass">
+    <div class="card shadow-sm card--glass reg-card-memberships">
       <div class="card-header d-flex align-items-center justify-content-between">
         <h5 class="mb-0 fw-bold">{{ 'memberships' | t }}</h5>
 
         <div class="d-flex align-items-center gap-2">
           <label class="form-label m-0 small text-muted">{{ 'pageSize' | t }}</label>
           <select
-            class="form-select form-select-sm w-auto"
+            class="form-select form-select-sm w-auto reg-page-size-select"
             [value]="pageSize()"
             (change)="changePageSize(+$any($event.target).value)"
           >
@@ -375,7 +392,7 @@
                 <td>{{ r.createdAt | date : 'yyyy/MM/dd HH:mm' }}</td>
                 <td>{{ r.endDate | date : 'yyyy/MM/dd HH:mm' }}</td>
                 <td>
-                  <div class="btn-group btn-group-sm" role="group">
+                  <div class="btn-group btn-group-sm reg-row-actions" role="group">
                     <button
                       class="btn btn-outline-primary"
                       (click)="editMembership(r)"
@@ -405,7 +422,9 @@
       </div>
 
       <!-- Pagination footer -->
-      <div class="card-footer d-flex flex-wrap gap-2 align-items-center justify-content-between">
+      <div
+        class="card-footer d-flex flex-wrap gap-2 align-items-center justify-content-between reg-pagination-footer"
+      >
         <div class="text-muted small">
           {{ 'total' | t }}: <b>{{ totalItems() }}</b> — {{ 'page' | t }} <b>{{ pageNumber() }}</b>
           {{ 'of' | t }} <b>{{ totalPages() }}</b>

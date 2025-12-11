@@ -24,6 +24,7 @@ import { LanguageService } from '../../Services/i18n/language-service';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { ToastServices } from '../../Services/Toster/toast-services';
+import { RegistrationTourService } from '../../Services/registration/registration-tour.service';
 
 @Component({
   selector: 'app-registration-component',
@@ -128,8 +129,10 @@ import { ToastServices } from '../../Services/Toster/toast-services';
 
           // ===== misc =====
           loading: 'جاري التحميل…',
+          helpTour: 'Help Tour',
         },
         en: {
+          helpTour: 'Help Tour',
           // ===== Page header =====
           registrationTitle: 'Membership management',
           registrationSubtitle: 'Create a new membership and review the existing list',
@@ -235,7 +238,7 @@ export class RegistrationComponent implements OnInit {
   public lang = inject(LanguageService);
   private toast = inject(ToastServices);
   private dict = inject<I18nDict>(I18N_DICT as any);
-
+  private regTour = inject(RegistrationTourService);
   // ===== State (list/paging) =====
   loading = signal(false);
   pageNumber = signal(1);
@@ -665,6 +668,9 @@ export class RegistrationComponent implements OnInit {
   cancelEdit() {
     this.editingId.set(null);
     this.reset();
+  }
+  startRegistrationTour() {
+    this.regTour.startTour();
   }
 }
 

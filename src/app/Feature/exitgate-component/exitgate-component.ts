@@ -169,7 +169,6 @@ import { Subscription } from 'rxjs';
           no_search_results: 'لا توجد نتائج',
           searching: 'جاري البحث...',
 
-          // 🔔 NEW: نص للـ Notification لو حبيت تستخدمه مستقبلاً
           exit_notification_title: 'تذكرة خروج جديدة',
         },
         en: {
