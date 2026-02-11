@@ -8,8 +8,8 @@
       <ul class="navbar-nav align-items-center gap-2">
         <app-switch-language></app-switch-language>
         <button class="logout-btn" (click)="logout()">
-          <i class="bi bi-box-arrow-right"></i>
-          <span>Logout</span>
+          <i class="bi" [ngClass]="lang.isRTL() ? 'bi-box-arrow-left' : 'bi-box-arrow-right'"></i>
+          <span>{{ t('تسجيل الخروج', 'Logout') }}</span>
         </button>
       </ul>
     </div>

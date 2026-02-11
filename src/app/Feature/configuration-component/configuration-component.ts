@@ -32,7 +32,7 @@ import {
   Configurationervices,
   PricingSchemaDto,
 } from '../../Services/configuration/configurationervices';
-import { finalize } from 'rxjs/operators';
+import { finalize } from 'rxjs';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { I18nDict, I18N_DICT } from '../../Services/i18n/i18n.tokens';
@@ -97,7 +97,7 @@ const HOST_OR_IP_REGEX =
           gate: 'البوابة',
           ipPlaceholder: 'مثال: 192.168.1.100',
           pcIpLabel: 'عنوان IP للـ PC',
-          deviceIpLabel: 'عنوان IP للجهاز',
+          deviceIpLabel: 'عنوان IP LPR',
           back: 'رجوع',
           save: 'حفظ',
           summary: 'الملخّص',
@@ -131,7 +131,7 @@ const HOST_OR_IP_REGEX =
           gate: 'Gate',
           ipPlaceholder: 'e.g. 192.168.1.100',
           pcIpLabel: 'PC IP address',
-          deviceIpLabel: 'Device IP address',
+          deviceIpLabel: 'LPR IP address',
           back: 'Back',
           save: 'Back',
           summary: 'Summary',
@@ -159,7 +159,7 @@ export class ConfigurationComponent implements OnInit {
     private svc: Configurationervices,
     public lang: LanguageService,
     private toast: ToastServices,
-    private configTour: ConfigurationTourService
+    private configTour: ConfigurationTourService,
   ) {
     // Step 1
     this.step1Form = this.fb.group({
@@ -190,7 +190,7 @@ export class ConfigurationComponent implements OnInit {
     this.step1Form.get('entryGatesCount')?.valueChanges.subscribe(() => this.syncGateArrays());
     this.step1Form.get('exitGatesCount')?.valueChanges.subscribe(() => this.syncGateArrays());
 
-    this.modeCtrl.valueChanges.subscribe((mode) => {
+    this.modeCtrl.valueChanges.subscribe((mode: Mode) => {
       this.updatePricingSchemaValidator(mode);
     });
 
@@ -206,8 +206,8 @@ export class ConfigurationComponent implements OnInit {
   // ======= Data loading =======
   loadPricingSchemas() {
     this.svc.getPricingSchemas().subscribe({
-      next: (list) => {
-        this.pricingSchemas = (list || []).map((s) => ({
+      next: (list: PricingSchemaDto[]) => {
+        this.pricingSchemas = (list || []).map((s: PricingSchemaDto) => ({
           id: s.id,
           name: s.name,
           description: s.description ?? '',
@@ -271,7 +271,7 @@ export class ConfigurationComponent implements OnInit {
           this.patchGateArray(this.entryGatesFA, cfg.entryGates || []);
           this.patchGateArray(this.exitGatesFA, cfg.exitGates || []);
         },
-        error: (err) => console.error('Failed to load existing configuration', err),
+        error: (err: any) => console.error('Failed to load existing configuration', err),
       });
   }
 
@@ -325,14 +325,16 @@ export class ConfigurationComponent implements OnInit {
   }
 
   private renumberGateArray(arr: FormArray<FormGroup>) {
-    arr.controls.forEach((fg, i) => fg.get('gateNumber')?.setValue(i + 1, { emitEvent: false }));
+    arr.controls.forEach((fg: FormGroup, i: number) =>
+      fg.get('gateNumber')?.setValue(i + 1, { emitEvent: false }),
+    );
   }
 
   private patchGateArray(arr: FormArray<FormGroup>, data: GateConfigDto[]) {
     const target = data?.length || arr.length;
     this.resizeFormArray(arr, target);
 
-    arr.controls.forEach((fg, i) => {
+    arr.controls.forEach((fg: FormGroup, i: number) => {
       const src = data?.[i];
       fg.patchValue({
         gateId: src?.gateId ?? null,
@@ -381,7 +383,7 @@ export class ConfigurationComponent implements OnInit {
     const s1 = this.step1Form.value as any;
     const s2 = this.step2Form.getRawValue() as any;
 
-    const entryGates: GateConfigDto[] = this.entryGatesFA.getRawValue().map((g, i) => {
+    const entryGates: GateConfigDto[] = this.entryGatesFA.getRawValue().map((g: any, i: number) => {
       const pcIp = (g['pcIp'] || '').trim();
       const deviceIp = (g['deviceIp'] || '').trim();
       const lprIp = deviceIp || pcIp;
@@ -394,7 +396,7 @@ export class ConfigurationComponent implements OnInit {
       };
     });
 
-    const exitGates: GateConfigDto[] = this.exitGatesFA.getRawValue().map((g, i) => {
+    const exitGates: GateConfigDto[] = this.exitGatesFA.getRawValue().map((g: any, i: number) => {
       const pcIp = (g['pcIp'] || '').trim();
       const deviceIp = (g['deviceIp'] || '').trim();
       const lprIp = deviceIp || pcIp;

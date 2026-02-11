@@ -22,7 +22,7 @@ export const routes: Routes = [
         data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/overview-component/overview-component').then(
-            (m) => m.OverviewComponent
+            (m) => m.OverviewComponent,
           ),
       },
 
@@ -63,7 +63,7 @@ export const routes: Routes = [
             canActivate: [authGuard],
             loadComponent: () =>
               import('./Feature/exitgate-component/exitgate-component').then(
-                (m) => m.ExitgateComponent
+                (m) => m.ExitgateComponent,
               ),
           },
         ],
@@ -76,20 +76,20 @@ export const routes: Routes = [
         data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/Altaeriffa-component/Altaeriffa-component').then(
-            (m) => m.AltaeriffaComponent
+            (m) => m.AltaeriffaComponent,
           ),
       },
 
       // Parking Guidance Diagram
-      {
-        path: 'parking-guidance-diagram',
-        canActivate: [authGuard],
-        data: { roles: ['Admin'] },
-        loadComponent: () =>
-          import(
-            './Feature/parking-guidance-diagram-component/parking-guidance-diagram-component'
-          ).then((m) => m.ParkingGuidanceDiagramComponent),
-      },
+      // {
+      //   path: 'parking-guidance-diagram',
+      //   canActivate: [authGuard],
+      //   data: { roles: ['Admin'] },
+      //   loadComponent: () =>
+      //     import(
+      //       './Feature/parking-guidance-diagram-component/parking-guidance-diagram-component'
+      //     ).then((m) => m.ParkingGuidanceDiagramComponent),
+      // },
 
       // Configuration
       {
@@ -98,7 +98,7 @@ export const routes: Routes = [
         data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/configuration-component/configuration-component').then(
-            (m) => m.ConfigurationComponent
+            (m) => m.ConfigurationComponent,
           ),
       },
 
@@ -109,7 +109,7 @@ export const routes: Routes = [
         data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/Registration-component/registration-component').then(
-            (m) => m.RegistrationComponent
+            (m) => m.RegistrationComponent,
           ),
       },
 

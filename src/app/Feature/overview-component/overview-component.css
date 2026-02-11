@@ -753,7 +753,9 @@
 .bar {
   rx: 4;
   ry: 4;
-  transition: height 0.25s ease, y 0.25s ease;
+  transition:
+    height 0.25s ease,
+    y 0.25s ease;
 }
 
 .bar--blue {
@@ -1224,4 +1226,3 @@
   align-items: center;
   gap: 0.35rem;
 }
-

@@ -24,13 +24,20 @@ app-footer-component {
   height: auto;
   opacity: 0.85;
   z-index: 2000;
-  transition: transform 0.2s ease, opacity 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    opacity 0.2s ease;
   pointer-events: none;
 }
 
 .floating-logo:hover {
   transform: scale(1.05);
   opacity: 1;
+}
+
+[dir='rtl'] .floating-logo {
+  right: auto;
+  left: 24px;
 }
 
 @media (max-width: 768px) {

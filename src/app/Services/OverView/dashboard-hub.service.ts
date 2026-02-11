@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
+import { environment } from '../../Shared/environment/environment';
 import { Subject, Observable } from 'rxjs';
 import {
   TicketAddedNotification,
@@ -25,14 +26,14 @@ export class DashboardHubService {
     }
 
     this.hub = new signalR.HubConnectionBuilder()
-      .withUrl('http://192.168.1.7/hubs/notifications', {
+      .withUrl(environment.hubUrl, {
         withCredentials: true,
         accessTokenFactory: () => localStorage.getItem('token') || '',
       })
       .withAutomaticReconnect()
       .build();
 
-    // أحداث SignalR
+    // SignalR
     this.hub.on('TicketAdded', (data: TicketAddedNotification) => {
       console.log('SignalR: TICKET ADDED', data);
       this.ticketAddedSubject.next(data);

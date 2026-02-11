@@ -1,6 +1,9 @@
 .navbar-brand {
   letter-spacing: 1px;
   transition: all 0.3s ease;
+  direction: ltr;
+  display: inline-flex;
+  align-items: center;
 }
 
 .navbar-brand:hover {

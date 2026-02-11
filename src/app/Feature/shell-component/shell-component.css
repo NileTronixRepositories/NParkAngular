@@ -41,6 +41,7 @@
   text-decoration: none;
   display: flex;
   align-items: center;
+  direction: ltr;
 }
 
 .brand-n {

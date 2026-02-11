@@ -199,7 +199,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     private readonly overviewServices: OverviewServices,
     private readonly dashboardHub: DashboardHubService,
     private readonly ticketsService: TicketsServices,
-    private readonly overviewTour: OverviewTourService
+    private readonly overviewTour: OverviewTourService,
   ) {}
 
   // ===== State =====
@@ -265,7 +265,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
   inactiveSubscriptionCount = computed(() => this.dashboard()?.inactiveSubscriptionCount ?? 0);
 
   membershipsExpiringNext7Days = computed(
-    () => this.dashboard()?.membershipsExpiringNext7Days ?? 0
+    () => this.dashboard()?.membershipsExpiringNext7Days ?? 0,
   );
 
   membershipTicketsCount = computed(() => this.dashboard()?.membershipTicketsCount ?? 0);
@@ -306,27 +306,8 @@ export class OverviewComponent implements OnInit, OnDestroy {
     return hours && hours.length > 0 ? hours : this.defaultChartHours;
   });
 
-  chartIn = computed(() => {
-    const dto = this.dashboard();
-    const hours = this.chartHours();
-    const apiSeries = dto?.chartIn;
-    if (apiSeries && apiSeries.length === hours.length) {
-      return apiSeries;
-    }
-    const totalIn = dto?.enterTicketsCount ?? 0;
-    return this.buildSeriesFromTotal(totalIn, hours.length);
-  });
-
-  chartOut = computed(() => {
-    const dto = this.dashboard();
-    const hours = this.chartHours();
-    const apiSeries = dto?.chartOut;
-    if (apiSeries && apiSeries.length === hours.length) {
-      return apiSeries;
-    }
-    const totalOut = dto?.exitTicketsCount ?? 0;
-    return this.buildSeriesFromTotal(totalOut, hours.length);
-  });
+  chartIn = computed(() => this.dashboard()?.chartIn ?? []);
+  chartOut = computed(() => this.dashboard()?.chartOut ?? []);
 
   // Donut chart
   donutRadius = 58;
@@ -405,7 +386,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     this.hubSubscriptions.add(
       this.searchSubject.pipe(debounceTime(300), distinctUntilChanged()).subscribe((query) => {
         this.performSearch(query);
-      })
+      }),
     );
   }
 
@@ -443,32 +424,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
 
   private syncOccupancyWithTicketsInside(): void {
     this.overviewServices.getTicketsInsidePark().subscribe({
-      next: (tickets) => {
-        this.ticketsInside.set(tickets ?? []);
-
-        this.dashboard.update((current) => {
-          if (!current) return current;
-
-          const currentInside = tickets.length;
-          const prevTotalSlots =
-            (current.currentVehiclesInside ?? 0) + (current.estimatedFreeSlots ?? 0);
-          const totalSlots =
-            prevTotalSlots > 0 ? prevTotalSlots : currentInside + (current.estimatedFreeSlots ?? 0);
-
-          const freeSlots =
-            totalSlots > 0 ? Math.max(totalSlots - currentInside, 0) : current.estimatedFreeSlots;
-
-          const occupancy =
-            totalSlots > 0 ? (currentInside / totalSlots) * 100 : current.occupancyPercentage;
-
-          return {
-            ...current,
-            currentVehiclesInside: currentInside,
-            estimatedFreeSlots: freeSlots,
-            occupancyPercentage: occupancy,
-          };
-        });
-      },
+      next: (tickets) => this.ticketsInside.set(tickets ?? []),
       error: (err) => console.error('Error syncing occupancy', err),
     });
   }
@@ -548,38 +504,16 @@ export class OverviewComponent implements OnInit, OnDestroy {
 
       this.hubSubscriptions.add(
         this.dashboardHub.ticketAdded$.subscribe((notification) => {
-          this.updateChartIn(notification.hour);
-
-          this.dashboard.update((current) => {
-            if (!current) return current;
-            return {
-              ...current,
-              enterTicketsCount: current.enterTicketsCount + 1,
-            };
-          });
-
           this.pushNotification('IN', 'notif_in_title', this.buildInMessage(notification));
-
           this.loadDashboard();
-        })
+        }),
       );
 
       this.hubSubscriptions.add(
         this.dashboardHub.ticketExited$.subscribe((notification) => {
-          this.updateChartOut(notification.hour);
-
-          this.dashboard.update((current) => {
-            if (!current) return current;
-            return {
-              ...current,
-              exitTicketsCount: current.exitTicketsCount + 1,
-            };
-          });
-
           this.pushNotification('OUT', 'notif_out_title', this.buildOutMessage(notification));
-
           this.loadDashboard();
-        })
+        }),
       );
 
       this.hubSubscriptions.add(
@@ -587,64 +521,18 @@ export class OverviewComponent implements OnInit, OnDestroy {
           this.pushNotification(
             'COLLECTED',
             'notif_collected_title',
-            this.buildCollectedMessage(notification)
+            this.buildCollectedMessage(notification),
           );
 
           this.loadDashboard();
-        })
+        }),
       );
     } catch (error) {
       console.error('Failed to connect to SignalR hub', error);
     }
   }
 
-  private updateChartIn(hour: number): void {
-    const current = this.dashboard();
-    if (!current) return;
-
-    const hours = current.chartHours || this.defaultChartHours;
-    const chartIn =
-      current.chartIn || this.buildSeriesFromTotal(current.enterTicketsCount, hours.length);
-
-    const index = hours.indexOf(hour);
-    if (index >= 0 && index < chartIn.length) {
-      chartIn[index] = (chartIn[index] ?? 0) + 1;
-      this.dashboard.set({
-        ...current,
-        chartHours: hours,
-        chartIn: [...chartIn],
-      });
-    }
-  }
-
-  private updateChartOut(hour: number): void {
-    const current = this.dashboard();
-    if (!current) return;
-
-    const hours = current.chartHours || this.defaultChartHours;
-    const chartOut =
-      current.chartOut || this.buildSeriesFromTotal(current.exitTicketsCount, hours.length);
-
-    const index = hours.indexOf(hour);
-    if (index >= 0 && index < chartOut.length) {
-      chartOut[index] = (chartOut[index] ?? 0) + 1;
-      this.dashboard.set({
-        ...current,
-        chartHours: hours,
-        chartOut: [...chartOut],
-      });
-    }
-  }
-
-  // ===== Helpers =====
-  private buildSeriesFromTotal(total: number, pointsCount: number): number[] {
-    if (pointsCount <= 0) return [];
-    if (total <= 0) return Array(pointsCount).fill(0);
-
-    const step = total / Math.max(pointsCount - 1, 1);
-
-    return Array.from({ length: pointsCount }, (_, i) => Math.round(step * i));
-  }
+  // Removed local chart simulation helpers as we now rely on DTO only
 
   formatCurrency(value: number): string {
     return value.toLocaleString('en-US', {
@@ -761,8 +649,8 @@ export class OverviewComponent implements OnInit, OnDestroy {
     const gateLabel = notification.gateNumber
       ? `${notification.gateNumber}`
       : this.lang.isRTL()
-      ? 'بوابة خروج'
-      : 'Exit gate';
+        ? 'بوابة خروج'
+        : 'Exit gate';
 
     const hasPrice =
       notification.price !== null &&
