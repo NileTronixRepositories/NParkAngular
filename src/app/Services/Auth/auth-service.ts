@@ -76,7 +76,7 @@ export class AuthService {
         store.setItem(USER_KEY, JSON.stringify(user));
 
         this.gateData = user.gateDevicePeripheral ?? null;
-      })
+      }),
     );
   }
 
@@ -105,7 +105,7 @@ export class AuthService {
 
         store.setItem(USER_KEY, JSON.stringify(updated));
         this.gateData = updated.gateDevicePeripheral ?? null;
-      })
+      }),
     );
   }
 
@@ -129,7 +129,7 @@ export class AuthService {
 
         store.setItem(USER_KEY, JSON.stringify(updated));
         this.gateData = updated.gateDevicePeripheral ?? null;
-      })
+      }),
     );
   }
 
@@ -218,7 +218,7 @@ export class AuthService {
 
         console.error('Logout API failed', err);
         return of(void 0);
-      })
+      }),
     );
   }
 

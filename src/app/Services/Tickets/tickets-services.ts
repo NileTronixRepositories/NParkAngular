@@ -42,14 +42,14 @@ export class TicketsServices {
 
   getTicketsForEntry(
     startDate: string,
-    ticketNumber: string = ''
+    ticketNumber: string = '',
   ): Observable<TicketsForGateResult> {
     return this.core.getTicketsForEntry(startDate, ticketNumber);
   }
 
   getTicketsForExit(
     startDate: string,
-    ticketNumber: string = ''
+    ticketNumber: string = '',
   ): Observable<TicketsForGateResult> {
     return this.core.getTicketsForExit(startDate, ticketNumber);
   }
@@ -61,6 +61,7 @@ export class TicketsServices {
       isSubscriber: req.isSubscriber,
       vehicleNumber: req.vehicleNumber?.trim() || undefined,
       cardNumber: req.cardNumber?.trim() || undefined,
+      scannedFile: req.scannedFile,
     };
 
     Object.keys(body).forEach((k) => body[k] === undefined && delete body[k]);
@@ -70,7 +71,7 @@ export class TicketsServices {
       catchError((err) => {
         this.logError('addTicket', err);
         return throwError(() => err);
-      })
+      }),
     );
   }
 

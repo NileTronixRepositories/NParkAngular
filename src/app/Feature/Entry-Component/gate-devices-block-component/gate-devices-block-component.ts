@@ -1,19 +1,27 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { SafePipe } from '../../../Pipes/safe.pipe';
 
 import { GateDevicePeripheral } from '../../../Domain/Auth/auth.models';
 
 @Component({
   selector: 'app-gate-devices-block-component',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, SafePipe],
   templateUrl: './gate-devices-block-component.html',
   styleUrls: ['./gate-devices-block-component.css'],
 })
 export class GateDevicesBlockComponent {
   @Input({ required: true }) t!: (key: string) => string;
   @Input() gatePeripheral: GateDevicePeripheral | null = null;
+  @Input() scannedFile: {
+    name: string;
+    url: string;
+    safeUrl?: any;
+    type: string;
+    bytes: any;
+  } | null = null;
 
   @Input() manualLprPlate: string = '';
 
@@ -39,7 +47,6 @@ export class GateDevicesBlockComponent {
     const plateUI = (this.manualLprPlate ?? '').trim();
     if (!plateUI) return;
 
-    // Normalize for backend: remove spaces, uppercase
     const normalized = plateUI.replace(/\s+/g, '').toUpperCase();
 
     this.createTicketWithPlate.emit(normalized);

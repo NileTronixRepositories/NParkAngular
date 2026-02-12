@@ -99,6 +99,7 @@ export interface AddTicketRequest {
   vehicleNumber?: string;
   isSubscriber: boolean;
   cardNumber?: string;
+  scannedFile?: string; // Base64
 }
 
 export interface CollectDailyTicketsResponse {

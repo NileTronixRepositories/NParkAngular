@@ -1,4 +1,5 @@
-import { Component, Inject, OnInit, OnDestroy, inject } from '@angular/core';
+import { Component, Inject, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -25,9 +26,9 @@ import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-compo
 import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
 import { ExitTourService } from '../../Services/Exit/exit-tour.service';
 
-// 🔔 NEW: SignalR dashboard hub + notifications model + Subscription
 import { DashboardHubService } from '../../Services/OverView/dashboard-hub.service';
 import { TicketExitedNotification } from '../../Domain/OverView/dashboard-notifications.model';
+import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -311,13 +312,17 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
   // 🔔 NEW: SignalR Hub
   private readonly dashboardHub = inject(DashboardHubService);
+  private readonly scanHub = inject(ScanHubService);
   private readonly hubSubscriptions = new Subscription();
 
   startTour(): void {
     this.exitTour.startTour();
   }
 
-  constructor(public lang: LanguageService, @Inject(I18N_DICT) private dict: I18nDict) {}
+  constructor(
+    public lang: LanguageService,
+    @Inject(I18N_DICT) private dict: I18nDict,
+  ) {}
 
   t(key: string): string {
     return this.dict[this.lang.current]?.[key] ?? key;
@@ -335,6 +340,9 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
   // ====== Dashboard KPI ======
   totalPriceToday = 0;
+  scannedFile: { name: string; url: string; safeUrl?: any; type: string; bytes: any } | null = null;
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   // ====== Real-time Search ======
   searchingTickets = false;
@@ -402,12 +410,79 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.initGatePeripheral();
     this.loadExitGates();
     this.reloadList();
-    this.initSignalRExitNotifications(); // 🔔 NEW
+    this.reloadList();
+    this.initSignalRExitNotifications();
+
+    this.scanHub.start().then(() => {
+      const gateId = this.auth.getGateId();
+      if (gateId) {
+        this.scanHub.joinStation(gateId.toString());
+      }
+    });
+
+    this.hubSubscriptions.add(
+      this.scanHub.scan$.subscribe((msg) => {
+        console.log('ExitgateComponent: Received scan event', msg.fileName);
+        this.handleScannedFile(msg);
+      }),
+    );
+  }
+
+  private handleScannedFile(msg: ScanFileMessage): void {
+    console.log(
+      '%c ExitgateComponent: [SCAN EVENT] Handling file: ' + msg.fileName,
+      'color: #00ffff; font-weight: bold;',
+    );
+    console.table({
+      fileName: msg.fileName,
+      contentType: msg.contentType,
+      stationId: msg.stationId,
+      bytesLength: (msg.bytes as any)?.length || 'N/A',
+    });
+    this.toast.success(this.t('scanner_ready') + ': ' + msg.fileName);
+
+    if (this.scannedFile?.url) {
+      URL.revokeObjectURL(this.scannedFile.url);
+    }
+
+    try {
+      let data: Uint8Array;
+      if (typeof msg.bytes === 'string') {
+        const binaryString = window.atob(msg.bytes);
+        data = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          data[i] = binaryString.charCodeAt(i);
+        }
+      } else if (msg.bytes instanceof ArrayBuffer) {
+        data = new Uint8Array(msg.bytes);
+      } else {
+        data = new Uint8Array(msg.bytes as any);
+      }
+
+      console.log('ExitgateComponent: Final data size:', data.length);
+      const blob = new Blob([data as any], { type: msg.contentType });
+      const rawUrl = URL.createObjectURL(blob);
+
+      this.scannedFile = {
+        name: msg.fileName,
+        url: rawUrl,
+        safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
+        type: msg.contentType,
+        bytes: msg.bytes,
+      };
+
+      console.log('ExitgateComponent: Processed file', msg.fileName);
+      this.cdr.markForCheck();
+    } catch (err) {
+      console.error('ExitgateComponent: Error rendering scan', err);
+      this.toast.error('Error rendering scan');
+    }
   }
 
   ngOnDestroy(): void {
     this.hubSubscriptions.unsubscribe();
     this.dashboardHub.stop();
+    this.scanHub.stop();
   }
 
   // ========= Init helpers =========
@@ -466,7 +541,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         // 2) Notification للي واقف على شاشة الخروج
         const msg = this.buildExitNotificationMessage(n);
         this.toast.success(msg);
-      })
+      }),
     );
   }
 
@@ -512,6 +587,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         }
 
         this.toast.success(this.t('outOnlyTitle'));
+
+        if (this.selectedGateId) {
+          this.scanHub.joinStation(this.selectedGateId.toString());
+        }
       },
       error: (err) => {
         this.handleError('selectGate', err);
@@ -532,7 +611,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         this.tickets = (res.items ?? [])
           .filter((t: TicketDto) => t.action === 'OUT')
           .sort(
-            (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime()
+            (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime(),
           );
 
         this.applyFilters();
@@ -665,13 +744,13 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.toast.warn(
         this.lang.current === 'ar'
           ? `التذكرة ${identifier} تم تحصيلها مسبقًا${summaryText}`
-          : `Ticket ${identifier} was already collected${summaryText}`
+          : `Ticket ${identifier} was already collected${summaryText}`,
       );
     } else {
       this.toast.success(
         this.lang.current === 'ar'
           ? `تم اختيار التذكرة: ${identifier}${summaryText}`
-          : `Selected ticket: ${identifier}${summaryText}`
+          : `Selected ticket: ${identifier}${summaryText}`,
       );
     }
 
@@ -695,7 +774,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         // نحاول نلاقي تطابق كامل مع الرقم اللي المستخدم كتبه
         const exact =
           results.find(
-            (r) => (r.ticketNumber ?? String(r.id)).toLowerCase() === trimmed.toLowerCase()
+            (r) => (r.ticketNumber ?? String(r.id)).toLowerCase() === trimmed.toLowerCase(),
           ) ?? results[0];
 
         const identifier = exact.ticketNumber || String(exact.id);
@@ -763,7 +842,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.toast.error(
             this.lang.current === 'ar'
               ? 'لم يتم العثور على بيانات التذكرة'
-              : 'Ticket data not found'
+              : 'Ticket data not found',
           );
         }
       },
@@ -905,7 +984,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
               this.scannedTicket!.id,
               this.scannedTicket!.plate,
               price,
-              true
+              true,
             );
             this.resetScanState();
           }
@@ -1048,6 +1127,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         next: (res: CollectDailyTicketsResponse) => {
           this.collectSummary = res;
           this.toast.success(this.t('admit_done'));
+          this.exitTicketAdded = true;
+          this.scannedFile = null; // Clear scan after success
           this.reloadList();
         },
         error: (err) => {
@@ -1146,16 +1227,16 @@ export class ExitgateComponent implements OnInit, OnDestroy {
                 ? `
               <div class="row"><span>${this.t('id')}</span><span class="mono">${t.id}</span></div>
               <div class="row"><span>${this.t('plate')}</span><span class="mono">${
-                    t.plate
-                  }</span></div>
+                t.plate
+              }</span></div>
               <div class="row"><span>${this.t('start')}</span><span>${new Date(
-                    t.dateTime
-                  ).toLocaleString()}</span></div>
+                t.dateTime,
+              ).toLocaleString()}</span></div>
               <div class="row"><span>${this.t('end')}</span><span>${new Date(
-                    t.endDate
-                  ).toLocaleString()}</span></div>
+                t.endDate,
+              ).toLocaleString()}</span></div>
               <div class="row"><span>${this.t(
-                'totalDue'
+                'totalDue',
               )}</span><span class="mono">${t.totalPrice.toFixed(2)}</span></div>
             `
                 : ''
@@ -1166,19 +1247,19 @@ export class ExitgateComponent implements OnInit, OnDestroy {
               <hr/>
               <div class="title">${this.t('salary_total')}</div>
               <div class="row"><span>${this.t(
-                'salary_total'
+                'salary_total',
               )}</span><span class="mono">${s.totalSalary.toFixed(2)}</span></div>
               <div class="row"><span>${this.t('salary_enter_date')}</span><span>${new Date(
-                    s.enterDate
-                  ).toLocaleString()}</span></div>
+                s.enterDate,
+              ).toLocaleString()}</span></div>
               <div class="row"><span>${this.t('salary_exit_valid')}</span><span>${
-                    s.isExitValid ? this.t('yes') : this.t('no')
-                  }</span></div>
+                s.isExitValid ? this.t('yes') : this.t('no')
+              }</span></div>
               <div class="row"><span>${this.t('salary_cashier_collected')}</span><span>${
-                    s.isCollectByCashier
-                      ? this.t('cashierCollectedShort')
-                      : this.t('cashier_not_collected')
-                  }</span></div>
+                s.isCollectByCashier
+                  ? this.t('cashierCollectedShort')
+                  : this.t('cashier_not_collected')
+              }</span></div>
             `
                 : ''
             }
@@ -1206,7 +1287,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     ticketId: number | string,
     plate: string,
     price: number | null | undefined,
-    isCollectedByCashier: boolean
+    isCollectedByCashier: boolean,
   ): void {
     const numericPrice = Number(price ?? 0);
     const gateNumber = this.auth.getGateData()?.gateNumber;

@@ -11,6 +11,7 @@ import { GateDevicePeripheral } from '../../../Domain/Auth/auth.models';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipePipe } from '../../../Services/i18n/translate-pipe-pipe';
+import { SafePipe } from '../../../Pipes/safe.pipe';
 import { I18N_DICT, I18nDict } from '../../../Services/i18n/i18n.tokens';
 import { LanguageService } from '../../../Services/i18n/language-service';
 import { TicketsServices } from '../../../Services/Tickets/tickets-services';
@@ -22,13 +23,20 @@ import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 @Component({
   selector: 'app-exit-gate-devices-block-component',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipePipe],
+  imports: [CommonModule, FormsModule, TranslatePipePipe, SafePipe],
   templateUrl: './exit-gate-devices-block-component.html',
   styleUrl: './exit-gate-devices-block-component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ExitGateDevicesBlockComponent {
   @Input() gatePeripheral: GateDevicePeripheral | null = null;
+  @Input() scannedFile: {
+    name: string;
+    url: string;
+    safeUrl?: any;
+    type: string;
+    bytes: any;
+  } | null = null;
   @Output() ticketSelected = new EventEmitter<TicketDto>();
   @Output() searchTicketNumber = new EventEmitter<string>();
 
@@ -49,7 +57,7 @@ export class ExitGateDevicesBlockComponent {
     @Inject(I18N_DICT) private readonly dict: I18nDict,
     private readonly ticketsSvc: TicketsServices,
     private readonly toast: ToastServices,
-    private readonly cdr: ChangeDetectorRef
+    private readonly cdr: ChangeDetectorRef,
   ) {
     // Debounce search like Quick Search
     this.searchSubject.pipe(debounceTime(300), distinctUntilChanged()).subscribe((query) => {

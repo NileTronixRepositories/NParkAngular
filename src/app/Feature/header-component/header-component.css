@@ -4,6 +4,7 @@
   direction: ltr;
   display: inline-flex;
   align-items: center;
+  cursor: pointer;
 }
 
 .navbar-brand:hover {

@@ -118,7 +118,7 @@
                 </span>
               </div>
               <div class="small text-muted">
-                <i class="bi bi-clock"></i> {{ ticket.time | date : 'short' }}
+                <i class="bi bi-clock"></i> {{ ticket.time | date: 'short' }}
                 <span *ngIf="ticket.plate"> • {{ ticket.plate }}</span>
               </div>
             </div>
@@ -132,6 +132,53 @@
 
         <div class="small text-muted mt-1">
           {{ 'search_ticket_hint' | t }}
+        </div>
+      </div>
+      <!--  Premium Scanned Document Preview -->
+      <div class="scanned-card-premium mt-3 animate-fade-in" *ngIf="scannedFile">
+        <div class="card-header-premium">
+          <i class="bi bi-file-earmark-check-fill"></i>
+          <span>{{ 'scanner_ready' | t }}</span>
+        </div>
+        <div class="card-body-premium">
+          <div class="preview-box">
+            <!-- Image Preview -->
+            <img
+              *ngIf="scannedFile.type.startsWith('image/')"
+              [src]="scannedFile.safeUrl"
+              alt="Scan Preview"
+            />
+            <!-- PDF Viewer (iframe) -->
+            <iframe
+              *ngIf="scannedFile.type === 'application/pdf'"
+              [src]="scannedFile.safeUrl"
+              class="pdf-preview-frame"
+            ></iframe>
+
+            <!-- Generic Placeholder -->
+            <div
+              *ngIf="
+                !scannedFile.type.startsWith('image/') && scannedFile.type !== 'application/pdf'
+              "
+              class="pdf-placeholder"
+            >
+              <i class="bi bi-file-earmark-pdf-fill"></i>
+              <div class="small fw-bold">{{ scannedFile.type.split('/')[1]?.toUpperCase() }}</div>
+            </div>
+          </div>
+          <div class="action-box">
+            <div class="file-name-meta">{{ scannedFile.name }}</div>
+            <div class="d-flex gap-2 w-100">
+              <a
+                [href]="scannedFile.url | safe: 'url'"
+                [download]="scannedFile.name"
+                class="btn-save-premium flex-grow-1"
+              >
+                <i class="bi bi-cloud-arrow-down-fill"></i>
+                {{ 'save_to_pc' | t }}
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </ng-container>

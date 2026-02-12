@@ -66,3 +66,135 @@
 :host .result-id {
   color: var(--primary, #4f46e5);
 }
+
+/* 📄 Scanned Document Premium UI */
+.scanned-card-premium {
+  background: var(--bg, #fff);
+  border: 1px solid var(--border, #e0e0e0);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.card-header-premium {
+  background: linear-gradient(135deg, #2c3e50 0%, #4ca1af 100%);
+  color: white;
+  padding: 8px 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.card-body-premium {
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.preview-box {
+  width: 100%;
+  height: 140px;
+  background: #fafafa;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px dashed #dee2e6;
+  position: relative;
+  transition: height 0.3s ease;
+}
+
+.preview-box:has(.pdf-preview-frame) {
+  height: 400px;
+}
+
+.pdf-preview-frame {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+.preview-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transition: transform 0.3s ease;
+}
+
+.preview-box img:hover {
+  transform: scale(1.05);
+}
+
+.pdf-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #e74c3c;
+}
+
+.pdf-placeholder i {
+  font-size: 3rem;
+}
+
+.action-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.file-name-meta {
+  font-size: 0.7rem;
+  color: var(--muted, #6c757d);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-align: center;
+}
+
+.btn-save-premium {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: #27ae60;
+  color: white !important;
+  text-decoration: none !important;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  width: 100%;
+  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 4px 12px rgba(39, 174, 96, 0.25);
+  border: none;
+}
+
+.btn-save-premium:hover {
+  background: #219150;
+  transform: translateY(-3px);
+  box-shadow: 0 6px 18px rgba(39, 174, 96, 0.35);
+}
+
+.btn-save-premium:active {
+  transform: translateY(-1px);
+}
+
+.animate-fade-in {
+  animation: premiumFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes premiumFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

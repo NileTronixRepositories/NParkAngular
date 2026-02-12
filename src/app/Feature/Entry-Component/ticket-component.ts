@@ -1,4 +1,15 @@
-import { Component, ElementRef, ViewChild, inject, signal, OnInit, computed } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  ViewChild,
+  inject,
+  signal,
+  OnInit,
+  OnDestroy,
+  computed,
+  ChangeDetectorRef,
+} from '@angular/core';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
@@ -24,7 +35,9 @@ import { GateDevicesBlockComponent } from './gate-devices-block-component/gate-d
 import { IssueTicketBlockComponent } from './issue-ticket-block-component/issue-ticket-block-component';
 import { TicketsTableBlockComponent } from './tickets-table-block-component/tickets-table-block-component';
 import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
+import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.service';
 import { EntryTourService } from '../../Services/Entry/entry-tour.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-ticket-component',
@@ -40,7 +53,7 @@ import { EntryTourService } from '../../Services/Entry/entry-tour.service';
   templateUrl: './ticket-component.html',
   styleUrls: ['./ticket-component.css'],
 })
-export class TicketComponent implements OnInit {
+export class TicketComponent implements OnInit, OnDestroy {
   // =======================
   // Services
   // =======================
@@ -51,6 +64,10 @@ export class TicketComponent implements OnInit {
   private readonly nfc = inject(NfcReaderService);
   private readonly toast = inject(ToastServices);
   private readonly entryTour = inject(EntryTourService);
+  private readonly scanHub = inject(ScanHubService);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly cdr = inject(ChangeDetectorRef);
+  private readonly hubSubscriptions = new Subscription();
 
   startTour(): void {
     this.entryTour.startTour();
@@ -133,6 +150,7 @@ export class TicketComponent implements OnInit {
   collecting = false;
 
   totalPriceToday = 0;
+  scannedFile: { name: string; url: string; safeUrl?: any; type: string; bytes: any } | null = null;
 
   // =======================
   // Real-time search
@@ -384,6 +402,81 @@ export class TicketComponent implements OnInit {
     this.loadGates();
     this.loadEntryGates();
     this.loadTicketsForEntry();
+
+    this.scanHub.start().then(() => {
+      const gateId = this.auth.getGateId();
+      if (gateId) {
+        this.scanHub.joinStation(gateId.toString());
+      }
+    });
+
+    this.hubSubscriptions.add(
+      this.scanHub.scan$.subscribe((msg) => {
+        console.log('TicketComponent: Received scan event', msg.fileName);
+        this.handleScannedFile(msg);
+      }),
+    );
+  }
+
+  private handleScannedFile(msg: ScanFileMessage): void {
+    console.log(
+      '%c TicketComponent: [SCAN EVENT] Handling file: ' + msg.fileName,
+      'color: #00ff00; font-weight: bold;',
+    );
+    console.table({
+      fileName: msg.fileName,
+      contentType: msg.contentType,
+      stationId: msg.stationId,
+      bytesLength: (msg.bytes as any)?.length || 'N/A',
+    });
+    this.toast.success(this.t('scanner_ready') + ': ' + msg.fileName);
+
+    // Cleanup old URL if exists
+    if (this.scannedFile?.url) {
+      URL.revokeObjectURL(this.scannedFile.url);
+    }
+
+    try {
+      let data: Uint8Array;
+      if (typeof msg.bytes === 'string') {
+        const binaryString = window.atob(msg.bytes);
+        data = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          data[i] = binaryString.charCodeAt(i);
+        }
+      } else if (msg.bytes instanceof ArrayBuffer) {
+        data = new Uint8Array(msg.bytes);
+      } else {
+        data = new Uint8Array(msg.bytes as any);
+      }
+
+      console.log('TicketComponent: Final data size:', data.length);
+      const blob = new Blob([data as any], { type: msg.contentType });
+      const rawUrl = URL.createObjectURL(blob);
+
+      this.scannedFile = {
+        name: msg.fileName,
+        url: rawUrl,
+        safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
+        type: msg.contentType,
+        bytes: msg.bytes,
+      };
+
+      console.log('TicketComponent: Successfully processed file', {
+        name: msg.fileName,
+        type: msg.contentType,
+        size: data.length,
+      });
+
+      this.cdr.markForCheck();
+    } catch (err) {
+      console.error('TicketComponent: Error rendering scan', err);
+      this.toast.error('Error rendering scan');
+    }
+  }
+
+  ngOnDestroy(): void {
+    this.hubSubscriptions.unsubscribe();
   }
 
   // =======================
@@ -423,7 +516,7 @@ export class TicketComponent implements OnInit {
     this.gateSvc.getAll().subscribe({
       next: (all) => {
         this.gatesList = (all ?? []).filter(
-          (g) => g.gateType === GateType.Entrance || g.gateType === GateType.Exit
+          (g) => g.gateType === GateType.Entrance || g.gateType === GateType.Exit,
         );
         if (this.gatesList.length > 0) {
           this.showGateSelectionModal = true;
@@ -470,7 +563,13 @@ export class TicketComponent implements OnInit {
         this.gatePeripheral = res?.gateDevicePeripheral ?? this.auth.getGateData();
         this.toast.success(this.t('select_gate'));
         this.loadTicketsForEntry();
+
+        // 🔔 Join Entry Station
+        if (this.selectedGateId) {
+          this.scanHub.joinStation(this.selectedGateId.toString());
+        }
       },
+
       error: (err) => {
         this.handleBackendError('selectGate error', err);
       },
@@ -499,21 +598,23 @@ export class TicketComponent implements OnInit {
     this.prepareNewTicketState();
     this.lastIssuedVehicleNumber = trimmed ?? null;
 
-    this.ticketsSvc
-      .addTicket({
-        isSubscriber: false,
-        vehicleNumber: trimmed,
-      })
-      .subscribe({
-        next: (res) => this.handleIssuedTicketResponse(res),
-        error: (e) => {
-          this.handleBackendError('AddTicket (normal) error', e);
-          this.adding = false;
-        },
-        complete: () => {
-          this.adding = false;
-        },
-      });
+    const payload = {
+      isSubscriber: false,
+      vehicleNumber: trimmed,
+      scannedFile: this.scannedFile?.bytes,
+    };
+    console.log('CREATING TICKET PAYLOAD:', payload);
+
+    this.ticketsSvc.addTicket(payload).subscribe({
+      next: (res) => this.handleIssuedTicketResponse(res),
+      error: (e) => {
+        this.handleBackendError('AddTicket (normal) error', e);
+        this.adding = false;
+      },
+      complete: () => {
+        this.adding = false;
+      },
+    });
   }
 
   createSubscriberTicket(): void {
@@ -528,21 +629,23 @@ export class TicketComponent implements OnInit {
     this.prepareNewTicketState();
     this.lastIssuedVehicleNumber = this.cardSummary?.vehicleNumber?.trim() ?? null;
 
-    this.ticketsSvc
-      .addTicket({
-        isSubscriber: true,
-        cardNumber: card,
-      })
-      .subscribe({
-        next: (res) => this.handleIssuedTicketResponse(res),
-        error: (e) => {
-          this.handleBackendError('AddTicket (subscriber) error', e);
-          this.adding = false;
-        },
-        complete: () => {
-          this.adding = false;
-        },
-      });
+    const payload = {
+      isSubscriber: true,
+      cardNumber: card,
+      scannedFile: this.scannedFile?.bytes,
+    };
+    console.log('CREATING SUBSCRIBER TICKET PAYLOAD:', payload);
+
+    this.ticketsSvc.addTicket(payload).subscribe({
+      next: (res) => this.handleIssuedTicketResponse(res),
+      error: (e) => {
+        this.handleBackendError('AddTicket (subscriber) error', e);
+        this.adding = false;
+      },
+      complete: () => {
+        this.adding = false;
+      },
+    });
   }
 
   private prepareNewTicketState(): void {
@@ -557,7 +660,11 @@ export class TicketComponent implements OnInit {
   }
 
   private handleIssuedTicketResponse(res: IssuedTicketResponse | null): void {
+    this.adding = false;
     if (!res) return;
+
+    // Clear scanned file state
+    this.scannedFile = null;
 
     this.lastIssuedTicketId = res.ticketId ?? null;
     this.lastIssuedTicketInfo = res.ticketInfo ?? null;
@@ -1162,7 +1269,7 @@ export class TicketComponent implements OnInit {
     this.toast.success(
       this.i18n.current === 'ar'
         ? `جاري تحميل بيانات التذكرة: ${identifier}${summaryText}`
-        : `Loading ticket data: ${identifier}${summaryText}`
+        : `Loading ticket data: ${identifier}${summaryText}`,
     );
 
     this.ticketsSvc.calculateSalaryByTicketNumber(identifier).subscribe({
@@ -1172,7 +1279,7 @@ export class TicketComponent implements OnInit {
           this.toast.error(
             this.i18n.current === 'ar'
               ? 'لم يتم العثور على بيانات التذكرة'
-              : 'Ticket data not found'
+              : 'Ticket data not found',
           );
           return;
         }
@@ -1192,13 +1299,13 @@ export class TicketComponent implements OnInit {
           this.toast.warn(
             this.i18n.current === 'ar'
               ? `التذكرة ${identifier} تم تحصيلها مسبقًا${summaryText}`
-              : `Ticket ${identifier} was already collected${summaryText}`
+              : `Ticket ${identifier} was already collected${summaryText}`,
           );
         } else {
           this.toast.success(
             this.i18n.current === 'ar'
               ? `تم اختيار التذكرة: ${identifier}${summaryText}`
-              : `Selected ticket: ${identifier}${summaryText}`
+              : `Selected ticket: ${identifier}${summaryText}`,
           );
         }
       },
@@ -1222,7 +1329,7 @@ export class TicketComponent implements OnInit {
     const idStr = String(ticketId);
 
     this.tickets = this.tickets.map((t) =>
-      String(t.id) === idStr ? { ...t, isCollectedByCashier: true } : t
+      String(t.id) === idStr ? { ...t, isCollectedByCashier: true } : t,
     );
 
     this.applyFilters();
@@ -1295,7 +1402,7 @@ export class TicketComponent implements OnInit {
         this.totalPriceToday = res.totalPrice ?? 0;
 
         this.tickets = (res.items ?? []).sort(
-          (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime()
+          (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime(),
         );
 
         if (this.lastIssuedTicketId && this._cashierCollected) {
