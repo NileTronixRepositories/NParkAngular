@@ -2,7 +2,19 @@ import { Injectable, Injector, effect, inject } from '@angular/core';
 import Shepherd from 'shepherd.js';
 import { LanguageService } from '../i18n/language-service';
 
-type Placement = 'top' | 'bottom' | 'left' | 'right';
+type Placement =
+  | 'top'
+  | 'top-start'
+  | 'top-end'
+  | 'bottom'
+  | 'bottom-start'
+  | 'bottom-end'
+  | 'left'
+  | 'left-start'
+  | 'left-end'
+  | 'right'
+  | 'right-start'
+  | 'right-end';
 
 interface ConfigTourOptions {
   ensureStep1?: () => void;
@@ -34,7 +46,7 @@ export class ConfigurationTourService {
           }
         }
       },
-      { injector: this.injector }
+      { injector: this.injector },
     );
   }
 
@@ -49,8 +61,8 @@ export class ConfigurationTourService {
 
   private pos(base: Placement): Placement {
     if (!this.isRTL) return base;
-    if (base === 'left') return 'right';
-    if (base === 'right') return 'left';
+    if (base.startsWith('left')) return base.replace('left', 'right') as Placement;
+    if (base.startsWith('right')) return base.replace('right', 'left') as Placement;
     return base;
   }
 
@@ -96,8 +108,8 @@ export class ConfigurationTourService {
       titleEn: 'Configuration screen',
       textAr: 'من هذه الشاشة تقوم بضبط إعدادات نظام المواقف بالكامل.',
       textEn: 'On this screen you configure the entire parking system behavior.',
-      attachTo: '.config-page-header',
-      position: 'bottom',
+      attachTo: '.config-title-group',
+      position: 'bottom-end',
       hasBack: false,
     });
 

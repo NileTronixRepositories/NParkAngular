@@ -49,8 +49,8 @@ export class LanguageService {
     const initial: AppLang =
       saved ?? (navigator.language && navigator.language.startsWith('ar') ? 'ar' : 'en');
 
-    // Apply direction on init (setTimeout to ensure DOM is ready)
-    setTimeout(() => this.applyDomDirection(initial), 0);
+    // Apply direction on init immediately
+    this.applyDomDirection(initial);
     return initial;
   }
 

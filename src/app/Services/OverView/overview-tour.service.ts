@@ -25,7 +25,7 @@ export class OverviewTourService {
           }
         }
       },
-      { injector: this.injector }
+      { injector: this.injector },
     );
   }
 
@@ -201,7 +201,7 @@ export class OverviewTourService {
       buttons.push({
         text: backText,
         action: () => this.tour?.back(),
-        secondary: true, // mark for styling if needed
+        secondary: true,
       } as any);
     }
 

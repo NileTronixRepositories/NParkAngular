@@ -1,14 +1,17 @@
 <div class="subscription-page container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- Page Header -->
-  <div class="page-header mb-4 fade-in-down">
-    <div class="header-row">
-      <div class="header-content">
-        <div class="header-icon-wrapper">
-          <i class="bi bi-badge-ad header-icon"></i>
+  <div class="page-header mb-3 fade-in-down p-3 rounded-4 shadow-sm">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <div
+          class="header-icon-wrapper d-flex align-items-center justify-content-center rounded-3"
+          style="width: 48px; height: 48px"
+        >
+          <i class="bi bi-badge-ad header-icon fs-5"></i>
         </div>
-        <div class="header-text">
-          <h1 class="page-title">{{ t('title') }}</h1>
-          <p class="page-subtitle">{{ t('list_title') }}</p>
+        <div>
+          <h1 class="h4 fw-bold mb-0 text-white">{{ t('title') }}</h1>
+          <p class="small mb-0 opacity-75 text-white">{{ t('list_title') }}</p>
         </div>
       </div>
 
@@ -23,20 +26,23 @@
     </div>
   </div>
 
-  <div class="row g-4">
+  <div class="row g-3">
     <!-- ==== Table ==== -->
     <div class="col-12 col-lg-7">
-      <div class="card shadow-soft h-100 subscription-table-card">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <div class="d-flex align-items-center gap-2">
-            <h6 class="mb-0 fw-bold text-dark">{{ t('list_title') }}</h6>
-          </div>
+      <div class="card border-0 shadow-sm h-100 subscription-table-card rounded-4 overflow-hidden">
+        <div
+          class="card-header bg-white border-bottom-0 p-3 d-flex align-items-center justify-content-between flex-wrap gap-2"
+        >
+          <h6 class="mb-0 fw-bold text-dark">{{ t('list_title') }}</h6>
+
           <!-- Top Search -->
-          <div class="search-wrap">
-            <i class="bi bi-search"></i>
+          <div class="search-wrap position-relative search-wrap-lg">
+            <i
+              class="bi bi-search position-absolute top-50 translate-middle-y opacity-50 search-icon-pos"
+            ></i>
             <input
               #searchBoxTop
-              class="form-control form-control-sm"
+              class="form-control form-control-sm rounded-pill bg-light border-0 ps-5 pe-5 search-input-padding"
               [placeholder]="t('search_placeholder')"
               [value]="query()"
               (input)="query.set(searchBoxTop.value)"
@@ -45,54 +51,58 @@
         </div>
 
         <!-- Table -->
-        <div class="card-body p-0 table-responsive">
-          <table
-            class="table table-hover align-middle mb-0 table-striped table-modern subscription-table"
-          >
-            <thead class="table-light sticky-top">
-              <tr>
-                <th class="text-center" style="width: 60px">{{ t('col_index') }}</th>
-                <th>{{ t('col_name') }}</th>
-                <th>{{ t('col_type') }}</th>
-                <th>{{ t('col_from') }}</th>
-                <th>{{ t('col_to') }}</th>
-                <th>{{ t('col_price') }}</th>
-                <th class="text-end">{{ t('col_actions') }}</th>
+        <div class="card-body p-0 table-responsive custom-scrollbar">
+          <table class="table table-hover align-middle mb-0 table-striped">
+            <thead class="table-light sticky-top bg-light">
+              <tr class="small text-uppercase text-muted">
+                <th class="text-center py-2" style="width: 50px">{{ t('col_index') }}</th>
+                <th class="py-2">{{ t('col_name') }}</th>
+                <th class="py-2">{{ t('col_type') }}</th>
+                <th class="py-2">{{ t('col_from') }}</th>
+                <th class="py-2">{{ t('col_to') }}</th>
+                <th class="py-2">{{ t('col_price') }}</th>
+                <th class="text-end py-2 px-3">{{ t('col_actions') }}</th>
               </tr>
             </thead>
-            <tbody>
-              <tr *ngFor="let r of filtered(); let i = index" class="row-hover">
-                <td class="text-center text-muted">{{ (page() - 1) * pageSize() + (i + 1) }}</td>
-                <td class="fw-semibold text-dark">
-                  {{ r.name }}
+            <tbody class="border-top-0">
+              <tr *ngFor="let r of filtered(); let i = index">
+                <td class="text-center text-muted small">
+                  {{ (page() - 1) * pageSize() + (i + 1) }}
                 </td>
+                <td class="fw-semibold text-dark">{{ r.name }}</td>
                 <td>
-                  <span class="badge pill badge-secondary-soft">
+                  <span
+                    class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
+                  >
                     {{ durationLabel(r.durationType) }}
                   </span>
                 </td>
-                <td class="text-muted">
+                <td class="text-muted small">
                   {{ showTimeForRow(r) ? r.startTime || '00:00' : t('time_window_off') }}
                 </td>
-                <td class="text-muted">
+                <td class="text-muted small">
                   {{ showTimeForRow(r) ? r.endTime || '00:00' : t('time_window_off') }}
                 </td>
                 <td>
-                  <span class="badge pill badge-success-soft font-monospace">
-                    {{ r.price | number : '1.0-2' }}
+                  <span
+                    class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-25 px-2 py-1 fw-bold"
+                  >
+                    {{ r.price | number: '1.0-2' }}
                   </span>
                 </td>
-                <td class="text-end">
-                  <div class="btn-group subscription-actions">
+                <td class="text-end px-3">
+                  <div
+                    class="btn-group subscription-actions shadow-none border rounded-3 overflow-hidden"
+                  >
                     <button
-                      class="btn btn-sm btn-light text-primary"
+                      class="btn btn-sm btn-white border-0 text-primary px-2"
                       (click)="edit(r)"
                       [title]="t('edit_action')"
                     >
                       <i class="bi bi-pencil-square"></i>
                     </button>
                     <button
-                      class="btn btn-sm btn-light text-danger"
+                      class="btn btn-sm btn-white border-0 text-danger px-2 border-start"
                       (click)="remove(r)"
                       [disabled]="!normalizeId(r)"
                       [title]="t('delete_action')"
@@ -105,10 +115,10 @@
 
               <!-- Empty State -->
               <tr *ngIf="!filtered().length">
-                <td colspan="7" class="text-center text-muted py-5">
+                <td colspan="7" class="text-center text-muted py-4 mt-3">
                   <div class="d-flex flex-column align-items-center">
-                    <i class="bi bi-inbox fs-1 opacity-25 mb-2"></i>
-                    <span>{{ t('empty_search') }}</span>
+                    <i class="bi bi-inbox fs-2 opacity-25 mb-2"></i>
+                    <p class="mb-0 small">{{ t('empty_search') }}</p>
                   </div>
                 </td>
               </tr>
@@ -117,27 +127,31 @@
         </div>
 
         <!-- Footer: Pagination -->
-        <div class="card-footer bg-white border-top-0 py-3">
-          <div class="d-flex align-items-center justify-content-between">
-            <span class="small text-muted">
-              {{ t('total_label') }} {{ totalItems() }} — {{ t('page') }} {{ page() }}
-              {{ t('of') }} {{ totalPages() }}
+        <div class="card-footer bg-white border-0 p-3">
+          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+            <span class="small text-muted fw-medium">
+              {{ t('total_label') }} {{ totalItems() }} — {{ t('page') }} {{ page() }} {{ t('of') }}
+              {{ totalPages() }}
             </span>
 
-            <div class="btn-group" dir="ltr">
+            <div class="btn-group shadow-sm rounded-3 overflow-hidden">
               <button
-                class="btn btn-sm btn-outline-secondary"
-                [disabled]="!hasNext()"
-                (click)="goNext()"
-              >
-                {{ t('next') }}
-              </button>
-              <button
-                class="btn btn-sm btn-outline-secondary"
+                class="btn btn-sm btn-white border px-3 d-flex align-items-center gap-1"
                 [disabled]="!hasPrev()"
                 (click)="goPrev()"
               >
-                {{ t('prev') }}
+                <i class="bi bi-chevron-right" *ngIf="isRTL()"></i>
+                <i class="bi bi-chevron-left" *ngIf="!isRTL()"></i>
+                <span>{{ t('prev') }}</span>
+              </button>
+              <button
+                class="btn btn-sm btn-white border border-start-0 px-3 d-flex align-items-center gap-1"
+                [disabled]="!hasNext()"
+                (click)="goNext()"
+              >
+                <span>{{ t('next') }}</span>
+                <i class="bi bi-chevron-left" *ngIf="isRTL()"></i>
+                <i class="bi bi-chevron-right" *ngIf="!isRTL()"></i>
               </button>
             </div>
           </div>
@@ -147,183 +161,202 @@
 
     <!-- ==== Form ==== -->
     <div class="col-12 col-lg-5">
-      <div class="card shadow-soft h-100 subscription-form-card">
-        <div class="card-header d-flex align-items-center justify-content-between">
-          <div class="d-flex align-items-center gap-2">
-            <h5 class="mb-0 fw-bold text-dark">{{ editingId() ? t('edit') : t('add') }}</h5>
-          </div>
-          <span class="badge pill badge-primary-soft">
+      <div class="card border-0 shadow-sm h-100 subscription-form-card rounded-4">
+        <div
+          class="card-header bg-white border-bottom-0 p-3 d-flex align-items-center justify-content-between"
+        >
+          <h6 class="mb-0 fw-bold text-dark">{{ editingId() ? t('edit') : t('add') }}</h6>
+          <span
+            class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 fw-medium"
+          >
             {{ editingId() ? t('edit_action') : t('add') }}
           </span>
         </div>
 
-        <div class="card-body" [formGroup]="form">
+        <div class="card-body p-3" [formGroup]="form">
           <!-- Field: Name -->
-          <div class="mb-4">
-            <label class="form-label">{{ t('field_name') }}</label>
+          <div class="mb-3">
+            <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
+              t('field_name')
+            }}</label>
             <input
-              class="form-control form-control-lg"
+              class="form-control rounded-3 p-2"
               formControlName="name"
               [placeholder]="t('name_placeholder')"
             />
             <div
-              class="invalid-feedback d-block"
+              class="invalid-feedback d-block small mt-1 fw-medium"
               *ngIf="form.get('name')?.touched && form.get('name')?.invalid"
             >
-              {{ t('name_required') }}
+              <i class="bi bi-exclamation-circle me-1"></i> {{ t('name_required') }}
             </div>
           </div>
 
           <!-- Field: Duration Type -->
-          <div class="mb-4">
-            <label class="form-label">{{ t('duration_type') }}</label>
+          <div class="mb-3">
+            <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
+              t('duration_type')
+            }}</label>
             <div
-              class="btn-group w-100 mode-toggle shadow-sm subscription-duration-toggle"
+              class="btn-group w-100 shadow-sm rounded-3 overflow-hidden subscription-duration-toggle"
               role="group"
             >
               <button
                 type="button"
-                class="btn"
+                class="btn btn-sm py-2 fw-semibold"
                 [class.btn-primary]="form.value.durationType === DurationType.Hours"
                 [class.btn-light]="form.value.durationType !== DurationType.Hours"
                 (click)="setMode(DurationType.Hours)"
                 [title]="t('hours')"
               >
-                <i class="bi bi-clock me-1"></i>
-                {{ t('hours') }}
+                <i class="bi bi-clock me-1"></i> {{ t('hours') }}
               </button>
-
               <button
                 type="button"
-                class="btn"
+                class="btn btn-sm py-2 fw-semibold"
                 [class.btn-primary]="form.value.durationType === DurationType.Days"
                 [class.btn-light]="form.value.durationType !== DurationType.Days"
                 (click)="setMode(DurationType.Days)"
                 [title]="t('days')"
               >
-                <i class="bi bi-calendar3 me-1"></i>
-                {{ t('days') }}
+                <i class="bi bi-calendar3 me-1"></i> {{ t('days') }}
               </button>
-
               <button
                 type="button"
-                class="btn"
+                class="btn btn-sm py-2 fw-semibold"
                 [class.btn-primary]="form.value.durationType === DurationType.Year"
                 [class.btn-light]="form.value.durationType !== DurationType.Year"
                 (click)="setMode(DurationType.Year)"
                 [title]="t('year')"
               >
-                <i class="bi bi-calendar-check me-1"></i>
-                {{ t('year') }}
+                <i class="bi bi-calendar-check me-1"></i> {{ t('year') }}
               </button>
             </div>
           </div>
 
           <!-- Toggle: Repeated (only for Hours) -->
-          <div class="col-12 d-flex align-items-center mb-4 gap-3" *ngIf="showIsRepeated()">
-            <div class="form-check form-switch">
+          <div class="mb-3" *ngIf="showIsRepeated()">
+            <div
+              class="form-check form-switch bg-light rounded-3 p-2 ms-0 d-flex align-items-center justify-content-between"
+            >
+              <label
+                class="form-check-label fw-bold text-dark mb-0 ps-3 ml-0"
+                for="repeatedSwitch"
+                >{{ t('repeated') }}</label
+              >
               <input
-                class="form-check-input"
+                class="form-check-input ms-0 mt-0 repeated-switch-lg"
                 type="checkbox"
                 role="switch"
                 formControlName="isRepeated"
                 id="repeatedSwitch"
               />
-              <label class="form-check-label fw-semibold" for="repeatedSwitch">{{
-                t('repeated')
-              }}</label>
             </div>
           </div>
 
           <!-- Time Window -->
-          <div class="row g-3 mb-4 subscription-time-window" *ngIf="showRangeWindow()">
+          <div class="row g-2 mb-3 subscription-time-window" *ngIf="showRangeWindow()">
             <div class="col-6">
-              <label class="form-label">{{ t('from') }}</label>
-              <input type="time" class="form-control" formControlName="startTime" />
+              <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
+                t('from')
+              }}</label>
+              <input type="time" class="form-control rounded-3 p-2" formControlName="startTime" />
             </div>
             <div class="col-6">
-              <label class="form-label">{{ t('to') }}</label>
-              <input type="time" class="form-control" formControlName="endTime" />
+              <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
+                t('to')
+              }}</label>
+              <input type="time" class="form-control rounded-3 p-2" formControlName="endTime" />
             </div>
           </div>
 
           <!-- Total Hours -->
-          <div class="mb-4" *ngIf="isHours()">
-            <label class="form-label">{{ t('total_hours') }}</label>
+          <div class="mb-3" *ngIf="isHours()">
+            <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
+              t('total_hours')
+            }}</label>
             <div class="input-group">
               <input
                 type="number"
-                class="form-control"
+                class="form-control rounded-start-3 p-2"
                 formControlName="totalHours"
                 min="1"
                 step="1"
                 placeholder="12"
               />
-              <span class="input-group-text text-muted">{{ t('hours_short') }}</span>
+              <span class="input-group-text bg-light text-muted fw-bold px-3 rounded-end-3">{{
+                t('hours_short')
+              }}</span>
             </div>
             <div
-              class="invalid-feedback d-block"
+              class="invalid-feedback d-block small mt-1 fw-medium"
               *ngIf="form.get('totalHours')?.touched && form.get('totalHours')?.invalid"
             >
-              {{ t('total_hours_required') }}
+              <i class="bi bi-exclamation-circle me-1"></i> {{ t('total_hours_required') }}
             </div>
           </div>
 
           <!-- Total Days -->
-          <div class="mb-4" *ngIf="isDays()">
-            <label class="form-label">{{ t('total_days') }}</label>
+          <div class="mb-3" *ngIf="isDays()">
+            <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
+              t('total_days')
+            }}</label>
             <div class="input-group">
               <input
                 type="number"
-                class="form-control"
+                class="form-control rounded-start-3 p-2"
                 formControlName="totalDays"
                 min="1"
                 step="1"
                 placeholder="30"
               />
-              <span class="input-group-text text-muted">{{ t('days_short') }}</span>
+              <span class="input-group-text bg-light text-muted fw-bold px-3 rounded-end-3">{{
+                t('days_short')
+              }}</span>
             </div>
             <div
-              class="invalid-feedback d-block"
+              class="invalid-feedback d-block small mt-1 fw-medium"
               *ngIf="form.get('totalDays')?.touched && form.get('totalDays')?.invalid"
             >
-              {{ t('total_days_required') }}
+              <i class="bi bi-exclamation-circle me-1"></i> {{ t('total_days_required') }}
             </div>
           </div>
 
           <!-- Price -->
-          <div class="mb-4 subscription-price-field">
-            <label class="form-label">{{ t('price_label') }}</label>
-            <div class="input-group input-group-lg">
-              <span class="input-group-text bg-light border-end-0">
+          <div class="mb-3 subscription-price-field">
+            <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
+              t('price_label')
+            }}</label>
+            <div class="input-group shadow-sm rounded-3 overflow-hidden">
+              <span class="input-group-text bg-white border-end-0 border-0 ps-3">
                 <i class="bi bi-cash-stack text-success"></i>
               </span>
               <input
                 type="number"
-                class="form-control border-start-0 ps-0"
+                class="form-control border-0 ps-2 bg-white"
                 formControlName="price"
                 min="0"
                 step="0.5"
               />
             </div>
             <div
-              class="invalid-feedback d-block"
+              class="invalid-feedback d-block small mt-1 fw-medium"
               *ngIf="form.get('price')?.touched && form.get('price')?.invalid"
             >
-              {{ t('price_required') }}
+              <i class="bi bi-exclamation-circle me-1"></i> {{ t('price_required') }}
             </div>
           </div>
         </div>
 
         <!-- Form Actions -->
         <div
-          class="card-footer d-flex gap-2 justify-content-end p-3 bg-white border-top-0 subscription-form-actions"
+          class="card-footer d-flex gap-2 justify-content-end p-3 bg-white border-top-0 subscription-form-actions mt-auto"
         >
-          <button class="btn btn-light" type="button" (click)="resetForm()">
+          <button class="btn btn-light rounded-pill px-3" type="button" (click)="resetForm()">
             <i class="bi bi-arrow-repeat me-1"></i> {{ t('reset') }}
           </button>
           <button
-            class="btn btn-primary px-4"
+            class="btn btn-primary rounded-pill px-4 fw-bold"
             type="button"
             (click)="save()"
             [disabled]="loading() || saving()"

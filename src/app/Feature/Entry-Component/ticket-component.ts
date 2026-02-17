@@ -457,7 +457,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       this.scannedFile = {
         name: msg.fileName,
         url: rawUrl,
-        safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
+        safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl), 
         type: msg.contentType,
         bytes: msg.bytes,
       };

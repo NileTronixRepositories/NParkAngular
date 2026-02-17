@@ -103,6 +103,7 @@ const HOST_OR_IP_REGEX =
           summary: 'الملخّص',
           startDate: 'تاريخ البداية',
           notSet: 'غير محدد',
+          helpTour: 'شرح الواجهة',
         },
         en: {
           basics: 'Basics',
@@ -137,6 +138,7 @@ const HOST_OR_IP_REGEX =
           summary: 'Summary',
           startDate: 'Start Date',
           notSet: 'Not set',
+          helpTour: 'Help Tour',
         },
       },
     },
@@ -153,6 +155,8 @@ export class ConfigurationComponent implements OnInit {
   step2Form!: FormGroup;
   saving = false;
   loading = false;
+
+  readonly TOTAL_STEPS = 2;
 
   constructor(
     private fb: FormBuilder,
@@ -195,6 +199,19 @@ export class ConfigurationComponent implements OnInit {
     });
 
     this.updatePricingSchemaValidator(this.modeCtrl.value);
+  }
+
+  // ======= Progress Helpers =======
+  get progressPercentage(): number {
+    return ((this.stepIndex + 1) / this.TOTAL_STEPS) * 100;
+  }
+
+  isStepActive(index: number): boolean {
+    return this.stepIndex >= index;
+  }
+
+  isStepCompleted(index: number): boolean {
+    return this.stepIndex > index;
   }
 
   ngOnInit() {

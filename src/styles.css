@@ -14,11 +14,11 @@ body {
    ================================== */
 
 .np-shepherd-step.shepherd-element {
-  border-radius: 16px;
+  border-radius: 12px;
   border: 1px solid #e2e8f0;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.25);
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
   background: #ffffff;
-  max-width: 420px;
+  max-width: 360px; /* Reduced from 420px */
   font-family: inherit;
 }
 
@@ -26,32 +26,32 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.75rem;
-  padding: 0.9rem 1rem 0.75rem;
+  gap: 0.5rem;
+  padding: 0.6rem 0.8rem 0.5rem; /* Reduced padding */
   border-bottom: 1px solid #e2e8f0;
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   color: #313131;
-  border-radius: 16px 16px 0 0;
+  border-radius: 12px 12px 0 0;
 }
 
 .np-shepherd-step .shepherd-title {
-  font-size: 0.95rem;
+  font-size: 0.85rem; /* Reduced font size */
   font-weight: 700;
   color: #353535;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .np-shepherd-step .step-badge {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 0.15rem 0.55rem;
+  padding: 0.1rem 0.4rem;
   border-radius: 999px;
   background: rgba(148, 163, 184, 0.15);
   color: #353535;
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   border: 1px solid rgba(148, 163, 184, 0.6);
 }
 
@@ -68,10 +68,10 @@ body {
 }
 
 .np-shepherd-step .shepherd-text {
-  padding: 1rem 1.1rem 0.35rem;
-  font-size: 0.9rem;
+  padding: 0.75rem 0.9rem 0.25rem; /* Reduced padding */
+  font-size: 0.85rem; /* Reduced font size */
   color: #334155;
-  line-height: 1.55;
+  line-height: 1.4;
 }
 
 .np-shepherd-step .shepherd-text p {
@@ -79,37 +79,37 @@ body {
 }
 
 .np-shepherd-step .shepherd-footer {
-  padding: 0.75rem 1.1rem 0.9rem;
+  padding: 0.5rem 0.9rem 0.6rem; /* Reduced padding */
   border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
-  gap: 0.5rem;
-  border-radius: 0 0 16px 16px;
+  gap: 0.4rem;
+  border-radius: 0 0 12px 12px;
 }
 
 .np-shepherd-step .shepherd-button {
   border-radius: 999px;
-  padding: 0.35rem 0.95rem;
-  font-size: 0.85rem;
+  padding: 0.25rem 0.75rem; /* Reduced padding */
+  font-size: 0.75rem; /* Reduced font size */
   font-weight: 600;
   border: 1px solid transparent;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: 0.25rem;
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
 .np-shepherd-step .shepherd-button:not(.shepherd-button-secondary) {
-  background: #e53935;
-  border-color: #e53935;
+  background: #2563eb;
+  border-color: #2563eb;
   color: #ffffff;
-  box-shadow: 0 4px 10px rgba(229, 57, 53, 0.35);
+  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.35);
 }
 
 .np-shepherd-step .shepherd-button:not(.shepherd-button-secondary):hover {
-  background: #d32f2f;
-  border-color: #d32f2f;
+  background: #1d4ed8;
+  border-color: #1d4ed8;
   transform: translateY(-1px);
 }
 
@@ -127,19 +127,16 @@ body {
 /* RTL Support */
 .np-shepherd-rtl.shepherd-element {
   direction: rtl;
-  text-align: right;
 }
 
-.np-shepherd-rtl .shepherd-text {
+.np-shepherd-rtl .shepherd-text,
+.np-shepherd-rtl .shepherd-title {
   text-align: right;
-}
-
-.np-shepherd-rtl .shepherd-header {
-  flex-direction: row;
 }
 
 .np-shepherd-rtl .shepherd-footer {
-  flex-direction: row-reverse;
+  flex-direction: row; /* Keep logical order; buttons will be handled by their own styles */
+  justify-content: flex-start; /* Next button usually comes first in RTL if we want it on the left, or vice versa. Let's stick to standard flex and use gap. */
 }
 
 .np-shepherd-step .shepherd-button i.bi {
@@ -151,13 +148,19 @@ body {
 }
 
 .shepherd-enabled.shepherd-target {
-  box-shadow: 0 0 0 3px rgba(229, 57, 53, 0.35);
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.35);
   border-radius: 12px;
   transition: box-shadow 0.2s ease;
 }
 .shepherd-arrow {
+  /* Dynamic alignment based on direction */
   left: 15px !important;
   right: auto !important;
+}
+
+.np-shepherd-rtl .shepherd-arrow {
+  right: 15px !important;
+  left: auto !important;
 }
 
 /* ==================================

@@ -43,7 +43,7 @@ export class SubscriptionType {
             hasPreviousPage: !!res?.hasPreviousPage,
             hasNextPage: !!res?.hasNextPage,
           } as PagedResult<PricingSchemaRow>;
-        })
+        }),
       );
   }
 
@@ -111,13 +111,9 @@ export class SubscriptionType {
 
   delete(id: string): Observable<void> {
     const sid = String(id).trim();
-
     const tryPostBody = () => this.http.post<void>(`${this.base}/Delete`, { id: sid });
-
     const tryDeleteQuery = () =>
-      this.http.delete<void>(`${this.base}/Delete`, {
-        params: new HttpParams().set('id', sid),
-      });
+      this.http.delete<void>(`${this.base}/Delete`, { params: new HttpParams().set('id', sid) });
     const tryDeletePath = () =>
       this.http.delete<void>(`${this.base}/Delete/${encodeURIComponent(sid)}`);
     const tryPostQuery = () =>
@@ -126,7 +122,6 @@ export class SubscriptionType {
       });
     const tryPostPath = () =>
       this.http.post<void>(`${this.base}/Delete/${encodeURIComponent(sid)}`, {});
-
     return tryPostBody().pipe(
       catchError((e1) => {
         if (e1?.status === 404 || e1?.status === 405 || e1?.status === 422) {
@@ -142,19 +137,19 @@ export class SubscriptionType {
                             return tryPostPath();
                           }
                           return throwError(() => e4);
-                        })
+                        }),
                       );
                     }
                     return throwError(() => e3);
-                  })
+                  }),
                 );
               }
               return throwError(() => e2);
-            })
+            }),
           );
         }
         return throwError(() => e1);
-      })
+      }),
     );
   }
 }

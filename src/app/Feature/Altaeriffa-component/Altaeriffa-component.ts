@@ -229,7 +229,7 @@ export class AltaeriffaComponent implements OnInit {
     return data.filter(
       (r) =>
         (r.name || '').toLowerCase().includes(q) ||
-        this.durationLabel(r.durationType).toLowerCase().includes(q)
+        this.durationLabel(r.durationType).toLowerCase().includes(q),
     );
   });
 
@@ -460,19 +460,25 @@ export class AltaeriffaComponent implements OnInit {
   }
 
   remove(r: PricingSchemaRow) {
-    const normId = this.normalizeId(r);
-    if (normId === null || normId === undefined) return;
     if (!confirm(this.t('confirm_delete'))) return;
-    this.saving.set(true);
-    this.api.delete(normId).subscribe({
+    const id = this.normalizeId(r);
+    if (!id) return;
+
+    this.api.delete(id).subscribe({
       next: () => {
+        this.page.set(1);
         this.loadRows();
-        this.saving.set(false);
         this.toast.success(this.t('deleted_success'));
       },
       error: (err) => {
-        this.saving.set(false);
-        this.toast.fromProblem(err);
+        if (err.status === 409) {
+          // Extract specific conflict message from backend
+          const msg =
+            err.error?.detail || err.error?.errors?.[0]?.message || this.t('unexpected_error');
+          this.toast.error(msg);
+        } else {
+          this.toast.fromProblem(err);
+        }
       },
     });
   }
@@ -602,8 +608,8 @@ export class AltaeriffaComponent implements OnInit {
       durationType: dt,
       price: r.price ?? null,
       isRepeated: rep,
-      totalHours: isHours ? r.totalHours ?? 1 : null,
-      totalDays: isDays ? r.totalDays ?? 1 : null,
+      totalHours: isHours ? (r.totalHours ?? 1) : null,
+      totalDays: isDays ? (r.totalDays ?? 1) : null,
     };
 
     if (isHours && !rep) {

@@ -1,441 +1,603 @@
 <div
-  class="container-fluid config-page"
+  class="container-fluid py-3"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
 >
-  <div class="layout">
-    <!-- ===================== WIZARD ===================== -->
-    <mat-card class="main config-main-card">
-      <mat-horizontal-stepper
-        [linear]="true"
-        [selectedIndex]="stepIndex"
-        (selectionChange)="stepIndex = $event.selectedIndex"
-      >
-        <!-- ===================== STEP 1 ===================== -->
-        <mat-step [stepControl]="step1Form" [label]="'basics' | t">
-          <form [formGroup]="step1Form" class="grid config-step1-form">
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'entryGatesCount' | t }}</mat-label>
-              <input matInput type="number" formControlName="entryGatesCount" min="1" required />
-              <mat-error *ngIf="step1Form.get('entryGatesCount')?.invalid">≥ 1</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'exitGatesCount' | t }}</mat-label>
-              <input matInput type="number" formControlName="exitGatesCount" min="1" required />
-              <mat-error *ngIf="step1Form.get('exitGatesCount')?.invalid">≥ 1</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'allowedParkingSlots' | t }}</mat-label>
-              <input
-                matInput
-                type="number"
-                formControlName="allowedParkingSlots"
-                min="1"
-                required
-              />
-              <mat-error *ngIf="step1Form.get('allowedParkingSlots')?.invalid">≥ 1</mat-error>
-            </mat-form-field>
-
-            <mat-form-field appearance="outline">
-              <mat-label>{{ 'gracePeriodMinutes' | t }}</mat-label>
-              <input matInput type="number" formControlName="gracePeriodMinutes" min="0" required />
-            </mat-form-field>
-
-            <div class="actions">
-              <button
-                mat-flat-button
-                color="primary"
-                type="button"
-                (click)="goNext()"
-                [disabled]="step1Form.invalid"
-              >
-                {{ 'next' | t }}
-              </button>
-            </div>
-          </form>
-        </mat-step>
-
-        <!-- ===================== STEP 2 ===================== -->
-        <mat-step [stepControl]="step2Form" [label]="'modeAndSettings' | t">
-          <form [formGroup]="step2Form">
-            <!-- ===== Settings (Mode / Capture / Print / Options / Pricing) ===== -->
-            <div class="settings-grid config-step2-settings">
-              <!-- MODE -->
-              <div class="settings-group config-mode-group">
-                <div class="settings-header">
-                  <i class="bi bi-currency-exchange"></i>
-                  <span class="settings-title">{{ 'Price Type' | t }}</span>
+  <div class="row g-3">
+    <!-- ===================== WIZARD (MAIN CONTENT) ===================== -->
+    <div class="col-12 col-xl-9">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 config-main-card">
+        <mat-horizontal-stepper
+          [linear]="true"
+          [selectedIndex]="stepIndex"
+          (selectionChange)="stepIndex = $event.selectedIndex"
+          class="bg-white"
+        >
+          <!-- ===================== STEP 1 ===================== -->
+          <mat-step [stepControl]="step1Form" [label]="'basics' | t">
+            <form [formGroup]="step1Form" class="p-3 config-step1-form">
+              <div class="row g-2">
+                <div class="col-12 col-md-6">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>{{ 'entryGatesCount' | t }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="entryGatesCount"
+                      min="1"
+                      required
+                    />
+                    <mat-error *ngIf="step1Form.get('entryGatesCount')?.invalid">≥ 1</mat-error>
+                  </mat-form-field>
                 </div>
-                <div class="row-inline">
-                  <mat-checkbox
-                    [checked]="modeCtrl.value === 'entry'"
-                    (change)="modeCtrl.setValue('entry')"
-                  >
-                    {{ 'entry' | t }}
-                  </mat-checkbox>
 
-                  <mat-checkbox
-                    [checked]="modeCtrl.value === 'exit'"
-                    (change)="modeCtrl.setValue('exit')"
-                  >
-                    {{ 'exit' | t }}
-                  </mat-checkbox>
+                <div class="col-12 col-md-6">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>{{ 'exitGatesCount' | t }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="exitGatesCount"
+                      min="1"
+                      required
+                    />
+                    <mat-error *ngIf="step1Form.get('exitGatesCount')?.invalid">≥ 1</mat-error>
+                  </mat-form-field>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>{{ 'allowedParkingSlots' | t }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="allowedParkingSlots"
+                      min="1"
+                      required
+                    />
+                    <mat-error *ngIf="step1Form.get('allowedParkingSlots')?.invalid">≥ 1</mat-error>
+                  </mat-form-field>
+                </div>
+
+                <div class="col-12 col-md-6">
+                  <mat-form-field appearance="outline" class="w-100">
+                    <mat-label>{{ 'gracePeriodMinutes' | t }}</mat-label>
+                    <input
+                      matInput
+                      type="number"
+                      formControlName="gracePeriodMinutes"
+                      min="0"
+                      required
+                    />
+                  </mat-form-field>
                 </div>
               </div>
 
-              <!-- CAPTURE MODE -->
-              <div class="settings-group config-capture-group">
-                <div class="settings-header">
-                  <i class="bi bi-camera-video"></i>
-                  <span class="settings-title">{{ 'Image Capture Mode' | t }}</span>
+              <div class="d-flex justify-content-end mt-3 pt-2 border-top">
+                <button
+                  mat-flat-button
+                  color="primary"
+                  type="button"
+                  (click)="goNext()"
+                  [disabled]="step1Form.invalid"
+                  class="px-4"
+                >
+                  {{ 'next' | t }}
+                </button>
+              </div>
+            </form>
+          </mat-step>
+
+          <!-- ===================== STEP 2 ===================== -->
+          <mat-step [stepControl]="step2Form" [label]="'modeAndSettings' | t">
+            <form [formGroup]="step2Form" class="p-3">
+              <!-- ===== Settings (Mode / Capture / Print / Options / Pricing) ===== -->
+              <div class="row g-2 mb-3">
+                <!-- MODE -->
+                <div class="col-12 col-md-6 col-lg-4 config-mode-group">
+                  <div class="card h-100 border bg-light shadow-sm">
+                    <div class="card-body p-2">
+                      <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                        <i class="bi bi-currency-exchange fs-5"></i>
+                        <h6 class="mb-0 fw-bold">{{ 'Price Type' | t }}</h6>
+                      </div>
+                      <div class="d-flex flex-column gap-2">
+                        <mat-checkbox
+                          [checked]="modeCtrl.value === 'entry'"
+                          (change)="modeCtrl.setValue('entry')"
+                          color="primary"
+                        >
+                          {{ 'entry' | t }}
+                        </mat-checkbox>
+                        <mat-checkbox
+                          [checked]="modeCtrl.value === 'exit'"
+                          (change)="modeCtrl.setValue('exit')"
+                          color="primary"
+                        >
+                          {{ 'exit' | t }}
+                        </mat-checkbox>
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                <mat-radio-group formControlName="captureMode" class="row-inline">
-                  <mat-radio-button value="LPR">{{ 'lpr' | t }}</mat-radio-button>
-                  <mat-radio-button value="SCANNER">{{ 'scanner' | t }}</mat-radio-button>
-                  <mat-radio-button value="BOTH">{{ 'both' | t }}</mat-radio-button>
-                </mat-radio-group>
+                <!-- CAPTURE MODE -->
+                <div class="col-12 col-md-6 col-lg-4 config-capture-group">
+                  <div class="card h-100 border bg-light shadow-sm">
+                    <div class="card-body p-2">
+                      <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                        <i class="bi bi-camera-video fs-5"></i>
+                        <h6 class="mb-0 fw-bold">{{ 'Image Capture Mode' | t }}</h6>
+                      </div>
+                      <mat-radio-group
+                        formControlName="captureMode"
+                        class="d-flex flex-column gap-2"
+                      >
+                        <mat-radio-button value="LPR" color="primary">{{
+                          'lpr' | t
+                        }}</mat-radio-button>
+                        <mat-radio-button value="SCANNER" color="primary">{{
+                          'scanner' | t
+                        }}</mat-radio-button>
+                        <mat-radio-button value="BOTH" color="primary">{{
+                          'both' | t
+                        }}</mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- PRINT TYPE -->
+                <div class="col-12 col-md-6 col-lg-4">
+                  <div class="card h-100 border bg-light shadow-sm">
+                    <div class="card-body p-2">
+                      <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                        <i class="bi bi-printer fs-5"></i>
+                        <h6 class="mb-0 fw-bold">{{ 'printType' | t }}</h6>
+                      </div>
+                      <mat-radio-group formControlName="printType" class="d-flex flex-column gap-2">
+                        <mat-radio-button value="QR" color="primary">{{
+                          'qr' | t
+                        }}</mat-radio-button>
+                        <mat-radio-button value="RFID" color="primary">{{
+                          'rfid' | t
+                        }}</mat-radio-button>
+                      </mat-radio-group>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- OPTIONS -->
+                <div class="col-12 col-md-6">
+                  <div class="card h-100 border bg-light shadow-sm">
+                    <div class="card-body p-2">
+                      <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                        <i class="bi bi-ticket-perforated fs-5"></i>
+                        <h6 class="mb-0 fw-bold">{{ 'Ticket Options' | t }}</h6>
+                      </div>
+                      <div class="d-flex flex-wrap gap-3">
+                        <mat-checkbox formControlName="dateTimeFlag" color="primary">
+                          {{ 'Date Time' | t }}
+                        </mat-checkbox>
+                        <mat-checkbox formControlName="ticketIdFlag" color="primary">
+                          {{ 'Ticket ID' | t }}
+                        </mat-checkbox>
+                        <mat-checkbox formControlName="feesFlag" color="primary">
+                          {{ 'Fees' | t }}
+                        </mat-checkbox>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- PRICING SCHEMA (ENTRY ONLY) -->
+                <div
+                  class="col-12 col-md-6 config-pricing-group"
+                  *ngIf="modeCtrl.value === 'entry'"
+                >
+                  <div class="card h-100 border bg-light shadow-sm">
+                    <div class="card-body p-2">
+                      <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                        <i class="bi bi-tags fs-5"></i>
+                        <h6 class="mb-0 fw-bold">{{ 'Pricing Schema' | t }}</h6>
+                      </div>
+                      <mat-form-field appearance="outline" class="w-100 bg-white rounded-2">
+                        <mat-label>{{ 'Pricing Schema' | t }}</mat-label>
+                        <mat-select formControlName="pricingSchemaId">
+                          <mat-option *ngFor="let s of pricingSchemas" [value]="s.id">
+                            {{ s.name }}
+                          </mat-option>
+                        </mat-select>
+                        <mat-error *ngIf="step2Form.get('pricingSchemaId')?.hasError('required')">
+                          Pricing schema is required
+                        </mat-error>
+                      </mat-form-field>
+                    </div>
+                  </div>
+                </div>
               </div>
 
-              <!-- PRINT TYPE -->
-              <div class="settings-group">
-                <div class="settings-header">
-                  <i class="bi bi-printer"></i>
-                  <span class="settings-title">{{ 'printType' | t }}</span>
-                </div>
-                <mat-radio-group formControlName="printType" class="row-inline">
-                  <mat-radio-button value="QR">{{ 'qr' | t }}</mat-radio-button>
-                  <mat-radio-button value="RFID">{{ 'rfid' | t }}</mat-radio-button>
-                </mat-radio-group>
-              </div>
-
-              <!-- OPTIONS -->
-              <div class="settings-group">
-                <div class="settings-header">
-                  <i class="bi bi-ticket-perforated"></i>
-                  <span class="settings-title">{{ 'Ticket Options' | t }}</span>
-                </div>
-                <div class="row-inline">
-                  <mat-checkbox formControlName="dateTimeFlag">
-                    {{ 'Date Time' | t }}
-                  </mat-checkbox>
-
-                  <mat-checkbox formControlName="ticketIdFlag">
-                    {{ 'Ticket ID' | t }}
-                  </mat-checkbox>
-
-                  <mat-checkbox formControlName="feesFlag">
-                    {{ 'Fees' | t }}
-                  </mat-checkbox>
-                </div>
-              </div>
-
-              <!-- PRICING SCHEMA (ENTRY ONLY) -->
-              <div
-                class="settings-group settings-group--wide config-pricing-group"
-                *ngIf="modeCtrl.value === 'entry'"
-              >
-                <div class="settings-header">
-                  <i class="bi bi-tags"></i>
-                  <span class="settings-title">{{ 'Pricing Schema' | t }}</span>
-                </div>
-                <mat-form-field appearance="outline" class="w-100">
-                  <mat-label>{{ 'Pricing Schema' | t }}</mat-label>
-                  <mat-select formControlName="pricingSchemaId">
-                    <mat-option *ngFor="let s of pricingSchemas" [value]="s.id">
-                      {{ s.name }}
-                    </mat-option>
-                  </mat-select>
-
-                  <mat-error *ngIf="step2Form.get('pricingSchemaId')?.hasError('required')">
-                    Pricing schema is required
-                  </mat-error>
-                </mat-form-field>
-              </div>
-            </div>
-
-            <!-- ===== Tabs for Entry / Exit Gates ===== -->
-            <mat-tab-group class="gates-tabs config-gates-tabs">
-              <!-- ========== Entry Gates TAB ========== -->
-              <mat-tab [label]="'entryGates' | t">
-                <div class="tab-content">
-                  <mat-expansion-panel>
-                    <mat-expansion-panel-header>
-                      <div class="accordion-header">
-                        <mat-panel-title>
-                          <mat-icon class="gate-icon">door_front</mat-icon>
+              <!-- ===== Tabs for Entry / Exit Gates ===== -->
+              <mat-tab-group class="mb-3 config-gates-tabs" animationDuration="0ms">
+                <!-- ========== Entry Gates TAB ========== -->
+                <mat-tab [label]="'entryGates' | t">
+                  <div class="pt-3">
+                    <mat-expansion-panel
+                      class="border-0 shadow-none bg-transparent"
+                      [expanded]="true"
+                      [disabled]="true"
+                      hideToggle
+                    >
+                      <mat-expansion-panel-header class="bg-light rounded-3 mb-3 border">
+                        <mat-panel-title class="d-flex align-items-center gap-2 fw-bold text-dark">
+                          <mat-icon class="text-primary">door_front</mat-icon>
                           {{ 'entryGates' | t }}
                         </mat-panel-title>
-                        <span class="gate-count">{{ entryGatesControls.length }}</span>
-                      </div>
-                    </mat-expansion-panel-header>
+                        <span class="badge bg-primary rounded-pill">{{
+                          entryGatesControls.length
+                        }}</span>
+                      </mat-expansion-panel-header>
 
-                    <div class="gates-grid" formArrayName="entryGates">
-                      <div
-                        class="gate-accordion"
-                        *ngFor="let g of entryGatesControls; let i = index"
-                        [formGroupName]="i"
-                      >
-                        <mat-expansion-panel>
-                          <mat-expansion-panel-header>
-                            <mat-panel-title>
-                              <mat-icon class="gate-icon">door_front</mat-icon>
-                              {{ 'gate' | t }} {{ g.get('gateNumber')?.value }}
-                            </mat-panel-title>
-                          </mat-expansion-panel-header>
+                      <div class="row g-3" formArrayName="entryGates">
+                        <div
+                          class="col-12 col-lg-6"
+                          *ngFor="let g of entryGatesControls; let i = index"
+                          [formGroupName]="i"
+                        >
+                          <mat-expansion-panel class="card border mb-0 shadow-sm">
+                            <mat-expansion-panel-header class="bg-white rounded-3">
+                              <mat-panel-title class="d-flex align-items-center gap-2 fw-bold">
+                                <mat-icon class="text-primary">door_front</mat-icon>
+                                {{ 'gate' | t }} {{ g.get('gateNumber')?.value }}
+                              </mat-panel-title>
+                            </mat-expansion-panel-header>
 
-                          <div class="gate-details">
-                            <div class="gate-info">
-                              <div class="gate-number">
-                                <mat-icon class="gate-icon">numbers</mat-icon>
-                                {{ 'gate' | t }}: {{ g.get('gateNumber')?.value }}
-                              </div>
+                            <div class="pt-3">
+                              <div class="d-flex flex-column gap-3">
+                                <div
+                                  class="d-flex align-items-center gap-2 text-muted small fw-bold"
+                                >
+                                  <mat-icon class="icon-sm">numbers</mat-icon>
+                                  {{ 'gate' | t }}: {{ g.get('gateNumber')?.value }}
+                                </div>
 
-                              <div class="ip-input-container">
-                                <label class="ip-label">{{ 'pcIpLabel' | t }}</label>
-                                <input
-                                  class="ip-address"
-                                  type="text"
-                                  formControlName="pcIp"
-                                  [placeholder]="'ipPlaceholder' | t"
-                                />
-                              </div>
+                                <div>
+                                  <label
+                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
+                                    >{{ 'pcIpLabel' | t }}</label
+                                  >
+                                  <input
+                                    class="form-control form-control-sm font-monospace"
+                                    type="text"
+                                    formControlName="pcIp"
+                                    [placeholder]="'ipPlaceholder' | t"
+                                  />
+                                </div>
 
-                              <div class="ip-input-container">
-                                <label class="ip-label">{{ 'deviceIpLabel' | t }}</label>
-                                <input
-                                  class="ip-address"
-                                  type="text"
-                                  formControlName="deviceIp"
-                                  [placeholder]="'ipPlaceholder' | t"
-                                />
+                                <div>
+                                  <label
+                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
+                                    >{{ 'deviceIpLabel' | t }}</label
+                                  >
+                                  <input
+                                    class="form-control form-control-sm font-monospace"
+                                    type="text"
+                                    formControlName="deviceIp"
+                                    [placeholder]="'ipPlaceholder' | t"
+                                  />
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </mat-expansion-panel>
+                          </mat-expansion-panel>
+                        </div>
                       </div>
-                    </div>
-                  </mat-expansion-panel>
-                </div>
-              </mat-tab>
+                    </mat-expansion-panel>
+                  </div>
+                </mat-tab>
 
-              <!-- ========== Exit Gates TAB ========== -->
-              <mat-tab [label]="'exitGates' | t">
-                <div class="tab-content">
-                  <mat-expansion-panel>
-                    <mat-expansion-panel-header>
-                      <div class="accordion-header">
-                        <mat-panel-title>
-                          <mat-icon class="gate-icon">exit_to_app</mat-icon>
+                <!-- ========== Exit Gates TAB ========== -->
+                <mat-tab [label]="'exitGates' | t">
+                  <div class="pt-3">
+                    <mat-expansion-panel
+                      class="border-0 shadow-none bg-transparent"
+                      [expanded]="true"
+                      [disabled]="true"
+                      hideToggle
+                    >
+                      <mat-expansion-panel-header class="bg-light rounded-3 mb-3 border">
+                        <mat-panel-title class="d-flex align-items-center gap-2 fw-bold text-dark">
+                          <mat-icon class="text-primary">exit_to_app</mat-icon>
                           {{ 'exitGates' | t }}
                         </mat-panel-title>
-                        <span class="gate-count">{{ exitGatesControls.length }}</span>
-                      </div>
-                    </mat-expansion-panel-header>
+                        <span class="badge bg-primary rounded-pill">{{
+                          exitGatesControls.length
+                        }}</span>
+                      </mat-expansion-panel-header>
 
-                    <div class="gates-grid" formArrayName="exitGates">
-                      <div
-                        class="gate-accordion"
-                        *ngFor="let g of exitGatesControls; let i = index"
-                        [formGroupName]="i"
-                      >
-                        <mat-expansion-panel>
-                          <mat-expansion-panel-header>
-                            <mat-panel-title>
-                              <mat-icon class="gate-icon">exit_to_app</mat-icon>
-                              {{ 'gate' | t }} {{ g.get('gateNumber')?.value }}
-                            </mat-panel-title>
-                          </mat-expansion-panel-header>
+                      <div class="row g-3" formArrayName="exitGates">
+                        <div
+                          class="col-12 col-lg-6"
+                          *ngFor="let g of exitGatesControls; let i = index"
+                          [formGroupName]="i"
+                        >
+                          <mat-expansion-panel class="card border mb-0 shadow-sm">
+                            <mat-expansion-panel-header class="bg-white rounded-3">
+                              <mat-panel-title class="d-flex align-items-center gap-2 fw-bold">
+                                <mat-icon class="text-primary">exit_to_app</mat-icon>
+                                {{ 'gate' | t }} {{ g.get('gateNumber')?.value }}
+                              </mat-panel-title>
+                            </mat-expansion-panel-header>
 
-                          <div class="gate-details">
-                            <div class="gate-info">
-                              <div class="gate-number">
-                                <mat-icon class="gate-icon">numbers</mat-icon>
-                                {{ 'gate' | t }}: {{ g.get('gateNumber')?.value }}
-                              </div>
+                            <div class="pt-3">
+                              <div class="d-flex flex-column gap-3">
+                                <div
+                                  class="d-flex align-items-center gap-2 text-muted small fw-bold"
+                                >
+                                  <mat-icon class="icon-sm">numbers</mat-icon>
+                                  {{ 'gate' | t }}: {{ g.get('gateNumber')?.value }}
+                                </div>
 
-                              <div class="ip-input-container">
-                                <label class="ip-label">{{ 'pcIpLabel' | t }}</label>
-                                <input
-                                  class="ip-address"
-                                  type="text"
-                                  formControlName="pcIp"
-                                  [placeholder]="'ipPlaceholder' | t"
-                                />
-                              </div>
+                                <div>
+                                  <label
+                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
+                                    >{{ 'pcIpLabel' | t }}</label
+                                  >
+                                  <input
+                                    class="form-control form-control-sm font-monospace"
+                                    type="text"
+                                    formControlName="pcIp"
+                                    [placeholder]="'ipPlaceholder' | t"
+                                  />
+                                </div>
 
-                              <div class="ip-input-container">
-                                <label class="ip-label">{{ 'deviceIpLabel' | t }}</label>
-                                <input
-                                  class="ip-address"
-                                  type="text"
-                                  formControlName="deviceIp"
-                                  [placeholder]="'ipPlaceholder' | t"
-                                />
+                                <div>
+                                  <label
+                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
+                                    >{{ 'deviceIpLabel' | t }}</label
+                                  >
+                                  <input
+                                    class="form-control form-control-sm font-monospace"
+                                    type="text"
+                                    formControlName="deviceIp"
+                                    [placeholder]="'ipPlaceholder' | t"
+                                  />
+                                </div>
                               </div>
                             </div>
-                          </div>
-                        </mat-expansion-panel>
+                          </mat-expansion-panel>
+                        </div>
                       </div>
-                    </div>
-                  </mat-expansion-panel>
-                </div>
-              </mat-tab>
-            </mat-tab-group>
+                    </mat-expansion-panel>
+                  </div>
+                </mat-tab>
+              </mat-tab-group>
 
-            <div class="flex-between">
-              <button mat-stroked-button type="button" (click)="goBack()">
-                {{ 'back' | t }}
-              </button>
-              <button mat-flat-button color="primary" type="button" (click)="save()">
-                {{ 'save' | t }}
-              </button>
-            </div>
-          </form>
-        </mat-step>
-      </mat-horizontal-stepper>
-    </mat-card>
+              <div class="d-flex justify-content-between mt-3 pt-2 border-top">
+                <button mat-stroked-button type="button" (click)="goBack()" class="px-4">
+                  {{ 'back' | t }}
+                </button>
+                <button mat-flat-button color="primary" type="button" (click)="save()" class="px-5">
+                  {{ 'save' | t }}
+                </button>
+              </div>
+            </form>
+          </mat-step>
+        </mat-horizontal-stepper>
+      </div>
+    </div>
 
     <!-- ===================== SUMMARY SIDEBAR ===================== -->
-    <div class="summary-wrapper">
-      <!-- Page Header -->
-      <div class="page-header config-page-header">
-        <div class="header-icon">
-          <i class="bi bi-gear-fill"></i>
-        </div>
-        <div class="header-text">
-          <h1>{{ 'configuration' | t }}</h1>
-          <p>{{ 'configurationSubtitle' | t }}</p>
-        </div>
-
-        <button
-          mat-stroked-button
-          type="button"
-          class="btn-config-help-tour"
-          (click)="startConfigTour()"
+    <div class="col-12 col-xl-3">
+      <div class="d-flex flex-column gap-4 sticky-top" style="top: 1rem; z-index: 10">
+        <!-- Page Header -->
+        <div
+          class="d-flex align-items-center justify-content-between flex-wrap gap-2 config-page-header"
         >
-          <i class="bi bi-question-circle me-1"></i>
-          {{ 'helpTour' | t }}
-        </button>
+          <div class="d-flex align-items-center gap-3 config-title-group">
+            <div
+              class="d-flex align-items-center justify-content-center bg-primary bg-gradient text-white rounded-3 shadow-sm"
+              style="width: 48px; height: 48px"
+            >
+              <i class="bi bi-gear-fill fs-4"></i>
+            </div>
+            <div>
+              <h1 class="h5 fw-bold mb-0 text-dark">{{ 'configuration' | t }}</h1>
+              <p class="small text-muted mb-0">{{ 'configurationSubtitle' | t }}</p>
+            </div>
+          </div>
+
+          <button
+            class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1 btn-config-help-tour"
+            type="button"
+            (click)="startConfigTour()"
+          >
+            <i class="bi bi-question-circle"></i>
+            <span>{{ 'helpTour' | t }}</span>
+          </button>
+        </div>
+
+        <!-- Summary Card -->
+        <div class="card border-0 shadow-sm rounded-4 config-summary-card overflow-hidden">
+          <div class="card-header bg-light border-bottom p-2 d-flex align-items-center gap-2">
+            <i class="bi bi-clipboard-data text-primary fs-5"></i>
+            <h6 class="mb-0 fw-bold text-primary">{{ 'summary' | t }}</h6>
+          </div>
+
+          <div class="card-body p-0">
+            <div class="d-flex flex-column">
+              <!-- Grid rows for summary items -->
+              <div
+                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
+              >
+                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
+                  <i class="bi bi-door-open"></i>
+                  <span>{{ 'entryGatesCount' | t }}</span>
+                </div>
+                <span
+                  class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-2"
+                  >{{ summaryForView.entryGatesCount }}</span
+                >
+              </div>
+
+              <div
+                class="d-flex justify-content-between align-items-center p-3 border-bottom border-light"
+              >
+                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
+                  <i class="bi bi-door-closed"></i>
+                  <span>{{ 'exitGatesCount' | t }}</span>
+                </div>
+                <span
+                  class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-2"
+                  >{{ summaryForView.exitGatesCount }}</span
+                >
+              </div>
+
+              <div
+                class="d-flex justify-content-between align-items-center p-3 border-bottom border-light"
+              >
+                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
+                  <i class="bi bi-car-front"></i>
+                  <span>{{ 'allowedParkingSlots' | t }}</span>
+                </div>
+                <span
+                  class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-10 px-2"
+                  >{{ summaryForView.allowedParkingSlots }}</span
+                >
+              </div>
+
+              <div
+                class="d-flex justify-content-between align-items-center p-3 border-bottom border-light"
+              >
+                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
+                  <i class="bi bi-clock-history"></i>
+                  <span>{{ 'gracePeriodMinutes' | t }}</span>
+                </div>
+                <span
+                  class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-10 px-2"
+                >
+                  {{ summaryForView.gracePeriodMinutes }} min
+                </span>
+              </div>
+
+              <div class="p-2 bg-light border-bottom border-top"></div>
+
+              <div
+                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
+              >
+                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
+                  <i class="bi bi-currency-dollar"></i>
+                  <span>{{ 'FeesType' | t }}</span>
+                </div>
+                <span
+                  class="badge rounded-pill bg-info bg-opacity-10 text-info border border-info border-opacity-10 px-2"
+                >
+                  {{ summaryForView.mode === 'entry' ? ('entry' | t) : ('exit' | t) }}
+                </span>
+              </div>
+
+              <div
+                class="d-flex justify-content-between align-items-center p-3 border-bottom border-light"
+              >
+                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
+                  <i class="bi bi-camera"></i>
+                  <span>{{ 'captureMode' | t }}</span>
+                </div>
+                <span class="fw-bold text-dark small">{{ summaryForView.captureMode }}</span>
+              </div>
+
+              <div
+                class="d-flex justify-content-between align-items-center p-3 border-bottom border-light"
+              >
+                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
+                  <i class="bi bi-printer"></i>
+                  <span>{{ 'printType' | t }}</span>
+                </div>
+                <span class="fw-bold text-dark small">{{ summaryForView.printType }}</span>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center p-2">
+                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
+                  <i class="bi bi-calendar-event"></i>
+                  <span>{{ 'startDate' | t }}</span>
+                </div>
+                <span class="fw-bold text-dark small">
+                  {{ summaryForView.ticketCard.startDate | date: 'yyyy-MM-dd' }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step Progress -->
+          <!-- Step Progress -->
+          <div class="card-footer bg-light p-2 border-top">
+            <div class="d-flex align-items-center justify-content-between position-relative">
+              <!-- Line Background -->
+              <div
+                class="position-absolute top-50 start-0 w-100 bg-secondary bg-opacity-25"
+                style="height: 2px; z-index: 0"
+              ></div>
+
+              <!-- Active Progress Line -->
+              <div
+                class="position-absolute top-50 bg-success transition-all"
+                style="height: 2px; z-index: 0; transition: width 0.3s ease"
+                [style.width.%]="progressPercentage"
+              ></div>
+
+              <!-- Step 1 -->
+              <div
+                class="d-flex flex-column align-items-center position-relative"
+                style="z-index: 1"
+              >
+                <div
+                  class="rounded-circle d-flex align-items-center justify-content-center mb-1 transition-all"
+                  style="width: 28px; height: 28px"
+                  [class.bg-success]="isStepActive(0)"
+                  [class.text-white]="isStepActive(0)"
+                  [class.bg-secondary]="!isStepActive(0)"
+                  [class.bg-opacity-50]="!isStepActive(0)"
+                >
+                  <i class="bi bi-check-lg" *ngIf="isStepCompleted(0)"></i>
+                  <span *ngIf="!isStepCompleted(0)" class="small fw-bold">1</span>
+                </div>
+                <span
+                  class="small fw-bold transition-all"
+                  [class.text-success]="isStepActive(0)"
+                  [class.text-muted]="!isStepActive(0)"
+                  >{{ 'basics' | t }}</span
+                >
+              </div>
+
+              <!-- Step 2 -->
+              <div
+                class="d-flex flex-column align-items-center position-relative"
+                style="z-index: 1"
+              >
+                <div
+                  class="rounded-circle d-flex align-items-center justify-content-center mb-1 transition-all"
+                  style="width: 28px; height: 28px"
+                  [class.bg-success]="isStepActive(1)"
+                  [class.text-white]="isStepActive(1)"
+                  [class.bg-secondary]="!isStepActive(1)"
+                  [class.text-white]="!isStepActive(1)"
+                  [ngClass]="{ 'bg-opacity-50': !isStepActive(1), 'bg-primary': stepIndex === 1 }"
+                >
+                  <i class="bi bi-check-lg" *ngIf="isStepCompleted(1)"></i>
+                  <span *ngIf="!isStepCompleted(1)" class="small fw-bold">2</span>
+                </div>
+                <span
+                  class="small fw-bold transition-all"
+                  [class.text-success]="isStepActive(1)"
+                  [class.text-primary]="stepIndex === 1"
+                  [class.text-muted]="!isStepActive(1)"
+                  >{{ 'modeAndSettings' | t }}</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-
-      <!-- Summary Card -->
-      <mat-card class="summary mat-elevation-z2 config-summary-card">
-        <div class="sum-header">
-          <i class="bi bi-clipboard-data"></i>
-          <h3 class="sum-title">{{ 'summary' | t }}</h3>
-        </div>
-
-        <div class="sum-content">
-          <div class="sum-line">
-            <div class="sum-label">
-              <i class="bi bi-door-open"></i>
-              <span>{{ 'entryGatesCount' | t }}</span>
-            </div>
-            <span class="sum-value badge-primary">{{ summaryForView.entryGatesCount }}</span>
-          </div>
-
-          <div class="sum-line">
-            <div class="sum-label">
-              <i class="bi bi-door-closed"></i>
-              <span>{{ 'exitGatesCount' | t }}</span>
-            </div>
-            <span class="sum-value badge-primary">{{ summaryForView.exitGatesCount }}</span>
-          </div>
-
-          <div class="sum-line">
-            <div class="sum-label">
-              <i class="bi bi-car-front"></i>
-              <span>{{ 'allowedParkingSlots' | t }}</span>
-            </div>
-            <span class="sum-value badge-success">{{ summaryForView.allowedParkingSlots }}</span>
-          </div>
-
-          <div class="sum-line">
-            <div class="sum-label">
-              <i class="bi bi-clock-history"></i>
-              <span>{{ 'gracePeriodMinutes' | t }}</span>
-            </div>
-            <span class="sum-value badge-warning">
-              {{ summaryForView.gracePeriodMinutes }} min
-            </span>
-          </div>
-
-          <div class="sum-divider"></div>
-
-          <div class="sum-line">
-            <div class="sum-label">
-              <i class="bi bi-currency-dollar"></i>
-              <span>{{ 'FeesType' | t }}</span>
-            </div>
-            <span class="sum-value badge-info">
-              {{ summaryForView.mode === 'entry' ? ('entry' | t) : ('exit' | t) }}
-            </span>
-          </div>
-
-          <div class="sum-line">
-            <div class="sum-label">
-              <i class="bi bi-camera"></i>
-              <span>{{ 'captureMode' | t }}</span>
-            </div>
-            <span class="sum-value">{{ summaryForView.captureMode }}</span>
-          </div>
-
-          <div class="sum-line">
-            <div class="sum-label">
-              <i class="bi bi-printer"></i>
-              <span>{{ 'printType' | t }}</span>
-            </div>
-            <span class="sum-value">{{ summaryForView.printType }}</span>
-          </div>
-
-          <div class="sum-line">
-            <div class="sum-label">
-              <i class="bi bi-calendar-event"></i>
-              <span>{{ 'startDate' | t }}</span>
-            </div>
-            <span class="sum-value">
-              {{ summaryForView.ticketCard.startDate | date : 'yyyy-MM-dd' }}
-            </span>
-          </div>
-        </div>
-
-        <!-- Step Progress -->
-        <div class="sum-progress">
-          <div
-            class="progress-item"
-            [class.completed]="stepIndex >= 0"
-            [class.active]="stepIndex === 0"
-          >
-            <div class="progress-icon">
-              <i
-                class="bi"
-                [class.bi-check-lg]="stepIndex > 0"
-                [class.bi-1-circle-fill]="stepIndex === 0"
-              ></i>
-            </div>
-            <span>{{ 'basics' | t }}</span>
-          </div>
-          <div class="progress-line" [class.active]="stepIndex >= 1"></div>
-          <div
-            class="progress-item"
-            [class.completed]="stepIndex >= 1"
-            [class.active]="stepIndex === 1"
-          >
-            <div class="progress-icon">
-              <i
-                class="bi"
-                [class.bi-check-lg]="stepIndex > 1"
-                [class.bi-2-circle-fill]="stepIndex <= 1"
-              ></i>
-            </div>
-            <span>{{ 'modeAndSettings' | t }}</span>
-          </div>
-        </div>
-      </mat-card>
     </div>
   </div>
 </div>
