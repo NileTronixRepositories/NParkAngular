@@ -3,7 +3,7 @@
     <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
       <i class="bi bi-list-ol"></i> {{ 'ticketsExit' | t }}
     </h5>
-    <span class="badge bg-secondary">{{ currentDate | date : 'dd/MM/yyyy' }}</span>
+    <span class="badge bg-secondary">{{ currentDate | date: 'dd/MM/yyyy' }}</span>
   </div>
 
   <div class="card-body p-0 d-flex flex-column">
@@ -12,8 +12,8 @@
         <thead class="table-head">
           <tr>
             <th>{{ 'tickets' | t }}</th>
-            <th style="width: 140px">{{ 'time' | t }}</th>
-            <th style="width: 140px">{{ 'fees' | t }}</th>
+            <th class="col-time">{{ 'time' | t }}</th>
+            <th class="col-fees">{{ 'fees' | t }}</th>
           </tr>
         </thead>
 
@@ -28,10 +28,10 @@
             <td class="mono">
               {{ t.info || t.plate || t.ticketNumber }}
             </td>
-            <td>{{ t.time | date : 'shortTime' }}</td>
+            <td>{{ t.time | date: 'shortTime' }}</td>
             <td>
               <span class="mono">
-                {{ t.price ?? 0 | number : '1.0-2' }}
+                {{ t.price ?? 0 | number: '1.0-2' }}
               </span>
               <span *ngIf="t.isCollectedByCashier" class="badge bg-success ms-1">
                 {{ 'cashierCollectedShort' | t }}
@@ -91,7 +91,7 @@
           <div class="d-flex justify-content-between mb-1">
             <span class="fw-semibold">{{ 'total_collected_amount' | t }}</span>
             <span class="mono">
-              {{ collectSummary.totalPriceCollected | number : '1.0-2' }}
+              {{ collectSummary.totalPriceCollected | number: '1.0-2' }}
             </span>
           </div>
 
@@ -110,15 +110,15 @@
               <thead>
                 <tr>
                   <th>{{ 'tickets' | t }}</th>
-                  <th style="width: 150px">{{ 'collected_at' | t }}</th>
-                  <th style="width: 120px">{{ 'fees' | t }}</th>
+                  <th class="col-collected-at">{{ 'collected_at' | t }}</th>
+                  <th class="col-fees-sm">{{ 'fees' | t }}</th>
                 </tr>
               </thead>
               <tbody>
                 <tr *ngFor="let d of collectSummary.ticketCollectDetails">
                   <td class="mono">{{ d.ticketNumber }}</td>
-                  <td>{{ d.collectedAt | date : 'short' }}</td>
-                  <td class="mono">{{ d.price | number : '1.0-2' }}</td>
+                  <td>{{ d.collectedAt | date: 'short' }}</td>
+                  <td class="mono">{{ d.price | number: '1.0-2' }}</td>
                 </tr>
               </tbody>
             </table>
@@ -129,7 +129,7 @@
             <span class="mono">
               {{
                 collectSummary.ticketCollectDetails[collectSummary.ticketCollectDetails.length - 1]
-                  ?.collectedAt | date : 'short'
+                  ?.collectedAt | date: 'short'
               }}
             </span>
           </div>
@@ -146,7 +146,7 @@
 
       <div class="small text-muted">
         {{ 'total_fees_today' | t }}:
-        <span class="mono">{{ totalPriceToday | number : '1.0-2' }}</span>
+        <span class="mono">{{ totalPriceToday | number: '1.0-2' }}</span>
       </div>
 
       <div class="btn-group ms-auto">
@@ -165,7 +165,7 @@
     class="modal d-block"
     tabindex="-1"
     *ngIf="showSupervisorCollectModal"
-    style="z-index: 1060; background: rgba(0, 0, 0, 0.4)"
+    class="modal-backdrop-custom"
   >
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
       <div class="modal-content">
@@ -244,7 +244,7 @@
             <div class="d-flex justify-content-between mb-1">
               <span class="fw-semibold">{{ 'total_collected_amount' | t }}</span>
               <span class="mono">
-                {{ collectSummary.totalPriceCollected | number : '1.0-2' }}
+                {{ collectSummary.totalPriceCollected | number: '1.0-2' }}
               </span>
             </div>
 
@@ -270,8 +270,8 @@
                 <tbody>
                   <tr *ngFor="let d of collectSummary.ticketCollectDetails">
                     <td class="mono">{{ d.ticketNumber }}</td>
-                    <td>{{ d.collectedAt | date : 'short' }}</td>
-                    <td class="mono">{{ d.price | number : '1.0-2' }}</td>
+                    <td>{{ d.collectedAt | date: 'short' }}</td>
+                    <td class="mono">{{ d.price | number: '1.0-2' }}</td>
                   </tr>
                 </tbody>
               </table>
@@ -283,7 +283,7 @@
                 {{
                   collectSummary.ticketCollectDetails[
                     collectSummary.ticketCollectDetails.length - 1
-                  ]?.collectedAt | date : 'short'
+                  ]?.collectedAt | date: 'short'
                 }}
               </span>
             </div>

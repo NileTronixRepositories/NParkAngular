@@ -146,3 +146,15 @@
     opacity: 1;
   }
 }
+
+/* ==========================
+   Refactored Inline Styles
+   ========================== */
+.header-icon-container {
+  width: 48px;
+  height: 48px;
+}
+
+.col-index {
+  width: 50px;
+}

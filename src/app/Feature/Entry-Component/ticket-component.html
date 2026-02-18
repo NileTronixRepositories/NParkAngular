@@ -137,8 +137,8 @@
                 <thead>
                   <tr>
                     <th>{{ t('ticket_number') }}</th>
-                    <th style="width: 150px">{{ t('collected_at') }}</th>
-                    <th style="width: 120px">{{ t('fees') }}</th>
+                    <th class="col-collected-at">{{ t('collected_at') }}</th>
+                    <th class="col-fees">{{ t('fees') }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -185,7 +185,7 @@
     class="modal d-block"
     tabindex="-1"
     *ngIf="showSupervisorCollectModal"
-    style="z-index: 1060; background: rgba(0, 0, 0, 0.4)"
+    class="modal-backdrop-custom"
   >
     <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
       <div class="modal-content">

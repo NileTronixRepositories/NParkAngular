@@ -1,5 +1,14 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, computed, effect, inject, signal } from '@angular/core';
+import {
+  ChangeDetectorRef,
+  Component,
+  OnDestroy,
+  OnInit,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import {
   AbstractControl,
   FormBuilder,
@@ -19,17 +28,22 @@ import {
   Registrationservice,
 } from '../../Services/registration/registrationservice';
 import { NfcReaderService } from '../../Services/registration/nfc-reader.service';
+import { AuthService } from '../../Services/Auth/auth-service';
 
 import { LanguageService } from '../../Services/i18n/language-service';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { ToastServices } from '../../Services/Toster/toast-services';
 import { RegistrationTourService } from '../../Services/registration/registration-tour.service';
+import { SafePipe } from '../../Pipes/safe.pipe';
+import { ScanFileMessage, ScanHubService } from '../../Services/Gate/scan-hub.service';
+import { DomSanitizer } from '@angular/platform-browser';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-registration-component',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslatePipePipe],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipePipe, SafePipe],
   templateUrl: './registration-component.html',
   styleUrl: './registration-component.css',
   providers: [
@@ -81,6 +95,8 @@ import { RegistrationTourService } from '../../Services/registration/registratio
           notPreviewable: 'لا يمكن معاينة هذا النوع هنا. يمكنك تنزيله لفتحه محلياً.',
           download: 'تنزيل الملف',
           close: 'إغلاق',
+          scanner_ready: 'الماسح جاهز',
+          save_to_pc: 'حفظ على الجهاز',
 
           // ===== preview overlay =====
           previewCloseAria: 'إغلاق',
@@ -177,6 +193,8 @@ import { RegistrationTourService } from '../../Services/registration/registratio
           notPreviewable: 'Preview is not available. You can download and open locally.',
           download: 'Download',
           close: 'Close',
+          scanner_ready: 'Scanner ready',
+          save_to_pc: 'Save to PC',
 
           // ===== preview overlay =====
           previewCloseAria: 'Close',
@@ -230,7 +248,7 @@ import { RegistrationTourService } from '../../Services/registration/registratio
     },
   ],
 })
-export class RegistrationComponent implements OnInit {
+export class RegistrationComponent implements OnInit, OnDestroy {
   // ===== DI =====
   private fb = inject(FormBuilder);
   private svc = inject(Registrationservice);
@@ -239,6 +257,11 @@ export class RegistrationComponent implements OnInit {
   private toast = inject(ToastServices);
   private dict = inject<I18nDict>(I18N_DICT as any);
   private regTour = inject(RegistrationTourService);
+  private scanHub = inject(ScanHubService);
+  private sanitizer = inject(DomSanitizer);
+  private cdr = inject(ChangeDetectorRef);
+  private auth = inject(AuthService);
+  private hubSubscriptions = new Subscription();
   // ===== State (list/paging) =====
   loading = signal(false);
   pageNumber = signal(1);
@@ -263,6 +286,14 @@ export class RegistrationComponent implements OnInit {
 
   readingCard = signal(false);
 
+  scannedFile = signal<{
+    name: string;
+    url: string;
+    safeUrl?: any;
+    type: string;
+    bytes: any;
+  } | null>(null);
+
   // ===== Edit mode state =====
   editingId = signal<string | null>(null);
   isEditing = computed(() => !!this.editingId());
@@ -275,7 +306,7 @@ export class RegistrationComponent implements OnInit {
 
       plate: this.fb.group(
         { p1: [''], p2: [''], p3: [''], p4: [''] },
-        { validators: [this.plateRequiredValidator] }
+        { validators: [this.plateRequiredValidator] },
       ),
 
       subscriberName: ['', [Validators.required, Validators.minLength(3)]],
@@ -290,7 +321,7 @@ export class RegistrationComponent implements OnInit {
       price: [null],
       orderPriority: [1, [Validators.min(1)]],
     },
-    { validators: [timeRangeValidator] }
+    { validators: [timeRangeValidator] },
   );
 
   isHours = computed(() => this.form.get('durationType')?.value === DurationType.Hours);
@@ -328,6 +359,88 @@ export class RegistrationComponent implements OnInit {
   ngOnInit(): void {
     this.loadPricingSchemas();
     this.load();
+
+    // Initialize scanner hub connection
+    this.scanHub.start().then(() => {
+      const gateId = this.auth.getGateId();
+      if (gateId) {
+        this.scanHub.joinStation(gateId.toString());
+        console.log('RegistrationComponent: Joined scanner station', gateId);
+      } else {
+        console.log('RegistrationComponent: Scanner hub started, but no gateId found');
+      }
+    });
+
+    // Subscribe to scan events
+    this.hubSubscriptions.add(
+      this.scanHub.scan$.subscribe((msg) => {
+        console.log('RegistrationComponent: Received scan event', msg.fileName);
+        this.handleScannedFile(msg);
+      }),
+    );
+  }
+
+  ngOnDestroy(): void {
+    this.hubSubscriptions.unsubscribe();
+  }
+
+  private handleScannedFile(msg: ScanFileMessage): void {
+    console.log(
+      '%c RegistrationComponent: [SCAN EVENT] Handling file: ' + msg.fileName,
+      'color: #00ff00; font-weight: bold;',
+    );
+    this.toast.success(this.t('scanner_ready') + ': ' + msg.fileName);
+
+    // Cleanup old URL if exists
+    if (this.scannedFile()?.url) {
+      URL.revokeObjectURL(this.scannedFile()!.url);
+    }
+
+    try {
+      let data: Uint8Array;
+      if (typeof msg.bytes === 'string') {
+        const binaryString = window.atob(msg.bytes);
+        data = new Uint8Array(binaryString.length);
+        for (let i = 0; i < binaryString.length; i++) {
+          data[i] = binaryString.charCodeAt(i);
+        }
+      } else if (msg.bytes instanceof ArrayBuffer) {
+        data = new Uint8Array(msg.bytes);
+      } else {
+        data = new Uint8Array(msg.bytes as any);
+      }
+
+      const blob = new Blob([data as any], { type: msg.contentType });
+      const rawUrl = URL.createObjectURL(blob);
+      const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl);
+
+      // 1. Update the "Ready to save" preview banner
+      this.scannedFile.set({
+        name: msg.fileName,
+        url: rawUrl,
+        safeUrl: safeUrl,
+        type: msg.contentType,
+        bytes: msg.bytes,
+      });
+
+      // 2. ALSO add it to the main documents list so it gets saved in FormData
+      const scFile = new File([blob], msg.fileName, { type: msg.contentType });
+      const doc: DocumentItem = {
+        name: msg.fileName,
+        mime: msg.contentType,
+        size: data.length,
+        dataUrl: rawUrl,
+        isImage: msg.contentType.startsWith('image/'),
+        file: scFile,
+      };
+
+      this.documents.set([...this.documents(), doc]);
+
+      this.cdr.markForCheck();
+    } catch (err) {
+      console.error('RegistrationComponent: Error rendering scan', err);
+      this.toast.error('Error rendering scan');
+    }
   }
 
   // ===== i18n helper =====
@@ -618,10 +731,22 @@ export class RegistrationComponent implements OnInit {
   editMembership(row: ParkingMembershipDto) {
     this.editingId.set(row.id);
 
-    // Parse plate number
-    const parts = (row.vehicleNumber || '').split(' ').filter(Boolean);
-    const p4 = parts[0] || '';
-    const p2 = parts[1] || '';
+    const vehicleNum = row.vehicleNumber || '';
+    const parts = vehicleNum.split(' ').filter(Boolean);
+
+    const numbers: string[] = [];
+    const letters: string[] = [];
+
+    for (const part of parts) {
+      if (/^\d+$/.test(part)) {
+        numbers.push(part);
+      } else {
+        letters.push(part);
+      }
+    }
+
+    const p4 = numbers.join('');
+    const p2 = letters.join(' ');
 
     // Populate form
     this.form.patchValue({
@@ -638,7 +763,38 @@ export class RegistrationComponent implements OnInit {
       },
     });
 
-    // Scroll to form
+    // Load existing vehicle images/documents
+    if (row.vehicleImage && row.vehicleImage.length > 0) {
+      const docs: DocumentItem[] = [];
+
+      for (const img of row.vehicleImage) {
+        const fullUrl = img.filePath.startsWith('http')
+          ? img.filePath
+          : `${window.location.origin}/${img.filePath.replace(/^\//, '')}`;
+
+        const fileName = img.filePath.split('/').pop() || 'image.jpg';
+
+        const ext = fileName.split('.').pop()?.toLowerCase() || '';
+        let mimeType = 'image/jpeg';
+        if (ext === 'png') mimeType = 'image/png';
+        else if (ext === 'pdf') mimeType = 'application/pdf';
+        else if (ext === 'gif') mimeType = 'image/gif';
+
+        docs.push({
+          name: fileName,
+          mime: mimeType,
+          size: 0,
+          dataUrl: fullUrl,
+          isImage: mimeType.startsWith('image/'),
+          file: null,
+        });
+      }
+
+      this.documents.set(docs);
+    } else {
+      this.documents.set([]);
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 

@@ -18,8 +18,13 @@ export class AltaeriffaTourService {
   }
 
   private pos(base: 'top' | 'bottom' | 'left' | 'right'): string {
-    if (base === 'bottom') return 'bottom-start';
-    if (base === 'top') return 'top-start';
+    if (base === 'top' || base === 'bottom') return 'bottom';
+
+    if (!this.isRTL) return base;
+
+    if (base === 'left') return 'right';
+    if (base === 'right') return 'left';
+
     return base;
   }
 

@@ -59,6 +59,7 @@ import { GateComponent } from '../gate-component/gate-component';
           gateNumber: 'رقم البوابة',
           gateTypeRequired: 'نوع البوابة مطلوب.',
           gateNumberRequired: 'رقم البوابة مطلوب.',
+          sessionExpired: 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى.',
         },
         en: {
           brandSuffix: 'Park',
@@ -90,6 +91,7 @@ import { GateComponent } from '../gate-component/gate-component';
           gateNumber: 'Gate Number',
           gateTypeRequired: 'Gate type is required.',
           gateNumberRequired: 'Gate number is required.',
+          sessionExpired: 'Your session has expired. Please sign in again.',
         },
       },
     },
@@ -121,7 +123,7 @@ export class LoginComponent {
 
   // ====== Validators ======
   readonly passwordsMatchValidator: ValidatorFn = (
-    group: AbstractControl
+    group: AbstractControl,
   ): ValidationErrors | null => {
     const newPwd = group.get('newPassword')?.value;
     const confirmPwd = group.get('confirmPassword')?.value;
@@ -144,10 +146,21 @@ export class LoginComponent {
       newPassword: ['', [Validators.required, Validators.minLength(6)]],
       confirmPassword: ['', [Validators.required]],
     },
-    { validators: this.passwordsMatchValidator }
+    { validators: this.passwordsMatchValidator },
   );
 
   constructor(@Inject(I18N_DICT) private dict: I18nDict) {}
+
+  ngOnInit(): void {
+    // التحقق من انتهاء الجلسة
+    const sessionExpired = this.route.snapshot.queryParamMap.get('sessionExpired');
+    if (sessionExpired === 'true') {
+      // عرض رسالة تحذيرية للمستخدم
+      setTimeout(() => {
+        this.toast?.warn?.(this.t('sessionExpired'));
+      }, 100);
+    }
+  }
 
   // ترجمة بسيطة من الـ dict المحلي
   private t(key: string): string {

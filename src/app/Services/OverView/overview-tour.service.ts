@@ -1,12 +1,13 @@
-import { Injectable, inject, effect, Injector } from '@angular/core';
+import { Injectable, Injector, afterNextRender, effect, inject } from '@angular/core';
 import Shepherd from 'shepherd.js';
 import { LanguageService } from '../../Services/i18n/language-service';
 
-@Injectable({
-  providedIn: 'root',
-})
+type Placement = 'top' | 'bottom' | 'left' | 'right';
+
+@Injectable({ providedIn: 'root' })
 export class OverviewTourService {
   private tour: any | null = null;
+
   private readonly lang = inject(LanguageService);
   private readonly injector = inject(Injector);
 
@@ -15,14 +16,13 @@ export class OverviewTourService {
       () => {
         this.lang.currentSignal();
 
-        if (this.tour && this.tour.isActive()) {
-          const currentStepId = this.tour.getCurrentStep()?.id;
+        if (this.tour?.isActive()) {
+          const stepId = this.tour.getCurrentStep()?.id as string | undefined;
           this.tour.cancel();
+
           this.buildTour();
-          this.tour.start();
-          if (currentStepId) {
-            this.tour.show(currentStepId);
-          }
+
+          this.startAfterRender(stepId);
         }
       },
       { injector: this.injector },
@@ -37,22 +37,44 @@ export class OverviewTourService {
     return this.isRTL ? ar : en;
   }
 
-  private pos(base: 'top' | 'bottom' | 'left' | 'right'): string {
-    if (base === 'bottom') return 'bottom-start';
-    if (base === 'top') return 'top-start';
-    return base;
-  }
-
   startTour(): void {
-    if (this.tour && this.tour.isActive()) {
-      this.tour.cancel();
-    }
+    if (this.tour?.isActive()) this.tour.cancel();
     this.buildTour();
-    this.tour?.start();
+    this.startAfterRender();
   }
 
   cancelTour(): void {
     this.tour?.cancel();
+  }
+
+  private startAfterRender(stepId?: string): void {
+    afterNextRender(
+      () => {
+        queueMicrotask(() => {
+          this.tour?.start();
+          if (stepId) this.tour?.show(stepId);
+        });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private waitForElement(selector: string, timeoutMs = 2500): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const start = performance.now();
+
+      const tick = () => {
+        const el = document.querySelector(selector);
+        if (el) return resolve();
+
+        if (performance.now() - start > timeoutMs) {
+          return reject(new Error(`Shepherd target not found: ${selector}`));
+        }
+        requestAnimationFrame(tick);
+      };
+
+      tick();
+    });
   }
 
   private buildTour(): void {
@@ -71,18 +93,32 @@ export class OverviewTourService {
           strategy: 'fixed',
           modifiers: [
             {
+              name: 'computeStyles',
+              options: { gpuAcceleration: false },
+            },
+            {
+              name: 'preventOverflow',
+              options: { boundary: 'viewport', padding: 8 },
+            },
+            {
               name: 'flip',
-              options: {
-                fallbackPlacements: [],
-              },
+              options: { padding: 8 },
             },
           ],
         },
       },
     } as any);
 
-    // تعريف الخطوات كـ Data
-    const stepsData = [
+    const stepsData: Array<{
+      id: string;
+      titleAr: string;
+      titleEn: string;
+      textAr: string;
+      textEn: string;
+      attachTo: string;
+      position: Placement;
+      hasBack?: boolean;
+    }> = [
       {
         id: 'overview-help',
         titleAr: 'شرح لوحة المعلومات',
@@ -157,26 +193,22 @@ export class OverviewTourService {
 
     const totalSteps = stepsData.length;
 
-    // Loop and add steps
     stepsData.forEach((step, index) => {
       const stepNum = index + 1;
       const isLast = index === totalSteps - 1;
 
-      // Add "Step X of Y" to title
-      const progressAr = `<span class="step-badge">${stepNum} / ${totalSteps}</span>`;
-      const progressEn = `<span class="step-badge">${stepNum} / ${totalSteps}</span>`;
-
-      const fullTitleAr = `${step.titleAr} ${progressAr}`;
-      const fullTitleEn = `${step.titleEn} ${progressEn}`;
+      const progress = `<span class="step-badge" dir="ltr">${stepNum}/${totalSteps}</span>`;
+      const fullTitleAr = `${step.titleAr} ${progress}`;
+      const fullTitleEn = `${step.titleEn} ${progress}`;
 
       this.addStep({
         id: step.id,
         title: this.t(fullTitleAr, fullTitleEn),
         text: this.t(step.textAr, step.textEn),
         attachTo: step.attachTo,
-        position: step.position as any,
+        position: step.position,
         hasBack: step.hasBack !== false,
-        isLast: isLast,
+        isLast,
       });
     });
   }
@@ -186,13 +218,12 @@ export class OverviewTourService {
     title: string;
     text: string;
     attachTo: string;
-    position: 'top' | 'bottom' | 'left' | 'right';
+    position: Placement;
     hasBack?: boolean;
     isLast?: boolean;
-  }) {
-    const buttons: { text: string; action: () => void; secondary?: boolean }[] = [];
+  }): void {
+    const buttons: any[] = [];
 
-    // Back Button with Icon
     if (config.hasBack) {
       const backText = this.isRTL
         ? `<i class="bi bi-arrow-right"></i> السابق`
@@ -201,40 +232,30 @@ export class OverviewTourService {
       buttons.push({
         text: backText,
         action: () => this.tour?.back(),
-        secondary: true,
-      } as any);
+        classes: 'shepherd-button-secondary',
+      });
     }
 
-    // Next / Finish Button with Icon
     if (config.isLast) {
       const finishText = this.isRTL
         ? `إنهاء <i class="bi bi-check-lg"></i>`
         : `Finish <i class="bi bi-check-lg"></i>`;
-
-      buttons.push({
-        text: finishText,
-        action: () => this.tour?.complete(),
-      });
+      buttons.push({ text: finishText, action: () => this.tour?.complete() });
     } else {
       const nextText = this.isRTL
         ? `التالي <i class="bi bi-arrow-left"></i>`
         : `Next <i class="bi bi-arrow-right"></i>`;
-
-      buttons.push({
-        text: nextText,
-        action: () => this.tour?.next(),
-      });
+      buttons.push({ text: nextText, action: () => this.tour?.next() });
     }
 
     this.tour?.addStep({
       id: config.id,
       title: config.title,
       text: config.text,
-      attachTo: {
-        element: config.attachTo,
-        on: this.pos(config.position),
-      },
+      attachTo: { element: config.attachTo, on: config.position },
       buttons,
+
+      beforeShowPromise: () => this.waitForElement(config.attachTo).catch(() => undefined),
     });
   }
 }

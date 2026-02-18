@@ -457,7 +457,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       this.scannedFile = {
         name: msg.fileName,
         url: rawUrl,
-        safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl), 
+        safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
         type: msg.contentType,
         bytes: msg.bytes,
       };
@@ -564,7 +564,6 @@ export class TicketComponent implements OnInit, OnDestroy {
         this.toast.success(this.t('select_gate'));
         this.loadTicketsForEntry();
 
-        // 🔔 Join Entry Station
         if (this.selectedGateId) {
           this.scanHub.joinStation(this.selectedGateId.toString());
         }
@@ -1312,7 +1311,6 @@ export class TicketComponent implements OnInit, OnDestroy {
       error: (err) => {
         this.handleBackendError('calculateTicketSalary error', err);
 
-        // fallback من الداتا اللي في الجدول لو حصل Error من الباك
         this.lastIssuedTicketId = ticket.id ?? null;
         this.lastIssuedTicketInfo = ticket.info ?? null;
         this.lastIssuedPrice = ticket.price ?? null;

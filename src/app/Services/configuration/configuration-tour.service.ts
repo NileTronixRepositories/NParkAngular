@@ -61,8 +61,11 @@ export class ConfigurationTourService {
 
   private pos(base: Placement): Placement {
     if (!this.isRTL) return base;
+
+    if (base.startsWith('top') || base.startsWith('bottom')) return 'bottom' as Placement;
     if (base.startsWith('left')) return base.replace('left', 'right') as Placement;
     if (base.startsWith('right')) return base.replace('right', 'left') as Placement;
+
     return base;
   }
 
@@ -101,7 +104,7 @@ export class ConfigurationTourService {
       },
     } as any);
 
-    // 1) هيدر الصفحة (Summary header)
+    // 1) header page(Summary header)
     this.addStep({
       id: 'config-header',
       titleAr: 'إعدادات النظام',
@@ -113,7 +116,7 @@ export class ConfigurationTourService {
       hasBack: false,
     });
 
-    // 2) الـ Wizard الأساسي
+    // 2) The Wizard
     this.addStep({
       id: 'config-wizard',
       titleAr: 'معالج الإعدادات',
@@ -126,7 +129,7 @@ export class ConfigurationTourService {
       position: 'top',
     });
 
-    // 3) أساسيات الإعدادات – Step 1
+    // 3) Basics – Step 1
     this.addStep({
       id: 'config-basics',
       titleAr: 'الأساسيات',
@@ -143,7 +146,7 @@ export class ConfigurationTourService {
       waitForSelector: '.config-step1-form',
     });
 
-    // 4) نوع التسعير (Entry / Exit)
+    // 4) Price type (Entry / Exit)
     this.addStep({
       id: 'config-mode',
       titleAr: 'نوع التسعير',
@@ -160,7 +163,7 @@ export class ConfigurationTourService {
       waitForSelector: '.config-mode-group',
     });
 
-    // 5) وضع التقاط الصور
+    // 5) Capture mode
     this.addStep({
       id: 'config-capture',
       titleAr: 'طريقة الالتقاط',
@@ -174,7 +177,7 @@ export class ConfigurationTourService {
       waitForSelector: '.config-capture-group',
     });
 
-    // 6) نظام التسعير (entry فقط)
+    // 6) Pricing schema (entry only)
     this.addStep({
       id: 'config-pricing',
       titleAr: 'نظام التسعير',
@@ -192,7 +195,7 @@ export class ConfigurationTourService {
       waitForSelector: '.config-pricing-group',
     });
 
-    // 7) بوابات الدخول / الخروج
+    // 7) Entry / Exit gates
     this.addStep({
       id: 'config-gates',
       titleAr: 'بوابات الدخول والخروج',
@@ -206,7 +209,7 @@ export class ConfigurationTourService {
       waitForSelector: '.config-gates-tabs',
     });
 
-    // 8) ملخّص الإعدادات
+    // 8) Configuration summary
     this.addStep({
       id: 'config-summary',
       titleAr: 'ملخَّص الإعدادات',

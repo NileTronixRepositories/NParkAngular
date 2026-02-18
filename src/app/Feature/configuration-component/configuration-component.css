@@ -59,7 +59,7 @@
 
 .mat-expansion-panel-header {
   height: auto !important;
-  padding: 0.75rem 1rem !important; /* Reduced from 1rem 1.5rem */
+  padding: 0.5rem 0.75rem !important; /* Reduced further for minimalist look */
 }
 
 .mat-content {
@@ -115,7 +115,7 @@
   box-shadow: 0 4px 12px rgba(25, 123, 70, 0.12) !important;
 }
 .gates-accordion .mat-expansion-panel-header {
-  padding: 10px 16px; /* Reduced from 16px 20px */
+  padding: 6px 12px; /* Reduced from 10px 16px */
   border-radius: 10px !important;
   background-color: #f8fdf9;
   transition: all 0.2s ease;
@@ -126,7 +126,7 @@
 .gates-accordion .mat-expansion-panel-header-title {
   color: #197b46;
   font-weight: 700;
-  font-size: 1rem;
+  font-size: 0.9rem;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -139,16 +139,14 @@
   color: #197b46;
 }
 
-/* Panel Content */
 .mat-expansion-panel-body {
-  padding: 10px 16px !important; /* Reduced from 16px 20px */
+  padding: 8px 12px !important;
 }
 
-/* Gates Container in Accordion */
 .horizontal-accordion {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 1.5rem;
+  gap: 1rem;
   margin-top: 1rem;
 }
 
@@ -159,7 +157,6 @@
   }
 }
 
-/* Main Accordion Styling */
 .main-accordion {
   height: fit-content;
 }
@@ -174,7 +171,7 @@
   box-shadow: 0 6px 16px rgba(25, 123, 70, 0.15) !important;
 }
 .main-accordion .mat-expansion-panel-header {
-  padding: 12px 16px; /* Reduced from 20px 24px */
+  padding: 8px 12px; /* Reduced from 12px 16px */
   border-radius: 12px !important;
   background: linear-gradient(135deg, #f8fdf9 0%, #e8f7ef 100%);
   transition: all 0.2s ease;
@@ -185,7 +182,7 @@
 .main-accordion .mat-expansion-panel-header-title {
   color: #197b46;
   font-weight: 800;
-  font-size: 1.1rem;
+  font-size: 1rem;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -196,7 +193,7 @@
 
 /* Panel Content */
 .mat-expansion-panel-body {
-  padding: 12px 16px !important; /* Reduced from 20px 24px */
+  padding: 10px 14px !important; /* Reduced from 12px 16px */
 }
 
 /* Gates Grid Layout */
@@ -204,7 +201,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
-  padding: 0.5rem 0;
+  padding: 0.25rem 0;
 }
 
 /* Individual Gate Accordion */
@@ -221,7 +218,7 @@
   box-shadow: 0 4px 10px rgba(25, 123, 70, 0.12) !important;
 }
 .gate-accordion .mat-expansion-panel-header {
-  padding: 12px 16px;
+  padding: 8px 12px;
   border-radius: 8px !important;
   background-color: #ffffff;
   min-height: 48px;
@@ -240,7 +237,7 @@
 
 /* Gate Details */
 .gate-details {
-  padding: 16px;
+  padding: 12px;
   background-color: #fafdfb;
   border-radius: 6px;
   border: 1px solid #f1f5f9;
@@ -277,7 +274,7 @@
 }
 .ip-address {
   width: 100%;
-  padding: 10px 12px;
+  padding: 8px 10px;
   border: 1px solid #cbd5e1;
   border-radius: 6px;
   font-size: 0.85rem;
@@ -392,7 +389,7 @@
   border-top: none;
   border-radius: 0 0 10px 10px;
   background: #ffffff;
-  padding: 0.75rem 1rem; /* Reduced from 1rem 1.25rem */
+  padding: 0.5rem 0.75rem; /* Reduced from 0.75rem 1rem */
 }
 
 .tab-content {
@@ -428,4 +425,41 @@
   .settings-grid {
     grid-template-columns: 1fr;
   }
+}
+
+/* =========================================
+   Refactored Inline Styles
+   ========================================= */
+
+/* Sidebar Sticky wrapper */
+.config-sidebar-sticky {
+  position: sticky;
+  top: 1rem;
+  z-index: 10;
+}
+
+/* Config Title Icon */
+.config-title-icon-container {
+  width: 48px;
+  height: 48px;
+}
+
+.step-progress-line-bg {
+  height: 2px;
+  z-index: 0;
+}
+
+.step-progress-line-active {
+  height: 2px;
+  z-index: 0;
+  transition: width 0.3s ease;
+}
+
+.step-indicator-wrapper {
+  z-index: 1;
+}
+
+.step-indicator-circle {
+  width: 28px;
+  height: 28px;
 }

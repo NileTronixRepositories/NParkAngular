@@ -245,3 +245,27 @@
 :host .modal-body .table {
   font-size: 0.8rem;
 }
+
+/* ==========================
+   Refactored Inline Styles
+   ========================== */
+.col-time {
+  width: 140px;
+}
+
+.col-fees {
+  width: 140px;
+}
+
+.col-fees-sm {
+  width: 120px;
+}
+
+.col-collected-at {
+  width: 150px;
+}
+
+.modal-backdrop-custom {
+  z-index: 1060;
+  background: rgba(0, 0, 0, 0.4);
+}

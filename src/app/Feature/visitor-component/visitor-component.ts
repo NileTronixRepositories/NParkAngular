@@ -69,6 +69,7 @@ export class VisitorComponent implements OnInit {
       order_added: 'تمت إرسال الطلب بنجاح!',
       failed_add_order: 'فشل في إرسال الطلب.',
       count_label: 'الترتيب',
+      visitor: 'الزائر',
     },
     en: {
       all_records: 'All Records',
@@ -108,6 +109,7 @@ export class VisitorComponent implements OnInit {
       order_added: 'Order added successfully!',
       failed_add_order: 'Failed To Submit.',
       count_label: 'Count',
+      visitor: 'Visitor',
     },
   };
   t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
@@ -137,16 +139,19 @@ export class VisitorComponent implements OnInit {
       [i.name, String(i.price), i.totalHours ?? '', this.mapDuration(i.durationType)]
         .join(' ')
         .toLowerCase()
-        .includes(term)
+        .includes(term),
     );
   });
 
   // Map: itemId -> 1-based order index
   orderMap = computed<Record<string, number>>(() =>
-    this.picked().reduce((acc, it, idx) => {
-      acc[it.id] = idx + 1;
-      return acc;
-    }, {} as Record<string, number>)
+    this.picked().reduce(
+      (acc, it, idx) => {
+        acc[it.id] = idx + 1;
+        return acc;
+      },
+      {} as Record<string, number>,
+    ),
   );
 
   getOrderFor = (it: RepeatedPricingDto) => this.orderMap()[it.id] ?? 0;
@@ -227,7 +232,7 @@ export class VisitorComponent implements OnInit {
     this.visitorServices.getOrder().subscribe({
       next: (order: RepeatedPricingDto[]) => {
         const sorted = [...(order ?? [])].sort(
-          (a: any, b: any) => ((a?.order ?? 9999) as number) - ((b?.order ?? 9999) as number)
+          (a: any, b: any) => ((a?.order ?? 9999) as number) - ((b?.order ?? 9999) as number),
         );
 
         if (!sorted || sorted.length === 0) {

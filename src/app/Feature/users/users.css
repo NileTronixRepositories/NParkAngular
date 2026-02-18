@@ -1,54 +1,101 @@
+/* ================== Users Component (Minimalist Refactor) ================== */
+
+/* ===== Layout ===== */
 .users-theme {
-  padding: 0.5rem;
+  background-color: #f8fafc;
+  min-height: calc(100vh - 60px);
 }
 
-.users-theme .theme-blue {
-  background-color: #0ea5e9;
-  color: #081018;
-}
-.users-theme .theme-green {
-  background-color: #10b981;
-  color: #062a1f;
-}
-.users-theme .theme-amber {
-  background-color: #f59e0b;
-  color: #2a1a00;
+/* ===== Page Header (Compact) ===== */
+.page-header {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-radius: 12px;
+  color: #fff;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-.shadow-soft {
-  box-shadow: 0 6px 24px rgba(15, 23, 42, 0.06);
+.header-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
-.table-head {
-  background: #f8fafc;
+
+.header-icon {
+  color: #f87171; /* Accent color */
 }
+
+.text-muted-header {
+  color: #cbd5e1 !important;
+}
+
+/* ===== Tables & Utility ===== */
+.table th {
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  color: #475569;
+  border-top: none;
+}
+
+.table td {
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
 .mono {
   font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, 'Liberation Mono', monospace;
 }
 
-.btn-primary {
-  background-color: #0ea5e9;
-  border-color: #0ea5e9;
-}
-.btn-primary:hover {
-  background-color: #0284c7;
-  border-color: #0284c7;
-}
-.btn-outline-primary {
-  border-color: #0ea5e9;
-  color: #0ea5e9;
-}
-.btn-outline-primary:hover {
-  background-color: #0ea5e9;
-  color: #081018;
+.btn-xs {
+  padding: 0.125rem 0.25rem;
+  font-size: 0.75rem;
+  line-height: 1;
+  border-radius: 0.2rem;
 }
 
-.badge {
-  border-radius: 999px;
-  font-weight: 700;
-  letter-spacing: 0.3px;
-  padding: 0.45rem 0.6rem;
+.x-small {
+  font-size: 0.75rem;
 }
 
-.form-label {
-  font-weight: 600;
+/* ===== Animations ===== */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.fade-in-down {
+  animation: fadeInDown 0.3s ease-out;
+}
+
+/* RTL Adjustments */
+[dir='rtl'] .ms-1 {
+  margin-right: 0.25rem !important;
+  margin-left: 0 !important;
+}
+
+[dir='rtl'] .me-1 {
+  margin-left: 0.25rem !important;
+  margin-right: 0 !important;
+}
+
+[dir='rtl'] .pe-3 {
+  padding-left: 1rem !important;
+  padding-right: 0 !important;
+}
+
+[dir='rtl'] .ps-3 {
+  padding-right: 1rem !important;
+  padding-left: 0 !important;
 }

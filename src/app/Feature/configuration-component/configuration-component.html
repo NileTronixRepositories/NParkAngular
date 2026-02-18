@@ -1,5 +1,5 @@
 <div
-  class="container-fluid py-3"
+  class="container-fluid py-2"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
@@ -7,7 +7,7 @@
   <div class="row g-3">
     <!-- ===================== WIZARD (MAIN CONTENT) ===================== -->
     <div class="col-12 col-xl-9">
-      <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4 config-main-card">
+      <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3 config-main-card">
         <mat-horizontal-stepper
           [linear]="true"
           [selectedIndex]="stepIndex"
@@ -16,7 +16,7 @@
         >
           <!-- ===================== STEP 1 ===================== -->
           <mat-step [stepControl]="step1Form" [label]="'basics' | t">
-            <form [formGroup]="step1Form" class="p-3 config-step1-form">
+            <form [formGroup]="step1Form" class="p-2 config-step1-form">
               <div class="row g-2">
                 <div class="col-12 col-md-6">
                   <mat-form-field appearance="outline" class="w-100">
@@ -74,7 +74,7 @@
                 </div>
               </div>
 
-              <div class="d-flex justify-content-end mt-3 pt-2 border-top">
+              <div class="d-flex justify-content-end mt-2 pt-1 border-top">
                 <button
                   mat-flat-button
                   color="primary"
@@ -91,14 +91,14 @@
 
           <!-- ===================== STEP 2 ===================== -->
           <mat-step [stepControl]="step2Form" [label]="'modeAndSettings' | t">
-            <form [formGroup]="step2Form" class="p-3">
+            <form [formGroup]="step2Form" class="p-2">
               <!-- ===== Settings (Mode / Capture / Print / Options / Pricing) ===== -->
-              <div class="row g-2 mb-3">
+              <div class="row g-2 mb-2">
                 <!-- MODE -->
                 <div class="col-12 col-md-6 col-lg-4 config-mode-group">
                   <div class="card h-100 border bg-light shadow-sm">
                     <div class="card-body p-2">
-                      <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                      <div class="d-flex align-items-center gap-2 mb-2 text-primary">
                         <i class="bi bi-currency-exchange fs-5"></i>
                         <h6 class="mb-0 fw-bold">{{ 'Price Type' | t }}</h6>
                       </div>
@@ -126,7 +126,7 @@
                 <div class="col-12 col-md-6 col-lg-4 config-capture-group">
                   <div class="card h-100 border bg-light shadow-sm">
                     <div class="card-body p-2">
-                      <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                      <div class="d-flex align-items-center gap-2 mb-2 text-primary">
                         <i class="bi bi-camera-video fs-5"></i>
                         <h6 class="mb-0 fw-bold">{{ 'Image Capture Mode' | t }}</h6>
                       </div>
@@ -152,7 +152,7 @@
                 <div class="col-12 col-md-6 col-lg-4">
                   <div class="card h-100 border bg-light shadow-sm">
                     <div class="card-body p-2">
-                      <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                      <div class="d-flex align-items-center gap-2 mb-2 text-primary">
                         <i class="bi bi-printer fs-5"></i>
                         <h6 class="mb-0 fw-bold">{{ 'printType' | t }}</h6>
                       </div>
@@ -172,7 +172,7 @@
                 <div class="col-12 col-md-6">
                   <div class="card h-100 border bg-light shadow-sm">
                     <div class="card-body p-2">
-                      <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                      <div class="d-flex align-items-center gap-2 mb-2 text-primary">
                         <i class="bi bi-ticket-perforated fs-5"></i>
                         <h6 class="mb-0 fw-bold">{{ 'Ticket Options' | t }}</h6>
                       </div>
@@ -198,7 +198,7 @@
                 >
                   <div class="card h-100 border bg-light shadow-sm">
                     <div class="card-body p-2">
-                      <div class="d-flex align-items-center gap-2 mb-3 text-primary">
+                      <div class="d-flex align-items-center gap-2 mb-2 text-primary">
                         <i class="bi bi-tags fs-5"></i>
                         <h6 class="mb-0 fw-bold">{{ 'Pricing Schema' | t }}</h6>
                       </div>
@@ -219,17 +219,17 @@
               </div>
 
               <!-- ===== Tabs for Entry / Exit Gates ===== -->
-              <mat-tab-group class="mb-3 config-gates-tabs" animationDuration="0ms">
+              <mat-tab-group class="mb-2 config-gates-tabs" animationDuration="0ms">
                 <!-- ========== Entry Gates TAB ========== -->
                 <mat-tab [label]="'entryGates' | t">
-                  <div class="pt-3">
+                  <div class="pt-2">
                     <mat-expansion-panel
                       class="border-0 shadow-none bg-transparent"
                       [expanded]="true"
                       [disabled]="true"
                       hideToggle
                     >
-                      <mat-expansion-panel-header class="bg-light rounded-3 mb-3 border">
+                      <mat-expansion-panel-header class="bg-light rounded-3 mb-2 border">
                         <mat-panel-title class="d-flex align-items-center gap-2 fw-bold text-dark">
                           <mat-icon class="text-primary">door_front</mat-icon>
                           {{ 'entryGates' | t }}
@@ -239,7 +239,7 @@
                         }}</span>
                       </mat-expansion-panel-header>
 
-                      <div class="row g-3" formArrayName="entryGates">
+                      <div class="row g-2" formArrayName="entryGates">
                         <div
                           class="col-12 col-lg-6"
                           *ngFor="let g of entryGatesControls; let i = index"
@@ -253,8 +253,8 @@
                               </mat-panel-title>
                             </mat-expansion-panel-header>
 
-                            <div class="pt-3">
-                              <div class="d-flex flex-column gap-3">
+                            <div class="pt-2">
+                              <div class="d-flex flex-column gap-2">
                                 <div
                                   class="d-flex align-items-center gap-2 text-muted small fw-bold"
                                 >
@@ -298,7 +298,7 @@
 
                 <!-- ========== Exit Gates TAB ========== -->
                 <mat-tab [label]="'exitGates' | t">
-                  <div class="pt-3">
+                  <div class="pt-2">
                     <mat-expansion-panel
                       class="border-0 shadow-none bg-transparent"
                       [expanded]="true"
@@ -315,7 +315,7 @@
                         }}</span>
                       </mat-expansion-panel-header>
 
-                      <div class="row g-3" formArrayName="exitGates">
+                      <div class="row g-2" formArrayName="exitGates">
                         <div
                           class="col-12 col-lg-6"
                           *ngFor="let g of exitGatesControls; let i = index"
@@ -373,7 +373,7 @@
                 </mat-tab>
               </mat-tab-group>
 
-              <div class="d-flex justify-content-between mt-3 pt-2 border-top">
+              <div class="d-flex justify-content-between mt-2 pt-1 border-top">
                 <button mat-stroked-button type="button" (click)="goBack()" class="px-4">
                   {{ 'back' | t }}
                 </button>
@@ -389,15 +389,14 @@
 
     <!-- ===================== SUMMARY SIDEBAR ===================== -->
     <div class="col-12 col-xl-3">
-      <div class="d-flex flex-column gap-4 sticky-top" style="top: 1rem; z-index: 10">
+      <div class="d-flex flex-column gap-2 sticky-top config-sidebar-sticky">
         <!-- Page Header -->
         <div
           class="d-flex align-items-center justify-content-between flex-wrap gap-2 config-page-header"
         >
           <div class="d-flex align-items-center gap-3 config-title-group">
             <div
-              class="d-flex align-items-center justify-content-center bg-primary bg-gradient text-white rounded-3 shadow-sm"
-              style="width: 48px; height: 48px"
+              class="d-flex align-items-center justify-content-center bg-primary bg-gradient text-white rounded-3 shadow-sm config-title-icon-container"
             >
               <i class="bi bi-gear-fill fs-4"></i>
             </div>
@@ -441,7 +440,7 @@
               </div>
 
               <div
-                class="d-flex justify-content-between align-items-center p-3 border-bottom border-light"
+                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
               >
                 <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
                   <i class="bi bi-door-closed"></i>
@@ -454,7 +453,7 @@
               </div>
 
               <div
-                class="d-flex justify-content-between align-items-center p-3 border-bottom border-light"
+                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
               >
                 <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
                   <i class="bi bi-car-front"></i>
@@ -467,7 +466,7 @@
               </div>
 
               <div
-                class="d-flex justify-content-between align-items-center p-3 border-bottom border-light"
+                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
               >
                 <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
                   <i class="bi bi-clock-history"></i>
@@ -497,7 +496,7 @@
               </div>
 
               <div
-                class="d-flex justify-content-between align-items-center p-3 border-bottom border-light"
+                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
               >
                 <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
                   <i class="bi bi-camera"></i>
@@ -507,7 +506,7 @@
               </div>
 
               <div
-                class="d-flex justify-content-between align-items-center p-3 border-bottom border-light"
+                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
               >
                 <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
                   <i class="bi bi-printer"></i>
@@ -534,25 +533,21 @@
             <div class="d-flex align-items-center justify-content-between position-relative">
               <!-- Line Background -->
               <div
-                class="position-absolute top-50 start-0 w-100 bg-secondary bg-opacity-25"
-                style="height: 2px; z-index: 0"
+                class="position-absolute top-50 start-0 w-100 bg-secondary bg-opacity-25 step-progress-line-bg"
               ></div>
 
               <!-- Active Progress Line -->
               <div
-                class="position-absolute top-50 bg-success transition-all"
-                style="height: 2px; z-index: 0; transition: width 0.3s ease"
+                class="position-absolute top-50 bg-success transition-all step-progress-line-active"
                 [style.width.%]="progressPercentage"
               ></div>
 
               <!-- Step 1 -->
               <div
-                class="d-flex flex-column align-items-center position-relative"
-                style="z-index: 1"
+                class="d-flex flex-column align-items-center position-relative step-indicator-wrapper"
               >
                 <div
-                  class="rounded-circle d-flex align-items-center justify-content-center mb-1 transition-all"
-                  style="width: 28px; height: 28px"
+                  class="rounded-circle d-flex align-items-center justify-content-center mb-1 transition-all step-indicator-circle"
                   [class.bg-success]="isStepActive(0)"
                   [class.text-white]="isStepActive(0)"
                   [class.bg-secondary]="!isStepActive(0)"
@@ -571,12 +566,10 @@
 
               <!-- Step 2 -->
               <div
-                class="d-flex flex-column align-items-center position-relative"
-                style="z-index: 1"
+                class="d-flex flex-column align-items-center position-relative step-indicator-wrapper"
               >
                 <div
-                  class="rounded-circle d-flex align-items-center justify-content-center mb-1 transition-all"
-                  style="width: 28px; height: 28px"
+                  class="rounded-circle d-flex align-items-center justify-content-center mb-1 transition-all step-indicator-circle"
                   [class.bg-success]="isStepActive(1)"
                   [class.text-white]="isStepActive(1)"
                   [class.bg-secondary]="!isStepActive(1)"

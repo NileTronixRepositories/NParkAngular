@@ -18,7 +18,7 @@ body {
   border: 1px solid #e2e8f0;
   box-shadow: 0 10px 25px rgba(15, 23, 42, 0.15);
   background: #ffffff;
-  max-width: 360px; /* Reduced from 420px */
+  max-width: 360px;
   font-family: inherit;
 }
 
@@ -27,7 +27,7 @@ body {
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
-  padding: 0.6rem 0.8rem 0.5rem; /* Reduced padding */
+  padding: 0.6rem 0.8rem 0.5rem;
   border-bottom: 1px solid #e2e8f0;
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
   color: #313131;
@@ -35,7 +35,7 @@ body {
 }
 
 .np-shepherd-step .shepherd-title {
-  font-size: 0.85rem; /* Reduced font size */
+  font-size: 0.85rem;
   font-weight: 700;
   color: #353535;
   display: flex;
@@ -44,6 +44,8 @@ body {
 }
 
 .np-shepherd-step .step-badge {
+  direction: ltr;
+  unicode-bidi: isolate;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -68,8 +70,8 @@ body {
 }
 
 .np-shepherd-step .shepherd-text {
-  padding: 0.75rem 0.9rem 0.25rem; /* Reduced padding */
-  font-size: 0.85rem; /* Reduced font size */
+  padding: 0.75rem 0.9rem 0.25rem;
+  font-size: 0.85rem;
   color: #334155;
   line-height: 1.4;
 }
@@ -79,7 +81,7 @@ body {
 }
 
 .np-shepherd-step .shepherd-footer {
-  padding: 0.5rem 0.9rem 0.6rem; /* Reduced padding */
+  padding: 0.5rem 0.9rem 0.6rem;
   border-top: 1px solid #e2e8f0;
   display: flex;
   justify-content: flex-end;
@@ -89,7 +91,7 @@ body {
 
 .np-shepherd-step .shepherd-button {
   border-radius: 999px;
-  padding: 0.25rem 0.75rem; /* Reduced padding */
+  padding: 0.25rem 0.75rem;
   font-size: 0.75rem; /* Reduced font size */
   font-weight: 600;
   border: 1px solid transparent;
@@ -135,8 +137,8 @@ body {
 }
 
 .np-shepherd-rtl .shepherd-footer {
-  flex-direction: row; /* Keep logical order; buttons will be handled by their own styles */
-  justify-content: flex-start; /* Next button usually comes first in RTL if we want it on the left, or vice versa. Let's stick to standard flex and use gap. */
+  flex-direction: row;
+  justify-content: flex-start;
 }
 
 .np-shepherd-step .shepherd-button i.bi {
@@ -152,16 +154,6 @@ body {
   border-radius: 12px;
   transition: box-shadow 0.2s ease;
 }
-.shepherd-arrow {
-  /* Dynamic alignment based on direction */
-  left: 15px !important;
-  right: auto !important;
-}
-
-.np-shepherd-rtl .shepherd-arrow {
-  right: 15px !important;
-  left: auto !important;
-}
 
 /* ==================================
    Global RTL Fixes (Inputs & Buttons)
@@ -174,7 +166,7 @@ body {
   ):not(.invalid-feedback) {
   margin-right: -1px;
   margin-left: 0;
-  border-top-left-radius: 0.375rem; /* Default bootstrap radius, adjust if needed */
+  border-top-left-radius: 0.375rem;
   border-bottom-left-radius: 0.375rem;
   border-top-right-radius: 0;
   border-bottom-right-radius: 0;
@@ -218,10 +210,25 @@ body {
   border-bottom-right-radius: 0;
 }
 
-/* Specific fix for custom designs using rounded-pill in input-group */
 [dir='rtl'] .input-group.rounded-pill .form-control:first-child {
   border-radius: 0 50px 50px 0 !important;
 }
 [dir='rtl'] .input-group.rounded-pill .input-group-text:last-child {
   border-radius: 50px 0 0 50px !important;
+}
+
+/* ================================
+   Shepherd / Popper RTL + z-index fixes
+   ================================ */
+
+.shepherd-modal-overlay-container {
+  z-index: 999999 !important;
+}
+.np-shepherd-step.shepherd-element {
+  z-index: 1000000 !important;
+}
+
+.np-shepherd-step.shepherd-element[data-popper-placement] {
+  right: auto !important;
+  bottom: auto !important;
 }

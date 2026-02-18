@@ -16,8 +16,8 @@
   --ticket-red-soft-border: rgba(239, 68, 68, 0.25);
 
   --ticket-shadow-soft: 0 8px 24px rgba(0, 0, 0, 0.06);
-  --ticket-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    monospace;
+  --ticket-font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
 }
 
 .tickets-theme .shadow-soft {
@@ -144,4 +144,20 @@
   right: auto;
   left: 0;
   transform: skewX(20deg);
+}
+
+/* ==========================
+   Refactored Inline Styles
+   ========================== */
+.col-collected-at {
+  width: 150px;
+}
+
+.col-fees {
+  width: 120px;
+}
+
+.modal-backdrop-custom {
+  z-index: 1060;
+  background: rgba(0, 0, 0, 0.4);
 }

@@ -32,7 +32,7 @@ export class UsersTourService {
           }
         }
       },
-      { injector: this.injector }
+      { injector: this.injector },
     );
   }
 
@@ -45,9 +45,13 @@ export class UsersTourService {
   }
 
   private pos(base: Placement): Placement {
+    if (base.startsWith('top') || base.startsWith('bottom')) return 'bottom' as Placement;
+
     if (!this.isRTL) return base;
-    if (base === 'left') return 'right';
-    if (base === 'right') return 'left';
+
+    if (base.startsWith('left')) return base.replace('left', 'right') as Placement;
+    if (base.startsWith('right')) return base.replace('right', 'left') as Placement;
+
     return base;
   }
 

@@ -27,7 +27,7 @@ export class RegistrationTourService {
           }
         }
       },
-      { injector: this.injector }
+      { injector: this.injector },
     );
   }
 
@@ -41,9 +41,14 @@ export class RegistrationTourService {
   }
 
   private pos(base: 'top' | 'bottom' | 'left' | 'right'): 'top' | 'bottom' | 'left' | 'right' {
+    // نستخدم bottom في المنتصف دايماً عشان محاذاة أدق في العربي والإنجليزي
+    if (base === 'top' || base === 'bottom') return 'bottom' as any;
+
     if (!this.isRTL) return base;
+
     if (base === 'left') return 'right';
     if (base === 'right') return 'left';
+
     return base;
   }
 
