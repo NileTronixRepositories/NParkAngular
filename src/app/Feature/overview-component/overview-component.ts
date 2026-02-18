@@ -23,6 +23,7 @@ import { Subscription, Subject, debounceTime, distinctUntilChanged } from 'rxjs'
 import { LanguageService } from '../../Services/i18n/language-service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { OverviewTourService } from '../../Services/OverView/overview-tour.service';
+import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
 
 type NotificationType = 'IN' | 'OUT' | 'COLLECTED';
 type MembershipViewType = 'active' | 'inactive' | 'expiring';
@@ -200,6 +201,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     private readonly dashboardHub: DashboardHubService,
     private readonly ticketsService: TicketsServices,
     private readonly overviewTour: OverviewTourService,
+    private readonly errorExtractor: ErrorExtractorService,
   ) {}
 
   // ===== State =====
@@ -417,7 +419,9 @@ export class OverviewComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error loading dashboard', err);
         this.loading.set(false);
-        this.errorMessage.set('Failed to load dashboard');
+        const fallback =
+          this.lang.current === 'ar' ? 'حدث خطأ في تحميل البيانات' : 'Error loading data';
+        this.errorMessage.set(this.errorExtractor.extractErrorMessage(err, fallback));
       },
     });
   }

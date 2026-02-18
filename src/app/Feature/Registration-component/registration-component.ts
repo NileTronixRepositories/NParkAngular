@@ -39,6 +39,7 @@ import { SafePipe } from '../../Pipes/safe.pipe';
 import { ScanFileMessage, ScanHubService } from '../../Services/Gate/scan-hub.service';
 import { DomSanitizer } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
+import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
 
 @Component({
   selector: 'app-registration-component',
@@ -261,6 +262,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
   private sanitizer = inject(DomSanitizer);
   private cdr = inject(ChangeDetectorRef);
   private auth = inject(AuthService);
+  private errorExtractor = inject(ErrorExtractorService);
   private hubSubscriptions = new Subscription();
   // ===== State (list/paging) =====
   loading = signal(false);
@@ -452,31 +454,11 @@ export class RegistrationComponent implements OnInit, OnDestroy {
 
   // ===== Message extractors (from backend) =====
   private extractErrorMessage(err: any, fallbackKey: string): string {
-    const fallback = this.t(fallbackKey);
-    const e = err?.error ?? err;
-    if (!e) return fallback;
-
-    if (typeof e === 'string') return e;
-
-    if (e.errors && Array.isArray(e.errors) && e.errors[0]?.message) {
-      return e.errors[0].message;
-    }
-
-    if (e.detail) return e.detail;
-    if (e.title) return e.title;
-
-    return fallback;
+    return this.errorExtractor.extractErrorMessage(err, this.t(fallbackKey));
   }
 
   private extractSuccessMessage(res: any, fallbackKey: string): string {
-    const fallback = this.t(fallbackKey);
-    if (!res) return fallback;
-
-    if (typeof res === 'string') return res;
-    if (res.message) return res.message;
-    if (res.detail) return res.detail;
-
-    return fallback;
+    return this.errorExtractor.extractSuccessMessage(res, this.t(fallbackKey));
   }
 
   // ===== Data =====
