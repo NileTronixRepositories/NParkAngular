@@ -134,7 +134,7 @@ const HOST_OR_IP_REGEX =
           pcIpLabel: 'PC IP address',
           deviceIpLabel: 'LPR IP address',
           back: 'Back',
-          save: 'Back',
+          save: 'Save',
           summary: 'Summary',
           startDate: 'Start Date',
           notSet: 'Not set',
