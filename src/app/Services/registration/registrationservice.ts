@@ -40,6 +40,6 @@ export class Registrationservice {
   }
 
   updateMembership(id: string, fd: FormData): Observable<any> {
-    return this.http.put(`${this.membershipsBase}/Update/${id}`, fd);
+    return this.http.put(`${this.membershipsBase}`, fd);
   }
 }

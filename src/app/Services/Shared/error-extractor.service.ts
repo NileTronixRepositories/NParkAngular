@@ -4,7 +4,6 @@ import { Injectable } from '@angular/core';
   providedIn: 'root',
 })
 export class ErrorExtractorService {
- 
   extractErrorMessage(err: any, fallback?: string): string {
     if (!err) return fallback || '';
 
@@ -80,8 +79,23 @@ export class ErrorExtractorService {
     if (!res) return fallback || '';
 
     if (typeof res === 'string') return res;
-    if (res.message) return res.message;
-    if (res.detail) return res.detail;
+
+    // Check common keys
+    const possibleKeys = [
+      'message',
+      'Message',
+      'detail',
+      'Detail',
+      'description',
+      'Description',
+      'title',
+      'Title',
+    ];
+    for (const key of possibleKeys) {
+      if (typeof res[key] === 'string' && res[key].trim()) {
+        return res[key].trim();
+      }
+    }
 
     return fallback || '';
   }

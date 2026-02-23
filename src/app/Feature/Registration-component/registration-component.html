@@ -5,7 +5,7 @@
   [class.page-ltr]="!lang.isRTL()"
 >
   <!--  Page Header  -->
-  <div class="page-header mb-3 fade-in-down py-2 px-3">
+  <div class="page-header mb-3 fade-in-down py-2 px-3 registration-header">
     <div class="header-content d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center gap-2">
         <div class="header-icon-wrapper size-md">
@@ -28,7 +28,7 @@
         <!--  Help Tour Button -->
         <button
           type="button"
-          class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center gap-1 btn-help-tour px-2"
+          class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center gap-1 btn-help-tour px-2 btn-help-tour-registration"
           (click)="startRegistrationTour()"
         >
           <i class="bi bi-question-circle"></i>
@@ -43,7 +43,7 @@
     <div class="row g-2">
       <!-- بطاقة بيانات المشترك -->
       <div class="col-12 col-lg-4">
-        <div class="card shadow-sm border-0 h-100 bg-white">
+        <div class="card shadow-sm border-0 h-100 bg-white reg-card-subscriber">
           <div
             class="card-header py-2 px-3 d-flex align-items-center justify-content-between bg-white border-bottom-0"
           >
@@ -142,7 +142,7 @@
 
       <!-- ===== 2) تفاصيل الاشتراك ===== -->
       <div class="col-12 col-lg-4">
-        <div class="card shadow-sm border-0 h-100 bg-white">
+        <div class="card shadow-sm border-0 h-100 bg-white reg-card-schema">
           <div
             class="card-header py-2 px-3 d-flex align-items-center justify-content-between bg-white border-bottom-0"
           >
@@ -184,7 +184,7 @@
               <div class="input-group input-group-sm">
                 <input class="form-control" formControlName="cardNo" dir="ltr" />
                 <button
-                  class="btn btn-outline-primary"
+                  class="btn btn-outline-primary reg-btn-read-card"
                   type="button"
                   (click)="readCard()"
                   [disabled]="readingCard()"
@@ -203,7 +203,7 @@
 
       <!-- ===== 3) المستندات ===== -->
       <div class="col-12 col-lg-4">
-        <div class="card shadow-sm border-0 h-100 bg-white">
+        <div class="card shadow-sm border-0 h-100 bg-white reg-card-docs">
           <div
             class="card-header py-2 px-3 d-flex align-items-center justify-content-between bg-white border-bottom-0"
           >
@@ -270,7 +270,11 @@
                   </div>
                   <div class="x-small text-truncate" [title]="d.name">{{ d.name }}</div>
                 </div>
-                <button class="btn btn-link btn-sm text-danger p-1" (click)="removeDocument(i)">
+                <button
+                  type="button"
+                  class="btn btn-link btn-sm text-danger p-1"
+                  (click)="removeDocument(i)"
+                >
                   <i class="bi bi-x-circle"></i>
                 </button>
               </div>
@@ -343,7 +347,12 @@
       tabindex="0"
     >
       <div class="preview-dialog" (click)="$event.stopPropagation()">
-        <button class="close-btn" (click)="forceClose()" [attr.aria-label]="'previewCloseAria' | t">
+        <button
+          type="button"
+          class="close-btn"
+          (click)="forceClose()"
+          [attr.aria-label]="'previewCloseAria' | t"
+        >
           <i class="bi bi-x-lg"></i>
         </button>
         <ng-container *ngIf="currentPreview(); let p">
@@ -380,7 +389,7 @@
       </button>
       <button
         type="submit"
-        class="btn btn-primary btn-sm shadow-sm px-4"
+        class="btn btn-primary btn-sm shadow-sm px-4 reg-btn-submit"
         [disabled]="saving() || form.invalid"
       >
         <i class="bi bi-plus-circle-fill me-1" *ngIf="!isEditing() && !saving()"></i>
@@ -398,7 +407,7 @@
 
   <!-- ===== 2) List (Memberships) ===== -->
   <div class="memberships mt-3">
-    <div class="card shadow-sm border-0 bg-white">
+    <div class="card shadow-sm border-0 bg-white reg-card-memberships">
       <div
         class="card-header py-2 px-3 d-flex align-items-center justify-content-between bg-white border-bottom"
       >
@@ -407,7 +416,7 @@
         <div class="d-flex align-items-center gap-2">
           <label class="m-0 x-small text-muted">{{ 'pageSize' | t }}</label>
           <select
-            class="form-select form-select-sm w-auto py-0 x-small"
+            class="form-select form-select-sm w-auto py-0 x-small reg-page-size-select"
             [value]="pageSize()"
             (change)="changePageSize(+$any($event.target).value)"
           >
@@ -461,7 +470,7 @@
                 <td class="pe-3">
                   <div class="d-flex justify-content-end gap-1">
                     <button
-                      class="btn btn-xs btn-outline-primary"
+                      class="btn btn-xs btn-outline-primary reg-row-actions"
                       (click)="editMembership(r)"
                       [title]="'edit' | t"
                     >
@@ -491,7 +500,7 @@
 
       <!-- Pagination footer -->
       <div
-        class="card-footer py-2 px-3 d-flex flex-wrap gap-2 align-items-center justify-content-between bg-white border-top x-small"
+        class="card-footer py-2 px-3 d-flex flex-wrap gap-2 align-items-center justify-content-between bg-white border-top x-small reg-pagination-footer"
       >
         <div class="text-muted">
           {{ 'total' | t }}: <b>{{ totalItems() }}</b> — {{ 'page' | t }} <b>{{ pageNumber() }}</b>

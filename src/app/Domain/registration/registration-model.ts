@@ -14,6 +14,7 @@ export interface DocumentItem {
   dataUrl: string;
   isImage: boolean;
   file?: File | null;
+  remoteId?: string;
 }
 
 export interface PricingSchemaDto {

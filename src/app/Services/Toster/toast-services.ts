@@ -102,6 +102,17 @@ export class ToastServices {
     this.error(t.unexpected, t.error);
   }
 
+  // ================== UNIFIED SUCCESS HANDLER ==================
+  fromSuccess(res: any, fallback?: string) {
+    const lang = this.currentLang();
+    const t = this.defaultTitles[lang];
+
+    const message = this.errorExtractor.extractSuccessMessage(res, fallback);
+    if (message && message.trim()) {
+      this.success(message, t.success);
+    }
+  }
+
   // ================== PRIVATE HELPERS ==================
   private extractBackendMessage(err: any): string | null {
     const msg = this.errorExtractor.extractErrorMessage(err);

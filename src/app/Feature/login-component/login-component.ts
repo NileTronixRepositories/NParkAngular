@@ -200,9 +200,9 @@ export class LoginComponent {
     };
 
     this.auth.login(dto).subscribe({
-      next: () => {
+      next: (res) => {
         this.loading = false;
-        this.toast?.success?.(this.t('successLogin'));
+        this.toast.fromSuccess(res);
         this.navigateAfterLogin();
       },
       error: (err: unknown) => {
@@ -281,7 +281,7 @@ export class LoginComponent {
       next: (res) => {
         this.changeLoading = false;
 
-        this.toast?.success?.(this.t('successPwdUpdated'));
+        this.toast.fromSuccess(res);
 
         this.showChangeModal = false;
 
@@ -295,15 +295,7 @@ export class LoginComponent {
       },
       error: (err: any) => {
         this.changeLoading = false;
-
-        const apiMessage =
-          err?.error?.message || err?.error?.detail || this.t('adminFirstTimeMissing');
-
-        if (this.toast?.fromProblem) {
-          this.toast.fromProblem(err);
-        } else {
-          this.toast?.error?.(apiMessage);
-        }
+        this.toast.fromProblem(err);
 
         this.showChangeModal = false;
 

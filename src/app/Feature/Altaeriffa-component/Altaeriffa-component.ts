@@ -465,20 +465,13 @@ export class AltaeriffaComponent implements OnInit {
     if (!id) return;
 
     this.api.delete(id).subscribe({
-      next: () => {
+      next: (res) => {
         this.page.set(1);
         this.loadRows();
-        this.toast.success(this.t('deleted_success'));
+        this.toast.fromSuccess(res);
       },
       error: (err) => {
-        if (err.status === 409) {
-          // Extract specific conflict message from backend
-          const msg =
-            err.error?.detail || err.error?.errors?.[0]?.message || this.t('unexpected_error');
-          this.toast.error(msg);
-        } else {
-          this.toast.fromProblem(err);
-        }
+        this.toast.fromProblem(err);
       },
     });
   }
@@ -500,12 +493,12 @@ export class AltaeriffaComponent implements OnInit {
           return;
         }
         this.api.update(dto).subscribe({
-          next: () => {
+          next: (res) => {
             this.page.set(1);
             this.loadRows();
             this.saving.set(false);
             this.resetForm();
-            this.toast.success(this.t('updated_success'));
+            this.toast.fromSuccess(res);
           },
           error: (err) => {
             this.saving.set(false);
@@ -519,12 +512,12 @@ export class AltaeriffaComponent implements OnInit {
           return;
         }
         this.api.add(dto).subscribe({
-          next: () => {
+          next: (res) => {
             this.page.set(1);
             this.loadRows();
             this.saving.set(false);
             this.resetForm();
-            this.toast.success(this.t('added_success'));
+            this.toast.fromSuccess(res);
           },
           error: (err) => {
             this.saving.set(false);
@@ -534,7 +527,7 @@ export class AltaeriffaComponent implements OnInit {
       }
     } catch (error: any) {
       this.saving.set(false);
-      this.toast.error(error?.message ?? this.t('unexpected_error'));
+      this.toast.fromProblem(error);
     }
   }
 

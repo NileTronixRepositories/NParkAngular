@@ -473,12 +473,12 @@ export class ConfigurationComponent implements OnInit {
       .updateConfig(dto)
       .pipe(finalize(() => (this.saving = false)))
       .subscribe({
-        next: () => {
-          this.toast.success('Configuration updated successfully');
+        next: (res) => {
+          this.toast.fromSuccess(res);
           this.submitted.emit(dto);
         },
-        error: () => {
-          this.toast.error('Failed to update configuration');
+        error: (err) => {
+          this.toast.fromProblem(err);
         },
       });
   }

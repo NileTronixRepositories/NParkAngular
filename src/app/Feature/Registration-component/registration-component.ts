@@ -40,6 +40,7 @@ import { ScanFileMessage, ScanHubService } from '../../Services/Gate/scan-hub.se
 import { DomSanitizer } from '@angular/platform-browser';
 import { Subscription } from 'rxjs';
 import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
+import { environment } from '../../Shared/environment/environment';
 
 @Component({
   selector: 'app-registration-component',
@@ -203,7 +204,7 @@ import { ErrorExtractorService } from '../../Services/Shared/error-extractor.ser
           // ===== submit =====
           saving: 'Saving...',
           saveSubscription: 'Save membership',
-          savedOk: 'Saved successfully ✅',
+          savedOk: 'Saved successfully',
           saveFail: 'Failed to save. Check API & data.',
 
           // ===== list =====
@@ -232,9 +233,9 @@ import { ErrorExtractorService } from '../../Services/Shared/error-extractor.ser
           deleteAction: 'Delete',
           cancelEdit: 'Cancel Edit',
           deleteConfirm: 'Are you sure you want to delete this membership?',
-          deleteSuccess: 'Membership deleted successfully ✅',
+          deleteSuccess: 'Membership deleted successfully',
           deleteFailed: 'Failed to delete membership.',
-          updateSuccess: 'Membership updated successfully ✅',
+          updateSuccess: 'Membership updated successfully',
           updateFailed: 'Failed to update membership.',
           updateSubscription: 'Update Membership',
 
@@ -299,6 +300,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
   // ===== Edit mode state =====
   editingId = signal<string | null>(null);
   isEditing = computed(() => !!this.editingId());
+  removedRemoteIds = signal<string[]>([]);
 
   // ===== Form & Validators =====
   form: FormGroup = this.fb.group(
@@ -468,8 +470,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
       next: (list) => this.schemas.set(list ?? []),
       error: (err) => {
         console.error(err);
-        const msg = this.extractErrorMessage(err, 'loading');
-        this.toast.error(msg);
+        this.toast.fromProblem(err);
         this.loadingSchemas.set(false);
       },
       complete: () => this.loadingSchemas.set(false),
@@ -482,9 +483,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
       next: (res) => this.result.set(res),
       error: (err) => {
         console.error(err);
-        const msg = this.extractErrorMessage(err, 'loadFail' as any);
-        // لو حابب تضيف key مخصوص للتحميل، ضيفه في الـ dict فوق
-        this.toast.error(msg);
+        this.toast.fromProblem(err);
         this.loading.set(false);
       },
       complete: () => this.loading.set(false),
@@ -597,6 +596,10 @@ export class RegistrationComponent implements OnInit, OnDestroy {
 
   removeDocument(index: number) {
     const arr = [...this.documents()];
+    const doc = arr[index];
+    if (doc.remoteId) {
+      this.removedRemoteIds.set([...this.removedRemoteIds(), doc.remoteId]);
+    }
     arr.splice(index, 1);
     this.documents.set(arr);
   }
@@ -632,6 +635,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
   }
 
   // ===== Submit =====
+
   save() {
     this.form.get('plate')?.markAllAsTouched();
     if (this.form.invalid) return;
@@ -649,12 +653,23 @@ export class RegistrationComponent implements OnInit, OnDestroy {
     fd.append('CardNumber', v.cardNo);
     fd.append('PricingSchemeId', v.pricingSchemaId);
 
-    const imgs = this.documents().filter((d) => d.isImage && d.file);
-    for (const img of imgs) {
-      fd.append('VehicleImage', img.file as File, img.name);
+    const editingId = this.editingId();
+    if (editingId) {
+      fd.append('Id', editingId);
     }
 
-    const editingId = this.editingId();
+    const fileField = editingId ? 'NewVehicleImages' : 'VehicleImage';
+    const imgs = this.documents().filter((d) => d.isImage && d.file);
+    for (const img of imgs) {
+      fd.append(fileField, img.file as File, img.name);
+    }
+
+    if (editingId) {
+      const removedIds = this.removedRemoteIds();
+      for (const rid of removedIds) {
+        fd.append('RemoveAttachmentIds', rid);
+      }
+    }
 
     // Choose create or update
     const request$ = editingId
@@ -664,8 +679,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
     request$.subscribe({
       next: (res) => {
         const successKey = editingId ? 'updateSuccess' : 'savedOk';
-        const msg = this.extractSuccessMessage(res, successKey);
-        this.toast.success(msg);
+        this.toast.fromSuccess(res, this.t(successKey));
 
         this.editingId.set(null);
         this.reset();
@@ -673,9 +687,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error(err);
-        const errorKey = editingId ? 'updateFailed' : 'saveFail';
-        const msg = this.extractErrorMessage(err, errorKey);
-        this.toast.error(msg);
+        this.toast.fromProblem(err);
         this.saving.set(false);
       },
       complete: () => this.saving.set(false),
@@ -691,6 +703,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
       orderPriority: 1,
     });
     this.documents.set([]);
+    this.removedRemoteIds.set([]);
     this.previewOpen.set(false);
     this.currentPreview.set(null);
   }
@@ -750,9 +763,10 @@ export class RegistrationComponent implements OnInit, OnDestroy {
       const docs: DocumentItem[] = [];
 
       for (const img of row.vehicleImage) {
+        const apiOrigin = new URL(environment.baseUrl).origin;
         const fullUrl = img.filePath.startsWith('http')
           ? img.filePath
-          : `${window.location.origin}/${img.filePath.replace(/^\//, '')}`;
+          : `${apiOrigin}/${img.filePath.replace(/^\//, '')}`;
 
         const fileName = img.filePath.split('/').pop() || 'image.jpg';
 
@@ -769,6 +783,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
           dataUrl: fullUrl,
           isImage: mimeType.startsWith('image/'),
           file: null,
+          remoteId: img.id,
         });
       }
 
@@ -789,14 +804,12 @@ export class RegistrationComponent implements OnInit, OnDestroy {
     this.loading.set(true);
     this.svc.deleteMembership(id).subscribe({
       next: (res) => {
-        const msg = this.extractSuccessMessage(res, 'deleteSuccess');
-        this.toast.success(msg);
+        this.toast.fromSuccess(res, this.t('deleteSuccess'));
         this.load();
       },
       error: (err) => {
         console.error(err);
-        const msg = this.extractErrorMessage(err, 'deleteFailed');
-        this.toast.error(msg);
+        this.toast.fromProblem(err);
         this.loading.set(false);
       },
       complete: () => this.loading.set(false),

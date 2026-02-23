@@ -268,8 +268,8 @@ export class VisitorComponent implements OnInit {
     }
 
     this.visitorServices.addOrder(orderSchema).subscribe({
-      next: () => {
-        this.toast.success(this.t('order_added'));
+      next: (res) => {
+        this.toast.fromSuccess(res);
         this.clearPicked();
         this.loadOrder();
       },

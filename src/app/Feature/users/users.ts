@@ -130,9 +130,9 @@ export class Users {
         this.users = list ?? [];
         this.loading = false;
       },
-      error: () => {
+      error: (err) => {
         this.loading = false;
-        this.toast.error(this.t('failed_load'));
+        this.toast.fromProblem(err);
       },
     });
   }
@@ -144,9 +144,9 @@ export class Users {
         this.roles = list ?? [];
         this.rolesLoading = false;
       },
-      error: () => {
+      error: (err) => {
         this.rolesLoading = false;
-        this.toast.error(this.t('failed_load'));
+        this.toast.fromProblem(err);
       },
     });
   }
@@ -225,7 +225,7 @@ export class Users {
 
       this.saving = true;
       this.svc.update(payload).subscribe({
-        next: () => {
+        next: (res) => {
           const idx = this.users.findIndex((u) => u.id === id);
           if (idx !== -1) {
             const old = this.users[idx];
@@ -240,27 +240,13 @@ export class Users {
             };
           }
 
-          this.toast.success(this.t('updated_ok'));
+          this.toast.fromSuccess(res);
           this.showForm = false;
           this.saving = false;
         },
         error: (err) => {
           this.saving = false;
-
-          const pd = err?.error;
-          if (err?.status === 422 && pd) {
-            if (Array.isArray(pd.errors) && pd.errors.length) {
-              for (const e of pd.errors) {
-                this.toast.error(e.message || e.code || this.t('failed_save'), pd.title || 'Error');
-              }
-            } else if (pd.detail) {
-              this.toast.error(pd.detail, pd.title || 'Error');
-            } else {
-              this.toast.error(this.t('failed_save'));
-            }
-          } else {
-            this.toast.fromProblem(err);
-          }
+          this.toast.fromProblem(err);
         },
       });
     } else {
@@ -296,16 +282,15 @@ export class Users {
 
       this.saving = true;
       this.svc.add(payload).subscribe({
-        next: (created: any) => {
-          if (created && created.id) {
-            const roleName =
-              this.roles.find((r) => r.id === created.roleId)?.name || created.roleName;
+        next: (res: any) => {
+          if (res && res.id) {
+            const roleName = this.roles.find((r) => r.id === res.roleId)?.name || res.roleName;
 
             const newUser: UserDto = {
-              id: created.id,
-              userName: created.userName,
-              email: created.email,
-              roleId: created.roleId,
+              id: res.id,
+              userName: res.userName,
+              email: res.email,
+              roleId: res.roleId,
               roleName,
             };
 
@@ -314,7 +299,7 @@ export class Users {
             this.reload();
           }
 
-          this.toast.success(this.t('created_ok'));
+          this.toast.fromSuccess(res);
           this.showForm = false;
           this.saving = false;
         },
