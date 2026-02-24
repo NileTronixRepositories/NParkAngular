@@ -3,10 +3,10 @@
   <div class="card-header search-card__header">
     <div class="search-card__title">
       <div class="search-card__icon">
-        <i class="bi bi-search"></i>
+        <i class="bi bi-search fs-6"></i>
       </div>
       <div class="search-card__text">
-        <div class="search-card__title-main">{{ t('quick_search') }}</div>
+        <div class="search-card__title-main fs-6">{{ t('quick_search') }}</div>
         <div class="search-card__title-sub">{{ t('search_subtitle') }}</div>
       </div>
     </div>
@@ -75,7 +75,7 @@
             <div class="result-details">
               <span class="detail-item">
                 <i class="bi bi-clock"></i>
-                {{ ticket.time | date : 'short' }}
+                {{ ticket.time | date: 'short' }}
               </span>
               <span class="detail-item" *ngIf="ticket.info">
                 <i class="bi bi-info-circle"></i>
@@ -85,7 +85,7 @@
           </div>
 
           <div class="result-price-tag" *ngIf="ticket.price !== undefined">
-            <span class="price-value">{{ ticket.price | number : '1.0-0' }}</span>
+            <span class="price-value">{{ ticket.price | number: '1.0-0' }}</span>
             <span class="price-currency">{{ t('currency') }}</span>
           </div>
         </div>

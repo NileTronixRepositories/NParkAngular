@@ -1,119 +1,129 @@
-<div class="card h-100 shadow-soft">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
-      <i class="bi bi-hdd-network"></i> {{ t('gate_devices') }}
-    </h5>
-    <div class="small text-muted">{{ t('devices_status') }}</div>
+<div class="card h-100 shadow-soft border-0">
+  <div class="card-header bg-transparent border-bottom p-2 px-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+        <i class="bi bi-hdd-network text-primary"></i> {{ t('gate_devices') }}
+      </h6>
+      <div class="x-small text-muted">{{ t('devices_status') }}</div>
+    </div>
   </div>
 
-  <div class="card-body">
+  <div class="card-body p-2">
     <ng-container *ngIf="gatePeripheral as gp; else noGateDevices">
-      <!-- PC -->
-      <div class="device-row mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <span class="fw-semibold">{{ t('pc_device') }}</span>
-          <span class="badge pill" [class.theme-green]="gp.hasPc" [class.theme-red]="!gp.hasPc">
+      <!-- PC Device -->
+      <div class="device-row p-1 mb-1 rounded-2 border">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
+          <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-pc-display text-secondary x-small"></i>
+            <span class="device-name x-small fw-bold">{{ t('pc_device') }}</span>
+          </div>
+          <span
+            class="badge pill x-small"
+            [class.theme-green]="gp.hasPc"
+            [class.theme-red]="!gp.hasPc"
+          >
             {{ gp.hasPc ? t('device_connected') : t('device_not_connected') }}
           </span>
         </div>
-
-        <div class="small text-muted" *ngIf="gp.pcIp">
-          {{ t('ip_address') }}:
-          <span class="mono">{{ gp.pcIp }}</span>
+        <div class="mt-0" *ngIf="gp.pcIp">
+          <span class="device-ip mono x-small text-muted px-1 rounded bg-light">{{ gp.pcIp }}</span>
         </div>
       </div>
 
-      <hr />
-
-      <!-- LPR -->
-      <div class="device-row mb-3">
-        <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-1">
+      <!-- LPR Device -->
+      <div class="device-row p-1 mb-2 rounded-2 border">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
           <div class="d-flex align-items-center gap-2">
-            <span class="fw-semibold">{{ t('lpr_device') }}</span>
-            <span class="badge pill" [class.theme-green]="gp.hasLpr" [class.theme-red]="!gp.hasLpr">
-              {{ gp.hasLpr ? t('device_connected') : t('device_not_connected') }}
-            </span>
+            <i class="bi bi-camera-video text-secondary x-small"></i>
+            <span class="device-name x-small fw-bold">{{ t('lpr_device') }}</span>
           </div>
+          <span
+            class="badge pill x-small"
+            [class.theme-green]="gp.hasLpr"
+            [class.theme-red]="!gp.hasLpr"
+          >
+            {{ gp.hasLpr ? t('device_connected') : t('device_not_connected') }}
+          </span>
+        </div>
 
-          <!-- Manual input + submit button -->
-          <div class="input-group input-group-sm manual-lpr-input-group">
+        <div class="d-flex align-items-center gap-1 mt-1">
+          <div class="input-group input-group-sm">
             <input
               type="text"
-              class="form-control manual-lpr-input"
+              class="form-control form-control-sm mono text-center x-small py-0"
               [ngModel]="manualLprPlate"
               (ngModelChange)="onPlateChange($event)"
               [placeholder]="t('plate')"
             />
             <button
-              class="btn btn-outline-primary"
+              class="btn btn-primary btn-xs px-2"
               type="button"
               (click)="onCreateTicketClicked()"
               [disabled]="adding || !manualLprPlate.trim()"
-              [title]="t('create_ticket')"
             >
-              <i class="bi bi-send"></i>
+              <i class="bi bi-send-fill" *ngIf="!adding"></i>
+              <span *ngIf="adding" class="spinner-border spinner-border-sm"></span>
             </button>
           </div>
         </div>
 
-        <div class="small text-muted" *ngIf="gp.lprIp">
-          {{ t('ip_address') }}:
-          <span class="mono">{{ gp.lprIp }}</span>
+        <div class="mt-1" *ngIf="gp.lprIp">
+          <span class="device-ip mono x-small text-muted px-1 rounded bg-light">{{
+            gp.lprIp
+          }}</span>
         </div>
       </div>
 
       <!--  Premium Scanned Document Preview -->
-      <div class="scanned-card-premium mt-3 animate-fade-in" *ngIf="scannedFile">
-        <div class="card-header-premium">
-          <i class="bi bi-file-earmark-check-fill"></i>
+      <div class="scanned-card-premium mt-2 rounded-3 border overflow-hidden" *ngIf="scannedFile">
+        <div class="bg-dark text-white p-1 px-2 x-small d-flex align-items-center gap-2">
+          <i class="bi bi-file-earmark-check"></i>
           <span>{{ t('scanner_ready') }}</span>
         </div>
-        <div class="card-body-premium">
-          <div class="preview-box">
-            <!-- Image Preview -->
+        <div class="p-1">
+          <div
+            class="preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden"
+            [style.height.px]="scannedFile.type === 'application/pdf' ? 180 : 80"
+          >
             <img
               *ngIf="scannedFile.type.startsWith('image/')"
               [src]="scannedFile.safeUrl"
-              alt="Scan Preview"
+              class="h-100 w-auto"
+              alt="Preview"
             />
-            <!-- PDF Viewer (iframe) -->
             <iframe
               *ngIf="scannedFile.type === 'application/pdf'"
               [src]="scannedFile.safeUrl"
-              class="pdf-preview-frame"
+              class="w-100 h-100 border-0"
             ></iframe>
-
-            <!-- Generic Placeholder -->
             <div
               *ngIf="
                 !scannedFile.type.startsWith('image/') && scannedFile.type !== 'application/pdf'
               "
-              class="pdf-placeholder"
+              class="text-danger text-center py-2"
             >
-              <i class="bi bi-file-earmark-pdf-fill"></i>
-              <div class="small fw-bold">{{ scannedFile.type.split('/')[1]?.toUpperCase() }}</div>
+              <i class="bi bi-file-earmark-pdf fs-2"></i>
+              <div class="x-small fw-bold text-uppercase">{{ scannedFile.type.split('/')[1] }}</div>
             </div>
           </div>
-          <div class="action-box">
-            <div class="file-name-meta">{{ scannedFile.name }}</div>
-            <div class="d-flex gap-2 w-100">
-              <a
-                [href]="scannedFile.url | safe: 'url'"
-                [download]="scannedFile.name"
-                class="btn-save-premium flex-grow-1"
-              >
-                <i class="bi bi-cloud-arrow-down-fill"></i>
-                {{ t('save_to_pc') || 'Save' }}
-              </a>
-            </div>
+          <div class="mt-1 d-flex flex-column gap-1">
+            <div class="x-small text-muted text-center text-truncate">{{ scannedFile.name }}</div>
+            <a
+              [href]="scannedFile.url | safe: 'url'"
+              [download]="scannedFile.name"
+              class="btn btn-success btn-xs py-1 w-100 x-small fw-bold"
+            >
+              <i class="bi bi-download me-1"></i> {{ t('save_to_pc') || 'Save' }}
+            </a>
           </div>
         </div>
       </div>
     </ng-container>
 
     <ng-template #noGateDevices>
-      <div class="text-muted small">
-        {{ t('no_gate_devices') }}
+      <div class="text-center p-3 border border-dashed rounded-3 bg-light">
+        <i class="bi bi-hdd-network text-muted fs-2 mb-2 d-block"></i>
+        <div class="x-small text-muted">{{ t('no_gate_devices') }}</div>
       </div>
     </ng-template>
   </div>

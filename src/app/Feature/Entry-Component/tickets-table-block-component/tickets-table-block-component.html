@@ -1,177 +1,92 @@
-<div class="card h-100 shadow-soft tickets-card">
+<div class="card h-100 shadow-soft border-0 tickets-card overflow-hidden">
   <!-- Header -->
-  <div class="card-header tickets-card__header">
-    <div class="tickets-card__title">
-      <div class="tickets-card__icon">
-        <i class="bi bi-list-ol"></i>
-      </div>
-      <div class="tickets-card__text">
-        <div class="tickets-card__title-main">
-          {{ t('ticket_number') }}
-        </div>
-        <div class="tickets-card__title-sub">
-          {{ t('showing') }}
-          {{ tickets.length ? (page - 1) * pageSize + 1 : 0 }}–{{
-            tickets.length ? Math.min(page * pageSize, tickets.length) : 0
-          }}
-          {{ t('of') }} {{ tickets.length }}
+  <div class="card-header bg-transparent border-bottom p-2 px-3">
+    <div class="d-flex justify-content-between align-items-center">
+      <div class="d-flex align-items-center gap-2">
+        <i class="bi bi-list-ol text-primary"></i>
+        <div class="lh-1">
+          <div class="x-small fw-bold">{{ t('ticket_number') }}</div>
+          <div class="x-small text-muted" style="font-size: 9px !important">
+            {{ tickets.length ? (page - 1) * pageSize + 1 : 0 }}–{{
+              tickets.length ? Math.min(page * pageSize, tickets.length) : 0
+            }}
+            {{ t('of') }} {{ tickets.length }}
+          </div>
         </div>
       </div>
-    </div>
-
-    <div class="tickets-card__date-pill">
-      <i class="bi bi-calendar2"></i>
-      <span>{{ today | date : 'dd/MM/yyyy' }}</span>
+      <div
+        class="badge rounded-pill bg-light text-dark x-small px-2 border d-flex align-items-center gap-1"
+      >
+        <i class="bi bi-calendar2 x-small"></i>
+        <span>{{ today | date: 'dd/MM/yyyy' }}</span>
+      </div>
     </div>
   </div>
 
   <!-- Body -->
   <div class="card-body p-0 d-flex flex-column">
-    <div class="tickets-table-wrapper">
-      <div class="table-responsive tickets-table-scroll">
-        <table class="table align-middle mb-0 tickets-table">
-          <thead class="table-head">
-            <tr>
-              <th>{{ t('ticket_number') }}</th>
-              <th class="text-center">{{ t('time') }}</th>
-              <th class="text-end">{{ t('fees') }}</th>
-            </tr>
-          </thead>
-
-          <tbody>
-            <tr
-              *ngFor="let ticket of pageItems; trackBy: trackByTicket"
-              class="tickets-row clickable-row"
-              (click)="onTicketRowClick(ticket)"
-              role="button"
-              tabindex="0"
-            >
-              <!-- Col 1: Ticket / Customer info -->
-              <td>
-                <ng-container *ngIf="ticket.info; else structuredInfo">
-                  <span class="mono tickets-id">
-                    {{ ticket.info }}
-                  </span>
-                </ng-container>
-
-                <ng-template #structuredInfo>
-                  <ng-container
-                    *ngIf="
-                      ticket.customerName || ticket.phone || ticket.cardNumber;
-                      else fallbackId
-                    "
-                  >
-                    <div *ngIf="ticket.customerName" class="fw-semibold tickets-name">
-                      {{ ticket.customerName }}
-                    </div>
-                    <div *ngIf="ticket.phone" class="small text-muted">
-                      {{ ticket.phone }}
-                    </div>
-                    <div *ngIf="ticket.cardNumber" class="small mono text-muted">
-                      {{ ticket.cardNumber }}
-                    </div>
-                  </ng-container>
-                </ng-template>
-
-                <ng-template #fallbackId>
-                  <span class="mono tickets-id">
-                    {{ ticket.ticketNumber || ticket.id }}
-                  </span>
-                </ng-template>
-              </td>
-
-              <!-- Col 2: Time -->
-              <td class="text-center text-muted">
-                {{ ticket.time | date : 'shortTime' }}
-              </td>
-
-              <!-- Col 3: Fees + Collect -->
-              <td class="text-end">
-                <div class="d-flex flex-column align-items-end gap-1">
-                  <div>
-                    <span class="mono tickets-amount">
-                      {{ ticket.price ?? 0 | number : '1.0-2' }}
-                      {{ isRTL ? 'ج.م' : 'EGP' }}
-                    </span>
-
-                    <span *ngIf="ticket.isCollectedByCashier" class="badge bg-success-soft ms-1">
-                      {{ t('cashier_collected_short') }}
-                    </span>
-                  </div>
-
-                  <!-- <button
-                    *ngIf="!ticket.isCollectedByCashier"
-                    class="btn btn-sm btn-outline-success tickets-collect-btn"
-                    [disabled]="isCollecting(ticket.id) || loading"
-                    (click)="onCollectClick(ticket.id); $event.stopPropagation()"
-                  >
-                    <ng-container *ngIf="!isCollecting(ticket.id); else collectingSpinner">
-                      {{ t('collect') }}
-                    </ng-container>
-                    <ng-template #collectingSpinner>
-                      <span class="spinner-border spinner-border-sm"></span>
-                    </ng-template>
-                  </button> -->
-                </div>
-              </td>
-            </tr>
-
-            <!-- Empty state -->
-            <tr *ngIf="!pageItems.length && !loading">
-              <td colspan="3" class="text-center text-muted py-4">
-                {{ t('no_tickets') }}
-              </td>
-            </tr>
-
-            <!-- Loading state -->
-            <tr *ngIf="loading">
-              <td colspan="3" class="text-center py-4">
-                <span class="spinner-border spinner-border-sm"></span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
+    <div class="table-responsive" style="max-height: 250px">
+      <table class="table table-sm table-hover align-middle mb-0">
+        <thead class="bg-light x-small fw-bold border-bottom">
+          <tr>
+            <th class="ps-3">{{ t('ticket_number') }}</th>
+            <th class="text-center">{{ t('time') }}</th>
+            <th class="text-end pe-3">{{ t('fees') }}</th>
+          </tr>
+        </thead>
+        <tbody class="x-small">
+          <tr
+            *ngFor="let ticket of pageItems; trackBy: trackByTicket"
+            class="clickable"
+            (click)="onTicketRowClick(ticket)"
+          >
+            <td class="ps-3 py-1">
+              <span class="mono fw-bold text-primary">{{ ticket.ticketNumber || ticket.id }}</span>
+              <div *ngIf="ticket.customerName" class="text-muted" style="font-size: 9px !important">
+                {{ ticket.customerName }}
+              </div>
+            </td>
+            <td class="text-center text-muted py-1">{{ ticket.time | date: 'HH:mm' }}</td>
+            <td class="text-end pe-3 py-1">
+              <span class="mono fw-bold">{{ ticket.price ?? 0 }}</span>
+              <i
+                class="bi bi-check-circle-fill text-success ms-1"
+                *ngIf="ticket.isCollectedByCashier"
+              ></i>
+            </td>
+          </tr>
+          <tr *ngIf="!pageItems.length && !loading">
+            <td colspan="3" class="text-center text-muted py-3 x-small">{{ t('no_tickets') }}</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
 
     <!-- Footer -->
     <div
-      class="tickets-footer d-flex justify-content-between align-items-center p-2 border-top mt-auto flex-wrap gap-2"
+      class="p-2 border-top mt-auto bg-light-subtle d-flex justify-content-between align-items-center flex-wrap gap-2"
     >
-      <div class="small text-muted d-flex align-items-center gap-1">
-        <span class="dot-status"></span>
-        <span>{{ t('showing') }}</span>
-        <strong>
-          {{ tickets.length ? (page - 1) * pageSize + 1 : 0 }}–{{
-            tickets.length ? Math.min(page * pageSize, tickets.length) : 0
-          }}
-        </strong>
-        <span>{{ t('of') }}</span>
-        <strong>{{ tickets.length }}</strong>
-      </div>
-
       <div class="d-flex align-items-center gap-2">
-        <span class="small text-muted">{{ t('total_fees_today') }}:</span>
-        <span class="badge bg-success total-amount-badge">
-          {{ totalPriceToday | number : '1.0-2' }} {{ isRTL ? 'ج.م' : 'EGP' }}
+        <span class="x-small text-muted">{{ t('total_fees_today') }}:</span>
+        <span class="badge theme-green x-small fw-bold">
+          {{ totalPriceToday | number: '1.0-2' }} {{ isRTL ? 'ج.م' : 'EGP' }}
         </span>
       </div>
 
-      <div class="btn-group ms-auto" dir="ltr">
+      <div class="btn-group" dir="ltr">
         <button
-          class="btn btn-sm btn-outline-secondary"
+          class="btn btn-outline-secondary btn-xs"
           [disabled]="page <= 1"
           (click)="prevPage()"
         >
-          {{ t('prev') }}
+          <i class="bi bi-chevron-left"></i>
         </button>
-
         <button
-          class="btn btn-sm btn-outline-secondary"
+          class="btn btn-outline-secondary btn-xs"
           [disabled]="page >= pagesCount"
           (click)="nextPage()"
         >
-          {{ t('next') }}
+          <i class="bi bi-chevron-right"></i>
         </button>
       </div>
     </div>

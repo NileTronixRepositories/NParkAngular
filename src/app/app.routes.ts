@@ -19,7 +19,8 @@ export const routes: Routes = [
       // Overview
       {
         path: 'overview',
-        data: { roles: ['Admin'] },
+        canActivate: [authGuard],
+        data: { roles: ['Admin', 'Supervisor'] },
         loadComponent: () =>
           import('./Feature/overview-component/overview-component').then(
             (m) => m.OverviewComponent,
@@ -73,7 +74,7 @@ export const routes: Routes = [
       {
         path: 'Altaeriffa',
         canActivate: [authGuard],
-        data: { roles: ['Admin'] },
+        data: { roles: ['Admin', 'Supervisor'] },
         loadComponent: () =>
           import('./Feature/Altaeriffa-component/Altaeriffa-component').then(
             (m) => m.AltaeriffaComponent,
@@ -106,7 +107,7 @@ export const routes: Routes = [
       {
         path: 'registration',
         canActivate: [authGuard],
-        data: { roles: ['Admin'] },
+        data: { roles: ['Admin', 'Supervisor'] },
         loadComponent: () =>
           import('./Feature/Registration-component/registration-component').then(
             (m) => m.RegistrationComponent,
@@ -117,9 +118,20 @@ export const routes: Routes = [
       {
         path: 'visitor',
         canActivate: [authGuard],
-        data: { roles: ['Admin'] },
+        data: { roles: ['Admin', 'Supervisor'] },
         loadComponent: () =>
           import('./Feature/visitor-component/visitor-component').then((m) => m.VisitorComponent),
+      },
+
+      // Sanction
+      {
+        path: 'sanction',
+        canActivate: [authGuard],
+        data: { roles: ['Admin', 'Supervisor'] },
+        loadComponent: () =>
+          import('./Feature/sanction-component/sanction-component').then(
+            (m) => m.SanctionComponent,
+          ),
       },
 
       // Add the Gate Component route here

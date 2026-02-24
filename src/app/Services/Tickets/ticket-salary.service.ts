@@ -22,11 +22,19 @@ export class TicketSalaryService {
   }
 
   /** QR Ticket salary */
-  calculateTicketSalary(qrCode: string): Observable<CalculateSalaryResponse | null> {
+  calculateTicketSalary(
+    qrCode: string,
+    sanctionIds?: string[],
+  ): Observable<CalculateSalaryResponse | null> {
     const trimmed = qrCode?.trim();
     if (!trimmed) return of(null);
 
-    const body = { qrCode: trimmed };
+    const body: any = { QrCode: trimmed };
+    if (sanctionIds && sanctionIds.length > 0) {
+      body.SanctionIds = sanctionIds;
+    } else {
+      body.SanctionIds = [];
+    }
 
     return this.http
       .post<CalculateSalaryResponse>(this.endpoint('CalculateQrCodeTicketSalary'), body)
@@ -34,16 +42,24 @@ export class TicketSalaryService {
         catchError((err) => {
           this.logError('POST /Ticket/CalculateQrCodeTicketSalary', err);
           return throwError(() => err);
-        })
+        }),
       );
   }
 
   /** Subscriber card salary */
-  calculateSubscriberSalary(cardNumber: string): Observable<CalculateSalaryResponse | null> {
+  calculateSubscriberSalary(
+    cardNumber: string,
+    sanctionIds?: string[],
+  ): Observable<CalculateSalaryResponse | null> {
     const trimmed = cardNumber?.trim();
     if (!trimmed) return of(null);
 
-    const body = { cardNumber: trimmed };
+    const body: any = { CardNumber: trimmed };
+    if (sanctionIds && sanctionIds.length > 0) {
+      body.SanctionIds = sanctionIds;
+    } else {
+      body.SanctionIds = [];
+    }
 
     return this.http
       .post<CalculateSalaryResponse>(this.endpoint('CalculateSalaryForSubscriberCommand'), body)
@@ -51,26 +67,34 @@ export class TicketSalaryService {
         catchError((err) => {
           this.logError('POST /Ticket/CalculateSalaryForSubscriberCommand', err);
           return throwError(() => err);
-        })
+        }),
       );
   }
 
   /** Calculate salary by ticket number (uses QR code endpoint but passes ticket number) */
-  calculateSalaryByTicketNumber(ticketNumber: string): Observable<CalculateSalaryResponse | null> {
+  calculateSalaryByTicketNumber(
+    ticketNumber: string,
+    sanctionIds?: string[],
+  ): Observable<CalculateSalaryResponse | null> {
     const trimmed = ticketNumber?.trim();
     if (!trimmed) return of(null);
 
     // Try with ticketNumber parameter first
-    const body = { ticketNumber: trimmed };
+    const body: any = { TicketNumber: trimmed };
+    if (sanctionIds && sanctionIds.length > 0) {
+      body.SanctionIds = sanctionIds;
+    } else {
+      body.SanctionIds = [];
+    }
 
     return this.http
       .post<CalculateSalaryResponse>(this.endpoint('CalculateTicketNumberSalary'), body)
       .pipe(
         catchError((err) => {
           this.logError('POST /Ticket/CalculateTicketNumberSalary', err);
-          // Fallback: try with qrCode parameter (ticket number might be the QR content)
-          return this.calculateTicketSalary(trimmed);
-        })
+          // Fallback: try with QrCode parameter
+          return this.calculateTicketSalary(trimmed, sanctionIds);
+        }),
       );
   }
 }

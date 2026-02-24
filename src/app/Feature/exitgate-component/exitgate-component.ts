@@ -29,6 +29,8 @@ import { ExitTourService } from '../../Services/Exit/exit-tour.service';
 import { DashboardHubService } from '../../Services/OverView/dashboard-hub.service';
 import { TicketExitedNotification } from '../../Domain/OverView/dashboard-notifications.model';
 import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.service';
+import { SanctionService } from '../../Services/Sanction/sanction.service';
+import { SanctionDto } from '../../Domain/Sanction/sanction.models';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -83,6 +85,8 @@ import { Subscription } from 'rxjs';
           outOnlyTitle: 'بوابة الخروج تدعم OUT فقط',
           collectedOk: 'تم التحصيل وإغلاق التذكرة',
           collectAllToday: 'تحصيل إيرادات اليوم للبوابة',
+          sanctions: 'العقوبات',
+          select_sanction_placeholder: 'اختر عقوبة للتحصيل...',
 
           // Gate devices
           gate_devices: 'أجهزة البوابة',
@@ -207,6 +211,8 @@ import { Subscription } from 'rxjs';
           outOnlyTitle: 'Exit gate is OUT only',
           collectedOk: 'Collected and ticket closed',
           collectAllToday: "Collect today's revenue for this gate",
+          sanctions: 'Sanctions',
+          select_sanction_placeholder: 'Select sanction to apply...',
 
           // Gate devices
           gate_devices: 'Gate Devices',
@@ -313,6 +319,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // 🔔 NEW: SignalR Hub
   private readonly dashboardHub = inject(DashboardHubService);
   private readonly scanHub = inject(ScanHubService);
+  private readonly sanctionSvc = inject(SanctionService);
   private readonly hubSubscriptions = new Subscription();
 
   startTour(): void {
@@ -399,6 +406,19 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   collectingCashier = false;
   cashierConfirming = false;
 
+  // Sanctions
+  allSanctions: SanctionDto[] = [];
+  selectedSanctionIds: string[] = [];
+
+  get currentTotalWithSanctions(): number {
+    if (!this.salarySummary) return 0;
+    const base = this.salarySummary.totalSalary || 0;
+    const sanctionsSum = this.allSanctions
+      .filter((s) => this.selectedSanctionIds.includes(s.id))
+      .reduce((sum, s) => sum + s.amount, 0);
+    return base + sanctionsSum;
+  }
+
   get isSupervisor(): boolean {
     return this.auth.isSupervisor;
   }
@@ -409,6 +429,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.cashierToken = this.auth.token;
     this.initGatePeripheral();
     this.loadExitGates();
+    this.loadSanctions();
     this.reloadList();
     this.reloadList();
     this.initSignalRExitNotifications();
@@ -599,6 +620,33 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     });
   }
 
+  // ========= Sanctions =========
+
+  private loadSanctions(): void {
+    this.sanctionSvc.getAll().subscribe({
+      next: (res) => (this.allSanctions = res || []),
+      error: (err) => this.handleError('Sanction/GetAll', err),
+    });
+  }
+
+  onToggleSanction(id: string): void {
+    const idx = this.selectedSanctionIds.indexOf(id);
+    if (idx >= 0) {
+      this.selectedSanctionIds.splice(idx, 1);
+    } else {
+      this.selectedSanctionIds.push(id);
+    }
+
+    // بعد تغيير العقوبات، يعيد الحساب بناءً على الحالة الحالية
+    if (this.lastQrCode) {
+      // إذا كان QR أو TicketNumber
+      this.fetchTicketAndSalaryByQr(this.lastQrCode);
+    } else if (this.manualInput && !this.scannedTicket) {
+      // إذا كان كارت مشترك
+      this.fetchSalaryForCard(this.manualInput);
+    }
+  }
+
   // ========= Tickets list / filters =========
 
   private loadTicketsForExit(startDateIso: string, ticketNumber: string = ''): void {
@@ -657,8 +705,11 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.manualInput = '';
     this.scannedTicket = null;
     this.salarySummary = null;
+    this.allSanctions = []; // Optionally reset or keep? Better keep but clear selection
+    this.selectedSanctionIds = [];
     this.addingExitTicket = false;
     this.exitTicketAdded = false;
+    this.loadSanctions(); // Re-load just in case
   }
 
   submitQrFromInput(): void {
@@ -678,6 +729,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.manualInput = '';
     this.scannedTicket = null;
     this.salarySummary = null;
+    this.selectedSanctionIds = []; // Clear selection for new scan
     this.addingExitTicket = false;
     this.exitTicketAdded = false;
 
@@ -697,7 +749,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.scanning = false;
     this.searchingManual = true;
 
-    this.svc.calculateSubscriberSalary(code).subscribe({
+    this.svc.calculateSubscriberSalary(code, this.selectedSanctionIds).subscribe({
       next: (summary) => {
         this.salarySummary = summary;
       },
@@ -803,7 +855,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.exitTicketAdded = false;
 
     // الملخص المالي
-    this.svc.calculateTicketSalary(code).subscribe({
+    this.svc.calculateTicketSalary(code, this.selectedSanctionIds).subscribe({
       next: (summary) => {
         this.salarySummary = summary;
       },
@@ -834,7 +886,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.searchingManual = true;
 
     // Use calculateSalaryByTicketNumber which tries ticket number endpoint first, then falls back to QR
-    this.svc.calculateSalaryByTicketNumber(trimmed).subscribe({
+    this.svc.calculateSalaryByTicketNumber(trimmed, this.selectedSanctionIds).subscribe({
       next: (summary) => {
         this.salarySummary = summary;
 
@@ -866,7 +918,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.addingExitTicket = false;
     this.exitTicketAdded = false;
 
-    this.svc.calculateSubscriberSalary(cardNumber).subscribe({
+    this.svc.calculateSubscriberSalary(cardNumber, this.selectedSanctionIds).subscribe({
       next: (summary) => {
         this.salarySummary = summary;
       },
@@ -891,7 +943,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         if (ok) {
           this.exitTicketAdded = true;
 
-          const price = this.salarySummary?.totalSalary ?? t.totalPrice;
+          const price = this.currentTotalWithSanctions || t.totalPrice;
           this.upsertExitTicketRow(t.id, t.plate, price, false);
         }
       },
@@ -938,7 +990,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
         this.svc.collect(ticketId).subscribe({
           next: () => {
-            const price = this.salarySummary?.totalSalary ?? this.scannedTicket!.totalPrice;
+            const price = this.currentTotalWithSanctions || this.scannedTicket!.totalPrice;
             this.upsertExitTicketRow(ticketId, this.scannedTicket!.plate, price, false);
 
             if (qr) {
@@ -979,7 +1031,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.svc.addExitTicket(ticketId).subscribe({
         next: (ok) => {
           if (ok) {
-            const price = this.salarySummary?.totalSalary ?? 0;
+            const price = this.currentTotalWithSanctions || 0;
             this.upsertExitTicketRow(
               this.scannedTicket!.id,
               this.scannedTicket!.plate,
@@ -1008,7 +1060,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.svc.addExitTicket(ticketId).subscribe({
         next: (ok) => {
           if (ok) {
-            const price = this.salarySummary?.totalSalary ?? 0;
+            const price = this.currentTotalWithSanctions || 0;
             const plate = 'SUBSCRIBER';
             this.upsertExitTicketRow(ticketId, plate, price, true);
             this.resetScanState();
@@ -1248,7 +1300,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
               <div class="title">${this.t('salary_total')}</div>
               <div class="row"><span>${this.t(
                 'salary_total',
-              )}</span><span class="mono">${s.totalSalary.toFixed(2)}</span></div>
+              )}</span><span class="mono">${this.currentTotalWithSanctions.toFixed(2)}</span></div>
               <div class="row"><span>${this.t('salary_enter_date')}</span><span>${new Date(
                 s.enterDate,
               ).toLocaleString()}</span></div>

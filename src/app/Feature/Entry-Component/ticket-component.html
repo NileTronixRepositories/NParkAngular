@@ -1,25 +1,30 @@
 <div class="tickets-theme container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- Page Header -->
-  <div class="page-header mb-4 fade-in-down">
-    <div class="header-content">
-      <div class="header-icon-wrapper">
-        <i class="bi bi-box-arrow-in-right header-icon"></i>
-      </div>
-      <div class="header-text">
-        <h1 class="page-title">
-          {{ t('entry') }}
-          <span class="gate-badge" *ngIf="gatePeripheral?.gateNumber">
-            <span class="gate-label">{{ t('gate') }}</span>
-            <span class="gate-value">{{ gatePeripheral?.gateNumber }}</span>
-          </span>
-        </h1>
-        <p class="page-subtitle">{{ t('tickets_entry_title') }}</p>
+  <div class="page-header mb-3 fade-in-down p-2 px-3">
+    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+      <div class="d-flex align-items-center gap-3">
+        <div class="header-icon-wrapper d-flex align-items-center justify-content-center">
+          <i class="bi bi-box-arrow-in-right header-icon fs-4"></i>
+        </div>
+        <div>
+          <h1 class="page-title fs-5 mb-0 fw-bold d-flex align-items-center gap-2">
+            {{ t('entry') }}
+            <span
+              class="gate-badge x-small px-2 py-0 rounded-pill"
+              *ngIf="gatePeripheral?.gateNumber"
+            >
+              <span class="gate-label text-uppercase fw-bold">{{ t('gate') }}</span>
+              <span class="gate-value fw-bold">{{ gatePeripheral?.gateNumber }}</span>
+            </span>
+          </h1>
+          <p class="page-subtitle x-small text-muted mb-0">{{ t('tickets_entry_title') }}</p>
+        </div>
       </div>
 
       <!-- Tour Button -->
       <button
         type="button"
-        class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center gap-2 btn-help-tour"
+        class="btn btn-outline-light btn-xs rounded-pill d-flex align-items-center gap-2 btn-help-tour"
         (click)="startTour()"
       >
         <i class="bi bi-question-circle"></i>
@@ -27,10 +32,11 @@
       </button>
     </div>
   </div>
-  <!-- 3 BLOCKS -->
-  <div class="row g-3 mb-3">
+
+  <!-- 4 BLOCKS RESPONSIVE GRID -->
+  <div class="row g-2 mb-3">
     <!-- Block 1: Gate Devices -->
-    <div class="col-12 col-lg-3">
+    <div class="col-12 col-md-6 col-xl-3">
       <app-gate-devices-block-component
         [t]="t"
         [gatePeripheral]="gatePeripheral"
@@ -43,7 +49,7 @@
     </div>
 
     <!-- Block 2: Issue Ticket -->
-    <div class="col-12 col-lg-3">
+    <div class="col-12 col-md-6 col-xl-3">
       <app-issue-ticket-block-component
         [t]="t"
         [isRTL]="i18n.isRTL()"
@@ -70,7 +76,7 @@
     </div>
 
     <!-- Block 3: Tickets Table + Collect Summary -->
-    <div class="col-12 col-lg-3">
+    <div class="col-12 col-md-6 col-xl-3">
       <app-tickets-table-block-component
         [t]="t"
         [isRTL]="i18n.isRTL()"
@@ -169,7 +175,7 @@
     </div>
 
     <!-- Block 1.5: Search Block -->
-    <div class="col-12 col-lg-3">
+    <div class="col-12 col-md-6 col-xl-3">
       <app-search-block-component
         [placeholder]="t('search_tickets_placeholder')"
         [searching]="searchingTickets"

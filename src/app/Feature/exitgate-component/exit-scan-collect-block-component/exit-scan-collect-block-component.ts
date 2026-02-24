@@ -8,6 +8,7 @@ import {
   ChangeDetectionStrategy,
 } from '@angular/core';
 import { TicketDetailsDto, CalculateSalaryResponse } from '../../../Domain/tickets/tickets.model';
+import { SanctionDto } from '../../../Domain/Sanction/sanction.models';
 import { TranslatePipePipe } from '../../../Services/i18n/translate-pipe-pipe';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -47,6 +48,11 @@ export class ExitScanCollectBlockComponent {
   @Input() exitProcessing = false;
   @Input() collectingCashier = false;
   @Input() cashierConfirming = false;
+
+  // ========== Sanctions ==========
+  @Input() allSanctions: SanctionDto[] = [];
+  @Input() selectedSanctionIds: string[] = [];
+  @Output() toggleSanction = new EventEmitter<string>();
 
   // ========== Outputs: actions ==========
   @Output() scanQrClick = new EventEmitter<void>();
@@ -100,6 +106,15 @@ export class ExitScanCollectBlockComponent {
     return this.cashierConfirming || !this.salarySummary || this.salarySummary.isCollectByCashier;
   }
 
+  get displayTotal(): number {
+    if (!this.salarySummary) return 0;
+    const base = this.salarySummary.totalSalary || 0;
+    const sanctionsSum = this.allSanctions
+      .filter((s) => this.isSanctionSelected(s.id))
+      .reduce((sum, s) => sum + s.amount, 0);
+    return base + sanctionsSum;
+  }
+
   // ========== Handlers ==========
   onScanQrClick(): void {
     this.scanQrClick.emit();
@@ -150,6 +165,15 @@ export class ExitScanCollectBlockComponent {
 
   onConfirmCashier(): void {
     this.confirmCashierClicked.emit();
+  }
+
+  // ========== Sanction helpers ==========
+  isSanctionSelected(id: string): boolean {
+    return this.selectedSanctionIds.includes(id);
+  }
+
+  onToggleSanction(id: string): void {
+    this.toggleSanction.emit(id);
   }
 
   // ========== ngModel bridges ==========

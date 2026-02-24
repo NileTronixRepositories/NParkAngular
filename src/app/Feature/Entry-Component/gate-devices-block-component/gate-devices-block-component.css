@@ -1,168 +1,85 @@
-:host-context(.tickets-theme) .badge.pill {
-  border-radius: 20px;
-  padding: 6px 10px;
-  font-weight: 600;
-  border: 1px solid var(--ticket-border-color);
-  background: #fff;
+:host .device-row {
+  transition: all 0.2s ease;
+  background-color: #fff;
 }
 
-/* Status colors */
-:host-context(.tickets-theme) .theme-green {
-  background: var(--ticket-green-soft);
-  color: var(--ticket-green);
-  border-color: var(--ticket-green-soft-border);
+:host .device-row:hover {
+  background-color: #f8fafc;
+  border-color: #cbd5e1 !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-:host-context(.tickets-theme) .theme-red {
-  background: var(--ticket-red-soft);
-  color: var(--ticket-red);
-  border-color: var(--ticket-red-soft-border);
+:host .device-name {
+  color: #1e293b;
 }
 
-/* Mono font helper (IP, plate, ...) */
-:host-context(.tickets-theme) .mono {
+:host .device-ip {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+:host .mono {
   font-family: var(--ticket-font-mono);
 }
 
-/* Optional: tweak manual LPR input layout if needed */
-:host-context(.tickets-theme) .manual-lpr-input-group {
-  max-width: 260px;
+/* X-Small Utilities */
+.x-small {
+  font-size: 10px !important;
 }
 
-:host-context(.tickets-theme) .manual-lpr-input {
-  font-family: var(--ticket-font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.btn-xs {
+  padding: 0.15rem 0.4rem;
+  font-size: 10px;
 }
 
 /* 📄 Scanned Document Premium UI */
 .scanned-card-premium {
-  background: var(--ticket-bg, #fff);
-  border: 1px solid var(--ticket-border-color, #e0e0e0);
-  border-radius: 12px;
-  overflow: hidden;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
 }
 
-.card-header-premium {
-  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
-  color: white;
-  padding: 8px 14px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.card-body-premium {
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
 .preview-box {
-  width: 100%;
-  height: 140px;
-  background: #f8f9fa;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  border: 2px dashed #dee2e6;
+  background: #fcfcfc;
   position: relative;
   transition: height 0.3s ease;
 }
 
-.preview-box:has(.pdf-preview-frame) {
-  height: 400px;
-}
-
-.pdf-preview-frame {
-  width: 100%;
-  height: 100%;
-  border: none;
-}
-
 .preview-box img {
-  width: 100%;
-  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
   object-fit: contain;
-  transition: transform 0.3s ease;
-}
-
-.preview-box img:hover {
-  transform: scale(1.05);
-}
-
-.pdf-placeholder {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  color: #dc3545;
-}
-
-.pdf-placeholder i {
-  font-size: 3rem;
-}
-
-.action-box {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.file-name-meta {
-  font-size: 0.7rem;
-  color: #6c757d;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  text-align: center;
-}
-
-.btn-save-premium {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
-  background: #28a745;
-  color: white !important;
-  text-decoration: none !important;
-  padding: 10px 18px;
-  border-radius: 10px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  width: 100%;
-  transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  box-shadow: 0 4px 12px rgba(40, 167, 69, 0.25);
-  border: none;
-}
-
-.btn-save-premium:hover {
-  background: #218838;
-  transform: translateY(-3px);
-  box-shadow: 0 6px 18px rgba(40, 167, 69, 0.35);
-}
-
-.btn-save-premium:active {
-  transform: translateY(-1px);
 }
 
 .animate-fade-in {
-  animation: premiumFadeIn 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: premiumFadeIn 0.4s ease-out;
 }
 
 @keyframes premiumFadeIn {
   from {
     opacity: 0;
-    transform: translateY(15px);
+    transform: translateY(8px);
   }
   to {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Border Dashed */
+.border-dashed {
+  border-style: dashed !important;
+}
+
+/* Status colors */
+.theme-green {
+  background: #dcfce7 !important;
+  color: #15803d !important;
+  border: none !important;
+}
+
+.theme-red {
+  background: #fee2e2 !important;
+  color: #b91c1c !important;
+  border: none !important;
 }

@@ -1,22 +1,22 @@
 <div class="card h-100 shadow-soft">
   <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+    <h5 class="fs-6 mb-0 fw-bold d-flex align-items-center gap-2">
       <i class="bi bi-hdd-network"></i> {{ 'gate_devices' | t }}
     </h5>
     <div class="small text-muted">{{ 'devices_status' | t }}</div>
   </div>
 
-  <div class="card-body">
+  <div class="card-body p-2">
     <ng-container *ngIf="gatePeripheral as gp; else noGateDevices">
-      <!-- PC -->
-      <div class="device-row">
-        <div class="d-flex justify-content-between align-items-center">
+      <!-- PC Device -->
+      <div class="device-row p-1 mb-1 rounded-2 border">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
           <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-pc-display text-muted"></i>
-            <span class="device-name">{{ 'pc_device' | t }}</span>
+            <i class="bi bi-pc-display text-secondary small"></i>
+            <span class="device-name small fw-bold">{{ 'pc_device' | t }}</span>
           </div>
           <span
-            class="badge pill"
+            class="badge pill x-small"
             [class.bg-success-subtle]="gp.hasPc"
             [class.text-success]="gp.hasPc"
             [class.bg-danger-subtle]="!gp.hasPc"
@@ -25,21 +25,20 @@
             {{ gp.hasPc ? ('device_connected' | t) : ('device_not_connected' | t) }}
           </span>
         </div>
-
-        <div class="mt-1" *ngIf="gp.pcIp">
-          <span class="device-ip mono">{{ gp.pcIp }}</span>
+        <div class="mt-0" *ngIf="gp.pcIp">
+          <span class="device-ip mono x-small text-muted py-0 px-1">{{ gp.pcIp }}</span>
         </div>
       </div>
 
-      <!-- LPR -->
-      <div class="device-row">
-        <div class="d-flex justify-content-between align-items-center">
+      <!-- LPR Device -->
+      <div class="device-row p-1 mb-2 rounded-2 border">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
           <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-camera-video text-muted"></i>
-            <span class="device-name">{{ 'lpr_device' | t }}</span>
+            <i class="bi bi-camera-video text-secondary small"></i>
+            <span class="device-name small fw-bold">{{ 'lpr_device' | t }}</span>
           </div>
           <span
-            class="badge pill"
+            class="badge pill x-small"
             [class.bg-success-subtle]="gp.hasLpr"
             [class.text-success]="gp.hasLpr"
             [class.bg-danger-subtle]="!gp.hasLpr"
@@ -48,21 +47,20 @@
             {{ gp.hasLpr ? ('device_connected' | t) : ('device_not_connected' | t) }}
           </span>
         </div>
-
-        <div class="mt-1" *ngIf="gp.lprIp">
-          <span class="device-ip mono">{{ gp.lprIp }}</span>
+        <div class="mt-0" *ngIf="gp.lprIp">
+          <span class="device-ip mono x-small text-muted py-0 px-1">{{ gp.lprIp }}</span>
         </div>
       </div>
 
-      <!-- Ticket Number Search Section -->
-      <div class="ticket-search-section mt-3 pt-3 border-top">
-        <label class="form-label small fw-semibold">
+      <!-- Ticket Number Search -->
+      <div class="ticket-search-section pt-2 border-top">
+        <label class="form-label x-small fw-bold text-muted text-uppercase mb-1">
           {{ 'search_ticket_number' | t }}
         </label>
-        <div class="input-group input-group-sm">
+        <div class="input-group input-group-sm mb-1">
           <input
             type="text"
-            class="form-control mono"
+            class="form-control form-control-sm mono text-center"
             [ngModel]="ticketNumber"
             (ngModelChange)="onSearchInput($event)"
             [placeholder]="'ticket_number_placeholder' | t"
@@ -71,145 +69,129 @@
           />
           <button
             *ngIf="ticketNumber"
-            class="btn btn-outline-secondary"
+            class="btn btn-outline-secondary btn-sm px-2"
             type="button"
             (click)="clearSearch()"
           >
             <i class="bi bi-x-lg"></i>
           </button>
           <button
-            class="btn btn-outline-primary"
+            class="btn btn-primary btn-sm px-2"
             type="button"
             (click)="searchTicketByNumber()"
             [disabled]="!canSearchTicket"
-            [title]="'search_ticket' | t"
           >
-            <span *ngIf="!searchingTicket">
-              <i class="bi bi-search"></i>
-            </span>
+            <i class="bi bi-search" *ngIf="!searchingTicket"></i>
             <span *ngIf="searchingTicket" class="spinner-border spinner-border-sm"></span>
           </button>
         </div>
 
-        <!-- Search Results Dropdown -->
-        <div *ngIf="showResults" class="search-results-dropdown mt-1">
-          <ng-container *ngIf="searchResults.length > 0; else noResults">
-            <div
-              class="search-result-item"
-              *ngFor="let ticket of searchResults; trackBy: trackByTicketNumber"
-              (click)="selectResult(ticket)"
-            >
-              <div class="d-flex justify-content-between align-items-center">
-                <span class="result-id mono fw-bold">
-                  {{ ticket.ticketNumber || ticket.id }}
-                </span>
-                <span
-                  class="badge"
-                  [class.bg-success-subtle]="ticket.isCollectedByCashier"
-                  [class.text-success]="ticket.isCollectedByCashier"
-                  [class.bg-warning-subtle]="!ticket.isCollectedByCashier"
-                  [class.text-warning]="!ticket.isCollectedByCashier"
-                >
-                  {{
-                    ticket.isCollectedByCashier
-                      ? ('cashierCollectedShort' | t)
-                      : ('cashier_not_collected' | t)
-                  }}
-                </span>
-              </div>
-              <div class="small text-muted">
-                <i class="bi bi-clock"></i> {{ ticket.time | date: 'short' }}
-                <span *ngIf="ticket.plate"> • {{ ticket.plate }}</span>
-              </div>
+        <!-- Dropdown Results -->
+        <div *ngIf="showResults" class="search-results-dropdown shadow-sm border rounded-2 mt-1">
+          <div *ngIf="searchResults.length === 0" class="text-center py-2 x-small text-muted">
+            {{ 'no_search_results' | t }}
+          </div>
+          <div
+            *ngFor="let ticket of searchResults"
+            (click)="selectResult(ticket)"
+            class="search-result-item p-2 border-bottom clickable"
+          >
+            <div class="d-flex justify-content-between align-items-center mb-1">
+              <span class="mono fw-bold x-small text-primary">{{
+                ticket.ticketNumber || ticket.id
+              }}</span>
+              <span
+                class="badge x-small px-1 py-0"
+                [class.bg-success-subtle]="ticket.isCollectedByCashier"
+                [class.text-success]="ticket.isCollectedByCashier"
+                [class.bg-warning-subtle]="!ticket.isCollectedByCashier"
+                [class.text-warning]="!ticket.isCollectedByCashier"
+              >
+                {{
+                  ticket.isCollectedByCashier
+                    ? ('cashierCollectedShort' | t)
+                    : ('cashier_not_collected' | t)
+                }}
+              </span>
             </div>
-          </ng-container>
-          <ng-template #noResults>
-            <div class="text-center text-muted small py-2">
-              {{ 'no_search_results' | t }}
+            <div class="x-small text-muted d-flex align-items-center gap-1">
+              <i class="bi bi-clock"></i> {{ ticket.time | date: 'HH:mm' }}
+              <span *ngIf="ticket.plate"> | {{ ticket.plate }}</span>
             </div>
-          </ng-template>
-        </div>
-
-        <div class="small text-muted mt-1">
-          {{ 'search_ticket_hint' | t }}
+          </div>
         </div>
       </div>
-      <!--  Premium Scanned Document Preview -->
-      <div class="scanned-card-premium mt-3 animate-fade-in" *ngIf="scannedFile">
-        <div class="card-header-premium">
-          <i class="bi bi-file-earmark-check-fill"></i>
+
+      <!-- Scanned Preview Compact -->
+      <div class="scanned-card-premium mt-2 rounded-3 border overflow-hidden" *ngIf="scannedFile">
+        <div class="bg-dark text-white p-1 px-2 x-small d-flex align-items-center gap-2">
+          <i class="bi bi-file-earmark-check"></i>
           <span>{{ 'scanner_ready' | t }}</span>
         </div>
-        <div class="card-body-premium">
-          <div class="preview-box">
-            <!-- Image Preview -->
+        <div class="p-1">
+          <div
+            class="preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden"
+            [style.height.px]="scannedFile.type === 'application/pdf' ? 200 : 80"
+          >
             <img
               *ngIf="scannedFile.type.startsWith('image/')"
               [src]="scannedFile.safeUrl"
-              alt="Scan Preview"
+              class="h-100 w-auto"
+              alt="Preview"
             />
-            <!-- PDF Viewer (iframe) -->
             <iframe
               *ngIf="scannedFile.type === 'application/pdf'"
               [src]="scannedFile.safeUrl"
-              class="pdf-preview-frame"
+              class="w-100 h-100 border-0"
             ></iframe>
-
-            <!-- Generic Placeholder -->
             <div
               *ngIf="
                 !scannedFile.type.startsWith('image/') && scannedFile.type !== 'application/pdf'
               "
-              class="pdf-placeholder"
+              class="text-danger text-center py-2"
             >
-              <i class="bi bi-file-earmark-pdf-fill"></i>
-              <div class="small fw-bold">{{ scannedFile.type.split('/')[1]?.toUpperCase() }}</div>
+              <i class="bi bi-file-earmark-pdf fs-2"></i>
+              <div class="x-small fw-bold text-uppercase">{{ scannedFile.type.split('/')[1] }}</div>
             </div>
           </div>
-          <div class="action-box">
-            <div class="file-name-meta">{{ scannedFile.name }}</div>
-            <div class="d-flex gap-2 w-100">
-              <a
-                [href]="scannedFile.url | safe: 'url'"
-                [download]="scannedFile.name"
-                class="btn-save-premium flex-grow-1"
-              >
-                <i class="bi bi-cloud-arrow-down-fill"></i>
-                {{ 'save_to_pc' | t }}
-              </a>
+          <div class="mt-1 d-flex flex-column gap-1">
+            <div class="x-small text-muted text-center text-truncate small">
+              {{ scannedFile.name }}
             </div>
+            <a
+              [href]="scannedFile.url | safe: 'url'"
+              [download]="scannedFile.name"
+              class="btn btn-success btn-xs py-1 w-100 x-small fw-bold"
+            >
+              <i class="bi bi-download me-1"></i> {{ 'save_to_pc' | t }}
+            </a>
           </div>
         </div>
       </div>
     </ng-container>
 
     <ng-template #noGateDevices>
-      <div class="text-muted small mb-2">
-        {{ 'no_gate_devices' | t }}
+      <div class="text-muted small mb-2 text-center p-2 bg-light rounded-2 border border-dashed">
+        <i class="bi bi-info-circle me-1"></i> {{ 'no_gate_devices' | t }}
       </div>
-
-      <div class="mb-2">
-        <label class="form-label small fw-semibold">
-          {{ 'manual_plate_label' | t }}
-        </label>
+      <div class="mb-2 px-1">
+        <label class="form-label x-small fw-bold text-muted text-uppercase mb-1">{{
+          'manual_plate_label' | t
+        }}</label>
         <textarea
-          class="form-control"
-          rows="2"
+          class="form-control form-control-sm"
+          rows="1"
           [(ngModel)]="manualPlate"
           [placeholder]="'manual_plate_placeholder' | t"
         ></textarea>
       </div>
-
       <button
-        class="btn btn-sm btn-primary"
-        type="button"
+        class="btn btn-sm btn-primary w-100 py-1"
         (click)="submitManualPlate()"
         [disabled]="manualPlateSubmitting || !manualPlate.trim()"
       >
-        <span *ngIf="!manualPlateSubmitting">
-          <i class="bi bi-camera"></i>
-          {{ 'send_manual_plate' | t }}
-        </span>
+        <i class="bi bi-camera me-1" *ngIf="!manualPlateSubmitting"></i>
+        <span *ngIf="!manualPlateSubmitting" class="x-small">{{ 'send_manual_plate' | t }}</span>
         <span *ngIf="manualPlateSubmitting" class="spinner-border spinner-border-sm"></span>
       </button>
     </ng-template>

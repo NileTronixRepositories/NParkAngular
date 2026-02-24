@@ -8,7 +8,6 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './issue-ticket-block-component.html',
-  // ✅ لازم تبقى styleUrls مش styleUrl
   styleUrls: ['./issue-ticket-block-component.css'],
 })
 export class IssueTicketBlockComponent {

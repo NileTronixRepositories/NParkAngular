@@ -75,16 +75,25 @@ export class TicketsServices {
     );
   }
 
-  calculateTicketSalary(qrCode: string): Observable<CalculateSalaryResponse | null> {
-    return this.salary.calculateTicketSalary(qrCode);
+  calculateTicketSalary(
+    qrCode: string,
+    sanctionIds?: string[],
+  ): Observable<CalculateSalaryResponse | null> {
+    return this.salary.calculateTicketSalary(qrCode, sanctionIds);
   }
 
-  calculateSubscriberSalary(cardNumber: string): Observable<CalculateSalaryResponse | null> {
-    return this.salary.calculateSubscriberSalary(cardNumber);
+  calculateSubscriberSalary(
+    cardNumber: string,
+    sanctionIds?: string[],
+  ): Observable<CalculateSalaryResponse | null> {
+    return this.salary.calculateSubscriberSalary(cardNumber, sanctionIds);
   }
 
-  calculateSalaryByTicketNumber(ticketNumber: string): Observable<CalculateSalaryResponse | null> {
-    return this.salary.calculateSalaryByTicketNumber(ticketNumber);
+  calculateSalaryByTicketNumber(
+    ticketNumber: string,
+    sanctionIds?: string[],
+  ): Observable<CalculateSalaryResponse | null> {
+    return this.salary.calculateSalaryByTicketNumber(ticketNumber, sanctionIds);
   }
 
   // --- Collect / Exit ---

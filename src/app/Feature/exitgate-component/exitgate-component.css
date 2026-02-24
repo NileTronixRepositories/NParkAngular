@@ -11,8 +11,8 @@
   --accent-2: #0ea5e9;
   --bg-soft: #f9fafb;
   --success: #16a34a;
-  --ticket-font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono',
-    monospace;
+  --ticket-font-mono:
+    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
 }
 
 /* ================== CARDS / GENERAL ================== */
@@ -35,8 +35,10 @@
 }
 
 .exit-theme .glass {
-  background: radial-gradient(800px 400px at -10% -20%, #ffe4e6 0%, transparent 60%) no-repeat,
-    radial-gradient(700px 400px at 120% 10%, #e0f2fe 0%, transparent 60%) no-repeat, var(--surface);
+  background:
+    radial-gradient(800px 400px at -10% -20%, #ffe4e6 0%, transparent 60%) no-repeat,
+    radial-gradient(700px 400px at 120% 10%, #e0f2fe 0%, transparent 60%) no-repeat,
+    var(--surface);
 }
 
 /* ==========================
@@ -44,8 +46,8 @@
    ========================== */
 .page-header {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
-  border-radius: 16px;
-  padding: 1.5rem 2rem;
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
   color: #fff;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -64,29 +66,19 @@
   pointer-events: none;
 }
 
-.header-content {
-  display: flex;
-  align-items: center;
-  gap: 1.5rem;
-  position: relative;
-  z-index: 1;
-}
-
 .header-icon-wrapper {
-  width: 56px;
-  height: 56px;
-  background: rgba(239, 68, 68, 0.15); /* Red tint for Exit */
-  border-radius: 12px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  width: 38px;
+  height: 38px;
+  background: rgba(239, 68, 68, 0.15);
+  border-radius: 10px;
   backdrop-filter: blur(4px);
   border: 1px solid rgba(239, 68, 68, 0.3);
+  flex-shrink: 0;
 }
 
 .header-icon {
-  font-size: 1.75rem;
-  color: #f87171; /* Red accent */
+  font-size: 1.1rem;
+  color: #f87171;
 }
 
 .header-text {
@@ -94,20 +86,20 @@
 }
 
 .page-title {
-  font-size: 1.75rem;
+  font-size: 1.1rem;
   font-weight: 700;
   margin: 0;
   line-height: 1.2;
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
   color: #f8fafc;
 }
 
 .page-subtitle {
-  margin: 0.25rem 0 0;
+  margin: 0;
   color: #94a3b8;
-  font-size: 0.95rem;
+  font-size: 0.78rem;
 }
 
 /* Gate Badge */
@@ -116,9 +108,9 @@
   align-items: center;
   background: rgba(239, 68, 68, 0.15);
   border: 1px solid rgba(239, 68, 68, 0.3);
-  border-radius: 8px;
-  padding: 0.25rem 0.75rem;
-  gap: 0.5rem;
+  border-radius: 6px;
+  padding: 0.1rem 0.45rem;
+  gap: 0.3rem;
 }
 
 .gate-label {
@@ -191,13 +183,32 @@
 
 /* ================== RESPONSIVE ================== */
 
-@media (max-width: 991.98px) {
+/* Cards: full height only on xl (4-col layout) */
+@media (min-width: 1200px) {
   .exit-theme .card.shadow-soft {
-    margin-bottom: 12px;
+    height: 100%;
   }
 }
 
+/* On smaller than xl, cards stack naturally */
+@media (max-width: 1199.98px) {
+  .exit-theme .card.shadow-soft {
+    height: auto;
+    min-height: unset;
+    margin-bottom: 0;
+  }
+}
+
+/* Compact header on small screens */
 @media (max-width: 575.98px) {
+  .page-header {
+    padding: 0.875rem 1rem;
+  }
+
+  .page-title {
+    font-size: 1.2rem;
+  }
+
   .exit-theme .card-header h5 {
     font-size: 15px;
   }

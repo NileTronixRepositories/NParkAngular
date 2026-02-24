@@ -14,14 +14,35 @@ export const authGuard: CanActivateFn = (route, state) => {
   const allowedRoles = route.data?.['roles'] as string[] | undefined;
   const userRole = auth.role;
 
+  // If no roles specified, allow access (generic protected route)
   if (!allowedRoles || !allowedRoles.length) {
     return true;
   }
 
+  // Check if user has one of the allowed roles
   if (userRole && allowedRoles.includes(userRole)) {
     return true;
   }
 
-  router.navigate(['/overview']);
+  // Fallback: Redirect based on role
+  const defaultRoute = getRoleDefaultRoute(userRole);
+  router.navigate([defaultRoute]);
   return false;
 };
+
+/**
+ * Returns the default home route for a given user role.
+ */
+function getRoleDefaultRoute(role: string | null): string {
+  switch (role) {
+    case 'Admin':
+    case 'Supervisor':
+      return '/overview';
+    case 'EntranceCashier':
+      return '/tickets/entry';
+    case 'ExitCashier':
+      return '/tickets/exit';
+    default:
+      return '/login';
+  }
+}

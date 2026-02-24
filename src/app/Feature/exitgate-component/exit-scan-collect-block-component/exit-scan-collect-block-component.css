@@ -1,26 +1,26 @@
 :host .helper {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 4px;
   align-items: center;
   justify-content: center;
   text-align: center;
-  padding: 40px 20px;
+  padding: 8px 4px;
   color: var(--muted);
-  min-height: 220px;
+  min-height: 80px;
   background: var(--bg-soft);
-  border-radius: 12px;
+  border-radius: 6px;
   border: 1px dashed var(--border);
 }
 
 :host .big-icon {
-  font-size: 48px;
+  font-size: 16px;
   line-height: 1;
   display: grid;
   place-items: center;
-  width: 80px;
-  height: 80px;
-  border-radius: 20px;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
   background: #fff;
   box-shadow: var(--shadow);
   color: var(--accent-2);
@@ -29,12 +29,12 @@
 :host .helper-text .title {
   font-weight: 700;
   color: var(--text);
-  font-size: 16px;
-  margin-bottom: 4px;
+  font-size: 12px;
+  margin-bottom: 1px;
 }
 
 :host .helper-text .sub {
-  font-size: 13px;
+  font-size: 11px;
   color: var(--muted);
 }
 
@@ -42,23 +42,24 @@
 :host .summary {
   background: #fff;
   border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
+  border-radius: 6px;
+  padding: 6px;
   box-shadow: var(--shadow);
+  font-size: 12px;
 }
 
 :host .summary .label {
-  font-size: 11px;
+  font-size: 10px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--muted);
   font-weight: 600;
-  margin-bottom: 2px;
+  margin-bottom: 1px;
 }
 
 :host .summary .value {
   font-weight: 600;
-  font-size: 14px;
+  font-size: 12px;
   color: var(--text);
 }
 
@@ -70,26 +71,27 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 16px;
-  border-radius: 12px;
+  padding: 4px 6px;
+  border-radius: 6px;
   background: var(--bg-soft);
-  margin-top: 12px;
+  margin-top: 4px;
   border: 1px solid var(--border);
+  font-size: 11px;
 }
 
 :host .total .amount {
   font-weight: 800;
-  font-size: 24px;
+  font-size: 14px;
   color: var(--success);
 }
 
 /* SCAN INPUT */
 :host input.form-control-lg {
-  border-radius: 12px;
+  border-radius: 6px;
   border: 1px solid var(--border);
   box-shadow: none;
-  padding: 12px 16px;
-  font-size: 16px;
+  padding: 4px 8px;
+  font-size: 12px;
   transition: all 0.2s ease;
 }
 
@@ -102,4 +104,72 @@
   border: 1px dashed var(--border);
   border-radius: 12px;
   background: var(--bg-soft);
+}
+
+/* Sanctions UI - Dropdown & Tags */
+.select-sanction {
+  border-radius: 8px;
+  background-color: var(--bg-soft);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.85rem;
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.select-sanction:focus {
+  border-color: var(--bs-danger);
+  box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
+}
+
+.sanction-tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-radius: 50px;
+  cursor: pointer;
+  background: rgba(220, 53, 69, 0.1);
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
+  font-family: inherit;
+}
+
+.sanction-tag:hover {
+  background: rgba(220, 53, 69, 0.2);
+  transform: translateY(-1px);
+}
+
+.sanction-tag.active {
+  background: var(--bs-danger);
+  border-color: var(--bs-danger);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(220, 53, 69, 0.4);
+}
+
+.tag-name {
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.tag-price {
+  font-size: 0.75rem;
+  opacity: 0.9;
+  font-family: 'SF Mono', 'Segoe UI Mono', 'Roboto Mono', monospace;
+  margin-inline-start: 4px;
+}
+
+.tag-remove {
+  font-size: 0.9rem;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+
+.sanction-tag:hover .tag-remove {
+  opacity: 1;
+}
+
+/* Cleanup old chips if any left in HTML (none expected) */
+.sanction-chip {
+  display: none !important;
 }
