@@ -21,19 +21,19 @@ export class TicketSalaryService {
     return `${this.ticketUrl}/${path}`;
   }
 
-  /** QR Ticket salary */
+  /** Ticket salary calculation with sanctions */
   calculateTicketSalary(
-    qrCode: string,
+    ticketId: string,
     sanctionIds?: string[],
   ): Observable<CalculateSalaryResponse | null> {
-    const trimmed = qrCode?.trim();
+    const trimmed = ticketId?.trim();
     if (!trimmed) return of(null);
 
-    const body: any = { QrCode: trimmed };
+    const body: any = { ticketId: trimmed };
     if (sanctionIds && sanctionIds.length > 0) {
-      body.SanctionIds = sanctionIds;
+      body.sanctionIds = sanctionIds;
     } else {
-      body.SanctionIds = [];
+      body.sanctionIds = [];
     }
 
     return this.http

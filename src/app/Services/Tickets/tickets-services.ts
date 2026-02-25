@@ -75,11 +75,15 @@ export class TicketsServices {
     );
   }
 
+  scanTicket(qrCode: string): Observable<any> {
+    return this.core.scanTicket(qrCode);
+  }
+
   calculateTicketSalary(
-    qrCode: string,
+    ticketId: string,
     sanctionIds?: string[],
   ): Observable<CalculateSalaryResponse | null> {
-    return this.salary.calculateTicketSalary(qrCode, sanctionIds);
+    return this.salary.calculateTicketSalary(ticketId, sanctionIds);
   }
 
   calculateSubscriberSalary(

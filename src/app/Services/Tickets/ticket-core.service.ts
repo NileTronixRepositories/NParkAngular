@@ -51,12 +51,24 @@ export class TicketCoreService {
           action: (r.action ?? r.Action ?? '') as TicketDto['action'],
           time: (r.time ?? r.Time ?? r.dateTime ?? r.DateTime) as string,
           gate: r.gate ?? r.Gate ?? '',
-        }))
+        })),
       ),
       catchError((err) => {
         this.logError('GET /Ticket', err);
         return of([]);
-      })
+      }),
+    );
+  }
+
+  // ========= Scan Ticket (New Flow) =========
+
+  scanTicket(qrCode: string): Observable<any> {
+    const body = { qrCode: qrCode.trim() };
+    return this.http.post<any>(this.endpoint('ScanTicket'), body).pipe(
+      catchError((err) => {
+        this.logError('POST /Ticket/ScanTicket', err);
+        return throwError(() => err);
+      }),
     );
   }
 
@@ -102,7 +114,7 @@ export class TicketCoreService {
       catchError((err) => {
         this.logError('POST /Ticket/AddTicket', err);
         return throwError(() => err);
-      })
+      }),
     );
   }
 
@@ -114,7 +126,7 @@ export class TicketCoreService {
       catchError((err) => {
         this.logError('POST /Ticket/Collect/{id}', err);
         return throwError(() => err);
-      })
+      }),
     );
   }
 
@@ -124,7 +136,7 @@ export class TicketCoreService {
       catchError((err) => {
         this.logError('POST /Ticket/CollectCashier', err);
         return throwError(() => err);
-      })
+      }),
     );
   }
 
@@ -136,7 +148,7 @@ export class TicketCoreService {
       catchError((err) => {
         this.logError('POST /Ticket/ExitTicket', err);
         return throwError(() => err);
-      })
+      }),
     );
   }
 
@@ -194,7 +206,7 @@ export class TicketCoreService {
 
   getTicketsForEntry(
     startDate: string,
-    ticketNumber: string = ''
+    ticketNumber: string = '',
   ): Observable<TicketsForGateResult> {
     return this.http
       .get<TicketTableResponseDto>(this.endpoint('GetTicketForEntry'), {
@@ -213,13 +225,13 @@ export class TicketCoreService {
         catchError((err) => {
           this.logError('GET /Ticket/GetTicketForEntry', err);
           return of({ items: [] as TicketDto[], totalPrice: 0 });
-        })
+        }),
       );
   }
 
   getTicketsForExit(
     startDate: string,
-    ticketNumber: string = ''
+    ticketNumber: string = '',
   ): Observable<TicketsForGateResult> {
     return this.http
       .get<TicketTableResponseDto>(this.endpoint('GetTicketForExit'), {
@@ -238,7 +250,7 @@ export class TicketCoreService {
         catchError((err) => {
           this.logError('GET /Ticket/GetTicketForExit', err);
           return of({ items: [] as TicketDto[], totalPrice: 0 });
-        })
+        }),
       );
   }
 
@@ -258,7 +270,7 @@ export class TicketCoreService {
       catchError((err) => {
         this.logError('POST /Ticket/CaptureManualPlate', err);
         return throwError(() => err);
-      })
+      }),
     );
   }
 
@@ -289,7 +301,7 @@ export class TicketCoreService {
       catchError((err) => {
         this.logError('GET /Ticket/SearchTicket', err);
         return of([]);
-      })
+      }),
     );
   }
 }

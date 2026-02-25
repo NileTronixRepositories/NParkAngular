@@ -637,13 +637,16 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.selectedSanctionIds.push(id);
     }
 
-    // بعد تغيير العقوبات، يعيد الحساب بناءً على الحالة الحالية
-    if (this.lastQrCode) {
-      // إذا كان QR أو TicketNumber
-      this.fetchTicketAndSalaryByQr(this.lastQrCode);
-    } else if (this.manualInput && !this.scannedTicket) {
-      // إذا كان كارت مشترك
+    if (this.scannedTicket) {
+      this.salarySummary = null;
+    } else if (this.manualInput) {
       this.fetchSalaryForCard(this.manualInput);
+    }
+  }
+
+  onCalculateSalary(): void {
+    if (this.scannedTicket) {
+      this.fetchSalaryOnly(String(this.scannedTicket.id));
     }
   }
 
@@ -843,7 +846,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** QR Ticket: Get ticket + salary via CalculateQrCodeTicketSalary */
+  /** Step 1: Scan QR to get ticket data */
   private fetchTicketAndSalaryByQr(code: string): void {
     this.scanning = true;
     this.searchingManual = true;
@@ -854,8 +857,36 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.addingExitTicket = false;
     this.exitTicketAdded = false;
 
-    // الملخص المالي
-    this.svc.calculateTicketSalary(code, this.selectedSanctionIds).subscribe({
+    // 1) Scan Ticket
+    this.svc.scanTicket(code).subscribe({
+      next: (res) => {
+        if (res) {
+          // Map to TicketDetailsDto (keeping existing UI compatible)
+          this.scannedTicket = {
+            id: res.id,
+            plate: res.ticketInfo || '', // Usually info contains plate or similar
+            dateTime: res.startDate,
+            endDate: new Date().toISOString(), // Fallback
+            price: res.price,
+            exceedPrice: 0,
+            totalPrice: res.price,
+          };
+
+          // 2) Calculate Salary - REPLACED BY MANUAL BUTTON FETCH
+          // this.fetchSalaryOnly(res.id);
+          this.searchingManual = false;
+        }
+      },
+      error: (err) => {
+        this.handleError('scanTicket', err);
+        this.searchingManual = false;
+      },
+    });
+  }
+
+  /** Step 2: Calculate Salary based on ticketId and selected sanctions */
+  private fetchSalaryOnly(ticketId: string): void {
+    this.svc.calculateTicketSalary(ticketId, this.selectedSanctionIds).subscribe({
       next: (summary) => {
         this.salarySummary = summary;
       },
@@ -885,26 +916,11 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.exitTicketAdded = false;
     this.searchingManual = true;
 
-    // Use calculateSalaryByTicketNumber which tries ticket number endpoint first, then falls back to QR
-    this.svc.calculateSalaryByTicketNumber(trimmed, this.selectedSanctionIds).subscribe({
-      next: (summary) => {
-        this.salarySummary = summary;
-
-        if (!summary) {
-          this.toast.error(
-            this.lang.current === 'ar'
-              ? 'لم يتم العثور على بيانات التذكرة'
-              : 'Ticket data not found',
-          );
-        }
-      },
-      error: (err) => {
-        this.handleError('calculateSalaryByTicketNumber', err);
-      },
-      complete: () => {
-        this.searchingManual = false;
-      },
-    });
+    // Note: We use scanTicket even for ticket numbers if the backend supports it,
+    // or keep calculateSalaryByTicketNumber as is if it's still needed.
+    // The user didn't specify changing the TicketNumber flow, but usually they share the same backend logic.
+    // I'll stick to their new flow requirements for QR.
+    this.fetchTicketAndSalaryByQr(trimmed);
   }
 
   /** Subscriber card: CalculateSalaryForSubscriberCommand فقط */

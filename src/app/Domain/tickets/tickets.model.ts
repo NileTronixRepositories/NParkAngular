@@ -38,6 +38,15 @@ export interface TicketDetailsDto {
   totalPrice: number;
 }
 
+export interface ScanTicketResponse {
+  id: string;
+  startDate: string;
+  ticketNumber: string;
+  price: number;
+  isCollectedByCashier: boolean;
+  ticketInfo: string;
+}
+
 /**
  * Raw row from API used for entry/exit tables
  */

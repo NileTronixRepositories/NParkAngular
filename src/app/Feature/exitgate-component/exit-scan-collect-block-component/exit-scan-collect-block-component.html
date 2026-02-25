@@ -123,116 +123,8 @@
         </div>
       </div>
 
-      <!-- Buttons: Add log + Confirm & Print -->
-      <div class="d-flex justify-content-between mt-3 flex-wrap gap-2">
-        <button
-          class="btn btn-outline-primary"
-          type="button"
-          (click)="onAddExitTicketClick(t)"
-          [disabled]="addingExitTicket || exitTicketAdded"
-        >
-          <span *ngIf="!addingExitTicket" class="d-inline-flex align-items-center gap-2">
-            <i class="bi bi-plus-circle"></i> {{ 'addExitTicket' | t }}
-          </span>
-          <span *ngIf="addingExitTicket" class="spinner-border spinner-border-sm"></span>
-        </button>
-
-        <div class="d-flex gap-2">
-          <button
-            class="btn btn-outline-secondary"
-            type="button"
-            (click)="onPrintSummaryClick()"
-            [disabled]="!hasSummary"
-          >
-            <i class="bi bi-printer"></i> {{ 'print' | t }}
-          </button>
-
-          <!-- Confirm & Collect (للـ QR ticket) -->
-          <button
-            class="btn btn-success btn-lg px-4"
-            type="button"
-            (click)="onConfirmExitClick()"
-            [disabled]="disableConfirmAndCollect"
-          >
-            <span *ngIf="!collecting" class="d-inline-flex align-items-center gap-2">
-              <i class="bi bi-cash-coin"></i> {{ 'confirm_and_collect' | t }}
-            </span>
-            <span *ngIf="collecting" class="spinner-border spinner-border-sm"></span>
-          </button>
-        </div>
-      </div>
-    </div>
-
-    <!-- 🔹 Salary summary (QR أو Subscriber card) -->
-    <div *ngIf="salarySummary as s" class="mt-3 p-2 border rounded small">
-      <div class="d-flex justify-content-between mb-1">
-        <span class="fw-semibold">{{ 'salary_total' | t }}</span>
-        <span class="mono">
-          {{ displayTotal | number: '1.2-2' }}
-        </span>
-      </div>
-
-      <div class="d-flex justify-content-between mb-1">
-        <span class="fw-semibold">{{ 'salary_enter_date' | t }}</span>
-        <span class="mono">
-          {{ s.enterDate | date: 'short' }}
-        </span>
-      </div>
-
-      <div class="d-flex justify-content-between mb-1">
-        <span class="fw-semibold">{{ 'salary_exit_valid' | t }}</span>
-        <span>
-          <span class="badge" [class.bg-success]="s.isExitValid" [class.bg-danger]="!s.isExitValid">
-            {{ s.isExitValid ? ('yes' | t) : ('no' | t) }}
-          </span>
-        </span>
-      </div>
-
-      <!-- Row + Collect / Open gate -->
-      <div class="d-flex justify-content-between align-items-center mb-1">
-        <span class="fw-semibold">{{ 'salary_cashier_collected' | t }}</span>
-
-        <div class="d-flex align-items-center gap-2">
-          <span
-            class="badge"
-            [class.bg-success]="s.isCollectByCashier"
-            [class.bg-warning]="!s.isCollectByCashier"
-          >
-            {{
-              s.isCollectByCashier ? ('cashierCollectedShort' | t) : ('cashier_not_collected' | t)
-            }}
-          </span>
-
-          <button
-            class="btn btn-sm btn-success"
-            type="button"
-            (click)="onConfirmCashier()"
-            [disabled]="disableCashierConfirm"
-          >
-            <span *ngIf="!cashierConfirming">
-              <i class="bi bi-cash-coin"></i> {{ 'cashier_confirm_button' | t }}
-            </span>
-            <span *ngIf="cashierConfirming" class="spinner-border spinner-border-sm"></span>
-          </button>
-
-          <button
-            *ngIf="s.isCollectByCashier"
-            type="button"
-            class="btn btn-outline-success btn-sm"
-            (click)="onAllowExitWithoutCollectClick()"
-            [disabled]="exitProcessing"
-          >
-            <span *ngIf="!exitProcessing">
-              <i class="bi bi-door-open"></i>
-              {{ 'open_gate' | t }}
-            </span>
-            <span *ngIf="exitProcessing" class="spinner-border spinner-border-sm"></span>
-          </button>
-        </div>
-      </div>
-
       <!-- Sanctions UI - Dropdown refactor -->
-      <div *ngIf="allSanctions.length > 0 && salarySummary" class="mt-3">
+      <div *ngIf="allSanctions.length > 0" class="mt-3">
         <label class="form-label small fw-semibold text-danger">
           <i class="bi bi-exclamation-triangle-fill"></i> {{ 'sanctions' | t }}
         </label>
@@ -261,6 +153,73 @@
               <i class="bi bi-x-circle-fill tag-remove ms-1"></i>
             </div>
           </ng-container>
+        </div>
+      </div>
+
+      <!-- Calculate Salary Button -->
+      <div class="mt-3">
+        <button
+          class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2"
+          (click)="onCalculateSalaryClick()"
+          [disabled]="searchingManual"
+        >
+          <span *ngIf="!searchingManual">
+            <i class="bi bi-calculator"></i>
+            {{ 'calculate_total' | t }}
+          </span>
+          <span *ngIf="searchingManual" class="spinner-border spinner-border-sm"></span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 🔹 Salary summary (Only after manual calculate) -->
+    <div *ngIf="salarySummary as s" class="mt-3 p-2 border rounded small bg-light shadow-sm">
+      <div class="d-flex justify-content-between mb-1">
+        <span class="fw-semibold">{{ 'salary_total' | t }}</span>
+        <span class="mono fw-bold text-success">
+          {{ s.totalSalary | number: '1.2-2' }}
+        </span>
+      </div>
+
+      <div class="d-flex justify-content-between mb-1">
+        <span class="fw-semibold">{{ 'salary_enter_date' | t }}</span>
+        <span class="mono">
+          {{ s.enterDate | date: 'short' }}
+        </span>
+      </div>
+
+      <div class="d-flex justify-content-between mb-1">
+        <span class="fw-semibold">{{ 'salary_exit_valid' | t }}</span>
+        <span>
+          <span class="badge" [class.bg-success]="s.isExitValid" [class.bg-danger]="!s.isExitValid">
+            {{ s.isExitValid ? ('yes' | t) : ('no' | t) }}
+          </span>
+        </span>
+      </div>
+
+      <!-- New Actions after calculation: Print and Confirm -->
+      <div class="row g-2 mt-3">
+        <div class="col-4">
+          <button
+            class="btn btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2"
+            (click)="onPrintSummaryClick()"
+          >
+            <i class="bi bi-printer"></i>
+            {{ 'print' | t }}
+          </button>
+        </div>
+        <div class="col-8">
+          <button
+            class="btn btn-success w-100 d-flex align-items-center justify-content-center gap-2"
+            (click)="onConfirmExitClick()"
+            [disabled]="disableConfirmAndCollect"
+          >
+            <span *ngIf="!collecting" class="d-inline-flex align-items-center gap-2">
+              <i class="bi bi-cash-stack"></i>
+              {{ 'confirm_and_collect' | t }}
+            </span>
+            <span *ngIf="collecting" class="spinner-border spinner-border-sm"></span>
+          </button>
         </div>
       </div>
     </div>

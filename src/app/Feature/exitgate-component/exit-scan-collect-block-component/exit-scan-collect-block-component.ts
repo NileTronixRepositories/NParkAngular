@@ -61,6 +61,7 @@ export class ExitScanCollectBlockComponent {
   @Output() manualSearchClick = new EventEmitter<void>();
   @Output() addExitTicketClick = new EventEmitter<TicketDetailsDto>();
   @Output() confirmExitClick = new EventEmitter<void>();
+  @Output() calculateSalaryClick = new EventEmitter<void>();
   @Output() printSummaryClick = new EventEmitter<void>();
   @Output() allowExitWithoutCollectClick = new EventEmitter<void>();
 
@@ -145,6 +146,10 @@ export class ExitScanCollectBlockComponent {
 
   onAddExitTicketClick(t: TicketDetailsDto): void {
     this.addExitTicketClick.emit(t);
+  }
+
+  onCalculateSalaryClick(): void {
+    this.calculateSalaryClick.emit();
   }
 
   onConfirmExitClick(): void {
