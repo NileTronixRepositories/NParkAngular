@@ -8,8 +8,8 @@
 
 /* QR preview box */
 :host .qr-preview {
-  width: 70px;
-  height: 70px;
+  width: 100px;
+  height: 90px;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -29,11 +29,11 @@ export class TicketSalaryService {
     const trimmed = ticketId?.trim();
     if (!trimmed) return of(null);
 
-    const body: any = { ticketId: trimmed };
+    const body: any = { TicketId: trimmed };
     if (sanctionIds && sanctionIds.length > 0) {
-      body.sanctionIds = sanctionIds;
+      body.SanctionIds = sanctionIds;
     } else {
-      body.sanctionIds = [];
+      body.SanctionIds = [];
     }
 
     return this.http
@@ -79,7 +79,7 @@ export class TicketSalaryService {
     const trimmed = ticketNumber?.trim();
     if (!trimmed) return of(null);
 
-    // Try with ticketNumber parameter first
+    // Try with ticketNumber parameter
     const body: any = { TicketNumber: trimmed };
     if (sanctionIds && sanctionIds.length > 0) {
       body.SanctionIds = sanctionIds;
@@ -92,8 +92,16 @@ export class TicketSalaryService {
       .pipe(
         catchError((err) => {
           this.logError('POST /Ticket/CalculateTicketNumberSalary', err);
-          // Fallback: try with QrCode parameter
-          return this.calculateTicketSalary(trimmed, sanctionIds);
+
+          const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
+            trimmed,
+          );
+
+          if (isGuid) {
+            return this.calculateTicketSalary(trimmed, sanctionIds);
+          }
+
+          return throwError(() => err);
         }),
       );
   }

@@ -1265,62 +1265,29 @@ export class TicketComponent implements OnInit, OnDestroy {
     const identifier = ticket.ticketNumber || String(ticket.id);
     const summaryText = ticket.info ? ` - ${ticket.info}` : '';
 
-    this.toast.success(
-      this.i18n.current === 'ar'
-        ? `جاري تحميل بيانات التذكرة: ${identifier}${summaryText}`
-        : `Loading ticket data: ${identifier}${summaryText}`,
-    );
+    this.lastIssuedTicketId = ticket.id ?? null;
+    this.lastIssuedTicketInfo = ticket.info ?? null;
+    this.lastIssuedPrice = ticket.price ?? null;
+    this.lastIssuedCreatedAt = ticket.time ?? null;
+    this.lastIssuedVehicleNumber = ticket.plate ?? null;
+    this._cashierCollected = ticket.isCollectedByCashier ?? false;
 
-    this.ticketsSvc.calculateSalaryByTicketNumber(identifier).subscribe({
-      next: (salary) => {
-        if (!salary) {
-          // هنا الحالة أن الـ API رجّع 200 بس بدون داتا
-          this.toast.error(
-            this.i18n.current === 'ar'
-              ? 'لم يتم العثور على بيانات التذكرة'
-              : 'Ticket data not found',
-          );
-          return;
-        }
+    this.currentIssuedQr = null;
+    this.currentIssuedQrType = null;
 
-        this.lastIssuedTicketId = salary.ticketId ?? ticket.id ?? null;
-        this.lastIssuedTicketInfo = ticket.info ?? null;
-        this.lastIssuedPrice = salary.totalSalary ?? ticket.price ?? null;
-        this.lastIssuedCreatedAt = salary.enterDate ?? ticket.time ?? null;
-        this.lastIssuedVehicleNumber = ticket.plate ?? null;
-
-        this._cashierCollected = salary.isCollectByCashier ?? ticket.isCollectedByCashier ?? false;
-
-        this.currentIssuedQr = null;
-        this.currentIssuedQrType = null;
-
-        if (this._cashierCollected) {
-          this.toast.warn(
-            this.i18n.current === 'ar'
-              ? `التذكرة ${identifier} تم تحصيلها مسبقًا${summaryText}`
-              : `Ticket ${identifier} was already collected${summaryText}`,
-          );
-        } else {
-          this.toast.success(
-            this.i18n.current === 'ar'
-              ? `تم اختيار التذكرة: ${identifier}${summaryText}`
-              : `Selected ticket: ${identifier}${summaryText}`,
-          );
-        }
-      },
-      error: (err) => {
-        this.handleBackendError('calculateTicketSalary error', err);
-
-        this.lastIssuedTicketId = ticket.id ?? null;
-        this.lastIssuedTicketInfo = ticket.info ?? null;
-        this.lastIssuedPrice = ticket.price ?? null;
-        this.lastIssuedCreatedAt = ticket.time ?? null;
-        this.lastIssuedVehicleNumber = ticket.plate ?? null;
-        this._cashierCollected = ticket.isCollectedByCashier ?? false;
-        this.currentIssuedQr = null;
-        this.currentIssuedQrType = null;
-      },
-    });
+    if (this._cashierCollected) {
+      this.toast.warn(
+        this.i18n.current === 'ar'
+          ? `التذكرة ${identifier} تم تحصيلها مسبقًا${summaryText}`
+          : `Ticket ${identifier} was already collected${summaryText}`,
+      );
+    } else {
+      this.toast.success(
+        this.i18n.current === 'ar'
+          ? `تم اختيار التذكرة: ${identifier}${summaryText}`
+          : `Selected ticket: ${identifier}${summaryText}`,
+      );
+    }
   }
 
   private markTicketAsCashierCollected(ticketId: string | number): void {
