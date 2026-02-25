@@ -474,7 +474,9 @@ export class ConfigurationComponent implements OnInit {
       .pipe(finalize(() => (this.saving = false)))
       .subscribe({
         next: (res) => {
-          this.toast.fromSuccess(res);
+          const successMsg =
+            this.lang.current === 'ar' ? 'تم حفظ الإعدادات بنجاح' : 'Settings saved successfully';
+          this.toast.fromSuccess(res, successMsg);
           this.submitted.emit(dto);
         },
         error: (err) => {
