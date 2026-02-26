@@ -49,11 +49,18 @@ export class Users {
       failed_load: 'فشل تحميل المستخدمين',
       failed_save: 'تعذر الحفظ',
       password: 'كلمة المرور',
+      show_password: 'عرض كلمة المرور',
+      hide_password: 'إخفاء كلمة المرور',
       phone: 'الجوال',
       nationalId: 'الهوية الوطنية',
       roleId: 'معرّف الدور',
       role_hint: 'أدخل معرف الدور كما هو في النظام.',
       select_role: 'اختر الدور',
+      delete: 'حذف',
+      delete_confirm: 'هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن تراجع هذا الإجراء.',
+      delete_ok: 'تم حذف المستخدم بنجاح',
+      delete_failed: 'فشل حذف المستخدم',
+      leave_empty_to_keep: 'اتركه فارغاً للاحتفاظ بكلمة المرور الحالية',
     },
     en: {
       users: 'Users',
@@ -83,11 +90,18 @@ export class Users {
       failed_load: 'Failed to load users',
       failed_save: 'Failed to save',
       password: 'Password',
+      show_password: 'Show password',
+      hide_password: 'Hide password',
       phone: 'Phone',
       nationalId: 'National ID',
       roleId: 'Role Id',
       role_hint: 'Enter the role ID as configured in the system.',
       select_role: 'Select role',
+      delete: 'Delete',
+      delete_confirm: 'Are you sure you want to delete this user? This action cannot be undone.',
+      delete_ok: 'User deleted successfully',
+      delete_failed: 'Failed to delete user',
+      leave_empty_to_keep: 'Leave empty to keep current',
     },
   };
 
@@ -101,6 +115,7 @@ export class Users {
 
   showForm = false;
   isEdit = false;
+  showPassword = false;
 
   roles: RoleDto[] = [];
   rolesLoading = false;
@@ -122,6 +137,11 @@ export class Users {
   }
 
   trackById = (_: number, u: UserDto) => u.id;
+
+  compareRoleIds(o1: string, o2: string): boolean {
+    if (!o1 || !o2) return o1 === o2;
+    return String(o1).toLowerCase() === String(o2).toLowerCase();
+  }
 
   reload() {
     this.loading = true;
@@ -163,6 +183,7 @@ export class Users {
       phoneNumber: '',
       nationalId: '',
     };
+    this.showPassword = false;
     this.showForm = true;
   }
 
@@ -175,9 +196,10 @@ export class Users {
       roleId: u.roleId,
       roleName: u.roleName,
       password: '',
-      phoneNumber: '',
-      nationalId: '',
+      phoneNumber: u.phoneNumber ?? '',
+      nationalId: u.nationalId ?? '',
     };
+    this.showPassword = false;
     this.showForm = true;
   }
 
@@ -219,6 +241,7 @@ export class Users {
         userName,
         email,
         roleId,
+        password: this.model.password?.trim() || undefined,
       };
 
       console.log('Saving user update', payload);
@@ -310,6 +333,20 @@ export class Users {
       });
     }
   }
+  deleteUser(u: UserDto) {
+    if (!confirm(this.t('delete_confirm'))) return;
+
+    this.svc.delete(u.id).subscribe({
+      next: (res) => {
+        this.users = this.users.filter((item) => item.id !== u.id);
+        this.toast.fromSuccess(res || this.t('delete_ok'));
+      },
+      error: (err) => {
+        this.toast.fromProblem(err || this.t('delete_failed'));
+      },
+    });
+  }
+
   startUsersTour() {
     this.usersTour.startTour({
       ensureFormOpen: () => {

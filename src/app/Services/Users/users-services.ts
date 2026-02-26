@@ -27,6 +27,8 @@ export class UsersServices {
       email: row.email,
       roleId: row.roleId,
       roleName: row.roleName,
+      phoneNumber: row.phoneNumber,
+      nationalId: row.nationalId,
     };
   }
 
@@ -37,7 +39,7 @@ export class UsersServices {
       catchError((err) => {
         console.error('GET /User/GetUserSystem failed', err);
         return of([] as UserDto[]);
-      })
+      }),
     );
   }
 
@@ -48,12 +50,12 @@ export class UsersServices {
         (rows ?? []).map((r) => ({
           id: r.roleId,
           name: r.roleName,
-        }))
+        })),
       ),
       catchError((err) => {
         console.error('GET /Role/GetAll failed', err);
         return of([] as RoleDto[]);
-      })
+      }),
     );
   }
 
@@ -75,28 +77,35 @@ export class UsersServices {
         console.error('POST /User/Create failed', err);
         console.error('Server error body:', err?.error);
         return throwError(() => err);
-      })
+      }),
     );
   }
 
   // ========= UPDATE =========
-  update(u: UserUpdateDto): Observable<UserUpdateDto> {
+  update(u: UserUpdateDto): Observable<any> {
     const body = {
       email: u.email,
       userName: u.userName,
       roleId: u.roleId,
       id: u.id,
+      password: u.password || undefined,
     };
 
-    console.log('Update payload', body);
-
-    return this.http.put<any>(`${this.base}/User/update`, body).pipe(
-      map(() => u),
+    return this.http.put<any>(`${this.base}/User?UserId=${u.id}`, body).pipe(
       catchError((err) => {
-        console.error('PUT /User/update failed', err);
-        console.error('Server error body:', err?.error);
+        console.error('PUT /api/User failed', err);
         return throwError(() => err);
-      })
+      }),
+    );
+  }
+
+  // ========= DELETE =========
+  delete(id: string): Observable<any> {
+    return this.http.delete<any>(`${this.base}/User?UserId=${id}`).pipe(
+      catchError((err) => {
+        console.error('DELETE /api/User failed', err);
+        return throwError(() => err);
+      }),
     );
   }
 }

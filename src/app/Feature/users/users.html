@@ -99,6 +99,7 @@
               name="roleId"
               required
               [disabled]="saving || rolesLoading"
+              [compareWith]="compareRoleIds"
             >
               <option [ngValue]="''" disabled>{{ t('select_role') }}</option>
               <option *ngFor="let r of roles" [ngValue]="r.id">
@@ -107,20 +108,39 @@
             </select>
           </div>
 
-          <!-- Second Row (only for New User) -->
-          <ng-container *ngIf="!isEdit">
-            <div class="col-md-4">
-              <label class="form-label small mb-1">{{ t('password') }}</label>
+          <!-- Password (Optional on Edit) -->
+          <div [class]="isEdit ? 'col-md-12' : 'col-md-6'">
+            <label class="form-label small mb-1">
+              {{ t('password') }}
+              <span class="text-danger" *ngIf="!isEdit">*</span>
+              <span class="text-muted small ms-1" *ngIf="isEdit"
+                >({{ t('leave_empty_to_keep') || 'Optional: leave empty to keep current' }})</span
+              >
+            </label>
+            <div class="input-group input-group-sm">
               <input
-                type="password"
-                class="form-control form-control-sm"
+                [type]="showPassword ? 'text' : 'password'"
+                class="form-control"
                 [(ngModel)]="model.password"
                 name="password"
-                required
+                [required]="!isEdit"
                 [disabled]="saving"
+                [placeholder]="isEdit ? '••••••••' : ''"
               />
+              <button
+                class="btn btn-outline-secondary"
+                type="button"
+                (click)="showPassword = !showPassword"
+                [title]="showPassword ? t('hide_password') : t('show_password')"
+              >
+                <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+              </button>
             </div>
-            <div class="col-md-4">
+          </div>
+
+          <!-- Second Row (only for New User) -->
+          <ng-container *ngIf="!isEdit">
+            <div class="col-md-6">
               <label class="form-label small mb-1">{{ t('phone') }}</label>
               <input
                 type="text"
@@ -208,12 +228,18 @@
               <td class="pe-3">
                 <div class="d-flex justify-content-end">
                   <button
-                    class="btn btn-xs btn-outline-primary"
-                    type="button"
+                    class="btn btn-sm btn-outline-primary"
                     (click)="openEdit(u)"
                     [title]="t('edit')"
                   >
                     <i class="bi bi-pencil"></i>
+                  </button>
+                  <button
+                    class="btn btn-sm btn-outline-danger"
+                    (click)="deleteUser(u)"
+                    [title]="t('delete')"
+                  >
+                    <i class="bi bi-trash"></i>
                   </button>
                 </div>
               </td>

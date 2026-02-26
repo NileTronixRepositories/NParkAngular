@@ -9,6 +9,8 @@ export interface UserSystemResponse {
   email: string;
   roleId: string;
   roleName: string;
+  phoneNumber?: string;
+  nationalId?: string;
 }
 
 export interface UserDto {
@@ -17,6 +19,8 @@ export interface UserDto {
   email: string;
   roleId: string;
   roleName: string;
+  phoneNumber?: string;
+  nationalId?: string;
 }
 
 export interface UserUpdateDto {
@@ -24,6 +28,7 @@ export interface UserUpdateDto {
   userName: string;
   email: string;
   roleId: string;
+  password?: string;
 }
 
 export interface UserCreateDto {
