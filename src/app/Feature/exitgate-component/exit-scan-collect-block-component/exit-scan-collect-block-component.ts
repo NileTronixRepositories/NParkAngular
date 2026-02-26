@@ -7,7 +7,7 @@ import {
   ViewChild,
   ChangeDetectionStrategy,
 } from '@angular/core';
-import { TicketDetailsDto, CalculateSalaryResponse } from '../../../Domain/tickets/tickets.model';
+import { ScanTicketResponse, CalculateSalaryResponse } from '../../../Domain/tickets/tickets.model';
 import { SanctionDto } from '../../../Domain/Sanction/sanction.models';
 import { TranslatePipePipe } from '../../../Services/i18n/translate-pipe-pipe';
 import { CommonModule } from '@angular/common';
@@ -37,7 +37,7 @@ export class ExitScanCollectBlockComponent {
   @Output() manualInputChange = new EventEmitter<string>();
 
   // ========== Ticket & salary ==========
-  @Input() scannedTicket: TicketDetailsDto | null = null;
+  @Input() scannedTicket: ScanTicketResponse | null = null;
   @Input() salarySummary: CalculateSalaryResponse | null = null;
 
   // ========== Exit ticket actions ==========
@@ -59,7 +59,7 @@ export class ExitScanCollectBlockComponent {
   @Output() readCardClick = new EventEmitter<void>();
   @Output() submitQrClick = new EventEmitter<void>();
   @Output() manualSearchClick = new EventEmitter<void>();
-  @Output() addExitTicketClick = new EventEmitter<TicketDetailsDto>();
+  @Output() addExitTicketClick = new EventEmitter<ScanTicketResponse>();
   @Output() confirmExitClick = new EventEmitter<void>();
   @Output() calculateSalaryClick = new EventEmitter<void>();
   @Output() printSummaryClick = new EventEmitter<void>();
@@ -107,12 +107,7 @@ export class ExitScanCollectBlockComponent {
   }
 
   get displayTotal(): number {
-    if (!this.salarySummary) return 0;
-    const base = this.salarySummary.totalSalary || 0;
-    const sanctionsSum = this.allSanctions
-      .filter((s) => this.isSanctionSelected(s.id))
-      .reduce((sum, s) => sum + s.amount, 0);
-    return base + sanctionsSum;
+    return this.salarySummary?.totalSalary || 0;
   }
 
   // ========== Handlers ==========
@@ -142,7 +137,7 @@ export class ExitScanCollectBlockComponent {
     this.manualSearchClick.emit();
   }
 
-  onAddExitTicketClick(t: TicketDetailsDto): void {
+  onAddExitTicketClick(t: ScanTicketResponse): void {
     this.addExitTicketClick.emit(t);
   }
 

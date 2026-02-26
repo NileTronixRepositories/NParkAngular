@@ -9,6 +9,7 @@ import {
   TicketDetailsDto,
   CollectDailyTicketsResponse,
   CalculateSalaryResponse,
+  ScanTicketResponse,
 } from '../../Domain/tickets/tickets.model';
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
 
@@ -175,6 +176,7 @@ import { Subscription } from 'rxjs';
           searching: 'جاري البحث...',
 
           exit_notification_title: 'تذكرة خروج جديدة',
+          collectCashierOk: 'تم تأكيد تحصيل الكاشير بنجاح',
         },
         en: {
           exitTicket: 'Exit Gate',
@@ -300,8 +302,9 @@ import { Subscription } from 'rxjs';
           no_search_results: 'No results found',
           searching: 'Searching...',
 
-          // 🔔 NEW
+          //  NEW
           exit_notification_title: 'New exit ticket',
+          collectCashierOk: 'Cashier collection confirmed successfully',
         },
       },
     },
@@ -365,7 +368,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   manualInput = '';
   searchingManual = false;
 
-  scannedTicket: TicketDetailsDto | null = null;
+  scannedTicket: ScanTicketResponse | null = null;
   salarySummary: CalculateSalaryResponse | null = null;
 
   lastQrCode: string | null = null;
@@ -411,12 +414,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   selectedSanctionIds: string[] = [];
 
   get currentTotalWithSanctions(): number {
-    if (!this.salarySummary) return 0;
-    const base = this.salarySummary.totalSalary || 0;
-    const sanctionsSum = this.allSanctions
-      .filter((s) => this.selectedSanctionIds.includes(s.id))
-      .reduce((sum, s) => sum + s.amount, 0);
-    return base + sanctionsSum;
+    return this.salarySummary?.totalSalary || 0;
   }
 
   get isSupervisor(): boolean {
@@ -849,21 +847,9 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     // 1) Scan Ticket
     this.svc.scanTicket(code).subscribe({
-      next: (res) => {
+      next: (res: ScanTicketResponse) => {
         if (res) {
-          // Map to TicketDetailsDto (keeping existing UI compatible)
-          this.scannedTicket = {
-            id: res.id,
-            plate: res.ticketInfo || '', // Usually info contains plate or similar
-            dateTime: res.startDate,
-            endDate: new Date().toISOString(), // Fallback
-            price: res.price,
-            exceedPrice: 0,
-            totalPrice: res.price,
-          };
-
-          // 2) Calculate Salary - REPLACED BY MANUAL BUTTON FETCH
-          // this.fetchSalaryOnly(res.id);
+          this.scannedTicket = res;
           this.searchingManual = false;
         }
       },
@@ -879,6 +865,13 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.svc.calculateTicketSalary(ticketId, this.selectedSanctionIds).subscribe({
       next: (summary) => {
         this.salarySummary = summary;
+        if (this.scannedTicket && summary) {
+          this.scannedTicket = {
+            ...this.scannedTicket,
+            price: summary.totalSalary,
+            startDate: summary.enterDate || this.scannedTicket.startDate,
+          };
+        }
       },
       error: (err) => {
         this.handleError('calculateTicketSalary', err);
@@ -913,7 +906,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.fetchTicketAndSalaryByQr(trimmed);
   }
 
-  /** Subscriber card: CalculateSalaryForSubscriberCommand فقط */
+  /** Subscriber card: CalculateSalaryForSubscriberCommand */
   private fetchSalaryForCard(cardNumber: string): void {
     this.scanning = false;
     this.searchingManual = true;
@@ -927,6 +920,13 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.svc.calculateSubscriberSalary(cardNumber, this.selectedSanctionIds).subscribe({
       next: (summary) => {
         this.salarySummary = summary;
+        if (this.scannedTicket && summary) {
+          this.scannedTicket = {
+            ...this.scannedTicket,
+            price: summary.totalSalary,
+            startDate: summary.enterDate || this.scannedTicket.startDate,
+          };
+        }
       },
       error: (err) => {
         this.handleError('calculateSubscriberSalary (card)', err);
@@ -938,8 +938,9 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   // ========= Exit ticket log / collect =========
+  // success message when back 204
 
-  addExitTicket(t: TicketDetailsDto): void {
+  addExitTicket(t: ScanTicketResponse): void {
     if (this.addingExitTicket || !t?.id) return;
 
     this.addingExitTicket = true;
@@ -949,8 +950,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         if (ok) {
           this.exitTicketAdded = true;
 
-          const price = this.currentTotalWithSanctions || t.totalPrice;
-          this.upsertExitTicketRow(t.id, t.plate, price, false);
+          const price = this.currentTotalWithSanctions || t.price;
+          this.upsertExitTicketRow(t.id, t.ticketInfo || '', price, false);
         }
       },
       error: (err) => {
@@ -1012,19 +1013,16 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   private processCollection(ticketId: number | string, qr: string): void {
     this.svc.collect(ticketId).subscribe({
       next: () => {
-        const price = this.currentTotalWithSanctions || this.scannedTicket!.totalPrice;
-        this.upsertExitTicketRow(ticketId, this.scannedTicket!.plate, price, false);
+        const price = this.currentTotalWithSanctions || this.scannedTicket!.price;
+        this.upsertExitTicketRow(ticketId, this.scannedTicket!.ticketInfo || '', price, false);
 
-        if (qr) {
-          this.svc.calculateTicketSalary(qr).subscribe({
-            next: (summary) => {
-              this.salarySummary = summary;
-            },
-            error: (err) => {
-              this.handleError('recalculate salary after collect', err);
-            },
-          });
+        if (this.salarySummary) {
+          this.salarySummary = {
+            ...this.salarySummary,
+            isCollectByCashier: true,
+          };
         }
+        this.toast.success(this.t('collectCashierOk'));
       },
       error: (err) => {
         this.handleError('collect (confirmExit)', err);
@@ -1040,7 +1038,6 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     this.exitProcessing = true;
 
-    // حالة: فيه تذكرة كاملة
     if (this.scannedTicket) {
       const ticketId = String(this.scannedTicket.id);
 
@@ -1050,7 +1047,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
             const price = this.currentTotalWithSanctions || 0;
             this.upsertExitTicketRow(
               this.scannedTicket!.id,
-              this.scannedTicket!.plate,
+              this.scannedTicket!.ticketInfo || '',
               price,
               true,
             );
@@ -1069,7 +1066,6 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // حالة: كارت مشترك فقط (بدون scannedTicket)
     if (this.salarySummary?.ticketId) {
       const ticketId = String(this.salarySummary.ticketId);
 
@@ -1101,6 +1097,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.svc.collect(t.id).subscribe({
       next: () => {
         this.upsertExitTicketRow(t.id, t.plate, t.totalPrice, false);
+        this.toast.success(this.t('collectCashierOk'));
         this.resetScanState();
       },
       error: (err) => {
@@ -1125,7 +1122,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     }
 
     this.cashierConfirming = true;
-
+    // success message when back 204
     this.svc.collectCashier(ticketId).subscribe({
       next: (ok) => {
         if (ok) {
@@ -1133,6 +1130,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
             ...this.salarySummary!,
             isCollectByCashier: true,
           };
+          this.toast.success(this.t('collectCashierOk'));
         }
       },
       error: (err) => {
@@ -1295,17 +1293,15 @@ export class ExitgateComponent implements OnInit, OnDestroy {
                 ? `
               <div class="row"><span>${this.t('id')}</span><span class="mono">${t.id}</span></div>
               <div class="row"><span>${this.t('plate')}</span><span class="mono">${
-                t.plate
+                t.ticketInfo || ''
               }</span></div>
               <div class="row"><span>${this.t('start')}</span><span>${new Date(
-                t.dateTime,
+                t.startDate,
               ).toLocaleString()}</span></div>
-              <div class="row"><span>${this.t('end')}</span><span>${new Date(
-                t.endDate,
-              ).toLocaleString()}</span></div>
+              <div class="row"><span>${this.t('end')}</span><span>${new Date().toLocaleString()}</span></div>
               <div class="row"><span>${this.t(
                 'totalDue',
-              )}</span><span class="mono">${t.totalPrice.toFixed(2)}</span></div>
+              )}</span><span class="mono">${t.price.toFixed(2)}</span></div>
             `
                 : ''
             }

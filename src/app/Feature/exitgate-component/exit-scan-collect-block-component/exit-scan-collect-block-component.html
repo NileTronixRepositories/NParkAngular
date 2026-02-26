@@ -93,33 +93,19 @@
       <div class="row g-3">
         <div class="col-6">
           <div class="label">{{ 'id' | t }}</div>
-          <div class="value mono">{{ t.id }}</div>
+          <div class="value mono small">{{ t.id }}</div>
         </div>
         <div class="col-6">
-          <div class="label">{{ 'plate' | t }}</div>
-          <div class="value mono">{{ t.plate }}</div>
+          <div class="label">{{ 'ticketNumber' | t }}</div>
+          <div class="value mono">{{ t.ticketNumber }}</div>
         </div>
         <div class="col-6">
-          <div class="label">{{ 'start' | t }}</div>
-          <div class="value">{{ t.dateTime | date: 'short' }}</div>
-        </div>
-        <div class="col-6">
-          <div class="label">{{ 'end' | t }}</div>
-          <div class="value">{{ t.endDate | date: 'short' }}</div>
+          <div class="label">{{ 'startDate' | t }}</div>
+          <div class="value">{{ t.startDate | date: 'short' }}</div>
         </div>
         <div class="col-6">
           <div class="label">{{ 'price' | t }}</div>
-          <div class="value">{{ t.price | number: '1.2-2' }}</div>
-        </div>
-        <div class="col-6">
-          <div class="label">{{ 'exceed' | t }}</div>
-          <div class="value">{{ t.exceedPrice | number: '1.2-2' }}</div>
-        </div>
-        <div class="col-12">
-          <div class="total box">
-            <div>{{ 'totalDue' | t }}</div>
-            <div class="amount">{{ t.totalPrice | number: '1.2-2' }}</div>
-          </div>
+          <div class="value fw-bold">{{ t.price | number: '1.2-2' }}</div>
         </div>
       </div>
 
@@ -165,7 +151,7 @@
         >
           <span *ngIf="!searchingManual">
             <i class="bi bi-calculator"></i>
-            {{ 'calculate_total' | t }}
+            {{ 'Calculate Total' | t }}
           </span>
           <span *ngIf="searchingManual" class="spinner-border spinner-border-sm"></span>
         </button>
