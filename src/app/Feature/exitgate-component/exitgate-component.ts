@@ -177,6 +177,17 @@ import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs'
 
           exit_notification_title: 'تذكرة خروج جديدة',
           collectCashierOk: 'تم تأكيد تحصيل الكاشير بنجاح',
+
+          // Missing
+          calculate_total_manual: 'حساب الإجمالي المستحق',
+          egp: 'ج.م',
+          supervisor_username: 'اسم المستخدم للمشرف',
+          supervisor_password: 'كلمة المرور للمشرف',
+          guide_tour: 'شرح الواجهة',
+          ticket_already_collected: 'التذكرة {0} تم تحصيلها مسبقًا {1}',
+          ticket_selected_success: 'تم اختيار التذكرة: {0}',
+          ticket_not_found: 'لم يتم العثور على بيانات التذكرة: {0}',
+          subscriber_card_found: 'تم العثور على بطاقة المشترك: {0}',
         },
         en: {
           exitTicket: 'Exit Gate',
@@ -305,6 +316,17 @@ import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs'
           //  NEW
           exit_notification_title: 'New exit ticket',
           collectCashierOk: 'Cashier collection confirmed successfully',
+
+          // Missing
+          calculate_total_manual: 'Calculate Total',
+          egp: 'EGP',
+          supervisor_username: 'Supervisor username',
+          supervisor_password: 'Supervisor password',
+          guide_tour: 'Guide',
+          ticket_already_collected: 'Ticket {0} was already collected {1}',
+          ticket_selected_success: 'Selected ticket: {0}',
+          ticket_not_found: 'Ticket details not found: {0}',
+          subscriber_card_found: 'Subscriber card found: {0}',
         },
       },
     },
@@ -334,8 +356,14 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     @Inject(I18N_DICT) private dict: I18nDict,
   ) {}
 
-  t(key: string): string {
-    return this.dict[this.lang.current]?.[key] ?? key;
+  t(key: string, params?: any[]): string {
+    let text = this.dict[this.lang.current]?.[key] ?? key;
+    if (params && params.length > 0) {
+      params.forEach((p, i) => {
+        text = text.replace(`{${i}}`, p);
+      });
+    }
+    return text;
   }
 
   // ====== Gate devices / state ======
@@ -740,11 +768,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     const summaryText = ticket.info ? ` - ${ticket.info}` : '';
 
     if (ticket.isCollectedByCashier) {
-      this.toast.warn(
-        this.lang.current === 'ar'
-          ? `التذكرة ${identifier} تم تحصيلها مسبقًا${summaryText}`
-          : `Ticket ${identifier} was already collected${summaryText}`,
-      );
+      this.toast.warn(this.t('ticket_already_collected', [identifier, summaryText]));
     }
 
     // No success toast here; wait for triggerUnifiedSearch -> fetchTicketAndSalaryByQr
@@ -817,20 +841,12 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
           // Show success toast ONLY after fetching details successfully
           const identifier = res.ticketNumber || String(res.id);
-          this.toast.success(
-            this.lang.current === 'ar'
-              ? `تم اختيار التذكرة: ${identifier}`
-              : `Selected ticket: ${identifier}`,
-          );
+          this.toast.success(this.t('ticket_selected_success', [identifier]));
         } else {
           // Handle 204
           if (isForcedTicket) {
             this.searchingManual = false;
-            this.toast.error(
-              this.lang.current === 'ar'
-                ? `لم يتم العثور على بيانات التذكرة: ${code}`
-                : `Ticket details not found: ${code}`,
-            );
+            this.toast.error(this.t('ticket_not_found', [code]));
           } else {
             this.fetchSalaryForCard(code);
           }
@@ -903,11 +919,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       next: (summary) => {
         this.salarySummary = summary;
         if (summary) {
-          this.toast.success(
-            this.lang.current === 'ar'
-              ? `تم العثور على بطاقة المشترك: ${cardNumber}`
-              : `Subscriber card found: ${cardNumber}`,
-          );
+          this.toast.success(this.t('subscriber_card_found', [cardNumber]));
         }
       },
       error: (err) => {

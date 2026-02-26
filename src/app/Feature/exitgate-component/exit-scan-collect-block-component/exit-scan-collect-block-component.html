@@ -7,21 +7,21 @@
   </div>
 
   <div class="card-body d-flex flex-column justify-content-start">
-    <!-- 🔹 Consolidated Universal Input -->
-    <div class="mb-4">
+    <!-- Consolidated Universal Input -->
+    <div class="mb-3">
       <label class="form-label small fw-bold text-primary d-flex align-items-center gap-2">
         <i class="bi bi-upc-scan"></i> {{ 'scanLabel' | t }}
       </label>
 
-      <div class="input-group input-group-lg shadow-sm">
+      <div class="input-group shadow-sm">
         <button
-          class="btn btn-outline-success border-end-0"
+          class="btn btn-outline-success border-end-0 w-25"
           type="button"
           (click)="onScanButtonClick()"
           [disabled]="scanningQR"
           [title]="'scan_qr_title' | t"
         >
-          <i class="bi bi-qr-code-scan"></i>
+          <i class="bi bi-qr-code-scan fs-6"></i>
         </button>
 
         <input
@@ -42,7 +42,8 @@
           (click)="onEnterPressed()"
           [disabled]="!canSubmit"
         >
-          <i class="bi bi-search me-1"></i> {{ 'search' | t }}
+          <i class="bi bi-search me-1"></i>
+          <span class="d-none d-sm-inline">{{ 'search' | t }}</span>
         </button>
       </div>
       <div class="form-text small opacity-75 mt-2">
@@ -50,9 +51,8 @@
       </div>
     </div>
 
-    <!-- Summary (QR ticket details) -->
-    <div *ngIf="scannedTicket as t" class="summary mt-3">
-      <div class="row g-3">
+    <div *ngIf="scannedTicket as t" class="summary mt-2">
+      <div class="row g-2">
         <div class="col-6">
           <div class="label">{{ 'id' | t }}</div>
           <div class="value mono small">{{ t.id }}</div>
@@ -84,7 +84,7 @@
         >
           <option value="" selected disabled>{{ 'select_sanction_placeholder' | t }}</option>
           <option *ngFor="let sanction of allSanctions" [value]="sanction.id">
-            {{ sanction.name }} ({{ sanction.amount | number: '1.2-2' }} EGP)
+            {{ sanction.name }} ({{ sanction.amount | number: '1.2-2' }} {{ 'egp' | t }})
           </option>
         </select>
 
@@ -113,7 +113,7 @@
         >
           <span *ngIf="!searchingManual">
             <i class="bi bi-calculator"></i>
-            {{ 'Calculate Total' | t }}
+            {{ 'calculate_total_manual' | t }}
           </span>
           <span *ngIf="searchingManual" class="spinner-border spinner-border-sm"></span>
         </button>
@@ -173,7 +173,7 @@
     </div>
 
     <!-- Empty state -->
-    <div *ngIf="showEmptyState" class="mt-4 helper">
+    <div *ngIf="showEmptyState" class="mt-3 helper">
       <div class="big-icon">
         <i class="bi bi-qr-code-scan"></i>
       </div>

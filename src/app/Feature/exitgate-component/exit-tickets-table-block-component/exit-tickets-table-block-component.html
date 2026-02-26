@@ -179,7 +179,7 @@
           <form (ngSubmit)="onSubmitSupervisorCollect()" *ngIf="!collectSummary">
             <div class="row g-3">
               <div class="col-12 col-md-6">
-                <label class="form-label small">Supervisor username</label>
+                <label class="form-label small">{{ 'supervisor_username' | t }}</label>
                 <input
                   type="text"
                   class="form-control form-control-sm"
@@ -191,7 +191,7 @@
               </div>
 
               <div class="col-12 col-md-6">
-                <label class="form-label small">Supervisor password</label>
+                <label class="form-label small">{{ 'supervisor_password' | t }}</label>
                 <input
                   type="password"
                   class="form-control form-control-sm"
