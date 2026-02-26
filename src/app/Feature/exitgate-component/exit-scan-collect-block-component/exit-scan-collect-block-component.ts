@@ -65,13 +65,12 @@ export class ExitScanCollectBlockComponent {
   @Output() printSummaryClick = new EventEmitter<void>();
   @Output() allowExitWithoutCollectClick = new EventEmitter<void>();
 
-  // (موجودة عشان تفضل الـ API متوافق مع الـ parent حتى لو مش مستخدمة في الـ template)
   @Output() collectCashierClick = new EventEmitter<void>();
   @Output() confirmCashierClicked = new EventEmitter<void>();
 
   @ViewChild('scanBox') scanBox?: ElementRef<HTMLInputElement>;
 
-  // ========== Getters مريحة للـ Template ==========
+  // ========== Getters Template ==========
   get canSubmitQr(): boolean {
     const value = this.scanBuffer?.trim();
     return !!value && !this.scanning && !this.searchingManual;
@@ -120,7 +119,6 @@ export class ExitScanCollectBlockComponent {
   onScanQrClick(): void {
     this.scanQrClick.emit();
 
-    // بعد ما الـ parent يجهّز الـ scan، نركّز في الـ input
     setTimeout(() => {
       const el = this.scanBox?.nativeElement;
       if (el) {

@@ -34,8 +34,6 @@ export class TicketsServices {
 
   // ========= Same public API as before =========
 
-  // --- Lists ---
-
   getAll(): Observable<TicketDto[]> {
     return this.core.getAll();
   }
@@ -140,8 +138,6 @@ export class TicketsServices {
   }): Observable<CollectDailyTicketsResponse> {
     return this.supervisor.collectDailyTicketsAsSupervisor(credentials);
   }
-
-  // --- Search (FAKE endpoint) ---
 
   searchTickets(query: string): Observable<TicketDto[]> {
     return this.core.searchTickets(query);

@@ -316,7 +316,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   private readonly nfc = inject(NfcReaderService);
   private readonly exitTour = inject(ExitTourService);
 
-  // 🔔 NEW: SignalR Hub
+  // NEW: SignalR Hub
   private readonly dashboardHub = inject(DashboardHubService);
   private readonly scanHub = inject(ScanHubService);
   private readonly sanctionSvc = inject(SanctionService);
@@ -541,25 +541,16 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.toast.fromProblem(err);
   }
 
-  // ========= 🔔 SignalR Exit Notifications =========
+  // ========= SignalR Exit Notifications =========
 
-  /**
-   * Connect to DashboardHubService and listen to TicketExited notifications.
-   * لما يحصل خروج من أي بوابة، بنحدّث الـ list + نطلع Toast.
-   */
   private initSignalRExitNotifications(): void {
-    // نضمن إن الـ Hub متوصل (idempotent)
     this.dashboardHub
       .start()
       .catch((err) => console.error('DashboardHub (Exitgate) connection error', err));
 
-    // نسمع على TicketExited stream
     this.hubSubscriptions.add(
       this.dashboardHub.ticketExited$.subscribe((n: TicketExitedNotification) => {
-        // 1) نحدّث جدول التذاكر وإجمالي اليوم
         this.reloadList();
-
-        // 2) Notification للي واقف على شاشة الخروج
         const msg = this.buildExitNotificationMessage(n);
         this.toast.success(msg);
       }),
@@ -826,7 +817,6 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           return;
         }
 
-        // نحاول نلاقي تطابق كامل مع الرقم اللي المستخدم كتبه
         const exact =
           results.find(
             (r) => (r.ticketNumber ?? String(r.id)).toLowerCase() === trimmed.toLowerCase(),
@@ -995,41 +985,51 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     this.collecting = true;
 
+    // If Ticket already marked as exited, skip addExitTicket and go straight to collect
+    if (this.exitTicketAdded) {
+      this.processCollection(ticketId, qr);
+      return;
+    }
+
     this.svc.addExitTicket(String(ticketId)).subscribe({
       next: (ok) => {
         if (!ok) {
           this.toast.error(this.t('exitTicketAddFailed'));
+          this.collecting = false;
           return;
         }
 
         this.exitTicketAdded = true;
-
-        this.svc.collect(ticketId).subscribe({
-          next: () => {
-            const price = this.currentTotalWithSanctions || this.scannedTicket!.totalPrice;
-            this.upsertExitTicketRow(ticketId, this.scannedTicket!.plate, price, false);
-
-            if (qr) {
-              this.svc.calculateTicketSalary(qr).subscribe({
-                next: (summary) => {
-                  this.salarySummary = summary;
-                },
-                error: (err) => {
-                  this.handleError('recalculate salary after collect', err);
-                },
-              });
-            }
-          },
-          error: (err) => {
-            this.handleError('collect (confirmExit)', err);
-          },
-          complete: () => {
-            this.collecting = false;
-          },
-        });
+        this.processCollection(ticketId, qr);
       },
       error: (err) => {
         this.handleError('addExitTicket (confirmExit)', err);
+        this.collecting = false;
+      },
+    });
+  }
+
+  private processCollection(ticketId: number | string, qr: string): void {
+    this.svc.collect(ticketId).subscribe({
+      next: () => {
+        const price = this.currentTotalWithSanctions || this.scannedTicket!.totalPrice;
+        this.upsertExitTicketRow(ticketId, this.scannedTicket!.plate, price, false);
+
+        if (qr) {
+          this.svc.calculateTicketSalary(qr).subscribe({
+            next: (summary) => {
+              this.salarySummary = summary;
+            },
+            error: (err) => {
+              this.handleError('recalculate salary after collect', err);
+            },
+          });
+        }
+      },
+      error: (err) => {
+        this.handleError('collect (confirmExit)', err);
+      },
+      complete: () => {
         this.collecting = false;
       },
     });

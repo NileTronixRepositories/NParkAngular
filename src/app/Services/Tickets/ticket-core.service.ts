@@ -119,12 +119,11 @@ export class TicketCoreService {
   }
 
   collect(id: number | string): Observable<boolean> {
-    const realId = Number(id);
-
-    return this.http.post<any>(this.endpoint(`Collect/${realId}`), {}).pipe(
+    const ticketId = String(id);
+    return this.http.post<any>(this.endpoint('CollectCashier'), { ticketId }).pipe(
       map(() => true),
       catchError((err) => {
-        this.logError('POST /Ticket/Collect/{id}', err);
+        this.logError('POST /Ticket/CollectCashier', err);
         return throwError(() => err);
       }),
     );
