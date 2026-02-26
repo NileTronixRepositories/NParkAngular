@@ -28,13 +28,9 @@ export class ExitScanCollectBlockComponent {
   @Input() readingCard = false;
   @Input() searchingManual = false;
 
-  // ========== Scan buffer (QR) ==========
-  @Input() scanBuffer = '';
-  @Output() scanBufferChange = new EventEmitter<string>();
-
-  // ========== Manual input (QR / card) ==========
-  @Input() manualInput = '';
-  @Output() manualInputChange = new EventEmitter<string>();
+  // ========== Universal input ==========
+  @Input() universalInput = '';
+  @Output() universalInputChange = new EventEmitter<string>();
 
   // ========== Ticket & salary ==========
   @Input() scannedTicket: ScanTicketResponse | null = null;
@@ -57,8 +53,7 @@ export class ExitScanCollectBlockComponent {
   // ========== Outputs: actions ==========
   @Output() scanQrClick = new EventEmitter<void>();
   @Output() readCardClick = new EventEmitter<void>();
-  @Output() submitQrClick = new EventEmitter<void>();
-  @Output() manualSearchClick = new EventEmitter<void>();
+  @Output() submitInputClick = new EventEmitter<void>();
   @Output() addExitTicketClick = new EventEmitter<ScanTicketResponse>();
   @Output() confirmExitClick = new EventEmitter<void>();
   @Output() calculateSalaryClick = new EventEmitter<void>();
@@ -68,17 +63,12 @@ export class ExitScanCollectBlockComponent {
   @Output() collectCashierClick = new EventEmitter<void>();
   @Output() confirmCashierClicked = new EventEmitter<void>();
 
-  @ViewChild('scanBox') scanBox?: ElementRef<HTMLInputElement>;
+  @ViewChild('uniInput') uniInput?: ElementRef<HTMLInputElement>;
 
   // ========== Getters Template ==========
-  get canSubmitQr(): boolean {
-    const value = this.scanBuffer?.trim();
+  get canSubmit(): boolean {
+    const value = this.universalInput?.trim();
     return !!value && !this.scanning && !this.searchingManual;
-  }
-
-  get canSearchManual(): boolean {
-    const value = this.manualInput?.trim();
-    return !!value && !this.searchingManual;
   }
 
   get hasSummary(): boolean {
@@ -111,30 +101,23 @@ export class ExitScanCollectBlockComponent {
   }
 
   // ========== Handlers ==========
-  onScanQrClick(): void {
+  onScanButtonClick(): void {
     this.scanQrClick.emit();
-
-    setTimeout(() => {
-      const el = this.scanBox?.nativeElement;
-      if (el) {
-        el.focus();
-        this.selectAll(el);
-      }
-    }, 0);
+    this.focusInput();
   }
 
   onReadCardClick(): void {
     this.readCardClick.emit();
   }
 
-  onSubmitQrClick(): void {
-    if (!this.canSubmitQr) return;
-    this.submitQrClick.emit();
-  }
-
-  onManualSearchClick(): void {
-    if (!this.canSearchManual) return;
-    this.manualSearchClick.emit();
+  private focusInput(): void {
+    setTimeout(() => {
+      const el = this.uniInput?.nativeElement;
+      if (el) {
+        el.focus();
+        el.select();
+      }
+    }, 0);
   }
 
   onAddExitTicketClick(t: ScanTicketResponse): void {
@@ -174,18 +157,14 @@ export class ExitScanCollectBlockComponent {
     this.toggleSanction.emit(id);
   }
 
-  // ========== ngModel bridges ==========
-  onScanBufferChange(value: string): void {
-    this.scanBufferChange.emit(value);
+  // ========== Handlers for Universal Input ==========
+  onInputChange(value: string): void {
+    this.universalInputChange.emit(value);
   }
 
-  onManualInputChange(value: string): void {
-    this.manualInputChange.emit(value);
-  }
-
-  onScanEnter(): void {
-    if (!this.canSubmitQr) return;
-    this.submitQrClick.emit();
+  onEnterPressed(): void {
+    if (!this.canSubmit) return;
+    this.submitInputClick.emit();
   }
 
   selectAll(el: HTMLInputElement): void {

@@ -50,11 +50,10 @@
     <!-- Block 2: Scan & Collect -->
     <div class="col-12 col-md-6 col-xl-3">
       <app-exit-scan-collect-block-component
-        [scanningQR]="scanningQR"
-        [scanning]="scanning"
+        [universalInput]="universalInput"
+        (universalInputChange)="onUniversalInputChange($event)"
+        (submitInputClick)="onUniversalInputSubmit()"
         [readingCard]="readingCard"
-        [(scanBuffer)]="scanBuffer"
-        [(manualInput)]="manualInput"
         [searchingManual]="searchingManual"
         [scannedTicket]="scannedTicket"
         [salarySummary]="salarySummary"
@@ -69,8 +68,6 @@
         (toggleSanction)="onToggleSanction($event)"
         (scanQrClick)="scanQRCode()"
         (readCardClick)="readCard()"
-        (submitQrClick)="submitQrFromInput()"
-        (manualSearchClick)="searchManual()"
         (addExitTicketClick)="addExitTicket($event)"
         (confirmExitClick)="confirmExit()"
         (calculateSalaryClick)="onCalculateSalary()"

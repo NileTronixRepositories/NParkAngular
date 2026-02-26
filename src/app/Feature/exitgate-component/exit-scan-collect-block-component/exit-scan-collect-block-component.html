@@ -7,84 +7,46 @@
   </div>
 
   <div class="card-body d-flex flex-column justify-content-start">
-    <!-- QR scan input -->
-    <label class="form-label small fw-semibold">{{ 'scanLabel' | t }}</label>
-
-    <div class="d-flex flex-wrap align-items-center gap-2 mb-2">
-      <button
-        type="button"
-        class="btn btn-outline-success btn-sm"
-        (click)="onScanQrClick()"
-        [disabled]="scanningQR"
-        [title]="'scan_qr_title' | t"
-      >
-        <i class="bi bi-qr-code-scan"></i>
-        <span class="ms-1">
-          {{ (scanningQR ? 'scanning_qr' : 'scan_qr') | t }}
-        </span>
-      </button>
-
-      <button
-        type="button"
-        class="btn btn-outline-primary btn-sm"
-        (click)="onReadCardClick()"
-        [disabled]="readingCard"
-        [title]="'readCardTitle' | t"
-      >
-        <i class="bi bi-upc-scan"></i>
-        <span class="ms-1">
-          {{ (readingCard ? 'reading' : 'readCard') | t }}
-        </span>
-      </button>
-
-      <button
-        type="button"
-        class="btn btn-primary btn-sm"
-        (click)="onSubmitQrClick()"
-        [disabled]="!canSubmitQr"
-        [title]="'scanAndCollect' | t"
-      >
-        <i class="bi bi-search"></i>
-        <span class="ms-1">
-          {{ 'scanAndCollect' | t }}
-        </span>
-      </button>
-
-      <!-- QR Input -->
-      <input
-        #scanBox
-        class="form-control form-control-lg flex-grow-1"
-        [placeholder]="'scanPlaceholder' | t"
-        [ngModel]="scanBuffer"
-        (ngModelChange)="onScanBufferChange($event)"
-        (keydown.enter)="onScanEnter()"
-        (focus)="selectAll(scanBox)"
-        autocomplete="off"
-      />
-    </div>
-
-    <!-- Manual card/QR number (fallback) -->
-    <div class="mt-3">
-      <label class="form-label small fw-semibold">
-        {{ 'manual_input_label' | t }}
+    <!-- 🔹 Consolidated Universal Input -->
+    <div class="mb-4">
+      <label class="form-label small fw-bold text-primary d-flex align-items-center gap-2">
+        <i class="bi bi-upc-scan"></i> {{ 'scanLabel' | t }}
       </label>
-      <div class="d-flex flex-wrap align-items-start gap-2">
-        <textarea
-          class="form-control flex-grow-1"
-          rows="2"
-          [ngModel]="manualInput"
-          (ngModelChange)="onManualInputChange($event)"
-          [placeholder]="'manual_input_placeholder' | t"
-        ></textarea>
+
+      <div class="input-group input-group-lg shadow-sm">
         <button
+          class="btn btn-outline-success border-end-0"
           type="button"
-          class="btn btn-primary btn-sm"
-          (click)="onManualSearchClick()"
-          [disabled]="!canSearchManual"
+          (click)="onScanButtonClick()"
+          [disabled]="scanningQR"
+          [title]="'scan_qr_title' | t"
         >
-          <span *ngIf="!searchingManual"> <i class="bi bi-search"></i> {{ 'search' | t }} </span>
-          <span *ngIf="searchingManual" class="spinner-border spinner-border-sm"></span>
+          <i class="bi bi-qr-code-scan"></i>
         </button>
+
+        <input
+          #uniInput
+          type="text"
+          class="form-control border-start-0 ps-0"
+          [placeholder]="'scanPlaceholder' | t"
+          [ngModel]="universalInput"
+          (ngModelChange)="onInputChange($event)"
+          (keydown.enter)="onEnterPressed()"
+          autocomplete="off"
+          autofocus
+        />
+
+        <button
+          class="btn btn-primary px-4"
+          type="button"
+          (click)="onEnterPressed()"
+          [disabled]="!canSubmit"
+        >
+          <i class="bi bi-search me-1"></i> {{ 'search' | t }}
+        </button>
+      </div>
+      <div class="form-text small opacity-75 mt-2">
+        <i class="bi bi-info-circle me-1"></i> {{ 'scanHint' | t }}
       </div>
     </div>
 

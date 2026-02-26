@@ -4,8 +4,8 @@
       <span class="text-danger">N</span><span class="text-secondary">Park</span>
     </a>
 
-    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
-      <ul class="navbar-nav align-items-center gap-2">
+    <div class="header-actions justify-content-end">
+      <ul class="navbar-nav align-items-center gap-2 flex-row">
         <app-switch-language></app-switch-language>
         <button class="logout-btn" (click)="logout()">
           <i class="bi" [ngClass]="lang.isRTL() ? 'bi-box-arrow-left' : 'bi-box-arrow-right'"></i>

@@ -32,7 +32,7 @@ import { TicketExitedNotification } from '../../Domain/OverView/dashboard-notifi
 import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.service';
 import { SanctionService } from '../../Services/Sanction/sanction.service';
 import { SanctionDto } from '../../Domain/Sanction/sanction.models';
-import { Subscription } from 'rxjs';
+import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 
 @Component({
   selector: 'app-exitgate-component',
@@ -360,12 +360,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
   searchingTicketNumber = false;
 
-  // ====== QR / Manual input / salary ======
-  scanBuffer = '';
-  scanning = false;
-  scanningQR = false;
-
-  manualInput = '';
+  universalInput = '';
+  private readonly searchSubject = new Subject<string>();
   searchingManual = false;
 
   scannedTicket: ScanTicketResponse | null = null;
@@ -428,8 +424,14 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.initGatePeripheral();
     this.loadExitGates();
     this.loadSanctions();
-    this.reloadList();
-    this.reloadList();
+    this.reloadList(); // Added reloadList() here
+
+    // Auto-search logic
+    this.searchSubject.pipe(debounceTime(500), distinctUntilChanged()).subscribe((query) => {
+      if (query?.trim()) {
+        this.triggerUnifiedSearch(query.trim());
+      }
+    });
     this.initSignalRExitNotifications();
 
     this.scanHub.start().then(() => {
@@ -628,8 +630,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     if (this.scannedTicket) {
       this.salarySummary = null;
-    } else if (this.manualInput) {
-      this.fetchSalaryForCard(this.manualInput);
+    } else if (this.universalInput) {
+      this.fetchSalaryForCard(this.universalInput);
     }
   }
 
@@ -637,6 +639,15 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     if (this.scannedTicket) {
       this.fetchSalaryOnly(String(this.scannedTicket.id));
     }
+  }
+
+  onUniversalInputChange(value: string): void {
+    this.universalInput = value;
+    this.searchSubject.next(value);
+  }
+
+  onUniversalInputSubmit(): void {
+    this.triggerUnifiedSearch(this.universalInput);
   }
 
   // ========= Tickets list / filters =========
@@ -690,69 +701,13 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // ========= Scan / QR / Manual =========
 
   scanQRCode(): void {
-    if (this.scanningQR) return;
-
-    this.scanningQR = true;
-    this.scanBuffer = '';
-    this.manualInput = '';
+    this.universalInput = '';
     this.scannedTicket = null;
     this.salarySummary = null;
-    this.allSanctions = []; // Optionally reset or keep? Better keep but clear selection
     this.selectedSanctionIds = [];
     this.addingExitTicket = false;
     this.exitTicketAdded = false;
-    this.loadSanctions(); // Re-load just in case
-  }
-
-  submitQrFromInput(): void {
-    let code = this.scanBuffer?.trim();
-    if (!code) {
-      this.scanningQR = false;
-      return;
-    }
-
-    if (code.startsWith('"') && code.endsWith('"') && code.length > 1) {
-      code = code.substring(1, code.length - 1).trim();
-    }
-
-    this.scanningQR = false;
-    this.lastQrCode = code;
-
-    this.manualInput = '';
-    this.scannedTicket = null;
-    this.salarySummary = null;
-    this.selectedSanctionIds = []; // Clear selection for new scan
-    this.addingExitTicket = false;
-    this.exitTicketAdded = false;
-
-    this.fetchTicketAndSalaryByQr(code);
-  }
-
-  searchManual(): void {
-    const code = this.manualInput?.trim();
-    if (!code) return;
-
-    // Reset QR state
-    this.scanBuffer = '';
-    this.scannedTicket = null;
-    this.salarySummary = null;
-    this.lastQrCode = null;
-
-    this.scanning = false;
-    this.searchingManual = true;
-
-    this.svc.calculateSubscriberSalary(code, this.selectedSanctionIds).subscribe({
-      next: (summary) => {
-        this.salarySummary = summary;
-      },
-      error: (err) => {
-        this.handleError('calculateSubscriberSalary (manual)', err);
-        this.searchingManual = false;
-      },
-      complete: () => {
-        this.searchingManual = false;
-      },
-    });
+    this.loadSanctions();
   }
 
   // =======================
@@ -790,15 +745,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           ? `التذكرة ${identifier} تم تحصيلها مسبقًا${summaryText}`
           : `Ticket ${identifier} was already collected${summaryText}`,
       );
-    } else {
-      this.toast.success(
-        this.lang.current === 'ar'
-          ? `تم اختيار التذكرة: ${identifier}${summaryText}`
-          : `Selected ticket: ${identifier}${summaryText}`,
-      );
     }
 
-    this.onSearchTicketNumber(identifier);
+    // No success toast here; wait for triggerUnifiedSearch -> fetchTicketAndSalaryByQr
+    this.onSearchTicketNumber(identifier, true);
     this.searchResults = [];
   }
 
@@ -822,8 +772,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
         const identifier = exact.ticketNumber || String(exact.id);
 
-        // نعيد استخدام نفس الflow اللي بيحسب Salary إلخ
-        this.onSearchTicketNumber(identifier);
+        this.onSearchTicketNumber(identifier, true);
       },
       error: (err) => {
         this.handleError('searchTickets (gate devices)', err);
@@ -835,8 +784,22 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   /** Step 1: Scan QR to get ticket data */
-  private fetchTicketAndSalaryByQr(code: string): void {
-    this.scanning = true;
+  private triggerUnifiedSearch(value: string): void {
+    if (!value?.trim()) return;
+    const trimmed = value.trim();
+
+    // Logic to distinguish QR vs Card UID
+    // QR tickets usually have a specific format or length.
+    // Card UIDs are usually hex strings of specific lengths (e.g., 8-14 chars).
+    // For now, we follow the user's two-step requirement: first scan ticket, then calculate.
+    // However, for cards, we usually go straight to calculate.
+
+    this.fetchTicketAndSalaryByQr(trimmed, false);
+  }
+
+  fetchTicketAndSalaryByQr(code: string, isForcedTicket: boolean = false): void {
+    if (!code) return;
+
     this.searchingManual = true;
     this.scannedTicket = null;
     this.salarySummary = null;
@@ -851,11 +814,36 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         if (res) {
           this.scannedTicket = res;
           this.searchingManual = false;
+
+          // Show success toast ONLY after fetching details successfully
+          const identifier = res.ticketNumber || String(res.id);
+          this.toast.success(
+            this.lang.current === 'ar'
+              ? `تم اختيار التذكرة: ${identifier}`
+              : `Selected ticket: ${identifier}`,
+          );
+        } else {
+          // Handle 204
+          if (isForcedTicket) {
+            this.searchingManual = false;
+            this.toast.error(
+              this.lang.current === 'ar'
+                ? `لم يتم العثور على بيانات التذكرة: ${code}`
+                : `Ticket details not found: ${code}`,
+            );
+          } else {
+            this.fetchSalaryForCard(code);
+          }
         }
       },
       error: (err) => {
-        this.handleError('scanTicket', err);
-        this.searchingManual = false;
+        if (isForcedTicket) {
+          this.searchingManual = false;
+          this.handleError('scanTicket', err);
+        } else {
+          // Fallback to card calculation
+          this.fetchSalaryForCard(code);
+        }
       },
     });
   }
@@ -883,14 +871,13 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   /** Search ticket by its number and display in Exit block */
-  onSearchTicketNumber(ticketNumber: string): void {
+  onSearchTicketNumber(ticketNumber: string, isForcedTicket: boolean = false): void {
     if (!ticketNumber?.trim()) return;
 
     const trimmed = ticketNumber.trim();
 
     // Reset states
-    this.scanBuffer = '';
-    this.manualInput = '';
+    this.universalInput = '';
     this.scannedTicket = null;
     this.salarySummary = null;
     this.lastQrCode = trimmed;
@@ -899,16 +886,11 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.exitTicketAdded = false;
     this.searchingManual = true;
 
-    // Note: We use scanTicket even for ticket numbers if the backend supports it,
-    // or keep calculateSalaryByTicketNumber as is if it's still needed.
-    // The user didn't specify changing the TicketNumber flow, but usually they share the same backend logic.
-    // I'll stick to their new flow requirements for QR.
-    this.fetchTicketAndSalaryByQr(trimmed);
+    this.fetchTicketAndSalaryByQr(trimmed, isForcedTicket);
   }
 
   /** Subscriber card: CalculateSalaryForSubscriberCommand */
   private fetchSalaryForCard(cardNumber: string): void {
-    this.scanning = false;
     this.searchingManual = true;
     this.scannedTicket = null;
     this.salarySummary = null;
@@ -920,12 +902,12 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.svc.calculateSubscriberSalary(cardNumber, this.selectedSanctionIds).subscribe({
       next: (summary) => {
         this.salarySummary = summary;
-        if (this.scannedTicket && summary) {
-          this.scannedTicket = {
-            ...this.scannedTicket,
-            price: summary.totalSalary,
-            startDate: summary.enterDate || this.scannedTicket.startDate,
-          };
+        if (summary) {
+          this.toast.success(
+            this.lang.current === 'ar'
+              ? `تم العثور على بطاقة المشترك: ${cardNumber}`
+              : `Subscriber card found: ${cardNumber}`,
+          );
         }
       },
       error: (err) => {
@@ -982,11 +964,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     }
 
     const ticketId = this.scannedTicket.id;
-    const qr = (this.lastQrCode ?? this.scanBuffer ?? '').trim();
+    const qr = (this.lastQrCode ?? this.universalInput ?? '').trim();
 
     this.collecting = true;
 
-    // If Ticket already marked as exited, skip addExitTicket and go straight to collect
     if (this.exitTicketAdded) {
       this.processCollection(ticketId, qr);
       return;
@@ -1249,8 +1230,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       const uid = await this.nfc.readUID();
       const normalized = String(uid).trim().toUpperCase();
 
-      this.scanBuffer = '';
-      this.manualInput = normalized;
+      this.universalInput = normalized;
       this.lastQrCode = null;
 
       this.fetchSalaryForCard(normalized);
@@ -1340,8 +1320,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // ========= Helpers =========
 
   private resetScanState(): void {
-    this.scanBuffer = '';
-    this.manualInput = '';
+    this.universalInput = '';
     this.scannedTicket = null;
     this.salarySummary = null;
     this.lastQrCode = null;

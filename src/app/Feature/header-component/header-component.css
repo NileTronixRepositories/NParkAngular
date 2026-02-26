@@ -18,6 +18,12 @@
   left: 0;
   width: 100%;
   z-index: 3000 !important;
+  background: white;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
 }
 
 body {
@@ -73,4 +79,23 @@ body {
 /* RTL Support */
 [dir='rtl'] .logout-btn:hover i {
   transform: translateX(-2px);
+}
+
+@media (max-width: 576px) {
+  .logout-btn span {
+    display: none;
+  }
+
+  .logout-btn {
+    padding: 8px 12px;
+  }
+
+  .navbar-brand {
+    font-size: 1.25rem !important;
+  }
+
+  .container {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
 }

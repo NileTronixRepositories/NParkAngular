@@ -18,13 +18,7 @@
         </thead>
 
         <tbody>
-          <tr
-            *ngFor="let t of pageItems"
-            class="clickable-row"
-            (click)="onTicketRowClick(t)"
-            role="button"
-            tabindex="0"
-          >
+          <tr *ngFor="let t of pageItems">
             <td class="mono">
               {{ t.info || t.plate || t.ticketNumber }}
             </td>
