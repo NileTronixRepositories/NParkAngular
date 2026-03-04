@@ -1,0 +1,85 @@
+<!-- Supervisor Login Modal (Shared) -->
+<div class="modal d-block modal-backdrop-custom" tabindex="-1" *ngIf="show">
+  <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+    <div class="modal-content supervisor-modal-content glass">
+      <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
+        <h5 class="modal-title d-flex align-items-center gap-2 mb-0">
+          <i class="bi bi-shield-lock-fill text-primary"></i>
+          <span>{{ t('supervisor_login') }}</span>
+        </h5>
+        <button
+          type="button"
+          class="btn-close m-0"
+          aria-label="Close"
+          (click)="onClose()"
+          [disabled]="loading"
+        ></button>
+      </div>
+
+      <div class="modal-body pt-4">
+        <form (ngSubmit)="onSubmit()" class="supervisor-form">
+          <div class="mb-4 text-center">
+            <p class="text-muted x-small mb-4">
+              {{ t('pleaseLoginToProceed') }}
+            </p>
+
+            <div class="form-floating mb-3">
+              <input
+                type="text"
+                class="form-control custom-input"
+                id="supervisorUserUnique"
+                [placeholder]="t('supervisor_username')"
+                [ngModel]="username"
+                (ngModelChange)="onUsernameChange($event)"
+                name="username"
+                autocomplete="off"
+                required
+              />
+              <label for="supervisorUserUnique">{{ t('supervisor_username') }}</label>
+            </div>
+
+            <div class="form-floating">
+              <input
+                type="password"
+                class="form-control custom-input"
+                id="supervisorPassUnique"
+                [placeholder]="t('supervisor_password')"
+                [ngModel]="password"
+                (ngModelChange)="onPasswordChange($event)"
+                name="password"
+                required
+              />
+              <label for="supervisorPassUnique">{{ t('supervisor_password') }}</label>
+            </div>
+          </div>
+
+          <div
+            *ngIf="error"
+            class="alert alert-danger-custom d-flex align-items-center gap-2 mb-4 animate__animated animate__shakeX"
+          >
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span class="x-small">{{ error }}</span>
+          </div>
+
+          <div class="d-grid gap-2 mt-4 pt-2">
+            <button type="submit" class="btn btn-primary btn-confirm py-2" [disabled]="loading">
+              <span *ngIf="!loading" class="fw-bold">
+                {{ t('confirm') }}
+              </span>
+              <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-link text-muted text-decoration-none btn-sm x-small"
+              (click)="onClose()"
+              [disabled]="loading"
+            >
+              {{ t('cancel') }}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

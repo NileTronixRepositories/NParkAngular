@@ -1,6 +1,6 @@
 <div class="users-theme container-fluid py-2" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- Page Header -->
-  <div class="page-header mb-3 fade-in-down py-2 px-3">
+  <div class="page-header users-header mb-3 fade-in-down py-2 px-3">
     <div class="header-content d-flex align-items-center justify-content-between">
       <div class="d-flex align-items-center gap-2">
         <div class="header-icon-wrapper size-md">
@@ -18,7 +18,7 @@
         <!-- Help Tour button -->
         <button
           type="button"
-          class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center gap-1 btn-help-tour px-2"
+          class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center gap-1 btn-help-tour btn-help-tour-users px-2"
           (click)="startUsersTour()"
         >
           <i class="bi bi-question-circle"></i>
@@ -27,7 +27,7 @@
 
         <!-- Add button -->
         <button
-          class="btn btn-light btn-sm rounded-pill d-flex align-items-center gap-1 px-3 shadow-sm"
+          class="btn btn-light btn-sm rounded-pill d-flex align-items-center gap-1 px-3 shadow-sm btn-users-add"
           type="button"
           (click)="openAdd()"
         >
@@ -39,7 +39,7 @@
   </div>
 
   <!-- Inline Form Card -->
-  <div class="card shadow-sm border-0 mb-3 bg-white fade-in-down" *ngIf="showForm">
+  <div class="card shadow-sm border-0 mb-3 bg-white fade-in-down users-form-card" *ngIf="showForm">
     <div
       class="card-header bg-white d-flex justify-content-between align-items-center py-2 px-3 border-bottom-0"
     >
@@ -94,7 +94,7 @@
           <div class="col-md-4">
             <label class="form-label small mb-1">{{ t('role') }}</label>
             <select
-              class="form-select form-select-sm"
+              class="form-select form-select-sm users-role-select"
               [(ngModel)]="model.roleId"
               name="roleId"
               required
@@ -174,7 +174,11 @@
           >
             {{ t('cancel') }}
           </button>
-          <button class="btn btn-primary btn-sm px-4 shadow-sm" type="submit" [disabled]="saving">
+          <button
+            class="btn btn-primary btn-sm px-4 shadow-sm users-btn-save"
+            type="submit"
+            [disabled]="saving"
+          >
             <i class="bi me-1" [ngClass]="isEdit ? 'bi-save' : 'bi-person-plus-fill'"></i>
             {{ saving ? t('saving') : isEdit ? t('save') : t('create') }}
           </button>

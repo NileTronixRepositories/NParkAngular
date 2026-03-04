@@ -38,6 +38,8 @@ import { SearchBlockComponent } from '../Shared/search-block-component/search-bl
 import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.service';
 import { EntryTourService } from '../../Services/Entry/entry-tour.service';
 import { Subscription } from 'rxjs';
+import { SupervisorModalBlockComponent } from '../Shared/supervisor-modal-block-component/supervisor-modal-block-component';
+import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
 
 @Component({
   selector: 'app-ticket-component',
@@ -49,6 +51,7 @@ import { Subscription } from 'rxjs';
     IssueTicketBlockComponent,
     TicketsTableBlockComponent,
     SearchBlockComponent,
+    SupervisorModalBlockComponent,
   ],
   templateUrl: './ticket-component.html',
   styleUrls: ['./ticket-component.css'],
@@ -67,6 +70,7 @@ export class TicketComponent implements OnInit, OnDestroy {
   private readonly scanHub = inject(ScanHubService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly errorExtractor = inject(ErrorExtractorService);
   private readonly hubSubscriptions = new Subscription();
 
   startTour(): void {
@@ -290,6 +294,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       enter_card_first: 'يرجى إدخال رقم الكارت أولاً',
       no_card_summary: 'لا توجد بيانات عضوية لهذا الكارت',
       nfc_read_error: 'تعذر قراءة الكارت. تأكد من تشغيل قارئ الـ NFC.',
+      incorrect_credentials: 'اسم المستخدم أو كلمة المرور غير صحيحة',
       // Search
       search_tickets_placeholder: 'ابحث برقم التذكرة، اللوحة، أو الكارت',
     },
@@ -385,6 +390,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       supervisor_login_failed: 'Supervisor login failed. Check credentials or permissions.',
       enter_card_first: 'Please enter card number first',
       nfc_read_error: 'Failed to read card. Make sure NFC reader is running.',
+      incorrect_credentials: 'Incorrect user name or password',
       // Search
       search_tickets_placeholder: 'Search by ticket, plate, or card number',
     },
@@ -1013,9 +1019,17 @@ export class TicketComponent implements OnInit, OnDestroy {
           this.loadTicketsForEntry();
         },
         error: (err) => {
-          this.handleBackendError('submitSupervisorCollect error', err);
-          // نخلي الـ error من الباك يظهر في التوستر فقط
-          this.supervisorCollectError = null;
+          if (err?.status === 403) {
+            const msg = this.t('incorrect_credentials');
+            this.supervisorCollectError = msg;
+            this.toast.error(msg);
+          } else {
+            this.handleBackendError('submitSupervisorCollect error', err);
+            this.supervisorCollectError = this.errorExtractor.extractErrorMessage(
+              err,
+              this.t('supervisor_login_failed'),
+            );
+          }
           this.supervisorCollectLoading = false;
         },
         complete: () => {

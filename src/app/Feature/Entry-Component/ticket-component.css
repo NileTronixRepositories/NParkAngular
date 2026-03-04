@@ -153,8 +153,3 @@
 .col-fees {
   width: 120px;
 }
-
-.modal-backdrop-custom {
-  z-index: 1060;
-  background: rgba(0, 0, 0, 0.4);
-}

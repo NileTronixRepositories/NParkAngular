@@ -115,101 +115,14 @@
     </div>
   </div>
 
-  <!-- Supervisor Login Modal (Global Context) -->
-  <div
-    class="modal d-block modal-backdrop-custom"
-    tabindex="-1"
-    *ngIf="showSupervisorCollectModal && !collectSummary"
-  >
-    <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-      <div class="modal-content supervisor-modal-content glass">
-        <div class="modal-header border-0 pb-0">
-          <h5 class="modal-title d-flex align-items-center gap-2">
-            <i class="bi bi-shield-lock-fill text-primary"></i>
-            {{ t('supervisor_login') || 'Supervisor Login' }}
-          </h5>
-          <button
-            type="button"
-            class="btn-close"
-            aria-label="Close"
-            (click)="closeSupervisorCollectModal()"
-            [disabled]="supervisorCollectLoading"
-          ></button>
-        </div>
-
-        <div class="modal-body pt-4">
-          <form (ngSubmit)="submitSupervisorCollect()" class="supervisor-form">
-            <div class="mb-4 text-center">
-              <p class="text-muted x-small mb-4">
-                {{
-                  t('pleaseLoginToProceed') ||
-                    'Please log in as a supervisor to collect the revenue.'
-                }}
-              </p>
-
-              <div class="form-floating mb-3">
-                <input
-                  type="text"
-                  class="form-control custom-input"
-                  id="supervisorUser"
-                  placeholder="{{ t('supervisor_username') }}"
-                  [(ngModel)]="supervisorUsername"
-                  name="supervisorUsername"
-                  autocomplete="off"
-                  required
-                />
-                <label for="supervisorUser">{{ t('supervisor_username') }}</label>
-              </div>
-
-              <div class="form-floating">
-                <input
-                  type="password"
-                  class="form-control custom-input"
-                  id="supervisorPass"
-                  placeholder="{{ t('supervisor_password') }}"
-                  [(ngModel)]="supervisorPassword"
-                  name="supervisorPassword"
-                  required
-                />
-                <label for="supervisorPass">{{ t('supervisor_password') }}</label>
-              </div>
-            </div>
-
-            <div
-              *ngIf="supervisorCollectError"
-              class="alert alert-danger-custom d-flex align-items-center gap-2 mb-4 animate__animated animate__shakeX"
-            >
-              <i class="bi bi-exclamation-triangle-fill"></i>
-              <span class="x-small">{{ supervisorCollectError }}</span>
-            </div>
-
-            <div class="d-grid gap-2 mt-4 pt-2">
-              <button
-                type="submit"
-                class="btn btn-primary btn-confirm py-2"
-                [disabled]="supervisorCollectLoading"
-              >
-                <span *ngIf="!supervisorCollectLoading" class="fw-bold">
-                  {{ t('confirm') }}
-                </span>
-                <span
-                  *ngIf="supervisorCollectLoading"
-                  class="spinner-border spinner-border-sm"
-                ></span>
-              </button>
-
-              <button
-                type="button"
-                class="btn btn-link text-muted text-decoration-none btn-sm x-small"
-                (click)="closeSupervisorCollectModal()"
-                [disabled]="supervisorCollectLoading"
-              >
-                {{ t('cancel') }}
-              </button>
-            </div>
-          </form>
-        </div>
-      </div>
-    </div>
-  </div>
+  <!-- Supervisor Login Modal (Global Context Shared) -->
+  <app-supervisor-modal-block-component
+    [show]="showSupervisorCollectModal && !collectSummary"
+    [loading]="supervisorCollectLoading"
+    [error]="supervisorCollectError"
+    [(username)]="supervisorUsername"
+    [(password)]="supervisorPassword"
+    (submit)="submitSupervisorCollect()"
+    (close)="closeSupervisorCollectModal()"
+  ></app-supervisor-modal-block-component>
 </div>

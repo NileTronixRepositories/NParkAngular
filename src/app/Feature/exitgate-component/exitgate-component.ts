@@ -33,6 +33,8 @@ import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.se
 import { SanctionService } from '../../Services/Sanction/sanction.service';
 import { SanctionDto } from '../../Domain/Sanction/sanction.models';
 import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
+import { SupervisorModalBlockComponent } from '../Shared/supervisor-modal-block-component/supervisor-modal-block-component';
+import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
 
 @Component({
   selector: 'app-exitgate-component',
@@ -44,6 +46,7 @@ import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs'
     ExitScanCollectBlockComponent,
     ExitTicketsTableBlockComponent,
     SearchBlockComponent,
+    SupervisorModalBlockComponent,
   ],
   templateUrl: './exitgate-component.html',
   styleUrls: ['./exitgate-component.css'],
@@ -188,6 +191,7 @@ import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs'
           ticket_selected_success: 'تم اختيار التذكرة: {0}',
           ticket_not_found: 'لم يتم العثور على بيانات التذكرة: {0}',
           subscriber_card_found: 'تم العثور على بطاقة المشترك: {0}',
+          incorrect_credentials: 'اسم المستخدم أو كلمة المرور غير صحيحة',
         },
         en: {
           exitTicket: 'Exit Gate',
@@ -327,6 +331,7 @@ import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs'
           ticket_selected_success: 'Selected ticket: {0}',
           ticket_not_found: 'Ticket details not found: {0}',
           subscriber_card_found: 'Subscriber card found: {0}',
+          incorrect_credentials: 'Incorrect user name or password',
         },
       },
     },
@@ -381,6 +386,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   scannedFile: { name: string; url: string; safeUrl?: any; type: string; bytes: any } | null = null;
   private readonly sanitizer = inject(DomSanitizer);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly errorExtractor = inject(ErrorExtractorService);
 
   // ====== Real-time Search ======
   searchingTickets = false;
@@ -687,12 +693,13 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.totalPriceToday = res.totalPrice ?? 0;
 
-        this.tickets = (res.items ?? [])
+        const allItems = (res.items ?? [])
           .filter((t: TicketDto) => t.action === 'OUT')
           .sort(
             (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime(),
           );
 
+        this.tickets = this.deduplicateTickets(allItems);
         this.applyFilters();
       },
       error: (err) => {
@@ -945,7 +952,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.exitTicketAdded = true;
 
           const price = this.currentTotalWithSanctions || t.price;
-          this.upsertExitTicketRow(t.id, t.ticketInfo || '', price, false);
+          this.upsertExitTicketRow(t.id, t.ticketInfo || '', t.ticketNumber, price, false);
         }
       },
       error: (err) => {
@@ -1007,7 +1014,13 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.svc.collect(ticketId).subscribe({
       next: () => {
         const price = this.currentTotalWithSanctions || this.scannedTicket!.price;
-        this.upsertExitTicketRow(ticketId, this.scannedTicket!.ticketInfo || '', price, false);
+        this.upsertExitTicketRow(
+          ticketId,
+          this.scannedTicket!.ticketInfo || '',
+          this.scannedTicket!.ticketNumber,
+          price,
+          false,
+        );
 
         if (this.salarySummary) {
           this.salarySummary = {
@@ -1041,6 +1054,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
             this.upsertExitTicketRow(
               this.scannedTicket!.id,
               this.scannedTicket!.ticketInfo || '',
+              this.scannedTicket!.ticketNumber,
               price,
               true,
             );
@@ -1067,7 +1081,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           if (ok) {
             const price = this.currentTotalWithSanctions || 0;
             const plate = 'SUBSCRIBER';
-            this.upsertExitTicketRow(ticketId, plate, price, true);
+            this.upsertExitTicketRow(ticketId, plate, ticketId, price, true);
             this.resetScanState();
           }
         },
@@ -1089,7 +1103,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     this.svc.collect(t.id).subscribe({
       next: () => {
-        this.upsertExitTicketRow(t.id, t.plate, t.totalPrice, false);
+        this.upsertExitTicketRow(t.id, t.plate, t.id.toString(), t.totalPrice, false);
         this.toast.success(this.t('collectCashierOk'));
         this.resetScanState();
       },
@@ -1191,8 +1205,17 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.reloadList();
         },
         error: (err) => {
-          this.handleError('collectDailyTicketsAsSupervisor', err);
-          this.supervisorCollectError = 'فشل الدخول كـ Supervisor. تأكد من البيانات أو الصلاحيات.';
+          if (err?.status === 403) {
+            const msg = this.t('incorrect_credentials');
+            this.supervisorCollectError = msg;
+            this.toast.error(msg);
+          } else {
+            this.handleError('collectDailyTicketsAsSupervisor', err);
+            this.supervisorCollectError = this.errorExtractor.extractErrorMessage(
+              err,
+              'فشل الدخول كـ Supervisor. تأكد من البيانات أو الصلاحيات.',
+            );
+          }
           this.supervisorCollectLoading = false;
         },
         complete: () => {
@@ -1338,9 +1361,50 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.lastQrCode = null;
   }
 
+  private deduplicateTickets(list: TicketDto[]): TicketDto[] {
+    const sorted = [...list].sort(
+      (a, b) => new Date(b.time).getTime() - new Date(a.time).getTime(),
+    );
+    const result: TicketDto[] = [];
+    const seenIdentities = new Set<string>();
+
+    for (const t of sorted) {
+      const identities = [
+        String(t.id).toLowerCase(),
+        (t.ticketNumber || '').toLowerCase(),
+        (t.plate || '').toLowerCase(),
+      ].filter((i) => i.length >= 4);
+
+      let isDuplicate = false;
+      for (const ident of identities) {
+        if (seenIdentities.has(ident)) {
+          isDuplicate = true;
+          break;
+        }
+
+        for (const seen of seenIdentities) {
+          if (ident.length >= 8 && seen.length >= 8) {
+            if (ident.startsWith(seen) || seen.startsWith(ident)) {
+              isDuplicate = true;
+              break;
+            }
+          }
+        }
+        if (isDuplicate) break;
+      }
+
+      if (!isDuplicate) {
+        result.push(t);
+        identities.forEach((i) => seenIdentities.add(i));
+      }
+    }
+    return result;
+  }
+
   private upsertExitTicketRow(
     ticketId: number | string,
     plate: string,
+    ticketNumber: string | undefined,
     price: number | null | undefined,
     isCollectedByCashier: boolean,
   ): void {
@@ -1349,35 +1413,65 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     const gate = gateNumber != null ? String(gateNumber) : '';
     const nowIso = new Date().toISOString();
 
-    const idStr = String(ticketId);
-    const idx = this.tickets.findIndex((t) => String(t.id) === idStr);
+    const idStr = String(ticketId).toLowerCase();
+    const displayId = ticketNumber || plate || idStr;
+
+    // Try to find existing by ID or Ticket Number or Plate (with fuzzy match)
+    const idx = this.tickets.findIndex((t) => {
+      const tId = String(t.id).toLowerCase();
+      const tNum = (t.ticketNumber || '').toLowerCase();
+      const tPlate = (t.plate || '').toLowerCase();
+
+      const matches = (val: string) => {
+        if (!val) return false;
+        val = val.toLowerCase();
+        // Exact match
+        if (tId === val || tNum === val || tPlate === val) return true;
+        // Fuzzy prefix match (min 8 chars)
+        if (val.length >= 8) {
+          if (tId.length >= 8 && (tId.startsWith(val) || val.startsWith(tId))) return true;
+          if (tNum.length >= 8 && (tNum.startsWith(val) || val.startsWith(tNum))) return true;
+        }
+        return false;
+      };
+
+      return matches(idStr) || (plate && matches(plate));
+    });
 
     if (idx >= 0) {
       const oldPrice = Number(this.tickets[idx].price ?? 0);
       this.totalPriceToday = this.totalPriceToday - oldPrice + numericPrice;
 
-      this.tickets[idx] = {
+      const updatedTicket = {
         ...this.tickets[idx],
         plate: plate || this.tickets[idx].plate,
-        action: 'OUT',
+        action: 'OUT' as const,
         time: nowIso,
         gate: gate || this.tickets[idx].gate,
         price: numericPrice,
         isCollectedByCashier,
+        ticketNumber: ticketNumber || this.tickets[idx].ticketNumber,
+        info: displayId,
       };
+
+      // Immutable update to trigger Change Detection
+      const newTickets = [...this.tickets];
+      newTickets[idx] = updatedTicket;
+      this.tickets = this.deduplicateTickets(newTickets);
     } else {
       const row: TicketDto = {
         id: ticketId,
-        plate,
+        ticketNumber: ticketNumber || displayId,
+        plate: plate || '',
         action: 'OUT',
         time: nowIso,
         gate,
         price: numericPrice,
         isCollectedByCashier,
-        info: plate,
+        info: displayId,
       };
 
-      this.tickets = [row, ...this.tickets];
+      this.tickets = this.deduplicateTickets([row, ...this.tickets]);
       this.totalPriceToday = this.totalPriceToday + numericPrice;
     }
 
