@@ -6,7 +6,7 @@
 >
   <div class="row g-3">
     <!-- ===================== WIZARD (MAIN CONTENT) ===================== -->
-    <div class="col-12 col-xl-9">
+    <div class="col-12 col-lg-8 col-xl-9 order-2 order-lg-1">
       <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3 config-main-card">
         <mat-horizontal-stepper
           [linear]="true"
@@ -75,16 +75,18 @@
               </div>
 
               <div class="d-flex justify-content-end mt-2 pt-1 border-top">
-                <button
-                  mat-flat-button
-                  color="primary"
-                  type="button"
-                  (click)="goNext()"
-                  [disabled]="step1Form.invalid"
-                  class="px-4"
-                >
-                  {{ 'next' | t }}
-                </button>
+                <div class="d-grid d-sm-block">
+                  <button
+                    mat-flat-button
+                    color="primary"
+                    type="button"
+                    (click)="goNext()"
+                    [disabled]="step1Form.invalid"
+                    class="px-4"
+                  >
+                    {{ 'next' | t }}
+                  </button>
+                </div>
               </div>
             </form>
           </mat-step>
@@ -373,7 +375,7 @@
                 </mat-tab>
               </mat-tab-group>
 
-              <div class="d-flex justify-content-between mt-2 pt-1 border-top">
+              <div class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-2 pt-1 border-top">
                 <button mat-stroked-button type="button" (click)="goBack()" class="px-4">
                   {{ 'back' | t }}
                 </button>
@@ -388,11 +390,11 @@
     </div>
 
     <!-- ===================== SUMMARY SIDEBAR ===================== -->
-    <div class="col-12 col-xl-3">
+    <div class="col-12 col-lg-4 col-xl-3 order-1 order-lg-2">
       <div class="d-flex flex-column gap-2 sticky-top config-sidebar-sticky">
         <!-- Page Header -->
         <div
-          class="d-flex align-items-center justify-content-between flex-wrap gap-2 config-page-header"
+          class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 config-page-header"
         >
           <div class="d-flex align-items-center gap-3 config-title-group">
             <div
@@ -407,7 +409,7 @@
           </div>
 
           <button
-            class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1 btn-config-help-tour"
+            class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1 btn-config-help-tour align-self-stretch align-self-sm-auto justify-content-center"
             type="button"
             (click)="startConfigTour()"
           >

@@ -1,0 +1,173 @@
+<div class="sidebar-backdrop" [class.show]="!collapsed" (click)="onToggle()"></div>
+
+<aside class="app-sidebar" [class.collapsed]="collapsed">
+  <!-- Sidebar Header -->
+  <div class="sidebar-header">
+    <a class="brand" routerLink="/" *ngIf="!collapsed">
+      <span class="brand-n">N</span><span class="brand-park">Park</span>
+    </a>
+    <a class="brand-icon me-1" routerLink="/" *ngIf="collapsed">
+      <span class="brand-n">N</span>
+    </a>
+
+    <!-- Toggle Button -->
+    <button
+      class="sidebar-toggle"
+      (click)="onToggle()"
+      [attr.aria-label]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+    >
+      <i class="bi" [ngClass]="collapsed ? 'bi-chevron-right' : 'bi-chevron-left'"></i>
+    </button>
+  </div>
+
+  <!-- Navigation -->
+  <nav class="sidebar-nav">
+    <!-- Overview — Admin  -->
+    <a
+      *ngIf="isAdmin || isSupervisor"
+      class="nav-item"
+      routerLink="/overview"
+      routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      [attr.title]="collapsed ? t('overview') : null"
+    >
+      <i class="bi bi-house"></i>
+      <span class="nav-text" *ngIf="!collapsed">{{ t('overview') }}</span>
+    </a>
+
+    <!-- Parking section — Admin +EntranceCashier + ExitCashier + Supervisor -->
+    <div
+      class="nav-section-title"
+      *ngIf="
+        (isAdmin || isEntranceCashier || isExitCashier || isSupervisor) && !collapsed
+      "
+    >
+      {{ t('parking') }}
+    </div>
+
+    <!-- Gate with submenu -->
+    <div class="nav-group" *ngIf="isAdmin || isEntranceCashier || isExitCashier || isSupervisor">
+      <button
+        class="nav-item nav-toggle"
+        type="button"
+        (click)="toggleGate()"
+        [attr.aria-expanded]="gateOpen"
+        [attr.title]="collapsed ? t('gate') : null"
+      >
+        <i class="bi bi-door-open"></i>
+        <span class="nav-text" *ngIf="!collapsed">{{ t('gate') }}</span>
+        <i
+          class="expand-icon bi"
+          [ngClass]="gateOpen ? 'bi-chevron-up' : 'bi-chevron-down'"
+          *ngIf="!collapsed"
+        ></i>
+      </button>
+
+      <div class="submenu" *ngIf="gateOpen" [class.floating-submenu]="collapsed">
+        <!-- Entry Gate — Admin + EntranceCashier + Supervisor -->
+        <a
+          *ngIf="isAdmin || isEntranceCashier || isSupervisor"
+          class="nav-item submenu-item"
+          routerLink="/tickets/entry"
+          routerLinkActive="active"
+        >
+          <i class="bi bi-arrow-right-circle"></i>
+          <span class="nav-text">{{ t('entryGate') }}</span>
+        </a>
+
+        <!-- Exit Gate — Admin + ExitCashier + Supervisor -->
+        <a
+          *ngIf="isAdmin || isExitCashier || isSupervisor"
+          class="nav-item submenu-item"
+          routerLink="/tickets/exit"
+          routerLinkActive="active"
+        >
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="nav-text">{{ t('exitGate') }}</span>
+        </a>
+      </div>
+    </div>
+
+    <!-- Visitor -->
+    <a
+      *ngIf="isAdmin || isSupervisor"
+      class="nav-item"
+      routerLink="/visitor"
+      routerLinkActive="active"
+      [attr.title]="collapsed ? t('visitor') : null"
+    >
+      <i class="bi bi-person-vcard"></i>
+      <span class="nav-text" *ngIf="!collapsed">{{ t('visitor') }}</span>
+    </a>
+
+    <!-- Altaeriffa -->
+    <a
+      *ngIf="isAdmin || isSupervisor"
+      class="nav-item"
+      routerLink="/Altaeriffa"
+      routerLinkActive="active"
+      [attr.title]="collapsed ? t('altaeriffa') : null"
+    >
+      <i class="bi bi-tags-fill"></i>
+      <span class="nav-text" *ngIf="!collapsed">{{ t('altaeriffa') }}</span>
+    </a>
+
+    <!-- Subscription -->
+    <a
+      *ngIf="isAdmin || isSupervisor"
+      class="nav-item"
+      routerLink="/registration"
+      routerLinkActive="active"
+      [attr.title]="collapsed ? t('subscription') : null"
+    >
+      <i class="bi bi-person-badge"></i>
+      <span class="nav-text" *ngIf="!collapsed">{{ t('subscription') }}</span>
+    </a>
+
+    <!-- Management Section -->
+    <div class="nav-section-title" *ngIf="(isAdmin || isSupervisor) && !collapsed">
+      {{ t('management') }}
+    </div>
+
+    <!-- Users -->
+    <a
+      *ngIf="isAdmin || isSupervisor"
+      class="nav-item"
+      routerLink="/users"
+      routerLinkActive="active"
+      [attr.title]="collapsed ? t('users') : null"
+    >
+      <i class="bi bi-people-fill"></i>
+      <span class="nav-text" *ngIf="!collapsed">{{ t('users') }}</span>
+    </a>
+
+    <!-- Configuration -->
+    <a
+      *ngIf="isAdmin || isSupervisor"
+      class="nav-item"
+      routerLink="/configuration"
+      routerLinkActive="active"
+      [attr.title]="collapsed ? t('configuration') : null"
+    >
+      <i class="bi bi-sliders"></i>
+      <span class="nav-text" *ngIf="!collapsed">{{ t('configuration') }}</span>
+    </a>
+
+    <!-- Sanction -->
+    <a
+      *ngIf="isAdmin || isSupervisor"
+      class="nav-item"
+      routerLink="/sanction"
+      routerLinkActive="active"
+      [attr.title]="collapsed ? t('sanction') : null"
+    >
+      <i class="bi bi-shield-exclamation"></i>
+      <span class="nav-text" *ngIf="!collapsed">{{ t('sanction') }}</span>
+    </a>
+  </nav>
+
+  <!-- Sidebar Footer -->
+  <div class="sidebar-footer" *ngIf="!collapsed">
+    <div class="version-text">{{ t('version') }} 1.0</div>
+  </div>
+</aside>

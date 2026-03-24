@@ -54,10 +54,10 @@
 
       <!-- Ticket Number Search -->
       <div class="ticket-search-section pt-2 border-top">
-        <label class="form-label x-small fw-bold text-muted text-uppercase mb-1">
+        <!-- <label class="form-label x-small fw-bold text-muted text-uppercase mb-1">
           {{ 'search_ticket_number' | t }}
-        </label>
-        <div class="input-group input-group-sm mb-1">
+        </label> -->
+        <!-- <div class="input-group input-group-sm mb-1">
           <input
             type="text"
             class="form-control form-control-sm mono text-center"
@@ -84,9 +84,8 @@
             <i class="bi bi-search" *ngIf="!searchingTicket"></i>
             <span *ngIf="searchingTicket" class="spinner-border spinner-border-sm"></span>
           </button>
-        </div>
+        </div> -->
 
-        <!-- Dropdown Results -->
         <div *ngIf="showResults" class="search-results-dropdown shadow-sm border rounded-2 mt-1">
           <div *ngIf="searchResults.length === 0" class="text-center py-2 x-small text-muted">
             {{ 'no_search_results' | t }}

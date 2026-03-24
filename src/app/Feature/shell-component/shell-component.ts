@@ -8,11 +8,12 @@ import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { AuthService } from '../../Services/Auth/auth-service';
 import { FooterComponent } from '../footer-component/footer-component';
 import { HeaderComponent } from '../header-component/header-component';
+import { SidebarComponent } from '../sidebar-component/sidebar-component';
 
 @Component({
   selector: 'app-shell-component',
   standalone: true,
-  imports: [RouterOutlet, CommonModule, RouterModule, FooterComponent, HeaderComponent],
+  imports: [RouterOutlet, CommonModule, RouterModule, FooterComponent, HeaderComponent, SidebarComponent],
   templateUrl: './shell-component.html',
   styleUrl: './shell-component.css',
 })
@@ -72,7 +73,7 @@ export class ShellComponent implements OnDestroy {
   isRTL = computed(() => this.i18n.isRTL());
 
   // Sidebar collapse state
-  sidebarCollapsed = signal(false);
+  sidebarCollapsed = signal(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
 
   gateOpen = false;
   private sub?: Subscription;

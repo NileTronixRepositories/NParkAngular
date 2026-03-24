@@ -83,12 +83,12 @@ export class ExitScanCollectBlockComponent {
     return !this.hasScannedTicket && !this.scanning && !this.hasSummary;
   }
 
-  get disableConfirmAndCollect(): boolean {
+  get disableExitTicket(): boolean {
     return (
       this.collecting ||
       !this.salarySummary ||
       !this.salarySummary.isExitValid ||
-      this.salarySummary.isCollectByCashier
+      this.exitTicketAdded
     );
   }
 

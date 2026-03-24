@@ -18,7 +18,7 @@ import { TicketsServices } from '../../Services/Tickets/tickets-services';
 import { TicketDto } from '../../Domain/tickets/tickets.model';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, HostListener, AfterViewInit } from '@angular/core';
 import { Subscription, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
@@ -192,7 +192,7 @@ interface UiNotification {
     },
   ],
 })
-export class OverviewComponent implements OnInit, OnDestroy {
+export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   protected readonly Math = Math;
 
   constructor(
@@ -312,14 +312,14 @@ export class OverviewComponent implements OnInit, OnDestroy {
   chartOut = computed(() => this.dashboard()?.chartOut ?? []);
 
   // Donut chart
-  donutRadius = 58;
-  donutCirc = computed(() => 2 * Math.PI * this.donutRadius);
+  donutRadius = signal(58);
+  donutCirc = computed(() => 2 * Math.PI * this.donutRadius());
   membershipStroke = computed(() => (this.membershipRevenuePercent() / 100) * this.donutCirc());
   walkInStroke = computed(() => (this.walkInRevenuePercent() / 100) * this.donutCirc());
   walkInRotateDeg = computed(() => -90 + (this.membershipRevenuePercent() / 100) * 360);
 
   // Live In/Out bars
-  liveChartWidth = 360;
+  liveChartWidth = signal(360);
   liveChartHeight = 140;
   readonly liveLeftPadding = 70;
   readonly liveRightPadding = 24;
@@ -328,8 +328,32 @@ export class OverviewComponent implements OnInit, OnDestroy {
 
   liveMaxCount = computed(() => Math.max(this.enterTicketsCount(), this.exitTicketsCount(), 1));
 
+  @HostListener('window:resize')
+  onResize(): void {
+    this.updateChartDimensions();
+  }
+
+  private updateChartDimensions(): void {
+    const width = window.innerWidth;
+    
+    // Adjust Live Chart Width
+    if (width < 576) {
+      this.liveChartWidth.set(Math.min(320, width - 40));
+      this.donutRadius.set(45);
+    } else if (width < 768) {
+      this.liveChartWidth.set(Math.min(450, width - 60));
+      this.donutRadius.set(50);
+    } else if (width < 1200) {
+      this.liveChartWidth.set(340);
+      this.donutRadius.set(54);
+    } else {
+      this.liveChartWidth.set(380);
+      this.donutRadius.set(58);
+    }
+  }
+
   liveBarWidth(value: number): number {
-    const usable = this.liveChartWidth - this.liveLeftPadding - this.liveRightPadding;
+    const usable = this.liveChartWidth() - this.liveLeftPadding - this.liveRightPadding;
     const max = this.liveMaxCount();
     const ratio = max > 0 ? value / max : 0;
     return ratio * usable;
@@ -337,7 +361,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
 
   liveBarX(value: number): number {
     if (this.lang.isRTL()) {
-      return this.liveChartWidth - this.liveLeftPadding - this.liveBarWidth(value);
+      return this.liveChartWidth() - this.liveLeftPadding - this.liveBarWidth(value);
     }
     return this.liveLeftPadding;
   }
@@ -354,7 +378,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
     // Center of the bar
     if (this.lang.isRTL()) {
       const barW = this.liveBarWidth(value);
-      return this.liveChartWidth - this.liveLeftPadding - barW / 2;
+      return this.liveChartWidth() - this.liveLeftPadding - barW / 2;
     }
     return this.liveLeftPadding + this.liveBarWidth(value) / 2;
   }
@@ -368,7 +392,7 @@ export class OverviewComponent implements OnInit, OnDestroy {
   }
 
   liveLabelX(): number {
-    return this.lang.isRTL() ? this.liveChartWidth - this.liveLeftPadding : this.liveLeftPadding;
+    return this.lang.isRTL() ? this.liveChartWidth() - this.liveLeftPadding : this.liveLeftPadding;
   }
 
   liveLabelYForIn(): number {
@@ -395,6 +419,11 @@ export class OverviewComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.hubSubscriptions.unsubscribe();
     this.dashboardHub.stop();
+  }
+
+  ngAfterViewInit(): void {
+    // Initial calculation
+    setTimeout(() => this.updateChartDimensions(), 0);
   }
 
   // ===== Help Tour (زرار شرح الواجهة) =====

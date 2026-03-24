@@ -42,6 +42,7 @@ export class SearchBlockComponent implements OnDestroy {
   @Input() placeholder = '';
   @Input() searching = false;
   @Input() results: TicketDto[] = [];
+  @Input() isCompact = false;
 
   @Output() searchQuery = new EventEmitter<string>();
   @Output() resultSelected = new EventEmitter<TicketDto>();

@@ -231,3 +231,124 @@
     opacity: 1;
   }
 }
+
+/* ==========================
+   Compact Mode (Premium Header)
+   ========================== */
+.search-compact-wrapper {
+  max-width: 320px;
+  width: 100%;
+}
+
+.search-input-group-compact {
+  display: flex;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  padding: 4px 10px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+.search-input-group-compact:focus-within {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: rgba(255, 255, 255, 0.25);
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.05);
+  transform: translateY(-1px);
+}
+
+.search-icon-compact {
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.85rem;
+  margin-right: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.search-input-field-compact {
+  background: transparent;
+  border: none;
+  color: #ffffff;
+  font-size: 0.8rem;
+  width: 100%;
+  padding: 2px 0;
+  outline: none;
+}
+
+.search-input-field-compact::placeholder {
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.search-clear-btn-compact {
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  padding: 0 4px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.search-clear-btn-compact:hover {
+  color: #ffffff;
+}
+
+/* Results Dropdown */
+.search-results-compact {
+  top: 100%;
+  left: 0;
+  right: 0;
+  max-height: 380px;
+  background: #ffffff;
+  border-radius: 12px;
+  z-index: 2000;
+  margin-top: 10px;
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  animation: slideInDown 0.2s ease-out;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.result-item-compact {
+  padding: 10px 14px;
+  border-bottom: 1px solid #f1f5f9;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.result-item-compact:last-child {
+  border-bottom: none;
+}
+
+.result-item-compact:hover {
+  background: #f8fafc;
+  padding-left: 18px;
+}
+
+.bg-success-soft {
+  background-color: #dcfce7 !important;
+  color: #166534 !important;
+}
+
+.bg-warning-soft {
+  background-color: #fef9c3 !important;
+  color: #854d0e !important;
+}
+
+.x-small {
+  font-size: 0.65rem !important;
+}

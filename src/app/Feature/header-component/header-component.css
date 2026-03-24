@@ -11,14 +11,18 @@
   transform: scale(1.05);
 }
 
+:host {
+  position: sticky;
+  top: 0;
+  z-index: 3000;
+  display: block;
+  width: 100%;
+}
+
 .navbar {
   border-bottom: 2px solid #f1f1f1;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  z-index: 3000 !important;
   background: white;
+  width: 100%;
 }
 
 .header-actions {
@@ -26,8 +30,9 @@
   align-items: center;
 }
 
-body {
-  padding-top: 80px;
+/* Page content adjustment for sticky header */
+:host-context(body) .page-content {
+  padding-top: 1rem;
 }
 
 .nav-link {

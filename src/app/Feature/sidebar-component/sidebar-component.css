@@ -1,0 +1,416 @@
+/* ===== Host Styling ===== */
+:host {
+  display: block;
+  align-self: stretch;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  z-index: 5000;
+}
+
+/* ===== Backdrop ===== */
+.sidebar-backdrop {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 3999; 
+  backdrop-filter: blur(2px);
+}
+
+@media (max-width: 768px) {
+  .sidebar-backdrop.show {
+    display: block;
+    animation: fadeIn 0.2s ease;
+  }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* ===== Sidebar ===== */
+.app-sidebar {
+  width: 260px;
+  height: 100vh;
+  background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  transition: width 0.3s ease;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.2);
+}
+
+.app-sidebar.collapsed {
+  width: 85px;
+}
+
+/* ===== Sidebar Header ===== */
+.sidebar-header {
+  padding: 1.25rem 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  backdrop-filter: blur(10px);
+  background: rgba(15, 23, 42, 0.8);
+}
+
+.brand,
+.brand-icon {
+  font-size: 1.5rem;
+  font-weight: 800;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  direction: ltr;
+}
+
+.brand-n {
+  color: #ef4444;
+  text-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+}
+
+.brand-park {
+  color: #f8fafc;
+}
+
+.brand-icon .brand-n {
+  font-size: 1.75rem;
+}
+
+/* Toggle Button */
+.sidebar-toggle {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.sidebar-toggle:hover {
+  background: rgba(255, 255, 255, 0.15);
+  transform: scale(1.05);
+}
+
+.sidebar-toggle i {
+  font-size: 0.875rem;
+}
+
+.app-sidebar.collapsed .sidebar-toggle {
+  margin: 0 auto;
+}
+
+/* ===== Navigation ===== */
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0.75rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 2px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 2px;
+  transition: background 0.2s ease;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Section Title */
+.nav-section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #64748b;
+  padding: 0.75rem 0.75rem 0.5rem;
+  letter-spacing: 0.05em;
+}
+
+/* Nav Items */
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  margin-bottom: 0.25rem;
+  border-radius: 8px;
+  color: #cbd5e1;
+  text-decoration: none;
+  font-size: 0.9375rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  width: 100%;
+  text-align: left;
+  position: relative;
+}
+
+.nav-item i {
+  font-size: 1.125rem;
+  flex-shrink: 0;
+  width: 20px;
+  text-align: center;
+}
+
+.nav-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #f8fafc;
+  transform: translateX(2px);
+}
+
+.nav-item.active {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
+}
+
+.nav-item.active::before {
+  content: '';
+  position: absolute;
+  left: -0.75rem;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 5px;
+  height: 30px;
+  background: linear-gradient(to bottom, #60a5fa, #3b82f6);
+  border-radius: 0 4px 4px 0;
+  box-shadow: 0 0 8px rgba(59, 130, 246, 0.6);
+}
+
+/* Focus States for Accessibility */
+.nav-item:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+  border-radius: 8px;
+}
+
+.sidebar-toggle:focus-visible {
+  outline: 2px solid #60a5fa;
+  outline-offset: 2px;
+}
+
+/* Collapsed State */
+.app-sidebar.collapsed .nav-item {
+  justify-content: center;
+  padding: 0.75rem;
+}
+
+.app-sidebar.collapsed .nav-item.active::before {
+  display: none;
+}
+
+/* Nav Toggle (for submenu) */
+.nav-toggle {
+  position: relative;
+}
+
+.expand-icon {
+  margin-left: auto;
+  font-size: 0.875rem;
+  transition: transform 0.2s ease;
+}
+
+/* Submenu */
+.submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+  margin-bottom: 0.5rem;
+  padding-left: 0.5rem;
+  border-left: 2px solid rgba(255, 255, 255, 0.1);
+  margin-left: 1.5rem;
+  animation: slideDown 0.3s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.submenu-item {
+  padding-left: 1rem;
+  font-size: 0.875rem;
+}
+
+.submenu-item i {
+  font-size: 1rem;
+}
+
+/* Hide text when collapsed */
+.app-sidebar.collapsed .nav-text {
+  display: none;
+}
+
+/* ===== Sidebar Footer ===== */
+.sidebar-footer {
+  padding: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+}
+
+.version-text {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+/* ===== RTL Support ===== */
+[dir='rtl'] .app-sidebar {
+  box-shadow: -2px 0 12px rgba(0, 0, 0, 0.2);
+}
+
+[dir='rtl'] .nav-item:hover {
+  transform: translateX(-2px);
+}
+
+[dir='rtl'] .nav-item.active::before {
+  left: auto;
+  right: -0.75rem;
+  border-radius: 4px 0 0 4px;
+}
+
+[dir='rtl'] .submenu {
+  padding-left: 0;
+  padding-right: 0.5rem;
+  border-left: none;
+  border-right: 2px solid rgba(255, 255, 255, 0.1);
+  margin-left: 0;
+  margin-right: 1.5rem;
+}
+
+[dir='rtl'] .expand-icon {
+  margin-left: 0;
+  margin-right: auto;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+  .app-sidebar.collapsed {
+    width: 80px;
+  }
+
+  .app-sidebar.collapsed .nav-text,
+  .app-sidebar.collapsed .nav-section-title,
+  .app-sidebar.collapsed .sidebar-footer {
+    display: none;
+  }
+
+  .app-sidebar.collapsed .nav-item {
+    justify-content: center;
+    padding: 0.75rem;
+  }
+
+  .app-sidebar.collapsed .brand {
+    display: none;
+  }
+
+  .app-sidebar.collapsed .brand-icon {
+    display: flex;
+  }
+
+  .app-sidebar:not(.collapsed) {
+    position: fixed;
+    z-index: 4000;
+    box-shadow: 0 0 24px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* ===== Animations ===== */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.nav-item,
+.submenu-item {
+  animation: slideIn 0.2s ease;
+}
+/* Floating Submenu for Collapsed Sidebar */
+.floating-submenu {
+  position: absolute;
+  left: 75px; 
+  top: 0;
+  width: 190px;
+  background: #1e293b;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-radius: 8px;
+  box-shadow: 10px 0 20px rgba(0, 0, 0, 0.4);
+  padding: 0.5rem !important;
+  margin: 0 !important;
+  z-index: 10000;
+  display: flex !important;
+  flex-direction: column;
+  border-left: none !important;
+}
+
+.app-sidebar.collapsed .nav-group {
+  position: relative;
+}
+
+/* Allow floating submenus to overflow the sidebar-nav when collapsed */
+.app-sidebar.collapsed .sidebar-nav {
+  overflow: visible;
+}
+
+[dir='rtl'] .floating-submenu {
+  left: auto;
+  right: 75px;
+  border-left: 1px solid rgba(255, 255, 255, 0.15) !important;
+  border-right: none !important;
+}
+
+.floating-submenu .nav-item {
+  padding: 0.75rem 1rem !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+}
+
+.floating-submenu .nav-text {
+  display: block !important;
+  font-size: 0.875rem;
+}
+
+.floating-submenu .nav-item i {
+  margin-right: 0.75rem;
+}
+
+[dir='rtl'] .floating-submenu .nav-item i {
+  margin-right: 0;
+  margin-left: 0.75rem;
+}

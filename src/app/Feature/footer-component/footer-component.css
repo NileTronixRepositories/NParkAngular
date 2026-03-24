@@ -1,3 +1,10 @@
+/* ===== Host Styling ===== */
+:host {
+  display: block;
+  width: 100%;
+  margin-top: auto;
+}
+
 /* ===== Footer Container ===== */
 .footer {
   background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);

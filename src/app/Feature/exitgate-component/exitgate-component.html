@@ -6,7 +6,7 @@
 >
   <!-- Page Header -->
   <div class="page-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
       <div class="d-flex align-items-center gap-3">
         <div class="header-icon-wrapper d-flex align-items-center justify-content-center rounded-3">
           <i class="bi bi-box-arrow-left header-icon fs-5"></i>
@@ -22,14 +22,27 @@
           <p class="page-subtitle mb-0">{{ t('ticketsExit') }}</p>
         </div>
       </div>
+
+      <!-- Quick Search in Header -->
+      <div class="ms-md-auto me-md-3">
+        <app-search-block-component
+          [isCompact]="true"
+          [placeholder]="t('search_tickets_placeholder')"
+          [searching]="searchingTickets"
+          [results]="searchResults"
+          (searchQuery)="onSearchTickets($event)"
+          (resultSelected)="onTicketSelected($event)"
+        ></app-search-block-component>
+      </div>
+
       <!-- Tour Button -->
       <button
         type="button"
-        class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center gap-2 btn-help-tour"
+        class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour align-self-stretch align-self-md-auto"
         (click)="startTour()"
       >
         <i class="bi bi-question-circle"></i>
-        <span class="d-none d-sm-inline">{{ t('guide_tour') }}</span>
+        <span>{{ t('guide_tour') }}</span>
       </button>
     </div>
   </div>
@@ -37,7 +50,7 @@
   <!-- 4-block grid: xs=1col | md=2col | xl=4col -->
   <div class="row g-3">
     <!-- Block 1: Gate Devices -->
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="col-12 col-md-6 col-xl-4">
       <app-exit-gate-devices-block-component
         [gatePeripheral]="gatePeripheral"
         [scannedFile]="scannedFile"
@@ -46,7 +59,7 @@
     </div>
 
     <!-- Block 2: Scan & Collect -->
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="col-12 col-md-6 col-xl-4">
       <app-exit-scan-collect-block-component
         [universalInput]="universalInput"
         (universalInputChange)="onUniversalInputChange($event)"
@@ -77,7 +90,7 @@
     </div>
 
     <!-- Block 3: Tickets Table -->
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="col-12 col-md-12 col-xl-4">
       <app-exit-tickets-table-block-component
         [tickets]="filtered"
         [page]="page"
@@ -103,16 +116,6 @@
       ></app-exit-tickets-table-block-component>
     </div>
 
-    <!-- Block 4: Quick Search -->
-    <div class="col-12 col-md-6 col-xl-3">
-      <app-search-block-component
-        [placeholder]="t('search_tickets_placeholder')"
-        [searching]="searchingTickets"
-        [results]="searchResults"
-        (searchQuery)="onSearchTickets($event)"
-        (resultSelected)="onTicketSelected($event)"
-      ></app-search-block-component>
-    </div>
   </div>
 
   <!-- Supervisor Login Modal (Global Context Shared) -->

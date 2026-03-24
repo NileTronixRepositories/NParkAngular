@@ -972,72 +972,46 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.salarySummary.isCollectByCashier) {
-      this.toast.error(this.t('already_collected_msg'));
-      return;
-    }
-
     if (!this.scannedTicket) {
       this.toast.error('لا توجد تذكرة مرتبطة بهذا الكود لإتمام الخروج.');
       return;
     }
 
-    const ticketId = this.scannedTicket.id;
-    const qr = (this.lastQrCode ?? this.universalInput ?? '').trim();
-
-    this.collecting = true;
-
     if (this.exitTicketAdded) {
-      this.processCollection(ticketId, qr);
       return;
     }
 
+    const ticketId = this.scannedTicket.id;
+    this.collecting = true;
+
     this.svc.addExitTicket(String(ticketId)).subscribe({
       next: (ok) => {
-        if (!ok) {
-          this.toast.error(this.t('exitTicketAddFailed'));
-          this.collecting = false;
-          return;
-        }
+        if (ok) {
+          this.exitTicketAdded = true;
+          this.toast.success(this.t('exitTicketAdded'));
 
-        this.exitTicketAdded = true;
-        this.processCollection(ticketId, qr);
+          const price = this.currentTotalWithSanctions || this.scannedTicket!.price;
+          this.upsertExitTicketRow(
+            ticketId,
+            this.scannedTicket!.ticketInfo || '',
+            this.scannedTicket!.ticketNumber,
+            price,
+            false,
+          );
+        } else {
+          this.toast.error(this.t('exitTicketAddFailed'));
+        }
       },
       error: (err) => {
         this.handleError('addExitTicket (confirmExit)', err);
-        this.collecting = false;
-      },
-    });
-  }
-
-  private processCollection(ticketId: number | string, qr: string): void {
-    this.svc.collect(ticketId).subscribe({
-      next: () => {
-        const price = this.currentTotalWithSanctions || this.scannedTicket!.price;
-        this.upsertExitTicketRow(
-          ticketId,
-          this.scannedTicket!.ticketInfo || '',
-          this.scannedTicket!.ticketNumber,
-          price,
-          false,
-        );
-
-        if (this.salarySummary) {
-          this.salarySummary = {
-            ...this.salarySummary,
-            isCollectByCashier: true,
-          };
-        }
-        this.toast.success(this.t('collectCashierOk'));
-      },
-      error: (err) => {
-        this.handleError('collect (confirmExit)', err);
       },
       complete: () => {
         this.collecting = false;
       },
     });
   }
+
+
 
   allowExitWithoutCollect(): void {
     if (!this.scannedTicket && !this.salarySummary) return;

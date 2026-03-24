@@ -1,8 +1,8 @@
 <div class="subscription-page container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- Page Header -->
   <div class="page-header mb-3 fade-in-down p-3 rounded-4 shadow-sm">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-      <div class="d-flex align-items-center gap-2">
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
         <div
           class="header-icon-wrapper d-flex align-items-center justify-content-center rounded-3 header-icon-container"
         >
@@ -16,7 +16,7 @@
 
       <button
         type="button"
-        class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center gap-2 btn-help-tour"
+        class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour align-self-stretch align-self-md-auto"
         (click)="startTour()"
       >
         <i class="bi bi-question-circle"></i>
@@ -27,21 +27,21 @@
 
   <div class="row g-3">
     <!-- ==== Table ==== -->
-    <div class="col-12 col-lg-7">
+    <div class="col-12 col-md-7 col-lg-8 col-xl-8 order-2 order-md-1">
       <div class="card border-0 shadow-sm h-100 subscription-table-card rounded-4 overflow-hidden">
         <div
-          class="card-header bg-white border-bottom-0 p-3 d-flex align-items-center justify-content-between flex-wrap gap-2"
+          class="card-header bg-white border-bottom-0 p-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3"
         >
           <h6 class="mb-0 fw-bold text-dark">{{ t('list_title') }}</h6>
 
           <!-- Top Search -->
-          <div class="search-wrap position-relative search-wrap-lg">
+          <div class="search-wrap position-relative search-wrap-lg align-self-stretch align-self-sm-auto">
             <i
               class="bi bi-search position-absolute top-50 translate-middle-y opacity-50 search-icon-pos"
             ></i>
             <input
               #searchBoxTop
-              class="form-control form-control-sm rounded-pill bg-light border-0 ps-5 pe-5 search-input-padding"
+              class="form-control form-control-sm rounded-pill bg-light border-0 ps-5 pe-5 search-input-padding w-100"
               [placeholder]="t('search_placeholder')"
               [value]="query()"
               (input)="query.set(searchBoxTop.value)"
@@ -127,15 +127,15 @@
 
         <!-- Footer: Pagination -->
         <div class="card-footer bg-white border-0 p-3">
-          <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+          <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
             <span class="small text-muted fw-medium">
               {{ t('total_label') }} {{ totalItems() }} — {{ t('page') }} {{ page() }} {{ t('of') }}
               {{ totalPages() }}
             </span>
 
-            <div class="btn-group shadow-sm rounded-3 overflow-hidden">
+            <div class="btn-group shadow-sm rounded-3 overflow-hidden d-flex w-100" style="max-width: 400px;">
               <button
-                class="btn btn-sm btn-white border px-3 d-flex align-items-center gap-1"
+                class="btn btn-sm btn-white border px-3 d-flex align-items-center justify-content-center gap-1 flex-fill"
                 [disabled]="!hasPrev()"
                 (click)="goPrev()"
               >
@@ -144,7 +144,7 @@
                 <span>{{ t('prev') }}</span>
               </button>
               <button
-                class="btn btn-sm btn-white border border-start-0 px-3 d-flex align-items-center gap-1"
+                class="btn btn-sm btn-white border border-start-0 px-3 d-flex align-items-center justify-content-center gap-1 flex-fill"
                 [disabled]="!hasNext()"
                 (click)="goNext()"
               >
@@ -159,7 +159,7 @@
     </div>
 
     <!-- ==== Form ==== -->
-    <div class="col-12 col-lg-5">
+    <div class="col-12 col-md-5 col-lg-4 col-xl-4 order-1 order-md-2 mb-4 mb-md-0">
       <div class="card border-0 shadow-sm h-100 subscription-form-card rounded-4">
         <div
           class="card-header bg-white border-bottom-0 p-3 d-flex align-items-center justify-content-between"
@@ -255,13 +255,13 @@
 
           <!-- Time Window -->
           <div class="row g-2 mb-3 subscription-time-window" *ngIf="showRangeWindow()">
-            <div class="col-6">
+            <div class="col-12 col-sm-6">
               <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
                 t('from')
               }}</label>
               <input type="time" class="form-control rounded-3 p-2" formControlName="startTime" />
             </div>
-            <div class="col-6">
+            <div class="col-12 col-sm-6">
               <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
                 t('to')
               }}</label>
@@ -349,19 +349,21 @@
 
         <!-- Form Actions -->
         <div
-          class="card-footer d-flex gap-2 justify-content-end p-3 bg-white border-top-0 subscription-form-actions mt-auto"
+          class="card-footer p-3 bg-white border-top-0 subscription-form-actions mt-auto"
         >
-          <button class="btn btn-light rounded-pill px-3" type="button" (click)="resetForm()">
-            <i class="bi bi-arrow-repeat me-1"></i> {{ t('reset') }}
-          </button>
-          <button
-            class="btn btn-primary rounded-pill px-4 fw-bold"
-            type="button"
-            (click)="save()"
-            [disabled]="loading() || saving()"
-          >
-            <i class="bi bi-save me-1"></i> {{ t('save') }}
-          </button>
+          <div class="d-grid gap-2 d-sm-flex justify-content-sm-end">
+            <button class="btn btn-light rounded-pill px-3" type="button" (click)="resetForm()">
+              <i class="bi bi-arrow-repeat me-1"></i> {{ t('reset') }}
+            </button>
+            <button
+              class="btn btn-primary rounded-pill px-4 fw-bold"
+              type="button"
+              (click)="save()"
+              [disabled]="loading() || saving()"
+            >
+              <i class="bi bi-save me-1"></i> {{ t('save') }}
+            </button>
+          </div>
         </div>
       </div>
     </div>

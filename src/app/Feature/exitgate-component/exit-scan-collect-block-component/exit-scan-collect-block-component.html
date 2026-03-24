@@ -1,33 +1,33 @@
 <div class="card h-100 shadow-soft glass">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
+  <div class="card-header d-flex justify-content-between align-items-center py-2 px-3">
+    <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
       <i class="bi bi-box-arrow-right"></i> {{ 'exitTicket' | t }}
-    </h5>
-    <span class="chip chip--exit">{{ 'EXIT' | t }}</span>
+    </h6>
+    <span class="chip chip--exit x-small">{{ 'EXIT' | t }}</span>
   </div>
 
   <div class="card-body d-flex flex-column justify-content-start">
     <!-- Consolidated Universal Input -->
-    <div class="mb-3">
-      <label class="form-label small fw-bold text-primary d-flex align-items-center gap-2">
+    <div class="mb-2">
+      <label class="form-label x-small fw-bold text-primary d-flex align-items-center gap-1 mb-1">
         <i class="bi bi-upc-scan"></i> {{ 'scanLabel' | t }}
       </label>
 
-      <div class="input-group shadow-sm">
+      <div class="input-group input-group-sm shadow-sm">
         <button
-          class="btn btn-outline-success border-end-0 w-25"
+          class="btn btn-outline-success border-end-0 px-2 py-1"
           type="button"
           (click)="onScanButtonClick()"
           [disabled]="scanningQR"
           [title]="'scan_qr_title' | t"
         >
-          <i class="bi bi-qr-code-scan fs-6"></i>
+          <i class="bi bi-qr-code-scan"></i>
         </button>
 
         <input
           #uniInput
           type="text"
-          class="form-control border-start-0 ps-0"
+          class="form-control form-control-sm border-start-0 ps-0 x-small"
           [placeholder]="'scanPlaceholder' | t"
           [ngModel]="universalInput"
           (ngModelChange)="onInputChange($event)"
@@ -37,16 +37,15 @@
         />
 
         <button
-          class="btn btn-primary px-4"
+          class="btn btn-primary px-3 py-1"
           type="button"
           (click)="onEnterPressed()"
           [disabled]="!canSubmit"
         >
-          <i class="bi bi-search me-1"></i>
-          <span class="d-none d-sm-inline">{{ 'search' | t }}</span>
+          <i class="bi bi-search"></i>
         </button>
       </div>
-      <div class="form-text small opacity-75 mt-2">
+      <div class="form-text x-small opacity-75 mt-1">
         <i class="bi bi-info-circle me-1"></i> {{ 'scanHint' | t }}
       </div>
     </div>
@@ -156,15 +155,28 @@
             {{ 'print' | t }}
           </button>
         </div>
-        <div class="col-8">
+        <div class="col-4">
+          <button
+            class="btn btn-primary w-100 d-flex align-items-center justify-content-center gap-2"
+            (click)="onConfirmCashier()"
+            [disabled]="disableCashierConfirm"
+          >
+            <span *ngIf="!cashierConfirming" class="d-inline-flex align-items-center gap-2">
+              <i class="bi bi-cash-stack"></i>
+              {{ 'cashier_confirm_button' | t }}
+            </span>
+            <span *ngIf="cashierConfirming" class="spinner-border spinner-border-sm"></span>
+          </button>
+        </div>
+        <div class="col-4">
           <button
             class="btn btn-success w-100 d-flex align-items-center justify-content-center gap-2"
             (click)="onConfirmExitClick()"
-            [disabled]="disableConfirmAndCollect"
+            [disabled]="disableExitTicket"
           >
             <span *ngIf="!collecting" class="d-inline-flex align-items-center gap-2">
-              <i class="bi bi-cash-stack"></i>
-              {{ 'confirm_and_collect' | t }}
+              <i class="bi bi-box-arrow-right"></i>
+              {{ 'addExitTicket' | t }}
             </span>
             <span *ngIf="collecting" class="spinner-border spinner-border-sm"></span>
           </button>

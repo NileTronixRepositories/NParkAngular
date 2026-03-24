@@ -1,4 +1,4 @@
-<div class="card h-100 shadow-soft search-card">
+<div *ngIf="!isCompact" class="card h-100 shadow-soft search-card">
   <!-- Header -->
   <div class="card-header search-card__header">
     <div class="search-card__title">
@@ -100,5 +100,70 @@
         </div>
       </ng-template>
     </div>
+  </div>
+</div>
+
+<!-- COMPACT MODE (FOR HEADER) -->
+<div *ngIf="isCompact" class="search-compact-wrapper position-relative">
+  <div class="search-input-group-compact">
+    <span class="search-icon-compact">
+      <i class="bi bi-search"></i>
+    </span>
+    <input
+      type="text"
+      class="search-input-field-compact"
+      [(ngModel)]="searchText"
+      (ngModelChange)="onSearchInput($event)"
+      (focus)="onInputFocus()"
+      [placeholder]="placeholder || t('quick_search')"
+      autocomplete="off"
+    />
+    <button
+      *ngIf="searchText"
+      class="search-clear-btn-compact"
+      type="button"
+      (click)="clearSearch()"
+    >
+      <i class="bi bi-x"></i>
+    </button>
+  </div>
+
+  <!-- Loading Spinner Compact -->
+  <div *ngIf="searching" class="search-loading-compact position-absolute end-0 top-100 mt-1 pe-2">
+    <div class="spinner-border spinner-border-sm text-primary" style="width: 0.8rem; height: 0.8rem;"></div>
+  </div>
+
+  <!-- Floating Results -->
+  <div *ngIf="showResults" class="search-results-compact shadow-lg custom-scrollbar position-absolute">
+    <ng-container *ngIf="results.length > 0; else emptyStateCompact">
+      <div
+        class="result-item-compact"
+        *ngFor="let ticket of results; trackBy: trackByTicketNumber"
+        (click)="selectResult(ticket)"
+      >
+        <div class="result-info">
+          <div class="d-flex align-items-center justify-content-between mb-1">
+            <span class="mono x-small fw-bold">{{ ticket.ticketNumber || ticket.id }}</span>
+            <span
+              class="badge x-small px-1 py-0"
+              [class.bg-success-soft]="ticket.isCollectedByCashier"
+              [class.bg-warning-soft]="!ticket.isCollectedByCashier"
+            >
+              {{ ticket.isCollectedByCashier ? t('collected') : t('not_collected') }}
+            </span>
+          </div>
+          <div class="d-flex align-items-center gap-2 x-small text-muted">
+            <span><i class="bi bi-clock me-1"></i>{{ ticket.time | date: 'shortTime' }}</span>
+            <span *ngIf="ticket.info"><i class="bi bi-info-circle me-1"></i>{{ ticket.info }}</span>
+          </div>
+        </div>
+      </div>
+    </ng-container>
+
+    <ng-template #emptyStateCompact>
+      <div class="empty-state-compact p-2 text-center text-muted x-small">
+        {{ t('no_results') }}
+      </div>
+    </ng-template>
   </div>
 </div>

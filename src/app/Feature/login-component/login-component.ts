@@ -17,11 +17,12 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { GateType, LoginFirstTimeCommand } from '../../Domain/Auth/auth.models';
 import { GateComponent } from '../gate-component/gate-component';
+import { FooterComponent } from '../footer-component/footer-component';
 
 @Component({
   selector: 'app-login-component',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslatePipePipe, GateComponent],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipePipe, GateComponent, FooterComponent],
   templateUrl: './login-component.html',
   styleUrls: ['./login-component.css'],
   providers: [
