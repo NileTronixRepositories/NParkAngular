@@ -50,7 +50,7 @@
   <!-- 4-block grid: xs=1col | md=2col | xl=4col -->
   <div class="row g-3">
     <!-- Block 1: Gate Devices -->
-    <div class="col-12 col-md-6 col-xl-4">
+    <div class="col-12 col-md-6 col-lg-4">
       <app-exit-gate-devices-block-component
         [gatePeripheral]="gatePeripheral"
         [scannedFile]="scannedFile"
@@ -59,7 +59,7 @@
     </div>
 
     <!-- Block 2: Scan & Collect -->
-    <div class="col-12 col-md-6 col-xl-4">
+    <div class="col-12 col-md-6 col-lg-4">
       <app-exit-scan-collect-block-component
         [universalInput]="universalInput"
         (universalInputChange)="onUniversalInputChange($event)"
@@ -90,7 +90,7 @@
     </div>
 
     <!-- Block 3: Tickets Table -->
-    <div class="col-12 col-md-12 col-xl-4">
+    <div class="col-12 col-md-6 col-lg-4">
       <app-exit-tickets-table-block-component
         [tickets]="filtered"
         [page]="page"

@@ -463,3 +463,119 @@
   width: 28px;
   height: 28px;
 }
+
+/* ==========================
+   Responsive Refinement
+   ========================== */
+@media (max-width: 768px) {
+  .horizontal-accordion,
+  .gates-grid,
+  .settings-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  .main-accordion .mat-expansion-panel-header {
+    padding: 0.6rem 0.8rem !important;
+  }
+
+  .gate-accordion .mat-expansion-panel-header {
+    padding: 0.5rem 0.75rem !important;
+  }
+}
+
+@media (max-width: 576px) {
+  .config-page-header {
+    padding: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
+    gap: 0.5rem !important;
+  }
+
+  .config-title-icon-container {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .config-title-icon-container i {
+    font-size: 1.2rem !important;
+  }
+
+  .config-title-group h1 {
+    font-size: 0.95rem !important;
+  }
+
+  .config-title-group p {
+    font-size: 0.65rem !important;
+  }
+
+  .card-body h6 {
+    font-size: 0.85rem !important;
+  }
+
+  .card-body i.fs-5 {
+    font-size: 1.1rem !important;
+  }
+
+  .mat-step-header {
+    padding: 8px 12px !important;
+  }
+
+  .mat-step-icon {
+    width: 20px !important;
+    height: 20px !important;
+    font-size: 0.7rem !important;
+  }
+
+  .mat-step-label {
+    font-size: 0.7rem !important;
+    font-weight: 500 !important;
+  }
+
+  /* Hide labels on extra small screens to save space */
+  @media (max-width: 480px) {
+    .mat-step-label {
+      display: none !important;
+    }
+    .mat-horizontal-stepper-header {
+      padding: 8px !important;
+    }
+  }
+
+  .mat-expansion-panel-header-title {
+    font-size: 0.85rem !important;
+  }
+
+  .card-header,
+  .card-body,
+  .mat-expansion-panel-body {
+    padding: 0.6rem 0.75rem !important;
+  }
+
+  .mat-tab-label {
+    min-width: 100px !important;
+    font-size: 0.8rem !important;
+  }
+
+  .ip-address {
+    padding: 6px 8px !important;
+    font-size: 0.75rem !important;
+  }
+
+  .badge {
+    font-size: 0.7rem !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .btn-config-help-tour span {
+    display: none;
+  }
+
+  .config-summary-card .card-body span {
+    font-size: 0.75rem !important;
+  }
+
+  .step-indicator-wrapper span {
+    font-size: 0.65rem !important;
+  }
+}

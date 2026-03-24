@@ -39,15 +39,12 @@
 }
 
 .header-icon-container {
-  width: 48px;
-  height: 48px;
-  background: rgba(229, 57, 53, 0.15);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(229, 57, 53, 0.3);
+  background: rgba(59, 130, 246, 0.15);
+  border: 1px solid rgba(59, 130, 246, 0.3);
 }
 
 .header-icon {
-  color: #ef5350;
+  color: #60a5fa;
 }
 
 /* ==========================
@@ -160,4 +157,90 @@
   rotate: 90deg;
   transition: all 0.3s ease-in-out;
   cursor: pointer;
+}
+
+/* ==========================
+   Responsive
+   ========================== */
+@media (max-width: 576px) {
+  .sanction-page {
+    padding-inline: 0.75rem !important;
+    padding-top: 0.5rem !important;
+  }
+
+  .page-header {
+    padding: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .header-icon-container {
+    width: 36px !important;
+    height: 36px !important;
+  }
+
+  .header-icon {
+    font-size: 1.1rem !important;
+  }
+
+  .page-header h1 {
+    font-size: 1rem !important;
+    line-height: 1.2;
+  }
+
+  .page-header p {
+    font-size: 0.65rem !important;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  .btn-help-tour {
+    padding: 0.25rem !important;
+    width: 32px !important;
+    height: 32px !important;
+    justify-content: center !important;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem 0.3rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .badge {
+    font-size: 0.7rem !important;
+    padding: 0.15rem 0.35rem !important;
+  }
+
+  .modal-box {
+    max-width: 95% !important;
+    margin: 10px !important;
+  }
+
+  .modal-box-header,
+  .modal-box-body,
+  .modal-box-footer {
+    padding: 0.75rem 1rem !important;
+  }
+
+  .btn-sm {
+    padding: 0.25rem 0.5rem !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .btn-help-tour span {
+    display: none;
+  }
+
+  .sanction-search {
+    min-width: 100% !important;
+  }
+
+  .btn-add-sanction {
+    width: 100% !important;
+  }
 }

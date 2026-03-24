@@ -74,22 +74,14 @@
 }
 
 .search-icon-pos {
-  left: 1rem;
-}
-
-.page-rtl .search-icon-pos {
+  inset-inline-start: 0.85rem;
   left: auto;
-  right: 1rem;
+  right: auto;
 }
 
 .search-input-padding {
-  padding-left: 2.5rem;
-  padding-right: 1rem;
-}
-
-.page-rtl .search-input-padding {
-  padding-left: 1rem;
-  padding-right: 2.5rem;
+  padding-inline-start: 3.25rem !important;
+  padding-inline-end: 1rem !important;
 }
 
 .repeated-switch-lg {
@@ -157,4 +149,109 @@
 
 .col-index {
   width: 50px;
+}
+
+/* ==========================
+   Responsive
+   ========================== */
+@media (max-width: 992px) {
+  .search-wrap-lg {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 576px) {
+  .subscription-page {
+    padding-bottom: 1rem;
+  }
+
+  .page-header {
+    padding: 0.75rem !important;
+    border-radius: 12px !important;
+  }
+
+  .header-icon-container {
+    width: 36px;
+    height: 36px;
+  }
+
+  .header-icon {
+    font-size: 1rem !important;
+  }
+
+  .page-header h1 {
+    font-size: 1.1rem !important;
+  }
+
+  .page-header p {
+    font-size: 0.75rem !important;
+  }
+
+  .card-header,
+  .card-body {
+    padding: 0.75rem !important;
+  }
+
+  .col-index {
+    width: 35px !important;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem 0.3rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .table td.fw-semibold {
+    min-width: 80px;
+    word-break: break-word;
+  }
+
+  .badge {
+    font-size: 0.7rem !important;
+    padding: 0.2rem 0.4rem !important;
+  }
+
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .form-label {
+    font-size: 0.7rem !important;
+  }
+
+  .form-control {
+    font-size: 0.85rem !important;
+    padding: 0.4rem 0.6rem !important;
+  }
+}
+
+@media (max-width: 400px) {
+  .page-header .btn-help-tour span {
+    display: none;
+  }
+
+  .page-header .btn-help-tour {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50% !important;
+  }
+
+  .card-header h6 {
+    font-size: 0.9rem !important;
+  }
+
+  .subscription-duration-toggle button {
+    font-size: 0.7rem !important;
+    padding: 0.4rem 0.2rem !important;
+  }
+
+  .subscription-duration-toggle i {
+    display: none;
+  }
+}
+.bi-search {
+  left: 90%;
 }

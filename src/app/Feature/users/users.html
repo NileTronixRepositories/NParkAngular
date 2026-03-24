@@ -1,45 +1,45 @@
 <div class="users-theme container-fluid py-2" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- Page Header -->
-  <div class="page-header users-header mb-3 fade-in-down py-2 px-3">
-    <div class="header-content d-flex align-items-center justify-content-between">
-      <div class="d-flex align-items-center gap-2">
-        <div class="header-icon-wrapper size-md">
+  <div class="page-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="header-icon-wrapper rounded-3">
           <i class="bi bi-people-fill header-icon fs-4"></i>
         </div>
-        <div class="header-text">
-          <h1 class="page-title fs-5 mb-0">{{ t('users') }}</h1>
-          <p class="page-subtitle small text-muted-header mb-0">
+        <div>
+          <h1 class="page-title mb-0 fw-bold">{{ t('users') }}</h1>
+          <p class="page-subtitle mb-0 small opacity-75">
             {{ t('users_management_subtitle') || 'Manage system users and their roles' }}
           </p>
         </div>
       </div>
 
-      <div class="d-flex align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 align-self-stretch align-self-md-auto">
         <!-- Help Tour button -->
         <button
           type="button"
-          class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center gap-1 btn-help-tour btn-help-tour-users px-2"
+          class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour flex-grow-1 flex-md-grow-0"
           (click)="startUsersTour()"
         >
           <i class="bi bi-question-circle"></i>
-          <span class="small d-none d-md-inline">{{ 'Help tour' }}</span>
+          <span>{{ 'Help tour' }}</span>
         </button>
 
         <!-- Add button -->
         <button
-          class="btn btn-light btn-sm rounded-pill d-flex align-items-center gap-1 px-3 shadow-sm btn-users-add"
+          class="btn btn-light btn-sm rounded-pill d-flex align-items-center justify-content-center gap-2 px-3 shadow-sm btn-users-add flex-grow-1 flex-md-grow-0"
           type="button"
           (click)="openAdd()"
         >
           <i class="bi bi-person-plus-fill text-primary"></i>
-          <span class="small fw-bold">{{ t('add_new') }}</span>
+          <span class="fw-bold">{{ t('add_new') }}</span>
         </button>
       </div>
     </div>
   </div>
 
   <!-- Inline Form Card -->
-  <div class="card shadow-sm border-0 mb-3 bg-white fade-in-down users-form-card" *ngIf="showForm">
+  <div class="card shadow-soft border-0 mb-3 bg-white fade-in-down users-form-card rounded-4" *ngIf="showForm">
     <div
       class="card-header bg-white d-flex justify-content-between align-items-center py-2 px-3 border-bottom-0"
     >
@@ -188,7 +188,7 @@
   </div>
 
   <!-- Table card -->
-  <div class="card shadow-sm border-0 users-table-card bg-white">
+  <div class="card shadow-soft border-0 users-table-card bg-white rounded-4 overflow-hidden">
     <div
       class="card-header py-2 px-3 d-flex align-items-center justify-content-between bg-white border-bottom"
     >
@@ -206,15 +206,15 @@
           <thead class="table-light x-small">
             <tr>
               <th class="ps-3">{{ t('name') }}</th>
-              <th>{{ t('email') }}</th>
+              <th class="d-none d-md-table-cell">{{ t('email') }}</th>
               <th class="col-role">{{ t('role') }}</th>
               <th class="text-end pe-3">{{ t('actions') }}</th>
             </tr>
           </thead>
           <tbody>
             <tr *ngFor="let u of users; trackBy: trackById" class="small">
-              <td class="ps-3 fw-semibold text-primary">{{ u.userName }}</td>
-              <td class="mono x-small text-muted">{{ u.email }}</td>
+              <td class="ps-3 fw-semibold text-primary text-truncate" style="max-width: 120px;" [title]="u.userName">{{ u.userName }}</td>
+              <td class="mono x-small text-muted d-none d-md-table-cell">{{ u.email }}</td>
               <td>
                 <span
                   class="badge rounded-pill bg-warning-subtle text-warning-emphasis border x-small"

@@ -236,7 +236,7 @@
    Compact Mode (Premium Header)
    ========================== */
 .search-compact-wrapper {
-  max-width: 320px;
+  max-width: 100%;
   width: 100%;
 }
 
@@ -250,6 +250,7 @@
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
+  max-width: 100%;
 }
 
 .search-input-group-compact:focus-within {
@@ -327,7 +328,7 @@
   padding: 10px 14px;
   border-bottom: 1px solid #f1f5f9;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.15s ease;
 }
 
 .result-item-compact:last-child {
@@ -336,7 +337,58 @@
 
 .result-item-compact:hover {
   background: #f8fafc;
-  padding-left: 18px;
+}
+
+/* Ticket Number */
+.result-ticket-num {
+  font-family: 'Courier New', monospace;
+  font-weight: 700;
+  font-size: 0.78rem;
+  color: #1e293b;
+  letter-spacing: 0.03em;
+}
+
+/* Status Badge */
+.result-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.65rem;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 99px;
+}
+
+.result-badge--collected {
+  background: #dcfce7;
+  color: #166534;
+}
+
+.result-badge--pending {
+  background: #fef9c3;
+  color: #854d0e;
+}
+
+/* Meta info (time, info) */
+.result-meta {
+  font-size: 0.68rem;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+}
+
+/* Price */
+.result-price {
+  font-size: 0.8rem;
+  font-weight: 800;
+  color: #2563eb;
+}
+
+.result-currency {
+  font-size: 0.6rem;
+  font-weight: 600;
+  color: #60a5fa;
+  margin-right: 2px;
 }
 
 .bg-success-soft {

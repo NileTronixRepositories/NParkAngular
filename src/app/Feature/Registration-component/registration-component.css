@@ -400,3 +400,108 @@
   width: 100%;
   padding: 60px 40px;
 }
+
+/* ==========================
+   Responsive
+   ========================== */
+@media (max-width: 576px) {
+  .registration-page {
+    padding-bottom: 1rem;
+  }
+
+  .page-header {
+    padding: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .header-icon-wrapper.size-md {
+    width: 32px;
+    height: 32px;
+  }
+
+  .header-icon {
+    font-size: 1.1rem !important;
+  }
+
+  .page-title {
+    font-size: 1rem !important;
+  }
+
+  .page-subtitle {
+    font-size: 0.7rem !important;
+  }
+
+  .card-header,
+  .card-body {
+    padding: 0.6rem 0.75rem !important;
+  }
+
+  .card-header h6 {
+    font-size: 0.85rem !important;
+  }
+
+  .plate-input-compact {
+    padding: 2px 4px;
+    gap: 4px;
+  }
+
+  .plate-input-compact input {
+    height: 32px;
+    font-size: 0.8rem;
+  }
+
+  .table th,
+  .table td {
+    padding: 0.5rem 0.3rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .badge {
+    font-size: 0.7rem !important;
+    padding: 0.2rem 0.4rem !important;
+  }
+
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+
+  .form-label {
+    font-size: 0.75rem !important;
+    margin-bottom: 2px !important;
+  }
+
+  .form-control, .form-select {
+    font-size: 0.85rem !important;
+    padding: 0.4rem 0.6rem !important;
+  }
+
+  .preview-box {
+    height: 120px;
+  }
+
+  .btn-save-premium {
+    padding: 8px 14px;
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .header-text p {
+    display: none;
+  }
+
+  .plate-input-compact span {
+    display: none;
+  }
+
+  .reg-card-subscriber .col-6 {
+    width: 100%;
+  }
+
+  .reg-pagination-footer {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+}

@@ -38,9 +38,7 @@
     <!-- Parking section — Admin +EntranceCashier + ExitCashier + Supervisor -->
     <div
       class="nav-section-title"
-      *ngIf="
-        (isAdmin || isEntranceCashier || isExitCashier || isSupervisor) && !collapsed
-      "
+      *ngIf="(isAdmin || isEntranceCashier || isExitCashier || isSupervisor) && !collapsed"
     >
       {{ t('parking') }}
     </div>
@@ -128,6 +126,18 @@
     <div class="nav-section-title" *ngIf="(isAdmin || isSupervisor) && !collapsed">
       {{ t('management') }}
     </div>
+
+    <!-- Reports -->
+    <a
+      *ngIf="isAdmin || isSupervisor"
+      class="nav-item"
+      routerLink="/reports"
+      routerLinkActive="active"
+      [attr.title]="collapsed ? t('reports') : null"
+    >
+      <i class="bi bi-file-earmark-bar-graph"></i>
+      <span class="nav-text" *ngIf="!collapsed">{{ t('reports') }}</span>
+    </a>
 
     <!-- Users -->
     <a

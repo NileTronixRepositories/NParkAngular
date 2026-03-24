@@ -1,16 +1,14 @@
 <div class="subscription-page container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- Page Header -->
-  <div class="page-header mb-3 fade-in-down p-3 rounded-4 shadow-sm">
+  <div class="page-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
     <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
       <div class="d-flex align-items-center gap-3">
-        <div
-          class="header-icon-wrapper d-flex align-items-center justify-content-center rounded-3 header-icon-container"
-        >
-          <i class="bi bi-badge-ad header-icon fs-5"></i>
+        <div class="header-icon-wrapper rounded-3">
+          <i class="bi bi-badge-ad header-icon fs-4"></i>
         </div>
         <div>
-          <h1 class="h4 fw-bold mb-0 text-white">{{ t('title') }}</h1>
-          <p class="small mb-0 opacity-75 text-white">{{ t('list_title') }}</p>
+          <h1 class="page-title mb-0 fw-bold">{{ t('title') }}</h1>
+          <p class="page-subtitle mb-0 small opacity-75">{{ t('list_title') }}</p>
         </div>
       </div>
 
@@ -41,7 +39,7 @@
             ></i>
             <input
               #searchBoxTop
-              class="form-control form-control-sm rounded-pill bg-light border-0 ps-5 pe-5 search-input-padding w-100"
+              class="form-control form-control-sm rounded-pill bg-light border-0 search-input-padding w-100"
               [placeholder]="t('search_placeholder')"
               [value]="query()"
               (input)="query.set(searchBoxTop.value)"
@@ -57,8 +55,8 @@
                 <th class="text-center py-2 col-index">{{ t('col_index') }}</th>
                 <th class="py-2">{{ t('col_name') }}</th>
                 <th class="py-2">{{ t('col_type') }}</th>
-                <th class="py-2">{{ t('col_from') }}</th>
-                <th class="py-2">{{ t('col_to') }}</th>
+                <th class="py-2 d-none d-md-table-cell">{{ t('col_from') }}</th>
+                <th class="py-2 d-none d-md-table-cell">{{ t('col_to') }}</th>
                 <th class="py-2">{{ t('col_price') }}</th>
                 <th class="text-end py-2 px-3">{{ t('col_actions') }}</th>
               </tr>
@@ -76,10 +74,10 @@
                     {{ durationLabel(r.durationType) }}
                   </span>
                 </td>
-                <td class="text-muted small">
+                <td class="text-muted small d-none d-md-table-cell">
                   {{ showTimeForRow(r) ? r.startTime || '00:00' : t('time_window_off') }}
                 </td>
-                <td class="text-muted small">
+                <td class="text-muted small d-none d-md-table-cell">
                   {{ showTimeForRow(r) ? r.endTime || '00:00' : t('time_window_off') }}
                 </td>
                 <td>

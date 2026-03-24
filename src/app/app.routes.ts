@@ -142,6 +142,14 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./Feature/gate-component/gate-component').then((m) => m.GateComponent),
       },
+      // Reports
+      {
+        path: 'reports',
+        canActivate: [authGuard],
+        data: { roles: ['Admin', 'Supervisor'] },
+        loadComponent: () =>
+          import('./Feature/reports-component/reports-component').then((m) => m.ReportsComponent),
+      },
     ],
   },
 

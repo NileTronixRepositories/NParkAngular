@@ -337,7 +337,10 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
     const width = window.innerWidth;
     
     // Adjust Live Chart Width
-    if (width < 576) {
+    if (width < 400) {
+      this.liveChartWidth.set(Math.min(280, width - 20));
+      this.donutRadius.set(40);
+    } else if (width < 576) {
       this.liveChartWidth.set(Math.min(320, width - 40));
       this.donutRadius.set(45);
     } else if (width < 768) {

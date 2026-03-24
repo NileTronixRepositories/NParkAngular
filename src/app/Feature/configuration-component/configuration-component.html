@@ -4,10 +4,34 @@
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
 >
+  <!-- Page Header -->
+  <div class="page-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="header-icon-wrapper rounded-3">
+          <i class="bi bi-gear-fill header-icon fs-4"></i>
+        </div>
+        <div>
+          <h1 class="page-title mb-0 fw-bold">{{ 'configuration' | t }}</h1>
+          <p class="page-subtitle mb-0 small opacity-75">{{ 'configurationSubtitle' | t }}</p>
+        </div>
+      </div>
+
+      <button
+        type="button"
+        class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour align-self-stretch align-self-md-auto"
+        (click)="startConfigTour()"
+      >
+        <i class="bi bi-question-circle"></i>
+        <span>{{ 'helpTour' | t }}</span>
+      </button>
+    </div>
+  </div>
+
   <div class="row g-3">
     <!-- ===================== WIZARD (MAIN CONTENT) ===================== -->
-    <div class="col-12 col-lg-8 col-xl-9 order-2 order-lg-1">
-      <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3 config-main-card">
+    <div class="col-12 col-lg-8 col-xl-9 order-1 order-lg-1">
+      <div class="card border-0 shadow-soft rounded-4 overflow-hidden mb-3 config-main-card">
         <mat-horizontal-stepper
           [linear]="true"
           [selectedIndex]="stepIndex"
@@ -390,36 +414,10 @@
     </div>
 
     <!-- ===================== SUMMARY SIDEBAR ===================== -->
-    <div class="col-12 col-lg-4 col-xl-3 order-1 order-lg-2">
+    <div class="col-12 col-lg-4 col-xl-3 order-2 order-lg-2">
       <div class="d-flex flex-column gap-2 sticky-top config-sidebar-sticky">
-        <!-- Page Header -->
-        <div
-          class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-3 config-page-header"
-        >
-          <div class="d-flex align-items-center gap-3 config-title-group">
-            <div
-              class="d-flex align-items-center justify-content-center bg-primary bg-gradient text-white rounded-3 shadow-sm config-title-icon-container"
-            >
-              <i class="bi bi-gear-fill fs-4"></i>
-            </div>
-            <div>
-              <h1 class="h5 fw-bold mb-0 text-dark">{{ 'configuration' | t }}</h1>
-              <p class="small text-muted mb-0">{{ 'configurationSubtitle' | t }}</p>
-            </div>
-          </div>
-
-          <button
-            class="btn btn-outline-secondary btn-sm rounded-pill d-flex align-items-center gap-1 btn-config-help-tour align-self-stretch align-self-sm-auto justify-content-center"
-            type="button"
-            (click)="startConfigTour()"
-          >
-            <i class="bi bi-question-circle"></i>
-            <span>{{ 'helpTour' | t }}</span>
-          </button>
-        </div>
-
         <!-- Summary Card -->
-        <div class="card border-0 shadow-sm rounded-4 config-summary-card overflow-hidden">
+        <div class="card border-0 shadow-soft rounded-4 config-summary-card overflow-hidden">
           <div class="card-header bg-light border-bottom p-2 d-flex align-items-center gap-2">
             <i class="bi bi-clipboard-data text-primary fs-5"></i>
             <h6 class="mb-0 fw-bold text-primary">{{ 'summary' | t }}</h6>

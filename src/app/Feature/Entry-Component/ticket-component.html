@@ -23,6 +23,18 @@
         </div>
       </div>
 
+      <!-- Quick Search in Header -->
+      <div class="ms-md-auto me-md-3 search-header-container">
+        <app-search-block-component
+          [isCompact]="true"
+          [placeholder]="t('search_tickets_placeholder')"
+          [searching]="searchingTickets"
+          [results]="searchResults"
+          (searchQuery)="onSearchTickets($event)"
+          (resultSelected)="onTicketSelected($event)"
+        ></app-search-block-component>
+      </div>
+
       <!-- Tour Button -->
       <button
         type="button"
@@ -38,7 +50,7 @@
   <!-- 4 BLOCKS RESPONSIVE GRID -->
   <div class="row mb-3">
     <!-- Block 1: Gate Devices -->
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="col-12 col-md-6 col-lg-4">
       <app-gate-devices-block-component
         [t]="t"
         [gatePeripheral]="gatePeripheral"
@@ -51,7 +63,7 @@
     </div>
 
     <!-- Block 2: Issue Ticket -->
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="col-12 col-md-6 col-lg-4">
       <app-issue-ticket-block-component
         [t]="t"
         [isRTL]="i18n.isRTL()"
@@ -78,7 +90,7 @@
     </div>
 
     <!-- Block 3: Tickets Table + Collect Summary -->
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="col-12 col-md-12 col-xl-4">
       <app-tickets-table-block-component
         [t]="t"
         [isRTL]="i18n.isRTL()"
@@ -176,16 +188,6 @@
       </div>
     </div>
 
-    <!-- Block 1.5: Search Block -->
-    <div class="col-12 col-md-6 col-xl-3">
-      <app-search-block-component
-        [placeholder]="t('search_tickets_placeholder')"
-        [searching]="searchingTickets"
-        [results]="searchResults"
-        (searchQuery)="onSearchTickets($event)"
-        (resultSelected)="onTicketSelected($event)"
-      ></app-search-block-component>
-    </div>
   </div>
 
   <!-- Supervisor Login Modal (Shared) -->

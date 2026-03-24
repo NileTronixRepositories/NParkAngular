@@ -1,18 +1,16 @@
 <div class="sanction-page container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- ===== Page Header ===== -->
-  <div class="page-header mb-3 fade-in-down p-2 rounded-4 shadow-sm">
-    <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-      <div class="d-flex align-items-center gap-2">
-        <div
-          class="header-icon-wrapper d-flex align-items-center justify-content-center rounded-3 header-icon-container p-2"
-        >
-          <i class="bi bi-shield-exclamation header-icon fs-6"></i>
+  <div class="page-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
+    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+      <div class="d-flex align-items-center gap-3">
+        <div class="header-icon-wrapper rounded-3">
+          <i class="bi bi-shield-exclamation header-icon fs-4"></i>
         </div>
         <div>
-          <h1 class="h4 fw-bold mb-0 text-white">
+          <h1 class="page-title mb-0 fw-bold">
             {{ i18n.current === 'ar' ? 'إدارة العقوبات' : 'Sanctions Management' }}
           </h1>
-          <p class="small mb-0 opacity-75 text-white">
+          <p class="page-subtitle mb-0 small opacity-75">
             {{
               i18n.current === 'ar'
                 ? 'إضافة وتعديل وحذف العقوبات'
@@ -24,11 +22,13 @@
 
       <button
         type="button"
-        class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center gap-2 btn-help-tour"
+        class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour align-self-stretch align-self-md-auto"
         (click)="startTour()"
       >
         <i class="bi bi-question-circle"></i>
-        <span>{{ i18n.current === 'ar' ? 'شرح الواجهة' : 'Guide' }}</span>
+        <span>{{
+          i18n.current === 'ar' ? 'شرح الواجهة' : 'Guide'
+        }}</span>
       </button>
     </div>
   </div>
@@ -73,14 +73,16 @@
 
   <!-- ===== Table ===== -->
   @if (!loading()) {
-    <div class="card border-0 shadow-sm rounded-4 overflow-hidden sanction-table-wrapper">
+    <div class="card border-0 shadow-soft rounded-4 overflow-hidden sanction-table-wrapper">
       <div class="card-body p-0">
         <table class="table table-hover align-middle mb-0 table-striped">
           <thead class="table-light sticky-top">
             <tr class="small text-uppercase text-muted">
               <th class="text-center py-2 px-3">#</th>
               <th class="py-2">{{ i18n.current === 'ar' ? 'الاسم' : 'Name' }}</th>
-              <th class="py-2">{{ i18n.current === 'ar' ? 'الوصف' : 'Description' }}</th>
+              <th class="py-2 d-none d-md-table-cell">
+                {{ i18n.current === 'ar' ? 'الوصف' : 'Description' }}
+              </th>
               <th class="py-2">{{ i18n.current === 'ar' ? 'المبلغ' : 'Amount' }}</th>
               <th class="text-center py-2 px-3">
                 {{ i18n.current === 'ar' ? 'الإجراءات' : 'Actions' }}
@@ -92,7 +94,9 @@
               <tr>
                 <td class="text-center text-muted small px-3">{{ i + 1 }}</td>
                 <td class="fw-semibold text-dark">{{ item.name }}</td>
-                <td class="text-muted small">{{ item.description || '—' }}</td>
+                <td class="text-muted small d-none d-md-table-cell">
+                  {{ item.description || '—' }}
+                </td>
                 <td>
                   <span
                     class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 fw-bold"
