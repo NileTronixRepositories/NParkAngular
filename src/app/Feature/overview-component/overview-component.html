@@ -126,18 +126,18 @@
           </div>
         </div>
 
-      <div class="d-flex align-items-center gap-2 align-self-stretch align-self-md-auto">
-        <button
-          type="button"
-          class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour flex-grow-1 flex-md-grow-0"
-          (click)="startAdminTour()"
-        >
-          <i class="bi bi-question-circle"></i>
-          <span>{{ 'helpTour' | t }}</span>
-        </button>
+        <div class="d-flex align-items-center gap-2 align-self-stretch align-self-md-auto">
+          <button
+            type="button"
+            class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour flex-grow-1 flex-md-grow-0"
+            (click)="startAdminTour()"
+          >
+            <i class="bi bi-question-circle"></i>
+            <span>{{ 'helpTour' | t }}</span>
+          </button>
+        </div>
       </div>
-    </div>
-  </header>
+    </header>
 
     <!-- ================ Top KPI Cards ================ -->
     <section class="mb-2 mb-lg-3 overview-kpi-section">
@@ -740,328 +740,249 @@
       </div>
     </section>
   </div>
+</div>
 
-  <!-- ==========================
-       Global Data Modal (Popup)
-       ========================== -->
-  <div
-    class="data-modal-backdrop"
-    *ngIf="activeModal()"
-    [ngClass]="{ 'data-modal-backdrop-rtl': lang.isRTL() }"
-  >
-    <div class="data-modal" [ngClass]="{ 'data-modal--rtl': lang.isRTL() }">
-      <div class="data-modal__header d-flex align-items-center justify-content-between">
-        <h5 class="data-modal__title">
-          <ng-container [ngSwitch]="activeModal()">
-            <span *ngSwitchCase="'occupancy'">
-              {{ 'occupancy' | t }} – {{ 'inside' | t }}:
-              {{ currentVehiclesInside() }}
-            </span>
-
-            <span *ngSwitchCase="'ticketsEntry'">
-              {{ 'ticketsToday' | t }} – {{ 'entry' | t }}
-            </span>
-
-            <span *ngSwitchCase="'ticketsExit'"> {{ 'ticketsToday' | t }} – {{ 'exit' | t }} </span>
-
-            <span *ngSwitchCase="'membershipActive'">
-              {{ 'memberships' | t }} – {{ 'active' | t }}
-            </span>
-
-            <span *ngSwitchCase="'membershipInactive'">
-              {{ 'memberships' | t }} – {{ 'inactive' | t }}
-            </span>
-
-            <span *ngSwitchCase="'membershipExpiring'">
-              {{ 'memberships' | t }} – {{ 'expiringNext7Days' | t }}
-            </span>
-
-            <span *ngSwitchCase="'ticketDetails'">
-              {{ lang.isRTL() ? 'تفاصيل التذكرة' : 'Ticket Details' }}
-            </span>
-          </ng-container>
-        </h5>
-        <button type="button" class="data-modal__close" (click)="closeModal()">&times;</button>
-      </div>
-
-      <div class="data-modal__body">
+<!-- ==========================
+     Global Data Modal (Popup)
+     ========================== -->
+<div
+  class="data-modal-backdrop"
+  *ngIf="activeModal() && activeModal() !== 'ticketDetails'"
+  [ngClass]="{ 'data-modal-backdrop-rtl': lang.isRTL() }"
+>
+  <div class="data-modal" [ngClass]="{ 'data-modal--rtl': lang.isRTL() }">
+    <div class="data-modal__header d-flex align-items-center justify-content-between">
+      <h5 class="data-modal__title">
         <ng-container [ngSwitch]="activeModal()">
-          <!-- Ticket details -->
-          <div *ngSwitchCase="'ticketDetails'" class="ticket-details-popup">
-            <ng-container *ngIf="selectedTicket() as t">
-              <div class="alert alert-light border d-flex flex-column gap-2">
-                <div class="d-flex justify-content-between align-items-center border-bottom pb-2">
-                  <span class="text-muted small"> {{ 'id' | t }} / {{ 'ticket_number' | t }} </span>
-                  <span class="font-monospace fw-bold">
-                    {{ t.ticketNumber || t.id }}
-                  </span>
-                </div>
+          <span *ngSwitchCase="'occupancy'">
+            {{ 'occupancy' | t }} – {{ 'inside' | t }}:
+            {{ currentVehiclesInside() }}
+          </span>
 
-                <div class="d-flex justify-content-between align-items-center">
-                  <span class="text-muted small">
-                    {{ 'plate' | t }}
-                  </span>
-                  <span class="font-monospace">
-                    {{ t.plateNumber || t.plate || '-' }}
-                  </span>
-                </div>
+          <span *ngSwitchCase="'ticketsEntry'"> {{ 'ticketsToday' | t }} – {{ 'entry' | t }} </span>
 
-                <div class="d-flex justify-content-between align-items-center" *ngIf="t.cardNumber">
-                  <span class="text-muted small">
-                    {{ 'cardNumber' | t }}
-                  </span>
-                  <span class="font-monospace">
-                    {{ t.cardNumber }}
-                  </span>
-                </div>
+          <span *ngSwitchCase="'ticketsExit'"> {{ 'ticketsToday' | t }} – {{ 'exit' | t }} </span>
 
-                <div class="d-flex justify-content-between align-items-center">
-                  <span class="text-muted small">
-                    {{ 'time' | t }}
-                  </span>
-                  <span class="font-monospace">
-                    {{ t.time }}
-                  </span>
-                </div>
+          <span *ngSwitchCase="'membershipActive'">
+            {{ 'memberships' | t }} – {{ 'active' | t }}
+          </span>
 
-                <div class="d-flex justify-content-between align-items-center mt-2 border-top pt-2">
-                  <span class="text-muted small">
-                    {{ 'price' | t }}
-                  </span>
-                  <div class="d-flex align-items-center gap-2">
-                    <span class="fs-5 fw-bold text-dark">
-                      {{ formatCurrency(t.price || 0) }}
-                      <small class="fs-6 text-muted">
-                        {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                      </small>
-                    </span>
-                  </div>
-                </div>
+          <span *ngSwitchCase="'membershipInactive'">
+            {{ 'memberships' | t }} – {{ 'inactive' | t }}
+          </span>
 
-                <div
-                  class="d-flex justify-content-between align-items-center"
-                  *ngIf="t.isCollectedByCashier !== undefined"
-                >
-                  <span class="text-muted small">
-                    {{ 'collected' | t }}
-                  </span>
-                  <span
-                    class="badge"
-                    [ngClass]="t.isCollectedByCashier ? 'bg-success' : 'bg-warning text-dark'"
-                  >
-                    {{
-                      t.isCollectedByCashier
-                        ? lang.isRTL()
-                          ? 'نعم'
-                          : 'Yes'
-                        : lang.isRTL()
-                          ? 'لا'
-                          : 'No'
-                    }}
-                  </span>
-                </div>
-              </div>
-            </ng-container>
-          </div>
-
-          <!-- Occupancy -->
-          <div *ngSwitchCase="'occupancy'">
-            <p class="data-modal__subtitle">
-              {{
-                lang.isRTL() ? 'التذاكر داخل الساحة حالياً' : 'Tickets currently inside the park'
-              }}
-            </p>
-
-            <ng-container *ngIf="ticketsInside().length > 0; else noData">
-              <div class="data-modal__list">
-                <div class="data-modal__item" *ngFor="let t of ticketsInside()">
-                  <div class="data-modal__item-main">
-                    <span class="data-modal__ticket-number">
-                      {{ t.ticketNumber || ('id' | t) + ': ' + t.id }}
-                    </span>
-                    <span class="data-modal__ticket-meta">
-                      {{ t.startDate | date: 'short' }}
-                    </span>
-                  </div>
-                  <div class="data-modal__item-extra" *ngIf="t.ticketInfo">
-                    {{ t.ticketInfo }}
-                  </div>
-                </div>
-              </div>
-            </ng-container>
-          </div>
-
-          <!-- Today entry tickets -->
-          <div *ngSwitchCase="'ticketsEntry'">
-            <p class="data-modal__subtitle">
-              {{ lang.isRTL() ? 'تذاكر الدخول الصادرة اليوم' : 'Entry tickets created today' }}
-            </p>
-
-            <ng-container *ngIf="todayEntryTickets().length > 0; else noData">
-              <div class="data-modal__list">
-                <div class="data-modal__item" *ngFor="let ticket of todayEntryTickets()">
-                  <div class="data-modal__item-main">
-                    <span class="data-modal__ticket-number">
-                      {{ ticket.ticketNumber || ('id' | t) + ': ' + ticket.id }}
-                    </span>
-                    <span class="data-modal__ticket-meta">
-                      {{ ticket.startDate | date: 'shortTime' }}
-                    </span>
-                  </div>
-                  <div class="data-modal__item-extra">
-                    <span>
-                      {{ formatCurrency(ticket.price) }}
-                      {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                    </span>
-                    <span *ngIf="ticket.ticketInfo"> · {{ ticket.ticketInfo }} </span>
-                    <span *ngIf="ticket.isCollectedByCashier" class="text-success">
-                      · {{ 'collected' | t }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </ng-container>
-          </div>
-
-          <!-- Today exit tickets -->
-          <div *ngSwitchCase="'ticketsExit'">
-            <p class="data-modal__subtitle">
-              {{ lang.isRTL() ? 'تذاكر الخروج المحسوبة اليوم' : 'Exit tickets processed today' }}
-            </p>
-
-            <ng-container *ngIf="todayExitTickets().length > 0; else noData">
-              <div class="data-modal__list">
-                <div class="data-modal__item" *ngFor="let ticket of todayExitTickets()">
-                  <div class="data-modal__item-main">
-                    <span class="data-modal__ticket-number">
-                      {{ ticket.ticketNumber || ('id' | t) + ': ' + ticket.id }}
-                    </span>
-                    <span class="data-modal__ticket-meta">
-                      {{ ticket.startDate | date: 'shortTime' }}
-                    </span>
-                  </div>
-                  <div class="data-modal__item-extra">
-                    <span>
-                      {{ formatCurrency(ticket.price) }}
-                      {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                    </span>
-                    <span *ngIf="ticket.ticketInfo"> · {{ ticket.ticketInfo }} </span>
-                    <span *ngIf="ticket.isCollectedByCashier" class="text-success">
-                      · {{ 'collected' | t }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </ng-container>
-          </div>
-
-          <!-- Membership Active -->
-          <div *ngSwitchCase="'membershipActive'">
-            <p class="data-modal__subtitle">
-              {{ lang.isRTL() ? 'الاشتراكات النشطة حالياً' : 'Currently active memberships' }}
-            </p>
-
-            <ng-container *ngIf="activeMemberships().length > 0; else noData">
-              <div class="data-modal__list">
-                <div class="data-modal__item" *ngFor="let m of activeMemberships()">
-                  <div class="data-modal__item-main">
-                    <span class="data-modal__ticket-number">
-                      {{ m.name }}
-                    </span>
-                    <span class="data-modal__ticket-meta">
-                      {{ m.vehicleNumber || m.cardNumber }}
-                    </span>
-                  </div>
-                  <div class="data-modal__item-extra">
-                    <span class="membership-plan">
-                      {{ m.pricingSchemeName }}
-                    </span>
-                    ·
-                    <span class="membership-dates">
-                      {{ m.createdAt | date: 'shortDate' }} →
-                      {{ m.endDate | date: 'shortDate' }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </ng-container>
-          </div>
-
-          <!-- Membership Inactive -->
-          <div *ngSwitchCase="'membershipInactive'">
-            <p class="data-modal__subtitle">
-              {{ lang.isRTL() ? 'الاشتراكات غير النشطة' : 'Inactive / expired memberships' }}
-            </p>
-
-            <ng-container *ngIf="inactiveMemberships().length > 0; else noData">
-              <div class="data-modal__list">
-                <div class="data-modal__item" *ngFor="let m of inactiveMemberships()">
-                  <div class="data-modal__item-main">
-                    <span class="data-modal__ticket-number">
-                      {{ m.name }}
-                    </span>
-                    <span class="data-modal__ticket-meta">
-                      {{ m.vehicleNumber || m.cardNumber }}
-                    </span>
-                  </div>
-                  <div class="data-modal__item-extra">
-                    <span class="membership-plan">
-                      {{ m.pricingSchemeName }}
-                    </span>
-                    ·
-                    <span class="membership-dates">
-                      {{ m.createdAt | date: 'shortDate' }} →
-                      {{ m.endDate | date: 'shortDate' }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </ng-container>
-          </div>
-
-          <!-- Membership expiring -->
-          <div *ngSwitchCase="'membershipExpiring'">
-            <p class="data-modal__subtitle">
-              {{
-                lang.isRTL()
-                  ? 'الاشتراكات التي تنتهي خلال 7 أيام'
-                  : 'Memberships expiring within 7 days'
-              }}
-            </p>
-
-            <ng-container *ngIf="expiringMemberships().length > 0; else noData">
-              <div class="data-modal__list">
-                <div class="data-modal__item" *ngFor="let m of expiringMemberships()">
-                  <div class="data-modal__item-main">
-                    <span class="data-modal__ticket-number">
-                      {{ m.name }}
-                    </span>
-                    <span class="data-modal__ticket-meta">
-                      {{ m.vehicleNumber || m.cardNumber }}
-                    </span>
-                  </div>
-                  <div class="data-modal__item-extra">
-                    <span class="membership-plan">
-                      {{ m.pricingSchemeName }}
-                    </span>
-                    ·
-                    <span class="membership-dates">
-                      {{ m.createdAt | date: 'shortDate' }} →
-                      {{ m.endDate | date: 'shortDate' }}
-                    </span>
-                  </div>
-                </div>
-              </div>
-            </ng-container>
-          </div>
+          <span *ngSwitchCase="'membershipExpiring'">
+            {{ 'memberships' | t }} – {{ 'expiringNext7Days' | t }}
+          </span>
         </ng-container>
+      </h5>
+      <button type="button" class="data-modal__close" (click)="closeModal()">&times;</button>
+    </div>
 
-        <ng-template #noData>
-          <div class="data-modal__empty">
-            {{ lang.isRTL() ? 'لا توجد بيانات متاحة' : 'No data available' }}
-          </div>
-        </ng-template>
-      </div>
+    <div class="data-modal__body">
+      <ng-container [ngSwitch]="activeModal()">
+        <!-- Occupancy -->
+        <div *ngSwitchCase="'occupancy'">
+          <p class="data-modal__subtitle">
+            {{ lang.isRTL() ? 'التذاكر داخل الساحة حالياً' : 'Tickets currently inside the park' }}
+          </p>
+
+          <ng-container *ngIf="ticketsInside().length > 0; else noData">
+            <div class="data-modal__list">
+              <div class="data-modal__item" *ngFor="let t of ticketsInside()">
+                <div class="data-modal__item-main">
+                  <span class="data-modal__ticket-number">
+                    {{ t.ticketNumber || ('id' | t) + ': ' + t.id }}
+                  </span>
+                  <span class="data-modal__ticket-meta">
+                    {{ t.startDate | date: 'short' }}
+                  </span>
+                </div>
+                <div class="data-modal__item-extra" *ngIf="t.ticketInfo">
+                  {{ t.ticketInfo }}
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Today entry tickets -->
+        <div *ngSwitchCase="'ticketsEntry'">
+          <p class="data-modal__subtitle">
+            {{ lang.isRTL() ? 'تذاكر الدخول الصادرة اليوم' : 'Entry tickets created today' }}
+          </p>
+
+          <ng-container *ngIf="todayEntryTickets().length > 0; else noData">
+            <div class="data-modal__list">
+              <div class="data-modal__item" *ngFor="let ticket of todayEntryTickets()">
+                <div class="data-modal__item-main">
+                  <span class="data-modal__ticket-number">
+                    {{ ticket.ticketNumber || ('id' | t) + ': ' + ticket.id }}
+                  </span>
+                  <span class="data-modal__ticket-meta">
+                    {{ ticket.startDate | date: 'shortTime' }}
+                  </span>
+                </div>
+                <div class="data-modal__item-extra">
+                  <span>
+                    {{ formatCurrency(ticket.price) }}
+                    {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
+                  </span>
+                  <span *ngIf="ticket.ticketInfo"> · {{ ticket.ticketInfo }} </span>
+                  <span *ngIf="ticket.isCollectedByCashier" class="text-success">
+                    · {{ 'collected' | t }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Today exit tickets -->
+        <div *ngSwitchCase="'ticketsExit'">
+          <p class="data-modal__subtitle">
+            {{ lang.isRTL() ? 'تذاكر الخروج المحسوبة اليوم' : 'Exit tickets processed today' }}
+          </p>
+
+          <ng-container *ngIf="todayExitTickets().length > 0; else noData">
+            <div class="data-modal__list">
+              <div class="data-modal__item" *ngFor="let ticket of todayExitTickets()">
+                <div class="data-modal__item-main">
+                  <span class="data-modal__ticket-number">
+                    {{ ticket.ticketNumber || ('id' | t) + ': ' + ticket.id }}
+                  </span>
+                  <span class="data-modal__ticket-meta">
+                    {{ ticket.startDate | date: 'shortTime' }}
+                  </span>
+                </div>
+                <div class="data-modal__item-extra">
+                  <span>
+                    {{ formatCurrency(ticket.price) }}
+                    {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
+                  </span>
+                  <span *ngIf="ticket.ticketInfo"> · {{ ticket.ticketInfo }} </span>
+                  <span *ngIf="ticket.isCollectedByCashier" class="text-success">
+                    · {{ 'collected' | t }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Membership Active -->
+        <div *ngSwitchCase="'membershipActive'">
+          <p class="data-modal__subtitle">
+            {{ lang.isRTL() ? 'الاشتراكات النشطة حالياً' : 'Currently active memberships' }}
+          </p>
+
+          <ng-container *ngIf="activeMemberships().length > 0; else noData">
+            <div class="data-modal__list">
+              <div class="data-modal__item" *ngFor="let m of activeMemberships()">
+                <div class="data-modal__item-main">
+                  <span class="data-modal__ticket-number">
+                    {{ m.name }}
+                  </span>
+                  <span class="data-modal__ticket-meta">
+                    {{ m.vehicleNumber || m.cardNumber }}
+                  </span>
+                </div>
+                <div class="data-modal__item-extra">
+                  <span class="membership-plan">
+                    {{ m.pricingSchemeName }}
+                  </span>
+                  ·
+                  <span class="membership-dates">
+                    {{ m.createdAt | date: 'shortDate' }} →
+                    {{ m.endDate | date: 'shortDate' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Membership Inactive -->
+        <div *ngSwitchCase="'membershipInactive'">
+          <p class="data-modal__subtitle">
+            {{ lang.isRTL() ? 'الاشتراكات غير النشطة' : 'Inactive / expired memberships' }}
+          </p>
+
+          <ng-container *ngIf="inactiveMemberships().length > 0; else noData">
+            <div class="data-modal__list">
+              <div class="data-modal__item" *ngFor="let m of inactiveMemberships()">
+                <div class="data-modal__item-main">
+                  <span class="data-modal__ticket-number">
+                    {{ m.name }}
+                  </span>
+                  <span class="data-modal__ticket-meta">
+                    {{ m.vehicleNumber || m.cardNumber }}
+                  </span>
+                </div>
+                <div class="data-modal__item-extra">
+                  <span class="membership-plan">
+                    {{ m.pricingSchemeName }}
+                  </span>
+                  ·
+                  <span class="membership-dates">
+                    {{ m.createdAt | date: 'shortDate' }} →
+                    {{ m.endDate | date: 'shortDate' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+
+        <!-- Membership expiring -->
+        <div *ngSwitchCase="'membershipExpiring'">
+          <p class="data-modal__subtitle">
+            {{
+              lang.isRTL()
+                ? 'الاشتراكات التي تنتهي خلال 7 أيام'
+                : 'Memberships expiring within 7 days'
+            }}
+          </p>
+
+          <ng-container *ngIf="expiringMemberships().length > 0; else noData">
+            <div class="data-modal__list">
+              <div class="data-modal__item" *ngFor="let m of expiringMemberships()">
+                <div class="data-modal__item-main">
+                  <span class="data-modal__ticket-number">
+                    {{ m.name }}
+                  </span>
+                  <span class="data-modal__ticket-meta">
+                    {{ m.vehicleNumber || m.cardNumber }}
+                  </span>
+                </div>
+                <div class="data-modal__item-extra">
+                  <span class="membership-plan">
+                    {{ m.pricingSchemeName }}
+                  </span>
+                  ·
+                  <span class="membership-dates">
+                    {{ m.createdAt | date: 'shortDate' }} →
+                    {{ m.endDate | date: 'shortDate' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+          </ng-container>
+        </div>
+      </ng-container>
+
+      <ng-template #noData>
+        <div class="data-modal__empty">
+          {{ lang.isRTL() ? 'لا توجد بيانات متاحة' : 'No data available' }}
+        </div>
+      </ng-template>
     </div>
   </div>
 </div>
+
+<app-ticket-details-modal-block-component
+  *ngIf="activeModal() === 'ticketDetails'"
+  [show]="true"
+  [ticket]="selectedTicket()"
+  (close)="closeModal()"
+></app-ticket-details-modal-block-component>

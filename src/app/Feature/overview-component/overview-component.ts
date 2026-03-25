@@ -17,6 +17,7 @@ import {
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
 import { TicketDto } from '../../Domain/tickets/tickets.model';
 import { FormsModule } from '@angular/forms';
+import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal-block-component/ticket-details-modal-block-component';
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, OnDestroy, signal, computed, HostListener, AfterViewInit } from '@angular/core';
 import { Subscription, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
@@ -48,7 +49,7 @@ interface UiNotification {
 @Component({
   selector: 'app-overview-component',
   standalone: true,
-  imports: [CommonModule, TranslatePipePipe, FormsModule],
+  imports: [CommonModule, TranslatePipePipe, FormsModule, TicketDetailsModalBlockComponent],
   templateUrl: './overview-component.html',
   styleUrls: ['./overview-component.css'],
   providers: [

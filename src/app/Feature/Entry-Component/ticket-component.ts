@@ -12,7 +12,8 @@ import {
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription } from 'rxjs';
+import { Subscription, timer } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 
 import {
   TicketDto,
@@ -28,6 +29,7 @@ import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { GateServices } from '../../Services/Gate/gate-services';
 import { AuthService } from '../../Services/Auth/auth-service';
 import { GateDevicePeripheral, GateDto, GateType } from '../../Domain/Auth/auth.models';
+import { LocalHealthService } from '../../Services/Gate/local-health.service';
 
 import { NfcReaderService } from '../../Services/registration/nfc-reader.service';
 import { ToastServices } from '../../Services/Toster/toast-services';
@@ -90,6 +92,7 @@ export class TicketComponent implements OnInit, OnDestroy {
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly errorExtractor = inject(ErrorExtractorService);
   private readonly hubSubscriptions = new Subscription();
+  private readonly localHealth = inject(LocalHealthService);
 
   startTour(): void {
     this.entryTour.startTour();
@@ -445,6 +448,17 @@ export class TicketComponent implements OnInit, OnDestroy {
         console.log('TicketComponent: Received scan event', msg.fileName);
         this.handleScannedFile(msg);
       }),
+    );
+
+    this.hubSubscriptions.add(
+      timer(0, 5000)
+        .pipe(switchMap(() => this.localHealth.checkPcHealth()))
+        .subscribe((isHealthy) => {
+          if (this.gatePeripheral) {
+            this.gatePeripheral.hasPc = isHealthy;
+            this.cdr.markForCheck();
+          }
+        }),
     );
   }
 
@@ -1360,8 +1374,6 @@ export class TicketComponent implements OnInit, OnDestroy {
       return okQ && okA && okG;
     });
   }
-
-
 
   closeTicketDetailsModal(): void {
     this.showTicketDetailsModal = false;

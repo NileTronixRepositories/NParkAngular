@@ -18,6 +18,7 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import { GateServices } from '../../Services/Gate/gate-services';
 import { AuthService } from '../../Services/Auth/auth-service';
 import { GateType, GateDevicePeripheral, GateDto } from '../../Domain/Auth/auth.models';
+import { LocalHealthService } from '../../Services/Gate/local-health.service';
 import { ToastServices } from '../../Services/Toster/toast-services';
 import { NfcReaderService } from '../../Services/registration/nfc-reader.service';
 
@@ -32,7 +33,8 @@ import { TicketExitedNotification } from '../../Domain/OverView/dashboard-notifi
 import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.service';
 import { SanctionService } from '../../Services/Sanction/sanction.service';
 import { SanctionDto } from '../../Domain/Sanction/sanction.models';
-import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
+import { Subject, Subscription, debounceTime, distinctUntilChanged, timer } from 'rxjs';
+import { switchMap } from 'rxjs/operators';
 import { SupervisorModalBlockComponent } from '../Shared/supervisor-modal-block-component/supervisor-modal-block-component';
 import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal-block-component/ticket-details-modal-block-component';
 import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
@@ -355,6 +357,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   private readonly scanHub = inject(ScanHubService);
   private readonly sanctionSvc = inject(SanctionService);
   private readonly hubSubscriptions = new Subscription();
+  private readonly localHealth = inject(LocalHealthService);
 
   startTour(): void {
     this.exitTour.startTour();
@@ -488,6 +491,17 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         console.log('ExitgateComponent: Received scan event', msg.fileName);
         this.handleScannedFile(msg);
       }),
+    );
+
+    this.hubSubscriptions.add(
+      timer(0, 5000)
+        .pipe(switchMap(() => this.localHealth.checkPcHealth()))
+        .subscribe((isHealthy) => {
+          if (this.gatePeripheral) {
+            this.gatePeripheral.hasPc = isHealthy;
+            this.cdr.markForCheck();
+          }
+        }),
     );
   }
 
@@ -1025,8 +1039,6 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       },
     });
   }
-
-
 
   allowExitWithoutCollect(): void {
     if (!this.scannedTicket && !this.salarySummary) return;
