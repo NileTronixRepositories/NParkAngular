@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { CommonModule, NgIf, NgFor, NgClass } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SanctionService } from '../../Services/Sanction/sanction.service';
 import {
@@ -16,7 +16,7 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 @Component({
   selector: 'app-sanction-component',
   standalone: true,
-  imports: [CommonModule, FormsModule, TranslatePipePipe, NgIf, NgFor, NgClass],
+  imports: [CommonModule, FormsModule, TranslatePipePipe],
   templateUrl: './sanction-component.html',
   styleUrl: './sanction-component.css',
   providers: [

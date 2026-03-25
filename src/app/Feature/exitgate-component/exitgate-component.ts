@@ -34,6 +34,7 @@ import { SanctionService } from '../../Services/Sanction/sanction.service';
 import { SanctionDto } from '../../Domain/Sanction/sanction.models';
 import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 import { SupervisorModalBlockComponent } from '../Shared/supervisor-modal-block-component/supervisor-modal-block-component';
+import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal-block-component/ticket-details-modal-block-component';
 import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 
@@ -48,6 +49,7 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
     ExitTicketsTableBlockComponent,
     SearchBlockComponent,
     SupervisorModalBlockComponent,
+    TicketDetailsModalBlockComponent,
     TranslatePipePipe,
   ],
   templateUrl: './exitgate-component.html',
@@ -415,11 +417,15 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   collectLoading = false;
   collectSummary: CollectDailyTicketsResponse | null = null;
 
-  showSupervisorCollectModal = false;
   supervisorUsername = '';
   supervisorPassword = '';
   supervisorCollectLoading = false;
+  showSupervisorCollectModal = false;
   supervisorCollectError: string | null = null;
+
+  // Ticket Details Modal
+  showTicketDetailsModal = false;
+  selectedTicketForModal: TicketDto | null = null;
 
   // ====== NFC ======
   readingCard = false;
@@ -780,9 +786,16 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.toast.warn(this.t('ticket_already_collected', [identifier, summaryText]));
     }
 
-    // No success toast here; wait for triggerUnifiedSearch -> fetchTicketAndSalaryByQr
-    this.onSearchTicketNumber(identifier, true);
+    // Show Details Modal
+    this.selectedTicketForModal = ticket;
+    this.showTicketDetailsModal = true;
+
     this.searchResults = [];
+  }
+
+  closeTicketDetailsModal(): void {
+    this.showTicketDetailsModal = false;
+    this.selectedTicketForModal = null;
   }
 
   onGateDeviceSearchTicket(ticketNumber: string): void {

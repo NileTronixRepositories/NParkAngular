@@ -1,4 +1,4 @@
-import { CommonModule, NgIf, NgFor, NgClass } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import {
   ChangeDetectorRef,
   Component,
@@ -45,7 +45,7 @@ import { environment } from '../../Shared/environment/environment';
 @Component({
   selector: 'app-registration-component',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, TranslatePipePipe, SafePipe, NgIf, NgFor, NgClass],
+  imports: [CommonModule, ReactiveFormsModule, TranslatePipePipe, SafePipe],
   templateUrl: './registration-component.html',
   styleUrl: './registration-component.css',
   providers: [

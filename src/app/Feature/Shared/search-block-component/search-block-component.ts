@@ -26,6 +26,17 @@ export class SearchBlockComponent implements OnDestroy {
       not_collected: 'غير مُحصّلة',
       no_results: 'لا توجد نتائج',
       currency: 'ج.م',
+      ticket_details: 'تفاصيل التذكرة',
+      ticket_number: 'رقم التذكرة',
+      time: 'الوقت',
+      price: 'السعر',
+      plate: 'اللوحة',
+      gate: 'البوابة',
+      customerName: 'اسم العميل',
+      cardNumber: 'رقم الكارت',
+      phone: 'رقم الهاتف',
+      additional_info: 'معلومات إضافية',
+      close: 'إغلاق',
     },
     en: {
       quick_search: 'Quick Search',
@@ -35,6 +46,17 @@ export class SearchBlockComponent implements OnDestroy {
       not_collected: 'Not collected',
       no_results: 'No results',
       currency: 'EGP',
+      ticket_details: 'Ticket Details',
+      ticket_number: 'Ticket Number',
+      time: 'Time',
+      price: 'Price',
+      plate: 'Plate',
+      gate: 'Gate',
+      customerName: 'Customer Name',
+      cardNumber: 'Card Number',
+      phone: 'Phone',
+      additional_info: 'Additional Info',
+      close: 'Close',
     },
   };
   t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
@@ -75,6 +97,7 @@ export class SearchBlockComponent implements OnDestroy {
   }
 
   selectResult(ticket: TicketDto): void {
+    this.showResults = false;
     this.resultSelected.emit(ticket);
   }
 

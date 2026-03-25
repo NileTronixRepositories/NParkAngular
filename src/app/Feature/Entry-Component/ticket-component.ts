@@ -10,7 +10,7 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { CommonModule, NgIf, NgFor, NgClass } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
 
@@ -41,6 +41,7 @@ import { EntryTourService } from '../../Services/Entry/entry-tour.service';
 import { SupervisorModalBlockComponent } from '../Shared/supervisor-modal-block-component/supervisor-modal-block-component';
 import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
+import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal-block-component/ticket-details-modal-block-component';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 
 @Component({
@@ -54,10 +55,8 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
     TicketsTableBlockComponent,
     SearchBlockComponent,
     SupervisorModalBlockComponent,
+    TicketDetailsModalBlockComponent,
     TranslatePipePipe,
-    NgIf,
-    NgFor,
-    NgClass,
   ],
   templateUrl: './ticket-component.html',
   styleUrls: ['./ticket-component.css'],
@@ -145,6 +144,10 @@ export class TicketComponent implements OnInit, OnDestroy {
   supervisorPassword = '';
   supervisorCollectLoading = false;
   supervisorCollectError: string | null = null;
+
+  // Ticket Details Modal
+  showTicketDetailsModal = false;
+  selectedTicketForModal: TicketDto | null = null;
 
   // =======================
   // Tickets list / filters
@@ -1310,6 +1313,10 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.currentIssuedQr = null;
     this.currentIssuedQrType = null;
 
+    // Show Details Modal
+    this.selectedTicketForModal = ticket;
+    this.showTicketDetailsModal = true;
+
     if (this._cashierCollected) {
       this.toast.warn(
         this.i18n.current === 'ar'
@@ -1350,14 +1357,20 @@ export class TicketComponent implements OnInit, OnDestroy {
 
       const okA = !this.action || t.action === this.action;
       const okG = !this.gate || t.gate === this.gate;
-
       return okQ && okA && okG;
     });
   }
 
-  private normalizeQrImage(value?: string | null): string | null {
-    if (!value) return null;
-    const v = String(value).trim();
+
+
+  closeTicketDetailsModal(): void {
+    this.showTicketDetailsModal = false;
+    this.selectedTicketForModal = null;
+  }
+
+  private normalizeQrImage(qr: string | null | undefined): string | null {
+    if (!qr) return null;
+    const v = String(qr).trim();
 
     if (/^(data:image\/|blob:|https?:\/\/)/i.test(v)) return v;
 

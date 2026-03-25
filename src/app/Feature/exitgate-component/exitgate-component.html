@@ -129,4 +129,11 @@
     (submit)="submitSupervisorCollect()"
     (close)="closeSupervisorCollectModal()"
   ></app-supervisor-modal-block-component>
+
+  <!-- Ticket Details Modal (Fixed positioning) -->
+  <app-ticket-details-modal-block-component
+    [show]="showTicketDetailsModal"
+    [ticket]="selectedTicketForModal"
+    (close)="closeTicketDetailsModal()"
+  ></app-ticket-details-modal-block-component>
 </div>
