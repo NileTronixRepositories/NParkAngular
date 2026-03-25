@@ -35,15 +35,17 @@
         ></app-search-block-component>
       </div>
 
-      <!-- Tour Button -->
-      <button
-        type="button"
-        class="btn btn-outline-light btn-xs rounded-pill d-flex align-items-center justify-content-center gap-2 btn-help-tour align-self-stretch align-self-md-auto"
-        (click)="startTour()"
-      >
-        <i class="bi bi-question-circle"></i>
-        <span>{{ t('print_ticket') === 'طباعة التذكرة' ? 'شرح الواجهة' : 'Guide' }}</span>
-      </button>
+      <div class="d-flex align-items-center gap-2 align-self-stretch align-self-md-auto">
+        <!-- Tour Button -->
+        <button
+          type="button"
+          class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour flex-grow-1 flex-md-grow-0"
+          (click)="startTour()"
+        >
+          <i class="bi bi-question-circle"></i>
+          <span>{{ 'helpTour' | t }}</span>
+        </button>
+      </div>
     </div>
   </div>
 

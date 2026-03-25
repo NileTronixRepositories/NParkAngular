@@ -1,6 +1,6 @@
 import { Component, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf, NgFor, NgClass } from '@angular/common';
 import { RouterModule } from '@angular/router';
 
 import {
@@ -9,7 +9,6 @@ import {
 } from '../../Domain/Subscription-type/subscription-type.models';
 
 import { SubscriptionType } from '../../Services/subscription-type/subscription-type';
-
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { ToastServices } from '../../Services/Toster/toast-services';
 
@@ -18,6 +17,8 @@ import {
   PricingSchemaUpdateDto,
 } from '../../Domain/Subscription-type/subscription-type.models';
 import { AltaeriffaTourService } from '../../Services/AltaeriffaTour/Altaeriffa-tour.service';
+import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
+import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 
 type FormShape = {
   id: FormControl<string | null>;
@@ -34,9 +35,150 @@ type FormShape = {
 @Component({
   selector: 'app-Altaeriffa-component',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterModule],
+  imports: [CommonModule, ReactiveFormsModule, RouterModule, TranslatePipePipe],
   templateUrl: './Altaeriffa-component.html',
   styleUrl: './Altaeriffa-component.css',
+  providers: [
+    {
+      provide: I18N_DICT,
+      useValue: <I18nDict>{
+        ar: {
+          title: 'شريحة المحاسبة',
+          add: 'إضافة',
+          edit: 'تعديل',
+          field_name: 'اسم الشريحة',
+          name_placeholder: 'مثال: اشتراك شهري / Hourly Pass',
+          name_required: 'الاسم مطلوب (حد أدنى 2 حرف).',
+          duration_type: 'نوع المدة',
+          hours: 'بالساعات',
+          days: 'بالأيام',
+          year: 'بالسنة',
+          hours_short: 'ساعات',
+          days_short: 'أيام',
+          year_short: 'سنة',
+          repeated: 'حساب متكرر',
+          from: 'من',
+          to: 'إلى',
+          total_hours: 'إجمالي الساعات',
+          total_hours_required: 'إجمالي الساعات مطلوب (حد أدنى 1).',
+          total_days: 'إجمالي الأيام',
+          total_days_required: 'إجمالي الأيام مطلوب (حد أدنى 1).',
+          price_label: '(جنيه) السعر',
+          price_required: 'السعر مطلوب ويجب أن يكون 0 أو أكثر.',
+          reset: 'إعادة ضبط',
+          save: 'حفظ',
+          list_title: 'قائمة الشرائح',
+          search_placeholder: 'بحث...',
+          col_index: '#',
+          col_name: 'الاسم',
+          col_type: 'النوع',
+          col_from: 'من',
+          col_to: 'إلى',
+          col_price: 'السعر',
+          col_actions: 'إجراءات',
+          edit_action: 'تعديل',
+          delete_action: 'حذف',
+          empty_search: 'لا توجد بيانات مطابقة للبحث.',
+          total_footer: 'إجمالي',
+          page: 'صفحة',
+          of: 'من',
+          next: 'التالي',
+          prev: 'السابق',
+          last_n_hint: 'يظهر آخر',
+          slice_hint: 'شريحة.',
+          back_dashboard: 'عودة للوحة التحكم',
+          confirm_delete: 'هل أنت متأكد من الحذف؟',
+          errors_title: 'أخطاء في البيانات:',
+          err_name: 'الاسم مطلوب ويجب أن يكون على الأقل حرفين',
+          err_price: 'السعر مطلوب ويجب أن يكون 0 أو أكثر',
+          err_days: 'إجمالي الأيام مطلوب ويجب أن يكون 1 أو أكثر',
+          err_hours: 'إجمالي الساعات مطلوب ويجب أن يكون 1 أو أكثر',
+          err_time_needed: 'وقت البداية والنهاية مطلوبان عندما لا يكون الحساب متكرر',
+          server_error: 'حدث خطأ في الخادم:',
+          validation_errors: 'أخطاء التحقق:',
+          status: 'الحالة',
+          traceId: 'رقم التتبع',
+          type: 'النوع',
+          conn_error: 'خطأ في الاتصال',
+          unexpected_error: 'حدث خطأ غير متوقع',
+          time_window_off: '-',
+          loading: 'جاري التحميل…',
+          total_label: 'إجمالي',
+          added_success: 'تمت الإضافة بنجاح',
+          updated_success: 'تم التعديل بنجاح',
+          deleted_success: 'تم الحذف بنجاح',
+          helpTour: 'شرح الواجهة',
+        },
+        en: {
+          title: 'Pricing Scheme',
+          add: 'Add',
+          edit: 'Edit',
+          field_name: 'Name',
+          name_placeholder: 'e.g., Monthly Pass / Hourly Pass',
+          name_required: 'Name is required (min 2 chars).',
+          duration_type: 'Duration Type',
+          hours: 'Hours',
+          days: 'Days',
+          year: 'Year',
+          hours_short: 'Hours',
+          days_short: 'Days',
+          year_short: 'Year',
+          repeated: 'Repeated',
+          from: 'From',
+          to: 'To',
+          total_hours: 'Total Hours',
+          total_hours_required: 'Total hours is required (min 1).',
+          total_days: 'Total Days',
+          total_days_required: 'Total days is required (min 1).',
+          price_label: 'Price (EGP)',
+          price_required: 'Price is required and must be ≥ 0.',
+          reset: 'Reset',
+          save: 'Save',
+          list_title: 'Schemes',
+          search_placeholder: 'Search...',
+          col_index: '#',
+          col_name: 'Name',
+          col_type: 'Type',
+          col_from: 'From',
+          col_to: 'To',
+          col_price: 'Price',
+          col_actions: 'Actions',
+          edit_action: 'Edit',
+          delete_action: 'Delete',
+          empty_search: 'No matching data.',
+          total_footer: 'Total',
+          page: 'Page',
+          of: 'of',
+          next: 'Next',
+          prev: 'Prev',
+          last_n_hint: 'Showing last',
+          slice_hint: 'slice(s).',
+          back_dashboard: 'Back to dashboard',
+          confirm_delete: 'Are you sure to delete?',
+          errors_title: 'Validation errors:',
+          err_name: 'Name is required (min 2 chars).',
+          err_price: 'Price is required and must be ≥ 0.',
+          err_days: 'Total days is required and must be ≥ 1.',
+          err_hours: 'Total hours is required and must be ≥ 1.',
+          err_time_needed: 'Start/End time are required when not repeated.',
+          server_error: 'Server error:',
+          validation_errors: 'Validation errors:',
+          status: 'Status',
+          traceId: 'TraceId',
+          type: 'Type',
+          conn_error: 'Connection error',
+          unexpected_error: 'Unexpected error',
+          time_window_off: '-',
+          loading: 'Loading…',
+          total_label: 'Total',
+          added_success: 'Added successfully',
+          updated_success: 'Updated successfully',
+          deleted_success: 'Deleted successfully',
+          helpTour: 'Help Tour',
+        },
+      }
+    }
+  ]
 })
 export class AltaeriffaComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -186,7 +328,7 @@ export class AltaeriffaComponent implements OnInit {
     this.AltaeriffaTourService.startTour();
   }
 
-  t = (key: string) => this.dict[this.i18n.current]?.[key] ?? key;
+  t = (key: string) => (this.dict as any)[this.i18n.current]?.[key] ?? key;
   dir = computed(() => this.i18n.dir());
   isRTL = computed(() => this.i18n.isRTL());
 

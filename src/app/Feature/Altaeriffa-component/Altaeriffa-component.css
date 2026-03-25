@@ -14,34 +14,44 @@
    Page Header
    ========================== */
 .page-header {
-  background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-radius: 12px;
   color: #fff;
-  position: relative;
-  overflow: hidden;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
-.page-header::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  right: 0;
-  width: 200px;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.05));
-  transform: skewX(-20deg);
-  pointer-events: none;
-}
+/* Effect removed for consistency */
 
 .header-icon-wrapper {
-  width: 56px;
-  height: 56px;
-  background: rgba(229, 57, 53, 0.15);
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(229, 57, 53, 0.3);
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .header-icon {
-  color: #ef5350;
+  color: #f87171; /* Matching accent color */
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.1;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+.page-subtitle {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.9375rem;
+  font-weight: 500;
 }
 
 /* RTL Support */
@@ -236,7 +246,7 @@
     width: 32px;
     height: 32px;
     padding: 0;
-    border-radius: 50% !important;
+    /* border-radius: 50% !important; */
   }
 
   .card-header h6 {

@@ -35,6 +35,7 @@ import { SanctionDto } from '../../Domain/Sanction/sanction.models';
 import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs';
 import { SupervisorModalBlockComponent } from '../Shared/supervisor-modal-block-component/supervisor-modal-block-component';
 import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
+import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 
 @Component({
   selector: 'app-exitgate-component',
@@ -47,6 +48,7 @@ import { ErrorExtractorService } from '../../Services/Shared/error-extractor.ser
     ExitTicketsTableBlockComponent,
     SearchBlockComponent,
     SupervisorModalBlockComponent,
+    TranslatePipePipe,
   ],
   templateUrl: './exitgate-component.html',
   styleUrls: ['./exitgate-component.css'],

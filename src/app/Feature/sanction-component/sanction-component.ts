@@ -1,5 +1,5 @@
 import { Component, computed, inject, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf, NgFor, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SanctionService } from '../../Services/Sanction/sanction.service';
 import {
@@ -10,13 +10,52 @@ import {
 import { ToastServices } from '../../Services/Toster/toast-services';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { SanctionTourService } from '../../Services/Sanction/sanction-tour.service';
+import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
+import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 
 @Component({
   selector: 'app-sanction-component',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, TranslatePipePipe, NgIf, NgFor, NgClass],
   templateUrl: './sanction-component.html',
   styleUrl: './sanction-component.css',
+  providers: [
+    {
+      provide: I18N_DICT,
+      useValue: <I18nDict>{
+        ar: {
+          sanctions: 'العقوبات',
+          name: 'الاسم',
+          description: 'الوصف',
+          amount: 'المبلغ',
+          actions: 'إجراءات',
+          add: 'إضافة',
+          edit: 'تعديل',
+          delete: 'حذف',
+          save: 'حفظ',
+          cancel: 'إلغاء',
+          confirmDelete: 'هل أنت متأكد من الحذف؟',
+          nameRequired: 'الاسم مطلوب',
+          helpTour: 'شرح الواجهة',
+        },
+        en: {
+          sanctions: 'Sanctions',
+          name: 'Name',
+          description: 'Description',
+          amount: 'Amount',
+          actions: 'Actions',
+          add: 'Add',
+          edit: 'Edit',
+          delete: 'Delete',
+          save: 'Save',
+          cancel: 'Cancel',
+          confirmDelete: 'Are you sure you want to delete?',
+          nameRequired: 'Name is required',
+          helpTour: 'Help Tour',
+        },
+      },
+    },
+  ],
 })
 export class SanctionComponent implements OnInit {
   private sanctionService = inject(SanctionService);

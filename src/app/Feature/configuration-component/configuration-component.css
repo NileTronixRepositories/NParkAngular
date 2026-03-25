@@ -5,6 +5,60 @@
   min-height: 100vh;
 }
 
+/* ==========================
+   Page Header
+   ========================== */
+.page-header {
+  background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  border-radius: 12px;
+  color: #fff;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.header-icon-wrapper {
+  width: 40px;
+  height: 40px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-icon {
+  color: #f87171;
+}
+
+.page-title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0;
+  line-height: 1.1;
+  color: #fff;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 576px) {
+  .page-title {
+    font-size: 1.25rem;
+  }
+}
+
+.page-subtitle {
+  margin: 0;
+  color: #cbd5e1;
+  font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+@media (max-width: 576px) {
+  .page-subtitle {
+    font-size: 0.75rem;
+  }
+}
+
 /* Stepper Customization */
 .mat-horizontal-stepper-header-container {
   background-color: transparent !important;
@@ -74,6 +128,21 @@
   margin-bottom: 0.5rem;
 }
 
+/* Material Override for smaller screens */
+@media (max-width: 576px) {
+  .mat-mdc-radio-button .mdc-form-field,
+  .mat-mdc-checkbox .mdc-form-field {
+    font-size: 0.75rem !important;
+    gap: 4px !important;
+  }
+  
+  .mat-mdc-radio-button .mdc-radio,
+  .mat-mdc-checkbox .mdc-checkbox {
+    padding: 4px !important;
+    margin-right: 4px !important;
+  }
+}
+
 /* Animation for step transitions */
 .mat-horizontal-stepper-content {
   animation: fadeIn 0.3s ease-in-out;
@@ -105,10 +174,10 @@
   margin-top: 1rem;
 }
 .gates-accordion .mat-expansion-panel {
-  border-radius: 10px !important;
+  border-radius: 12px !important;
   margin-bottom: 12px;
-  box-shadow: 0 2px 8px rgba(25, 123, 70, 0.08) !important;
-  border: 1px solid #e2f0e8;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+  border: 1px solid #edf2f7;
   transition: all 0.3s ease;
 }
 .gates-accordion .mat-expansion-panel:hover {
@@ -209,9 +278,9 @@
   margin-bottom: 0.5rem;
 }
 .gate-accordion .mat-expansion-panel {
-  border-radius: 8px !important;
-  box-shadow: 0 2px 6px rgba(25, 123, 70, 0.08) !important;
-  border: 1px solid #e8f0ee;
+  border-radius: 12px !important;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid #edf2f7;
   transition: all 0.2s ease;
 }
 .gate-accordion .mat-expansion-panel:hover {
@@ -333,10 +402,10 @@
     grid-template-columns: 1fr;
   }
   .main-accordion .mat-expansion-panel-header {
-    padding: 16px 20px;
+    padding: 10px 14px !important;
   }
   .gate-accordion .mat-expansion-panel-header {
-    padding: 10px 14px;
+    padding: 8px 12px !important;
   }
 }
 
@@ -355,6 +424,12 @@
     transform: translateY(0);
   }
 }
+.config-main-card {
+  background: rgba(255, 255, 255, 0.9);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
 .gates-tabs {
   margin-top: 1.25rem;
 }
@@ -439,21 +514,7 @@
 }
 
 /* Config Title Icon */
-.config-title-icon-container {
-  width: 48px;
-  height: 48px;
-}
-
-.step-progress-line-bg {
-  height: 2px;
-  z-index: 0;
-}
-
-.step-progress-line-active {
-  height: 2px;
-  z-index: 0;
-  transition: width 0.3s ease;
-}
+/* Config Title Icon Container refactored to .header-icon-wrapper */
 
 .step-indicator-wrapper {
   z-index: 1;
@@ -485,89 +546,98 @@
 }
 
 @media (max-width: 576px) {
-  .config-page-header {
-    padding: 0.5rem !important;
-    margin-bottom: 0.5rem !important;
-    gap: 0.5rem !important;
+  .page-header {
+    padding: 0.75rem !important;
+    margin-bottom: 0.75rem !important;
   }
 
-  .config-title-icon-container {
-    width: 36px !important;
-    height: 36px !important;
+  .header-icon-wrapper {
+    width: 32px;
+    height: 32px;
   }
 
-  .config-title-icon-container i {
-    font-size: 1.2rem !important;
-  }
-
-  .config-title-group h1 {
-    font-size: 0.95rem !important;
-  }
-
-  .config-title-group p {
-    font-size: 0.65rem !important;
-  }
-
-  .card-body h6 {
-    font-size: 0.85rem !important;
-  }
-
-  .card-body i.fs-5 {
+  .header-icon {
     font-size: 1.1rem !important;
   }
 
+  .card-body h6 {
+    font-size: 0.8rem !important;
+  }
+
+  .card-body i.fs-5 {
+    font-size: 1rem !important;
+  }
+
   .mat-step-header {
-    padding: 8px 12px !important;
+    padding: 4px 8px !important;
   }
 
   .mat-step-icon {
-    width: 20px !important;
-    height: 20px !important;
-    font-size: 0.7rem !important;
+    width: 18px !important;
+    height: 18px !important;
+    font-size: 0.65rem !important;
   }
 
   .mat-step-label {
-    font-size: 0.7rem !important;
+    font-size: 0.65rem !important;
     font-weight: 500 !important;
   }
 
-  /* Hide labels on extra small screens to save space */
+  /* Hide labels on small screens to save space */
   @media (max-width: 480px) {
     .mat-step-label {
       display: none !important;
     }
     .mat-horizontal-stepper-header {
-      padding: 8px !important;
+      padding: 4px !important;
     }
   }
 
   .mat-expansion-panel-header-title {
-    font-size: 0.85rem !important;
+    font-size: 0.8rem !important;
   }
 
   .card-header,
   .card-body,
-  .mat-expansion-panel-body {
-    padding: 0.6rem 0.75rem !important;
+  .mat-expansion-panel-body,
+  .p-2.config-step1-form,
+  .p-2.config-step2-form,
+  .config-mode-group .card-body,
+  .config-capture-group .card-body,
+  .config-pricing-group .card-body {
+    padding: 0.4rem 0.5rem !important;
+  }
+
+  .config-mode-group .d-flex.align-items-center.gap-2.mb-2,
+  .config-capture-group .d-flex.align-items-center.gap-2.mb-2,
+  .config-pricing-group .d-flex.align-items-center.gap-2.mb-2 {
+     margin-bottom: 0.25rem !important;
+     gap: 0.25rem !important;
   }
 
   .mat-tab-label {
-    min-width: 100px !important;
-    font-size: 0.8rem !important;
+    min-width: 80px !important;
+    font-size: 0.75rem !important;
+    padding: 0 8px !important;
   }
 
   .ip-address {
-    padding: 6px 8px !important;
-    font-size: 0.75rem !important;
+    padding: 5px 6px !important;
+    font-size: 0.7rem !important;
   }
 
   .badge {
-    font-size: 0.7rem !important;
+    font-size: 0.65rem !important;
+  }
+  
+  .btn.btn-sm {
+    font-size: 0.75rem !important;
+    padding: 0.25rem 0.5rem !important;
   }
 }
 
 @media (max-width: 400px) {
-  .btn-config-help-tour span {
+  .btn-help-tour span {
     display: none;
   }
 

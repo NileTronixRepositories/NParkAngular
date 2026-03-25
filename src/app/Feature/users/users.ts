@@ -1,18 +1,111 @@
 import { Component, computed, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { NgIf, NgFor, NgClass, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { UserDto, UserCreateDto, UserUpdateDto, RoleDto } from '../../Domain/Users/user.model';
 import { UsersServices } from '../../Services/Users/users-services';
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { ToastServices } from '../../Services/Toster/toast-services';
 import { UsersTourService } from '../../Services/Users/users-tour.service';
+import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
+import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 
 @Component({
   selector: 'app-users',
   standalone: true,
-  imports: [FormsModule, CommonModule],
+  imports: [FormsModule, CommonModule, TranslatePipePipe, NgIf, NgFor, NgClass],
   templateUrl: './users.html',
   styleUrl: './users.css',
+  providers: [
+    {
+      provide: I18N_DICT,
+      useValue: <I18nDict>(<unknown>{
+        ar: {
+          users: 'المستخدمون',
+          add_new: 'إضافة',
+          id: '#',
+          name: 'الاسم',
+          email: 'البريد',
+          role: 'الدور',
+          status: 'الحالة',
+          actions: 'إجراءات',
+          admin: 'مشرف',
+          user: 'مستخدم',
+          edit: 'تعديل',
+          no_users: 'لا يوجد مستخدمون',
+          close: 'إغلاق',
+          edit_user: 'تعديل مستخدم',
+          add_user: 'إضافة مستخدم جديد',
+          create: 'إنشاء',
+          save: 'حفظ',
+          cancel: 'إلغاء',
+          invalid_email: 'بريد غير صالح',
+          required: 'مطلوب',
+          saving: 'جاري الحفظ...',
+          loading: 'جاري التحميل...',
+          created_ok: 'تم الإنشاء بنجاح',
+          updated_ok: 'تم الحفظ بنجاح',
+          failed_load: 'فشل تحميل المستخدمين',
+          failed_save: 'تعذر الحفظ',
+          password: 'كلمة المرور',
+          show_password: 'عرض كلمة المرور',
+          hide_password: 'إخفاء كلمة المرور',
+          phone: 'الجوال',
+          nationalId: 'الهوية الوطنية',
+          roleId: 'معرّف الدور',
+          role_hint: 'أدخل معرف الدور كما هو في النظام.',
+          select_role: 'اختر الدور',
+          delete: 'حذف',
+          delete_confirm: 'هل أنت متأكد من حذف هذا المستخدم؟ لا يمكن تراجع هذا الإجراء.',
+          delete_ok: 'تم حذف المستخدم بنجاح',
+          delete_failed: 'فشل حذف المستخدم',
+          leave_empty_to_keep: 'اتركه فارغاً للاحتفاظ بكلمة المرور الحالية',
+          helpTour: 'شرح الواجهة',
+        },
+        en: {
+          users: 'Users',
+          add_new: 'Add New',
+          id: '#',
+          name: 'Name',
+          email: 'Email',
+          role: 'Role',
+          status: 'Status',
+          actions: 'Actions',
+          admin: 'Admin',
+          user: 'User',
+          edit: 'Edit',
+          no_users: 'No users',
+          close: 'Close',
+          edit_user: 'Edit User',
+          add_user: 'Add New User',
+          create: 'Create',
+          save: 'Save',
+          cancel: 'Cancel',
+          invalid_email: 'Invalid email',
+          required: 'Required',
+          saving: 'Saving...',
+          loading: 'Loading...',
+          created_ok: 'Created successfully',
+          updated_ok: 'Saved successfully',
+          failed_load: 'Failed to load users',
+          failed_save: 'Failed to save',
+          password: 'Password',
+          show_password: 'Show password',
+          hide_password: 'Hide password',
+          phone: 'Phone',
+          nationalId: 'National ID',
+          roleId: 'Role Id',
+          role_hint: 'Enter the role ID as configured in the system.',
+          select_role: 'Select role',
+          delete: 'Delete',
+          delete_confirm: 'Are you sure you want to delete this user? This action cannot be undone.',
+          delete_ok: 'User deleted successfully',
+          delete_failed: 'Failed to delete user',
+          leave_empty_to_keep: 'Leave empty to keep current',
+          helpTour: 'Help Tour',
+        },
+      }),
+    },
+  ],
 })
 export class Users {
   private svc = inject(UsersServices);
@@ -105,7 +198,7 @@ export class Users {
     },
   };
 
-  t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
+  t = (k: string) => (this.dict as any)[this.i18n.current]?.[k] ?? k;
   dir = computed(() => this.i18n.dir());
   isRTL = computed(() => this.i18n.isRTL());
 

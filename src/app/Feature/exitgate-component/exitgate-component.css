@@ -35,10 +35,13 @@
 }
 
 .exit-theme .glass {
-  background:
-    radial-gradient(800px 400px at -10% -20%, #ffe4e6 0%, transparent 60%) no-repeat,
-    radial-gradient(700px 400px at 120% 10%, #e0f2fe 0%, transparent 60%) no-repeat,
-    var(--surface);
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background-image: 
+    radial-gradient(800px 400px at -10% -20%, rgba(255, 228, 230, 0.5) 0%, transparent 60%),
+    radial-gradient(700px 400px at 120% 10%, rgba(224, 242, 254, 0.5) 0%, transparent 60%);
 }
 
 /* ==========================

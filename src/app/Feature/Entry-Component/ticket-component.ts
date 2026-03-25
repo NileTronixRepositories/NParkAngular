@@ -10,8 +10,9 @@ import {
   ChangeDetectorRef,
 } from '@angular/core';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
-import { CommonModule } from '@angular/common';
+import { CommonModule, NgIf, NgFor, NgClass } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subscription } from 'rxjs';
 
 import {
   TicketDto,
@@ -37,9 +38,10 @@ import { TicketsTableBlockComponent } from './tickets-table-block-component/tick
 import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
 import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.service';
 import { EntryTourService } from '../../Services/Entry/entry-tour.service';
-import { Subscription } from 'rxjs';
 import { SupervisorModalBlockComponent } from '../Shared/supervisor-modal-block-component/supervisor-modal-block-component';
 import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
+import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
+import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 
 @Component({
   selector: 'app-ticket-component',
@@ -52,9 +54,26 @@ import { ErrorExtractorService } from '../../Services/Shared/error-extractor.ser
     TicketsTableBlockComponent,
     SearchBlockComponent,
     SupervisorModalBlockComponent,
+    TranslatePipePipe,
+    NgIf,
+    NgFor,
+    NgClass,
   ],
   templateUrl: './ticket-component.html',
   styleUrls: ['./ticket-component.css'],
+  providers: [
+    {
+      provide: I18N_DICT,
+      useValue: <I18nDict>{
+        ar: {
+          helpTour: 'شرح الواجهة',
+        },
+        en: {
+          helpTour: 'Help Tour',
+        },
+      },
+    },
+  ],
 })
 export class TicketComponent implements OnInit, OnDestroy {
   // =======================
@@ -297,6 +316,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       incorrect_credentials: 'اسم المستخدم أو كلمة المرور غير صحيحة',
       // Search
       search_tickets_placeholder: 'ابحث برقم التذكرة، اللوحة، أو الكارت',
+      helpTour: 'شرح الواجهة',
     },
     en: {
       issue_ticket: 'Issue Ticket',
@@ -393,10 +413,11 @@ export class TicketComponent implements OnInit, OnDestroy {
       incorrect_credentials: 'Incorrect user name or password',
       // Search
       search_tickets_placeholder: 'Search by ticket, plate, or card number',
+      helpTour: 'Help Tour',
     },
   };
 
-  t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
+  t = (k: string) => (this.dict as any)[this.i18n.current]?.[k] ?? k;
   dir = computed(() => this.i18n.dir());
   isRTL = computed(() => this.i18n.isRTL());
 
