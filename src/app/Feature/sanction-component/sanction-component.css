@@ -3,7 +3,7 @@
    ========================== */
 .sanction-page {
   background-color: #f8fafc;
-  min-height: 100vh;
+  /* min-height: 100vh; */
   padding-bottom: 2rem;
   padding-top: 1rem;
   padding-inline: 1.5rem;

@@ -54,6 +54,27 @@
   color: #94a3b8;
   font-size: 0.875rem;
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.footer-version {
+  display: inline-block;
+  padding: 0.15rem 0.5rem;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 600;
+  margin-right: 0.5rem;
+}
+
+:host-context([dir='rtl']) .footer-version {
+  margin-right: 0;
+  margin-left: 0.5rem;
 }
 
 /* ===== Powered By Section ===== */

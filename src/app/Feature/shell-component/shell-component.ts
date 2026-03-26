@@ -36,7 +36,7 @@ export class ShellComponent implements OnDestroy {
       management: 'الإدارة',
       users: 'المستخدمون',
       configuration: 'الإعدادات',
-      sanction: 'العقوبات',
+      sanction: 'الغرامات',
       parkingGuidanceDiagram: 'مخطط توجيه المواقف',
       dashboard: 'لوحة التحكم',
       welcome: 'مرحبًا بعودتك',

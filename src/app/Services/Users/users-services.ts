@@ -23,7 +23,7 @@ export class UsersServices {
   private mapSystemToDto(row: UserSystemResponse): UserDto {
     return {
       id: row.id,
-      userName: row.userName ?? row.username ?? '',
+      name: row.name ?? row.userName ?? row.username ?? '',
       email: row.email,
       roleId: row.roleId,
       roleName: row.roleName,
@@ -31,6 +31,7 @@ export class UsersServices {
       nationalId: row.nationalId,
     };
   }
+
 
   // ========= GET USERS =========
   getAll(): Observable<UserDto[]> {
@@ -91,9 +92,9 @@ export class UsersServices {
       password: u.password || undefined,
     };
 
-    return this.http.put<any>(`${this.base}/User?UserId=${u.id}`, body).pipe(
+    return this.http.put<any>(`${this.base}/User/Update`, body).pipe(
       catchError((err) => {
-        console.error('PUT /api/User failed', err);
+        console.error('PUT /User/Update failed', err);
         return throwError(() => err);
       }),
     );
@@ -107,5 +108,18 @@ export class UsersServices {
         return throwError(() => err);
       }),
     );
+  }
+
+  // ========= GET CASHIER BY GATE TYPE =========
+  getCashiers(gateType: number): Observable<UserDto[]> {
+    return this.http
+      .get<UserSystemResponse[]>(`${this.base}/User/GetCashier?GateType=${gateType}`)
+      .pipe(
+        map((rows) => (rows ?? []).map((r) => this.mapSystemToDto(r))),
+        catchError((err) => {
+          console.error(`GET /User/GetCashier?GateType=${gateType} failed`, err);
+          return of([] as UserDto[]);
+        }),
+      );
   }
 }

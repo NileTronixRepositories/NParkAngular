@@ -3,7 +3,7 @@
    ========================== */
 .subscription-page {
   background-color: #f8fafc;
-  min-height: 100vh;
+  /* min-height: 100vh; */
   padding-bottom: 2rem;
   --brand-red: #e53935;
   --brand-red-soft: rgba(229, 57, 53, 0.1);

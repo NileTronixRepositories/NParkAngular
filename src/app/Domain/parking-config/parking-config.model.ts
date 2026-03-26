@@ -19,7 +19,10 @@ export interface GateConfigDto {
   lprIp: string;
   pcIp?: string;
   gateId: string | null;
+  isAssigned?: boolean;
+  assignedTo?: string | null;
 }
+
 
 export interface TicketCardDto {
   startDate: string;
@@ -41,9 +44,10 @@ export interface ParkingConfigurationUpdateCommand {
   ticketIdFlag: boolean;
   feesFlag: boolean;
 
-  pricingSchemaId: string;
+  pricingSchemaId: string | null;
 
   entryGates: GateConfigDto[];
+
   exitGates: GateConfigDto[];
 }
 

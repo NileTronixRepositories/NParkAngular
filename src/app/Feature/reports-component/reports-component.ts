@@ -6,6 +6,8 @@ import { LanguageService } from '../../Services/i18n/language-service';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import { ReportsService } from '../../Services/Reports/reports.service';
 import { ReportTicketsResponse } from '../../Domain/Reports/reports.model';
+import { ReportsTourService } from '../../Services/Reports/reports-tour.service';
+import { ToastServices } from '../../Services/Toster/toast-services';
 import * as XLSX from 'xlsx';
 
 @Component({
@@ -39,6 +41,7 @@ import * as XLSX from 'xlsx';
           clear: 'مسح',
           exportPdf: 'تصدير كـ PDF',
           exportExcel: 'تصدير كـ Excel',
+          helpTour: 'دليل الاستخدام',
         },
         en: {
           reports: 'Reports',
@@ -61,6 +64,7 @@ import * as XLSX from 'xlsx';
           clear: 'Clear',
           exportPdf: 'Export PDF',
           exportExcel: 'Export Excel',
+          helpTour: 'Help Tour',
         },
       }),
     },
@@ -70,6 +74,8 @@ export class ReportsComponent implements OnInit {
   private readonly reportsService = inject(ReportsService);
   public readonly lang = inject(LanguageService);
   private readonly dict = inject(I18N_DICT);
+  private readonly tourService = inject(ReportsTourService);
+  private readonly toastService = inject(ToastServices);
 
   reports = signal<ReportTicketsResponse[]>([]);
   loading = signal<boolean>(false);
@@ -83,9 +89,13 @@ export class ReportsComponent implements OnInit {
     // Optionally load today's reports or leave empty until search
   }
 
+  startTour(): void {
+    this.tourService.startTour();
+  }
+
   onSearch(): void {
     if (!this.dateFrom || !this.dateTo) {
-      alert(
+      this.toastService.warn(
         this.lang.isRTL()
           ? 'يرجى اختيار تاريخ البداية والنهاية'
           : 'Please select both from and to dates',
@@ -98,9 +108,21 @@ export class ReportsComponent implements OnInit {
       next: (data) => {
         this.reports.set(data);
         this.loading.set(false);
+        
+        if (data.length > 0) {
+          this.toastService.success(
+            this.lang.isRTL() 
+              ? `تم العثور على ${data.length} تذكرة` 
+              : `Found ${data.length} tickets`
+          );
+        } else {
+          this.toastService.warn(
+            this.lang.isRTL() ? 'لا توجد نتائج مطابقة' : 'No matching results found'
+          );
+        }
       },
       error: (err) => {
-        console.error('Failed to load reports', err);
+        // Global interceptor handles the toast message
         this.loading.set(false);
       },
     });
@@ -152,7 +174,11 @@ export class ReportsComponent implements OnInit {
 
     const printWindow = window.open('', '_blank');
     if (!printWindow) {
-      alert(isAr ? 'يرجى السماح بالنوافذ المنبثقة للطباعة.' : 'Please allow popups to print.');
+      this.toastService.error(
+        this.lang.isRTL() 
+          ? 'يرجى السماح بالنوافذ المنبثقة للطباعة.' 
+          : 'Please allow popups to print.'
+      );
       return;
     }
 

@@ -1,7 +1,9 @@
 <div class="users-theme container-fluid py-2" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- Page Header -->
   <div class="page-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
-    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+    <div
+      class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3"
+    >
       <div class="d-flex align-items-center gap-3">
         <div class="header-icon-wrapper rounded-3">
           <i class="bi bi-people-fill header-icon fs-4"></i>
@@ -39,7 +41,10 @@
   </div>
 
   <!-- Inline Form Card -->
-  <div class="card shadow-soft border-0 mb-3 bg-white fade-in-down users-form-card rounded-4" *ngIf="showForm">
+  <div
+    class="card shadow-soft border-0 mb-3 bg-white fade-in-down users-form-card rounded-4"
+    *ngIf="showForm"
+  >
     <div
       class="card-header bg-white d-flex justify-content-between align-items-center py-2 px-3 border-bottom-0"
     >
@@ -213,7 +218,13 @@
           </thead>
           <tbody>
             <tr *ngFor="let u of users; trackBy: trackById" class="small">
-              <td class="ps-3 fw-semibold text-primary text-truncate" style="max-width: 120px;" [title]="u.userName">{{ u.userName }}</td>
+              <td
+                class="ps-3 fw-semibold text-primary text-truncate"
+                style="max-width: 120px"
+                [title]="u.name"
+              >
+                {{ u.name }}
+              </td>
               <td class="mono x-small text-muted d-none d-md-table-cell">{{ u.email }}</td>
               <td>
                 <span

@@ -3,7 +3,7 @@
    ========================== */
 .visitors-theme {
   background-color: #f8fafc;
-  min-height: 100vh;
+  /* min-height: 100vh; */
   --brand-primary: #1e293b;
   --brand-accent: #ef4444; /* Modern Red */
   --brand-accent-soft: rgba(239, 68, 68, 0.08);

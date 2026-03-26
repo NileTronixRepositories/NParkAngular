@@ -28,10 +28,13 @@ import {
   ParkingConfigurationView,
   GateConfigDto,
 } from '../../Domain/parking-config/parking-config.model';
+import { UserDto } from '../../Domain/Users/user.model';
+import { UsersServices } from '../../Services/Users/users-services';
 import {
   Configurationervices,
   PricingSchemaDto,
 } from '../../Services/configuration/configurationervices';
+
 import { finalize } from 'rxjs';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { LanguageService } from '../../Services/i18n/language-service';
@@ -104,9 +107,12 @@ const HOST_OR_IP_REGEX =
           startDate: 'تاريخ البداية',
           notSet: 'غير محدد',
           helpTour: 'شرح الواجهة',
+          assignTo: 'تعيين لـ',
+          cashier: 'محصل',
         },
         en: {
           basics: 'Basics',
+
           entryGatesCount: 'Entry gates count',
           exitGatesCount: 'Exit gates count',
           allowedParkingSlots: 'Allowed parking slots',
@@ -139,6 +145,8 @@ const HOST_OR_IP_REGEX =
           startDate: 'Start Date',
           notSet: 'Not set',
           helpTour: 'Help Tour',
+          assignTo: 'Assign To',
+          cashier: 'Cashier',
         },
       },
     },
@@ -148,8 +156,11 @@ export class ConfigurationComponent implements OnInit {
   @Output() submitted = new EventEmitter<ParkingConfigurationUpdateCommand>();
 
   pricingSchemas: PricingSchemaDto[] = [];
+  cashiersEntrance: UserDto[] = [];
+  cashiersExit: UserDto[] = [];
 
   stepIndex = 0;
+
   modeCtrl = new FormControl<Mode>('entry', { nonNullable: true });
   step1Form!: FormGroup;
   step2Form!: FormGroup;
@@ -161,6 +172,7 @@ export class ConfigurationComponent implements OnInit {
   constructor(
     private fb: FormBuilder,
     private svc: Configurationervices,
+    private usersSvc: UsersServices,
     public lang: LanguageService,
     private toast: ToastServices,
     private configTour: ConfigurationTourService,
@@ -216,11 +228,19 @@ export class ConfigurationComponent implements OnInit {
 
   ngOnInit() {
     this.loadPricingSchemas();
+    this.loadCashiers();
     this.syncGateArrays();
     this.loadExistingConfigAndPatch();
   }
 
   // ======= Data loading =======
+  loadCashiers() {
+    // Entrance cashiers (GateType = 1)
+    this.usersSvc.getCashiers(1).subscribe((list) => (this.cashiersEntrance = list));
+    // Exit cashiers (GateType = 2)
+    this.usersSvc.getCashiers(2).subscribe((list) => (this.cashiersExit = list));
+  }
+
   loadPricingSchemas() {
     this.svc.getPricingSchemas().subscribe({
       next: (list: PricingSchemaDto[]) => {
@@ -319,12 +339,27 @@ export class ConfigurationComponent implements OnInit {
   }
 
   private makeGateGroup(defaultNumber: number): FormGroup {
-    return this.fb.group({
+    const group = this.fb.group({
       gateId: [null],
       gateNumber: [{ value: defaultNumber, disabled: true }, [Validators.min(1)]],
       pcIp: ['', [Validators.required, Validators.pattern(HOST_OR_IP_REGEX)]],
       deviceIp: ['', [Validators.required, Validators.pattern(HOST_OR_IP_REGEX)]],
+      isAssigned: [false],
+      assignedTo: [null],
     });
+
+    group.get('isAssigned')?.valueChanges.subscribe((val) => {
+      const ctrl = group.get('assignedTo');
+      if (val) {
+        ctrl?.setValidators([Validators.required]);
+      } else {
+        ctrl?.clearValidators();
+        ctrl?.setValue(null);
+      }
+      ctrl?.updateValueAndValidity();
+    });
+
+    return group;
   }
 
   private resizeFormArray(arr: FormArray, target: number) {
@@ -358,6 +393,8 @@ export class ConfigurationComponent implements OnInit {
         gateNumber: src?.gateNumber ?? i + 1,
         pcIp: src?.pcIp ?? '',
         deviceIp: src?.lprIp ?? '',
+        isAssigned: src?.isAssigned ?? false,
+        assignedTo: src?.assignedTo ?? null,
       });
     });
   }
@@ -410,6 +447,8 @@ export class ConfigurationComponent implements OnInit {
         gateNumber: i + 1,
         lprIp,
         pcIp,
+        isAssigned: !!g['isAssigned'],
+        assignedTo: g['isAssigned'] ? g['assignedTo'] : null,
       };
     });
 
@@ -423,6 +462,8 @@ export class ConfigurationComponent implements OnInit {
         gateNumber: i + 1,
         lprIp,
         pcIp,
+        isAssigned: !!g['isAssigned'],
+        assignedTo: g['isAssigned'] ? g['assignedTo'] : null,
       };
     });
 
@@ -447,7 +488,7 @@ export class ConfigurationComponent implements OnInit {
       dateTimeFlag: !!s2.dateTimeFlag,
       ticketIdFlag: !!s2.ticketIdFlag,
       feesFlag: !!s2.feesFlag,
-      pricingSchemaId: s2.pricingSchemaId,
+      pricingSchemaId: s2.pricingSchemaId || null,
       entryGates,
       exitGates,
     };
@@ -467,6 +508,7 @@ export class ConfigurationComponent implements OnInit {
     }
 
     const dto = this.buildDto();
+    console.log('DTO TO SEND:', dto);
     this.saving = true;
 
     this.svc

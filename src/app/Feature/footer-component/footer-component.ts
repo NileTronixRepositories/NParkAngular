@@ -17,10 +17,12 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
         ar: {
           rights: 'جميع الحقوق محفوظة',
           poweredBy: 'مدعوم من',
+          version: 'إصدار',
         },
         en: {
           rights: 'All rights reserved',
           poweredBy: 'Powered by',
+          version: 'v',
         },
       }) as I18nDict,
     },

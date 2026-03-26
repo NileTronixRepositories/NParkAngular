@@ -17,7 +17,7 @@
 }
 
 .overview {
-  min-height: 100vh;
+  /* min-height: 100vh; */
   background: #f8fafc;
 }
 
@@ -1441,6 +1441,21 @@
 
   .data-modal__body {
     padding: 0.4rem;
+  }
+
+  .page-header .header-search {
+    flex: 1 1 100%;
+    max-width: 100%;
+    order: 2;
+  }
+
+  .overview-header-title {
+    order: 1;
+  }
+
+  .btn-help-tour {
+    order: 3;
+    width: 100%;
   }
 }
 

@@ -4,6 +4,7 @@ export type UserRole = 'Admin' | 'User';
 
 export interface UserSystemResponse {
   id: string;
+  name?: string;
   userName?: string;
   username?: string;
   email: string;
@@ -13,9 +14,10 @@ export interface UserSystemResponse {
   nationalId?: string;
 }
 
+
 export interface UserDto {
   id: string;
-  userName: string;
+  name: string;
   email: string;
   roleId: string;
   roleName: string;

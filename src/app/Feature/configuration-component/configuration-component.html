@@ -322,6 +322,25 @@
                                     [placeholder]="'ipPlaceholder' | t"
                                   />
                                 </div>
+
+                                <div class="d-flex flex-column gap-2 mt-2 pt-2 border-top">
+                                  <mat-checkbox formControlName="isAssigned" color="primary">
+                                    {{ 'assignTo' | t }}
+                                  </mat-checkbox>
+
+                                  <mat-form-field
+                                    appearance="outline"
+                                    class="w-100"
+                                    *ngIf="g.get('isAssigned')?.value"
+                                  >
+                                    <mat-label>{{ 'cashier' | t }}</mat-label>
+                                    <mat-select formControlName="assignedTo">
+                                      <mat-option *ngFor="let c of cashiersEntrance" [value]="c.id">
+                                        {{ c.name }}
+                                      </mat-option>
+                                    </mat-select>
+                                  </mat-form-field>
+                                </div>
                               </div>
                             </div>
                           </mat-expansion-panel>
@@ -397,6 +416,25 @@
                                     formControlName="deviceIp"
                                     [placeholder]="'ipPlaceholder' | t"
                                   />
+                                </div>
+
+                                <div class="d-flex flex-column gap-2 mt-2 pt-2 border-top">
+                                  <mat-checkbox formControlName="isAssigned" color="primary">
+                                    {{ 'assignTo' | t }}
+                                  </mat-checkbox>
+
+                                  <mat-form-field
+                                    appearance="outline"
+                                    class="w-100"
+                                    *ngIf="g.get('isAssigned')?.value"
+                                  >
+                                    <mat-label>{{ 'cashier' | t }}</mat-label>
+                                    <mat-select formControlName="assignedTo">
+                                      <mat-option *ngFor="let c of cashiersExit" [value]="c.id">
+                                        {{ c.name }}
+                                      </mat-option>
+                                    </mat-select>
+                                  </mat-form-field>
                                 </div>
                               </div>
                             </div>

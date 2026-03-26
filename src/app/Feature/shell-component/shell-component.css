@@ -1,9 +1,9 @@
-/* ===== App Shell Layout ===== */
 .app-shell {
   display: flex;
   min-height: 100vh;
   background: #f8fafc;
   overflow-x: hidden;  
+  position: relative;
 }
 
 /* ===== Main Content ===== */

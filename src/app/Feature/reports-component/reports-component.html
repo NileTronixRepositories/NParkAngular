@@ -20,8 +20,18 @@
 
       <!-- Action Buttons -->
       <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
+        <!-- Help Tour Button -->
         <button
-          class="btn btn-outline-danger btn-sm rounded-pill fw-semibold d-flex align-items-center gap-2 px-3 py-2"
+          class="btn btn-outline-secondary btn-sm rounded-pill fw-semibold d-flex align-items-center gap-2 px-3 py-2 btn-help-tour"
+          (click)="startTour()"
+          type="button"
+        >
+          <i class="bi bi-question-circle fs-6"></i>
+          <span class="d-none d-sm-inline">{{ 'helpTour' | t }}</span>
+        </button>
+
+        <button
+          class="btn btn-outline-danger btn-sm rounded-pill fw-semibold d-flex align-items-center gap-2 px-3 py-2 btn-export-pdf"
           (click)="exportPdf()"
           [disabled]="loading() || reports().length === 0"
         >
@@ -29,7 +39,7 @@
           <span class="d-none d-sm-inline">{{ 'exportPdf' | t }}</span>
         </button>
         <button
-          class="btn btn-outline-success btn-sm rounded-pill fw-semibold d-flex align-items-center gap-2 px-3 py-2"
+          class="btn btn-outline-success btn-sm rounded-pill fw-semibold d-flex align-items-center gap-2 px-3 py-2 btn-export-excel"
           (click)="exportExcel()"
           [disabled]="loading() || reports().length === 0"
         >
@@ -41,7 +51,7 @@
   </div>
 
   <!-- Filters Section -->
-  <div class="card shadow-soft mb-4 border-0 rounded-4 overflow-hidden">
+  <div class="card shadow-soft mb-4 border-0 rounded-4 overflow-hidden reports-filters-card">
     <div class="card-header bg-white py-3 border-bottom">
       <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
         <i class="bi bi-filter-right fs-5 text-primary"></i>
@@ -50,7 +60,7 @@
     </div>
     <div class="card-body p-4">
       <div class="row g-3 align-items-end">
-        <div class="col-12 col-sm-6 col-md-3">
+        <div class="col-12 col-sm-6 col-md-3 reports-date-from">
           <label class="form-label small fw-semibold text-muted">{{ 'dateFrom' | t }}</label>
           <input
             type="date"
@@ -58,7 +68,7 @@
             [(ngModel)]="dateFrom"
           />
         </div>
-        <div class="col-12 col-sm-6 col-md-3">
+        <div class="col-12 col-sm-6 col-md-3 reports-date-to">
           <label class="form-label small fw-semibold text-muted">{{ 'dateTo' | t }}</label>
           <input
             type="date"
@@ -66,7 +76,7 @@
             [(ngModel)]="dateTo"
           />
         </div>
-        <div class="col-12 col-sm-8 col-md-3">
+        <div class="col-12 col-sm-8 col-md-3 reports-search-box">
           <label class="form-label small fw-semibold text-muted">{{ 'search' | t }}</label>
           <div class="input-group input-group-sm">
             <span class="input-group-text bg-white border-2 border-end-0 rounded-start-3"
@@ -81,7 +91,7 @@
           </div>
         </div>
         <div class="col-12 col-sm-4 col-md-3">
-          <div class="d-flex gap-2">
+          <div class="d-flex gap-2 reports-action-btns">
             <button
               class="btn btn-sm w-25 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2 btn-danger text-white"
               (click)="onClear()"
@@ -91,7 +101,7 @@
               <!-- {{ 'clear' | t }} -->
             </button>
             <button
-              class="btn btn-primary btn-sm w-50 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2 py-2"
+              class="btn btn-primary btn-sm w-25 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2 py-2"
               (click)="onSearch()"
               [disabled]="loading()"
             >
@@ -104,7 +114,7 @@
               } @else {
                 <i class="bi bi-search"></i>
               }
-              {{ 'search' | t }}
+              <!-- {{ 'search' | t }} -->
             </button>
           </div>
         </div>
@@ -113,7 +123,10 @@
   </div>
 
   <!-- Reports Table -->
-  <div id="reports-table-to-export" class="card shadow-soft border-0 rounded-4 overflow-hidden p-2 bg-white">
+  <div
+    id="reports-table-to-export"
+    class="card shadow-soft border-0 rounded-4 overflow-hidden p-2 bg-white"
+  >
     <div class="table-responsive">
       <table class="table table-hover align-middle mb-0">
         <thead class="bg-light text-muted small text-uppercase fw-bold">

@@ -97,7 +97,8 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
           role_hint: 'Enter the role ID as configured in the system.',
           select_role: 'Select role',
           delete: 'Delete',
-          delete_confirm: 'Are you sure you want to delete this user? This action cannot be undone.',
+          delete_confirm:
+            'Are you sure you want to delete this user? This action cannot be undone.',
           delete_ok: 'User deleted successfully',
           delete_failed: 'Failed to delete user',
           leave_empty_to_keep: 'Leave empty to keep current',
@@ -245,7 +246,6 @@ export class Users {
       },
       error: (err) => {
         this.loading = false;
-        this.toast.fromProblem(err);
       },
     });
   }
@@ -259,7 +259,6 @@ export class Users {
       },
       error: (err) => {
         this.rolesLoading = false;
-        this.toast.fromProblem(err);
       },
     });
   }
@@ -282,11 +281,18 @@ export class Users {
 
   openEdit(u: UserDto) {
     this.isEdit = true;
+
+    let rId = u.roleId;
+    if (!rId && u.roleName) {
+      const found = this.roles.find((r) => r.name.toLowerCase() === u.roleName.toLowerCase());
+      if (found) rId = found.id;
+    }
+
     this.model = {
       id: u.id,
-      userName: u.userName,
+      userName: u.name,
       email: u.email,
-      roleId: u.roleId,
+      roleId: rId,
       roleName: u.roleName,
       password: '',
       phoneNumber: u.phoneNumber ?? '',
@@ -349,20 +355,20 @@ export class Users {
 
             this.users[idx] = {
               ...old,
-              userName,
+              name: userName,
               email,
               roleId,
               roleName,
             };
           }
 
-          this.toast.fromSuccess(res);
+          this.toast.fromSuccess(res, this.t('updated_ok'));
           this.showForm = false;
           this.saving = false;
         },
         error: (err) => {
           this.saving = false;
-          this.toast.fromProblem(err);
+          // Global interceptor handles the toast
         },
       });
     } else {
@@ -404,7 +410,7 @@ export class Users {
 
             const newUser: UserDto = {
               id: res.id,
-              userName: res.userName,
+              name: res.name,
               email: res.email,
               roleId: res.roleId,
               roleName,
@@ -415,13 +421,13 @@ export class Users {
             this.reload();
           }
 
-          this.toast.fromSuccess(res);
+          this.toast.fromSuccess(res, this.t('created_ok'));
           this.showForm = false;
           this.saving = false;
         },
         error: (err) => {
           this.saving = false;
-          this.toast.fromProblem(err);
+          // Global interceptor handles the toast
         },
       });
     }
@@ -432,10 +438,10 @@ export class Users {
     this.svc.delete(u.id).subscribe({
       next: (res) => {
         this.users = this.users.filter((item) => item.id !== u.id);
-        this.toast.fromSuccess(res || this.t('delete_ok'));
+        this.toast.fromSuccess(res, this.t('delete_ok'));
       },
       error: (err) => {
-        this.toast.fromProblem(err || this.t('delete_failed'));
+        // Global interceptor handles the toast
       },
     });
   }

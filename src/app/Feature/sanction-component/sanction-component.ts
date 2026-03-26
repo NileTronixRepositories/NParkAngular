@@ -24,7 +24,7 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
       provide: I18N_DICT,
       useValue: <I18nDict>{
         ar: {
-          sanctions: 'العقوبات',
+          sanctions: 'الغرامات',
           name: 'الاسم',
           description: 'الوصف',
           amount: 'المبلغ',
@@ -37,9 +37,12 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
           confirmDelete: 'هل أنت متأكد من الحذف؟',
           nameRequired: 'الاسم مطلوب',
           helpTour: 'شرح الواجهة',
+          created_ok: 'تم إضافة الغرامة بنجاح',
+          updated_ok: 'تم تعديل الغرامة بنجاح',
+          delete_ok: 'تم حذف الغرامة بنجاح',
         },
         en: {
-          sanctions: 'Sanctions',
+          sanctions: 'Fines',
           name: 'Name',
           description: 'Description',
           amount: 'Amount',
@@ -52,6 +55,9 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
           confirmDelete: 'Are you sure you want to delete?',
           nameRequired: 'Name is required',
           helpTour: 'Help Tour',
+          created_ok: 'Fine created successfully',
+          updated_ok: 'Fine updated successfully',
+          delete_ok: 'Fine deleted successfully',
         },
       },
     },
@@ -62,6 +68,9 @@ export class SanctionComponent implements OnInit {
   private toast = inject(ToastServices);
   private sanctionTour = inject(SanctionTourService);
   i18n = inject(LanguageService);
+  private readonly dict = inject(I18N_DICT);
+
+  t = (k: string) => (this.dict as any)[this.i18n.current]?.[k] ?? k;
 
   dir = computed(() => this.i18n.dir());
   isRTL = computed(() => this.i18n.isRTL());
@@ -112,7 +121,6 @@ export class SanctionComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.toast.fromProblem(err);
         this.loading.set(false);
       },
     });
@@ -130,26 +138,24 @@ export class SanctionComponent implements OnInit {
       const dto: SanctionUpdateDto = { id: this.selectedId()!, ...f };
       this.sanctionService.update(dto).subscribe({
         next: (res) => {
-          this.toast.fromSuccess(res);
+          this.toast.fromSuccess(res, this.t('updated_ok'));
           this.saving.set(false);
           this.closeModal();
           this.load();
         },
         error: (err) => {
-          this.toast.fromProblem(err);
           this.saving.set(false);
         },
       });
     } else {
       this.sanctionService.add(f).subscribe({
         next: (res) => {
-          this.toast.fromSuccess(res);
+          this.toast.fromSuccess(res, this.t('created_ok'));
           this.saving.set(false);
           this.closeModal();
           this.load();
         },
         error: (err) => {
-          this.toast.fromProblem(err);
           this.saving.set(false);
         },
       });
@@ -162,13 +168,12 @@ export class SanctionComponent implements OnInit {
     this.deleting.set(true);
     this.sanctionService.delete(id).subscribe({
       next: (res) => {
-        this.toast.fromSuccess(res);
+        this.toast.fromSuccess(res, this.t('delete_ok'));
         this.deleting.set(false);
         this.closeDeleteModal();
         this.load();
       },
       error: (err) => {
-        this.toast.fromProblem(err);
         this.deleting.set(false);
       },
     });

@@ -95,8 +95,8 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           outOnlyTitle: 'بوابة الخروج تدعم OUT فقط',
           collectedOk: 'تم التحصيل وإغلاق التذكرة',
           collectAllToday: 'تحصيل إيرادات اليوم للبوابة',
-          sanctions: 'العقوبات',
-          select_sanction_placeholder: 'اختر عقوبة للتحصيل...',
+          sanctions: 'الغرامات',
+          select_sanction_placeholder: 'اختر غرامة للتحصيل...',
 
           // Gate devices
           gate_devices: 'أجهزة البوابة',
@@ -234,8 +234,8 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           outOnlyTitle: 'Exit gate is OUT only',
           collectedOk: 'Collected and ticket closed',
           collectAllToday: "Collect today's revenue for this gate",
-          sanctions: 'Sanctions',
-          select_sanction_placeholder: 'Select sanction to apply...',
+          sanctions: 'Fines',
+          select_sanction_placeholder: 'Select fine to apply...',
 
           // Gate devices
           gate_devices: 'Gate Devices',

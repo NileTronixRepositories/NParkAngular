@@ -18,7 +18,7 @@
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.5);
-  z-index: 3999; 
+  z-index: 3999;
   backdrop-filter: blur(2px);
 }
 
@@ -30,24 +30,31 @@
 }
 
 @keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 /* ===== Sidebar ===== */
 .app-sidebar {
   width: 260px;
-  min-height: 100vh;
-  background: transparent; 
+  height: 100vh;
+  min-height: unset;
+  background: transparent;
   display: flex;
   flex-direction: column;
   position: sticky;
   top: 0;
+  overflow: hidden;
   transition: width 0.3s ease;
 }
 
 .app-sidebar.collapsed {
   width: 85px;
+  overflow: visible;
 }
 
 /* ===== Sidebar Header ===== */
@@ -116,7 +123,8 @@
 
 /* ===== Navigation ===== */
 .sidebar-nav {
-  flex: 1;
+  flex: 1 1 auto;
+  min-height: 0;
   padding: 1rem 0.75rem;
   overflow-y: auto;
   overflow-x: hidden;
@@ -276,13 +284,6 @@
   display: none;
 }
 
-/* ===== Sidebar Footer ===== */
-.sidebar-footer {
-  padding: 1rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  text-align: center;
-}
-
 .version-text {
   font-size: 0.75rem;
   color: #64748b;
@@ -332,7 +333,8 @@
     padding: 0.75rem 0.625rem;
   }
 
-  .brand, .brand-icon {
+  .brand,
+  .brand-icon {
     font-size: 1.25rem;
   }
 
@@ -389,9 +391,9 @@
 /* Floating Submenu for Collapsed Sidebar */
 .floating-submenu {
   position: absolute;
-  left: 75px; 
+  left: 85px; /* Positioned exactly at the edge of the 85px sidebar */
   top: 0;
-  width: 190px;
+  width: 200px;
   background: #1e293b;
   border: 1px solid rgba(255, 255, 255, 0.15) !important;
   border-radius: 8px;
@@ -415,7 +417,7 @@
 
 :host-context([dir='rtl']) .floating-submenu {
   left: auto;
-  right: 75px;
+  right: 85px;
   border-left: 1px solid rgba(255, 255, 255, 0.15) !important;
   border-right: none !important;
 }

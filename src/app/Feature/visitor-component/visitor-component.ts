@@ -218,8 +218,6 @@ export class VisitorComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        console.error(err);
-        this.toast.fromProblem(err);
         this.loading.set(false);
       },
     });
@@ -243,12 +241,11 @@ export class VisitorComponent implements OnInit {
         }
 
         this.picked.set(sorted);
-        this.recomputeCounts(); // العدّ يعكس الترتيب الحالي دائمًا
+        this.recomputeCounts();
         this.loading.set(false);
       },
       error: (err) => {
         console.error(err);
-        this.toast.fromProblem(err);
         this.loading.set(false);
       },
     });
@@ -258,8 +255,8 @@ export class VisitorComponent implements OnInit {
     const items = this.picked();
     const orderSchema = items.map((p, idx) => ({
       pricingSchemaId: p.id,
-      count: idx + 1, // يرسل رقم الترتيب كـ count
-      order: idx + 1, // ونفسه كـ order
+      count: idx + 1,
+      order: idx + 1,
     }));
 
     if (orderSchema.length === 0) {
@@ -269,14 +266,11 @@ export class VisitorComponent implements OnInit {
 
     this.visitorServices.addOrder(orderSchema).subscribe({
       next: (res) => {
-        this.toast.fromSuccess(res);
+        this.toast.fromSuccess(res, this.t('order_added'));
         this.clearPicked();
         this.loadOrder();
       },
-      error: (err) => {
-        console.error(err);
-        this.toast.fromProblem(err);
-      },
+      error: (err) => {},
     });
   }
 
