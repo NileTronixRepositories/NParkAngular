@@ -233,6 +233,8 @@ export class LoginComponent {
     const role = this.auth.role;
 
     if (role === 'EntranceCashier' || role === 'ExitCashier' || role === 'Supervisor') {
+      // Clear any existing gate data to force gate selection
+      this.auth.clearGateData();
       this.router.navigate(['/gate-selection']);
       return;
     }

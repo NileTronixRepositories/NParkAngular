@@ -39,6 +39,7 @@ export class ExitGateDevicesBlockComponent {
   } | null = null;
   @Output() ticketSelected = new EventEmitter<TicketDto>();
   @Output() searchTicketNumber = new EventEmitter<string>();
+  @Output() vehicleDetected = new EventEmitter<string>();
 
   // Manual plate capture
   manualPlate = '';
@@ -85,6 +86,7 @@ export class ExitGateDevicesBlockComponent {
 
     this.ticketsSvc.captureManualPlate(plate).subscribe({
       next: (_ok) => {
+        this.vehicleDetected.emit(plate);
         this.toast.success(this.t('send_manual_plate'));
         this.manualPlate = '';
         this.cdr.markForCheck();

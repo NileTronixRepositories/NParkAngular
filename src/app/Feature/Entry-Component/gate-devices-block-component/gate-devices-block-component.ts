@@ -20,16 +20,28 @@ export class GateDevicesBlockComponent {
     url: string;
     safeUrl?: any;
     type: string;
-    bytes: any;
+    file: File;
   } | null = null;
+  @Input() uploadedVehicleImages: {
+    name: string;
+    url: string;
+    safeUrl?: any;
+    type: string;
+    file: File;
+  }[] = [];
+  @Input() selectedPreviewUrl: string | null = null;
 
   @Input() manualLprPlate: string = '';
 
   @Input() adding = false;
 
   @Output() manualLprPlateChange = new EventEmitter<string>();
+  @Output() manualLprPlateBlur = new EventEmitter<void>();
 
   @Output() createTicketWithPlate = new EventEmitter<string>();
+  @Output() vehicleImagesSelected = new EventEmitter<FileList | null>();
+  @Output() removeVehicleImage = new EventEmitter<number>();
+  @Output() vehicleImagePreviewSelected = new EventEmitter<number>();
 
   onPlateChange(value: string): void {
     const raw = (value ?? '').toUpperCase();
@@ -50,5 +62,27 @@ export class GateDevicesBlockComponent {
     const normalized = plateUI.replace(/\s+/g, '').toUpperCase();
 
     this.createTicketWithPlate.emit(normalized);
+  }
+
+  onPlateBlur(): void {
+    this.manualLprPlateBlur.emit();
+  }
+
+  onVehicleImagesChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.vehicleImagesSelected.emit(input.files);
+    input.value = '';
+  }
+
+  onRemoveVehicleImage(index: number): void {
+    this.removeVehicleImage.emit(index);
+  }
+
+  onSelectVehicleImagePreview(index: number): void {
+    this.vehicleImagePreviewSelected.emit(index);
+  }
+
+  isPreviewSelected(fileUrl: string): boolean {
+    return this.selectedPreviewUrl === fileUrl;
   }
 }

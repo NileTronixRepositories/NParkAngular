@@ -22,9 +22,9 @@
 
   <!-- Navigation -->
   <nav class="sidebar-nav">
-    <!-- Overview — Admin  -->
+    <!-- Overview — Admin only -->
     <a
-      *ngIf="isAdmin || isSupervisor"
+      *ngIf="isAdmin"
       class="nav-item"
       routerLink="/overview"
       routerLinkActive="active"
@@ -63,8 +63,9 @@
 
       <div class="submenu" *ngIf="gateOpen" [class.floating-submenu]="collapsed">
         <!-- Entry Gate — Admin + EntranceCashier + Supervisor -->
+        <!-- Admin can go directly, Cashiers need gate selection -->
         <a
-          *ngIf="isAdmin || isEntranceCashier || isSupervisor"
+          *ngIf="isAdmin"
           class="nav-item submenu-item"
           routerLink="/tickets/entry"
           routerLinkActive="active"
@@ -72,10 +73,20 @@
           <i class="bi bi-arrow-right-circle"></i>
           <span class="nav-text">{{ t('entryGate') }}</span>
         </a>
+        <a
+          *ngIf="isEntranceCashier || isSupervisor"
+          class="nav-item submenu-item"
+          (click)="onEntryGateClick()"
+          [class.active]="isEntryRoute"
+        >
+          <i class="bi bi-arrow-right-circle"></i>
+          <span class="nav-text">{{ t('entryGate') }}</span>
+        </a>
 
         <!-- Exit Gate — Admin + ExitCashier + Supervisor -->
+        <!-- Admin can go directly, Cashiers need gate selection -->
         <a
-          *ngIf="isAdmin || isExitCashier || isSupervisor"
+          *ngIf="isAdmin"
           class="nav-item submenu-item"
           routerLink="/tickets/exit"
           routerLinkActive="active"
@@ -83,12 +94,33 @@
           <i class="bi bi-box-arrow-right"></i>
           <span class="nav-text">{{ t('exitGate') }}</span>
         </a>
+        <a
+          *ngIf="isExitCashier || isSupervisor"
+          class="nav-item submenu-item"
+          (click)="onExitGateClick()"
+          [class.active]="isExitRoute"
+        >
+          <i class="bi bi-box-arrow-right"></i>
+          <span class="nav-text">{{ t('exitGate') }}</span>
+        </a>
       </div>
     </div>
 
-    <!-- Visitor -->
+    <!-- Gate Selection — Cashiers + Supervisor -->
     <a
-      *ngIf="isAdmin || isSupervisor"
+      *ngIf="isEntranceCashier || isExitCashier || isSupervisor"
+      class="nav-item"
+      routerLink="/gate-selection"
+      routerLinkActive="active"
+      [attr.title]="collapsed ? t('gateSelection') : null"
+    >
+      <i class="bi bi-geo-alt"></i>
+      <span class="nav-text" *ngIf="!collapsed">{{ t('gateSelection') }}</span>
+    </a>
+
+    <!-- Visitor — Admin only -->
+    <a
+      *ngIf="isAdmin"
       class="nav-item"
       routerLink="/visitor"
       routerLinkActive="active"
@@ -98,9 +130,9 @@
       <span class="nav-text" *ngIf="!collapsed">{{ t('visitor') }}</span>
     </a>
 
-    <!-- Altaeriffa -->
+    <!-- Altaeriffa — Admin only -->
     <a
-      *ngIf="isAdmin || isSupervisor"
+      *ngIf="isAdmin"
       class="nav-item"
       routerLink="/Altaeriffa"
       routerLinkActive="active"
@@ -110,9 +142,9 @@
       <span class="nav-text" *ngIf="!collapsed">{{ t('altaeriffa') }}</span>
     </a>
 
-    <!-- Subscription -->
+    <!-- Subscription — Admin only -->
     <a
-      *ngIf="isAdmin || isSupervisor"
+      *ngIf="isAdmin"
       class="nav-item"
       routerLink="/registration"
       routerLinkActive="active"
@@ -122,14 +154,14 @@
       <span class="nav-text" *ngIf="!collapsed">{{ t('subscription') }}</span>
     </a>
 
-    <!-- Management Section -->
-    <div class="nav-section-title" *ngIf="(isAdmin || isSupervisor) && !collapsed">
+    <!-- Management Section — Admin only -->
+    <div class="nav-section-title" *ngIf="isAdmin && !collapsed">
       {{ t('management') }}
     </div>
 
-    <!-- Reports -->
+    <!-- Reports — Admin only -->
     <a
-      *ngIf="isAdmin || isSupervisor"
+      *ngIf="isAdmin"
       class="nav-item"
       routerLink="/reports"
       routerLinkActive="active"
@@ -139,9 +171,9 @@
       <span class="nav-text" *ngIf="!collapsed">{{ t('reports') }}</span>
     </a>
 
-    <!-- Users -->
+    <!-- Users — Admin only -->
     <a
-      *ngIf="isAdmin || isSupervisor"
+      *ngIf="isAdmin"
       class="nav-item"
       routerLink="/users"
       routerLinkActive="active"
@@ -151,9 +183,9 @@
       <span class="nav-text" *ngIf="!collapsed">{{ t('users') }}</span>
     </a>
 
-    <!-- Configuration -->
+    <!-- Configuration — Admin only -->
     <a
-      *ngIf="isAdmin || isSupervisor"
+      *ngIf="isAdmin"
       class="nav-item"
       routerLink="/configuration"
       routerLinkActive="active"
@@ -163,9 +195,9 @@
       <span class="nav-text" *ngIf="!collapsed">{{ t('configuration') }}</span>
     </a>
 
-    <!-- Sanction -->
+    <!-- Sanction — Admin only -->
     <a
-      *ngIf="isAdmin || isSupervisor"
+      *ngIf="isAdmin"
       class="nav-item"
       routerLink="/sanction"
       routerLinkActive="active"

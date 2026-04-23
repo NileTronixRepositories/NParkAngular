@@ -5,7 +5,7 @@
 /* ============= CARD & HEADER ============= */
 
 :host .card.glass {
-  border-radius: 14px;
+  border-radius: 10px;
   border: 1px solid var(--border, #e5e7eb);
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(8px);
@@ -14,7 +14,7 @@
 }
 
 :host .card-header {
-  padding: 0.75rem 1rem;
+  padding: 0.4rem 0.6rem;
   background: linear-gradient(90deg, #f9fafb, #eef2ff);
   border-bottom: 1px solid var(--border, #e5e7eb);
 }
@@ -23,20 +23,20 @@
   display: flex;
   align-items: center;
   gap: 0.4rem;
-  font-size: 12px;
+  font-size: 0.74rem;
   color: #111827;
 }
 
 :host .card-header h5 i {
-  font-size: 1.1rem;
+  font-size: 0.92rem;
   color: #2563eb;
 }
 
 /* Pill للتاريخ */
 :host .card-header .badge.bg-secondary {
   border-radius: 999px;
-  padding: 0.35rem 0.6rem;
-  font-size: 12px;
+  padding: 0.2rem 0.45rem;
+  font-size: 0.62rem;
   background: #111827;
   color: #f9fafb;
 }
@@ -45,12 +45,12 @@
 
 :host .table {
   margin-bottom: 0;
-  font-size: 12px;
+  font-size: 0.7rem;
 }
 
 :host .table-head {
   background: var(--bg-soft, #f9fafb);
-  font-size: 11px;
+  font-size: 0.64rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--muted, #6b7280);
@@ -59,14 +59,14 @@
 :host .table-head th {
   border-bottom: 1px solid var(--border, #e5e7eb);
   font-weight: 600;
-  padding: 4px 8px;
+  padding: 0.25rem 0.35rem;
 }
 
 /* body rows */
 :host tbody tr td {
   border-top: 1px solid var(--border, #e5e7eb);
   vertical-align: middle;
-  padding: 4px 8px;
+  padding: 0.25rem 0.35rem;
   color: var(--text, #111827);
 }
 
@@ -100,12 +100,12 @@
   color: #15803d;
   border-radius: 999px;
   border: 1px solid rgba(22, 163, 74, 0.3);
-  font-size: 0.7rem;
+  font-size: 0.62rem;
 }
 
 /* صف عدم وجود بيانات */
 :host tbody tr td .bi-inbox {
-  font-size: 1.8rem !important;
+  font-size: 1.25rem !important;
 }
 
 /* card-body border top */
@@ -135,7 +135,7 @@
 }
 
 :host .collect-summary-card .card-header h6 {
-  font-size: 0.85rem;
+  font-size: 0.74rem;
 }
 
 :host .collect-summary-card .card-header .btn {
@@ -147,7 +147,7 @@
 }
 
 :host .collect-summary-table {
-  max-height: 220px;
+  max-height: 180px;
   overflow-y: auto;
   margin-top: 0.5rem;
 }
@@ -166,15 +166,15 @@
 
 /* Info rows */
 :host .collect-summary-card .d-flex.justify-content-between span.fw-semibold {
-  font-size: 0.85rem;
+  font-size: 0.72rem;
 }
 
 /* ============= COLLECT TODAY BUTTON ============= */
 
 :host .btn-collect-today {
   width: 100%;
-  padding: 4px 8px;
-  font-size: 12px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.72rem;
   font-weight: 600;
   border-radius: 6px;
   display: flex;
@@ -186,7 +186,7 @@
 }
 
 :host .btn-collect-today i {
-  font-size: 1rem;
+  font-size: 0.85rem;
 }
 
 :host .btn-collect-today:hover:not(:disabled) {
@@ -206,7 +206,7 @@
 }
 
 :host .card-body + .d-flex .small {
-  font-size: 11px;
+  font-size: 0.66rem;
 }
 
 :host .card-body + .d-flex .mono {
@@ -217,9 +217,9 @@
 
 :host .summary-container-inline {
   background: #fff;
-  border-radius: 12px;
+  border-radius: 8px;
   border: 1px solid #e2e8f0;
-  padding: 1rem;
+  padding: 0.6rem;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
 
@@ -230,7 +230,7 @@
 }
 
 :host .collect-summary-table-inline {
-  max-height: 180px;
+  max-height: 150px;
   overflow-y: auto;
   border-radius: 8px;
   border: 1px solid #f1f5f9;
@@ -244,7 +244,7 @@
 }
 
 :host .x-small {
-  font-size: 11px;
+  font-size: 9.5px;
 }
 
 :host .alert-danger-custom {
@@ -312,47 +312,84 @@
 }
 
 :host .modal-title {
-  font-size: 0.95rem;
+  font-size: 0.82rem;
   font-weight: 600;
 }
 
 :host .modal-body .form-label {
-  font-size: 12px;
+  font-size: 0.72rem;
   color: #4b5563;
 }
 
 :host .modal-body .form-control-sm {
-  font-size: 12px;
+  font-size: 0.72rem;
 }
 
 :host .modal-body .alert {
-  font-size: 12px;
+  font-size: 0.72rem;
 }
 
 :host .modal-body .table {
-  font-size: 12px;
+  font-size: 0.72rem;
 }
 
 /* ==========================
    Refactored Inline Styles
    ========================== */
 .col-time {
-  width: 140px;
+  width: 90px;
 }
 
 .col-fees {
-  width: 140px;
+  width: 95px;
 }
 
 .col-fees-sm {
-  width: 120px;
+  width: 80px;
 }
 
 .col-collected-at {
-  width: 150px;
+  width: 105px;
 }
 
 .modal-backdrop-custom {
   z-index: 1060;
   background: rgba(0, 0, 0, 0.4);
+}
+
+@media (max-width: 575.98px) {
+  :host .card-header {
+    padding: 0.32rem 0.45rem;
+  }
+
+  :host .card-header h5 {
+    font-size: 0.68rem;
+  }
+
+  :host .table {
+    font-size: 0.64rem;
+  }
+
+  :host .table-head {
+    font-size: 0.58rem;
+  }
+
+  :host .table-head th,
+  :host tbody tr td {
+    padding: 0.18rem 0.25rem;
+  }
+
+  :host .summary-container-inline {
+    padding: 0.45rem;
+  }
+
+  :host .x-small {
+    font-size: 9px;
+  }
+
+  .col-time,
+  .col-fees,
+  .col-collected-at {
+    width: auto;
+  }
 }

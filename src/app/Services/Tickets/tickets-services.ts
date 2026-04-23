@@ -9,6 +9,10 @@ import {
   AddTicketRequest,
   CollectDailyTicketsResponse,
   CalculateSalaryResponse,
+  MembershipCheckResponse,
+  ValidateExitByVehicleNumberResponse,
+  ValidateExitByTextRequest,
+  ValidateExitByTextResponse,
 } from '../../Domain/tickets/tickets.model';
 
 import { TicketCoreService, TicketsForGateResult } from './ticket-core.service';
@@ -55,17 +59,36 @@ export class TicketsServices {
   // --- Add Ticket ---
 
   addTicket(req: AddTicketRequest): Observable<IssuedTicketResponse | null> {
-    const body: any = {
-      isSubscriber: req.isSubscriber,
-      vehicleNumber: req.vehicleNumber?.trim() || undefined,
-      cardNumber: req.cardNumber?.trim() || undefined,
-      scannedFile: req.scannedFile,
-    };
+    const formData = new FormData();
+    const imageFiles = [req.scannedFile ?? null, ...(req.vehicleImages ?? [])].filter(
+      (file): file is File => !!file,
+    );
 
-    Object.keys(body).forEach((k) => body[k] === undefined && delete body[k]);
+    formData.append('VehicleNumber', req.vehicleNumber?.trim() ?? '');
+    formData.append('IsSubscriber', String(req.isSubscriber));
+    formData.append('CardNumber', req.cardNumber?.trim() ?? '');
 
-    return this.core.addTicket(body).pipe(
-      map((res: any) => res as IssuedTicketResponse),
+    if (req.pricingSchemaId?.trim()) {
+      formData.append('PricingSchemaId', req.pricingSchemaId.trim());
+    }
+
+    imageFiles.forEach((file) => {
+      formData.append('TicketsImages', file, file.name);
+    });
+
+    return this.core.addTicket(formData).pipe(
+      map((res: any) => {
+        if (!res) return null;
+
+        return {
+          ticketId: res.ticketId ?? res.TicketId,
+          createdAt: res.createdAt ?? res.CreatedAt,
+          price: Number(res.price ?? res.Price ?? 0),
+          qrCode: res.qrCode ?? res.QrCode,
+          ticketInfo: res.ticketInfo ?? res.TicketInfo,
+          vehicleNumber: res.vehicleNumber ?? res.VehicleNumber,
+        } as IssuedTicketResponse;
+      }),
       catchError((err) => {
         this.logError('addTicket', err);
         return throwError(() => err);
@@ -118,6 +141,14 @@ export class TicketsServices {
     return this.membership.getCardSummary(cardNumber);
   }
 
+  getCardSummaryByVehicleNumber(vehicleNumber: string): Observable<ParkingCardSummaryDto | null> {
+    return this.membership.getCardSummaryByVehicleNumber(vehicleNumber);
+  }
+
+  isMembership(vehicleNumber: string): Observable<MembershipCheckResponse> {
+    return this.membership.isMembership(vehicleNumber);
+  }
+
   // --- Daily collect (normal gate) ---
 
   collectDailyTickets(): Observable<CollectDailyTicketsResponse> {
@@ -141,5 +172,13 @@ export class TicketsServices {
 
   searchTickets(query: string): Observable<TicketDto[]> {
     return this.core.searchTickets(query);
+  }
+
+  validateExitByVehicleNumber(vehicleNumber: string): Observable<ValidateExitByVehicleNumberResponse> {
+    return this.core.validateExitByVehicleNumber(vehicleNumber);
+  }
+
+  validateExitByText(body: ValidateExitByTextRequest): Observable<ValidateExitByTextResponse> {
+    return this.core.validateExitByText(body);
   }
 }

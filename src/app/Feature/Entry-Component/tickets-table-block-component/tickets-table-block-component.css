@@ -212,3 +212,53 @@
   font-size: 0.75rem;
   border-radius: 999px;
 }
+
+:host .card-header {
+  padding: 0.4rem 0.6rem !important;
+}
+
+:host .card-body {
+  font-size: 0.72rem;
+}
+
+:host .tickets-table-scroll-compact {
+  max-height: 220px;
+}
+
+:host .table {
+  font-size: 0.7rem;
+}
+
+:host .table > :not(caption) > * > * {
+  padding: 0.25rem 0.35rem;
+}
+
+:host .badge {
+  font-size: 0.62rem;
+}
+
+:host .x-small {
+  font-size: 9.5px !important;
+}
+
+@media (max-width: 575.98px) {
+  :host .card-header {
+    padding: 0.32rem 0.45rem !important;
+  }
+
+  :host .tickets-table-scroll-compact {
+    max-height: 185px;
+  }
+
+  :host .table {
+    font-size: 0.64rem;
+  }
+
+  :host .table > :not(caption) > * > * {
+    padding: 0.18rem 0.25rem;
+  }
+
+  :host .x-small {
+    font-size: 9px !important;
+  }
+}

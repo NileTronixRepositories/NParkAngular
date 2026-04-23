@@ -26,6 +26,7 @@ export interface IssuedTicketResponse {
   price: number;
 
   ticketInfo?: string;
+  vehicleNumber?: string;
 }
 
 export interface TicketDetailsDto {
@@ -104,11 +105,20 @@ export interface ParkingCardSummaryDto {
   price?: number;
 }
 
+export interface MembershipCheckResponse {
+  isExist: boolean;
+  cardNumber?: string | null;
+  vehicleNumber?: string | null;
+  summary?: ParkingCardSummaryDto | null;
+}
+
 export interface AddTicketRequest {
   vehicleNumber?: string;
   isSubscriber: boolean;
   cardNumber?: string;
-  scannedFile?: string; // Base64
+  pricingSchemaId?: string;
+  scannedFile?: File;
+  vehicleImages?: File[];
 }
 
 export interface CollectDailyTicketsResponse {
@@ -133,4 +143,30 @@ export interface CalculateSalaryResponse {
   enterDate: string;
   isExitValid: boolean;
   isCollectByCashier: boolean;
+}
+
+export interface ValidateExitByVehicleNumberResponse {
+  ticketId: string | null;
+  vehicleNumber: string | null;
+  ticketNumber: string | null;
+  cardNumber: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  isValidForExit: boolean;
+}
+
+export interface ValidateExitByTextRequest {
+  text: string;
+}
+
+export interface ValidateExitByTextResponse {
+  ticketId: string | null;
+  inputText: string;
+  matchType: 'QrCode' | 'CardNumber' | null;
+  ticketNumber: string | null;
+  cardNumber: string | null;
+  vehicleNumber: string | null;
+  startDate: string | null;
+  endDate: string | null;
+  isValidForExit: boolean;
 }

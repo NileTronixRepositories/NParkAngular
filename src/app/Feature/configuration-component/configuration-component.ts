@@ -27,6 +27,7 @@ import {
   VehiclePassengerData,
   ParkingConfigurationView,
   GateConfigDto,
+  OnvifCameraSettingDto,
 } from '../../Domain/parking-config/parking-config.model';
 import { UserDto } from '../../Domain/Users/user.model';
 import { UsersServices } from '../../Services/Users/users-services';
@@ -156,6 +157,7 @@ export class ConfigurationComponent implements OnInit {
   @Output() submitted = new EventEmitter<ParkingConfigurationUpdateCommand>();
 
   pricingSchemas: PricingSchemaDto[] = [];
+  currentPricingSchemaOption: PricingSchemaDto | null = null;
   cashiersEntrance: UserDto[] = [];
   cashiersExit: UserDto[] = [];
 
@@ -244,14 +246,15 @@ export class ConfigurationComponent implements OnInit {
   loadPricingSchemas() {
     this.svc.getPricingSchemas().subscribe({
       next: (list: PricingSchemaDto[]) => {
-        this.pricingSchemas = (list || []).map((s: PricingSchemaDto) => ({
+        const mapped = (list || []).map((s: PricingSchemaDto) => ({
           id: s.id,
           name: s.name,
           description: s.description ?? '',
         }));
+        this.pricingSchemas = this.mergePricingSchemaOption(mapped);
       },
       error: () => {
-        this.pricingSchemas = [];
+        this.pricingSchemas = this.mergePricingSchemaOption([]);
       },
     });
   }
@@ -304,6 +307,7 @@ export class ConfigurationComponent implements OnInit {
             feesFlag: cfg.feesFlag ?? true,
             pricingSchemaId: cfg.pricingSchemaId ?? '',
           });
+          this.setCurrentPricingSchemaOption(cfg.pricingSchemaId, cfg.pricingSchemaName);
 
           this.patchGateArray(this.entryGatesFA, cfg.entryGates || []);
           this.patchGateArray(this.exitGatesFA, cfg.exitGates || []);
@@ -344,6 +348,12 @@ export class ConfigurationComponent implements OnInit {
       gateNumber: [{ value: defaultNumber, disabled: true }, [Validators.min(1)]],
       pcIp: ['', [Validators.required, Validators.pattern(HOST_OR_IP_REGEX)]],
       deviceIp: ['', [Validators.required, Validators.pattern(HOST_OR_IP_REGEX)]],
+      controlIp: ['', [Validators.required, Validators.pattern(HOST_OR_IP_REGEX)]],
+      onvifCameraSetting: this.fb.group({
+        urlRequest: [''],
+        userName: [''],
+        password: [''],
+      }),
       isAssigned: [false],
       assignedTo: [null],
     });
@@ -363,7 +373,7 @@ export class ConfigurationComponent implements OnInit {
   }
 
   private resizeFormArray(arr: FormArray, target: number) {
-    while (arr.length < target) arr.push(this.makeGateGroup(arr.length + 1));
+    while (arr.length < target) arr.push(this.makeGateGroup(this.getNextGateNumber(arr)));
     while (arr.length > target) arr.removeAt(arr.length - 1);
   }
 
@@ -372,14 +382,14 @@ export class ConfigurationComponent implements OnInit {
     const exits = Number(this.step1Form.get('exitGatesCount')!.value || 0);
     this.resizeFormArray(this.entryGatesFA, entries);
     this.resizeFormArray(this.exitGatesFA, exits);
-    this.renumberGateArray(this.entryGatesFA);
-    this.renumberGateArray(this.exitGatesFA);
   }
 
-  private renumberGateArray(arr: FormArray<FormGroup>) {
-    arr.controls.forEach((fg: FormGroup, i: number) =>
-      fg.get('gateNumber')?.setValue(i + 1, { emitEvent: false }),
-    );
+  private getNextGateNumber(arr: FormArray<FormGroup>): number {
+    const currentNumbers = arr.controls
+      .map((fg: FormGroup) => Number(fg.get('gateNumber')?.value || 0))
+      .filter((value: number) => value > 0);
+
+    return currentNumbers.length ? Math.max(...currentNumbers) + 1 : 1;
   }
 
   private patchGateArray(arr: FormArray<FormGroup>, data: GateConfigDto[]) {
@@ -393,6 +403,12 @@ export class ConfigurationComponent implements OnInit {
         gateNumber: src?.gateNumber ?? i + 1,
         pcIp: src?.pcIp ?? '',
         deviceIp: src?.lprIp ?? '',
+        controlIp: src?.controlIp ?? '',
+        onvifCameraSetting: {
+          urlRequest: src?.onvifCameraSetting?.urlRequest ?? '',
+          userName: src?.onvifCameraSetting?.userName ?? '',
+          password: src?.onvifCameraSetting?.password ?? '',
+        },
         isAssigned: src?.isAssigned ?? false,
         assignedTo: src?.assignedTo ?? null,
       });
@@ -418,6 +434,11 @@ export class ConfigurationComponent implements OnInit {
     const s1 = this.step1Form.value as any;
     const s2 = this.step2Form.getRawValue() as any;
     const mode = this.modeCtrl.value;
+    const pricingSchemaName =
+      this.pricingSchemas.find((schema) => schema.id === s2.pricingSchemaId)?.name ??
+      this.currentPricingSchemaOption?.name ??
+      '';
+
     return {
       entryGatesCount: s1.entryGatesCount,
       exitGatesCount: s1.exitGatesCount,
@@ -428,6 +449,7 @@ export class ConfigurationComponent implements OnInit {
       printType: s2.printType,
       ticketCard: { startDate: s2.startDate, ticketIdPrefix: s2.ticketIdPrefix },
       pricingSchemaId: s2.pricingSchemaId,
+      pricingSchemaName,
       entryGates: s2.entryGates || [],
       exitGates: s2.exitGates || [],
     };
@@ -437,35 +459,27 @@ export class ConfigurationComponent implements OnInit {
     const s1 = this.step1Form.value as any;
     const s2 = this.step2Form.getRawValue() as any;
 
-    const entryGates: GateConfigDto[] = this.entryGatesFA.getRawValue().map((g: any, i: number) => {
+    const mapGate = (g: any, i: number): GateConfigDto => {
       const pcIp = (g['pcIp'] || '').trim();
       const deviceIp = (g['deviceIp'] || '').trim();
-      const lprIp = deviceIp || pcIp;
+      const controlIp = (g['controlIp'] || '').trim();
+      const rawOnvif = g['onvifCameraSetting'] || {};
+      const onvifCameraSetting = this.normalizeOnvifSettings(rawOnvif);
 
       return {
         gateId: g['gateId'] ?? null,
-        gateNumber: i + 1,
-        lprIp,
+        gateNumber: Number(g['gateNumber'] ?? i + 1),
+        lprIp: deviceIp || pcIp,
         pcIp,
+        controlIp,
+        onvifCameraSetting,
         isAssigned: !!g['isAssigned'],
         assignedTo: g['isAssigned'] ? g['assignedTo'] : null,
       };
-    });
+    };
 
-    const exitGates: GateConfigDto[] = this.exitGatesFA.getRawValue().map((g: any, i: number) => {
-      const pcIp = (g['pcIp'] || '').trim();
-      const deviceIp = (g['deviceIp'] || '').trim();
-      const lprIp = deviceIp || pcIp;
-
-      return {
-        gateId: g['gateId'] ?? null,
-        gateNumber: i + 1,
-        lprIp,
-        pcIp,
-        isAssigned: !!g['isAssigned'],
-        assignedTo: g['isAssigned'] ? g['assignedTo'] : null,
-      };
-    });
+    const entryGates: GateConfigDto[] = this.entryGatesFA.getRawValue().map(mapGate);
+    const exitGates: GateConfigDto[] = this.exitGatesFA.getRawValue().map(mapGate);
 
     // ✅ Handle LPR / SCANNER / BOTH
     let vehiclePassengerData: VehiclePassengerData;
@@ -492,6 +506,46 @@ export class ConfigurationComponent implements OnInit {
       entryGates,
       exitGates,
     };
+  }
+
+  private normalizeOnvifSettings(raw: any): OnvifCameraSettingDto | null {
+    const urlRequest = (raw?.urlRequest || '').trim();
+    const userName = (raw?.userName || '').trim();
+    const password = (raw?.password || '').trim();
+
+    if (!urlRequest && !userName && !password) {
+      return null;
+    }
+
+    return {
+      urlRequest,
+      userName,
+      password,
+    };
+  }
+
+  private setCurrentPricingSchemaOption(
+    pricingSchemaId: string | null | undefined,
+    pricingSchemaName: string | null | undefined,
+  ): void {
+    if (!pricingSchemaId) {
+      this.currentPricingSchemaOption = null;
+      return;
+    }
+
+    this.currentPricingSchemaOption = {
+      id: pricingSchemaId,
+      name: pricingSchemaName?.trim() || pricingSchemaId,
+      description: '',
+    };
+    this.pricingSchemas = this.mergePricingSchemaOption(this.pricingSchemas);
+  }
+
+  private mergePricingSchemaOption(list: PricingSchemaDto[]): PricingSchemaDto[] {
+    const current = this.currentPricingSchemaOption;
+    if (!current) return list;
+    if (list.some((schema) => schema.id === current.id)) return list;
+    return [current, ...list];
   }
 
   // ======= Save =======

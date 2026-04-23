@@ -9,6 +9,9 @@ import {
   TicketAction,
   TicketTableResponseDto,
   CollectDailyTicketsResponse,
+  ValidateExitByVehicleNumberResponse,
+  ValidateExitByTextRequest,
+  ValidateExitByTextResponse,
 } from '../../Domain/tickets/tickets.model';
 import { environment } from '../../Shared/environment/environment';
 
@@ -130,6 +133,8 @@ export class TicketCoreService {
   }
 
   collectCashier(ticketId: string): Observable<boolean> {
+    // Backend removed /Ticket/CollectCashier for entry cashier flow.
+    // Keep the wrapper only for legacy callers outside the entry AddTicket path.
     return this.http.post<any>(this.endpoint('CollectCashier'), { ticketId }).pipe(
       map(() => true),
       catchError((err) => {
@@ -298,9 +303,29 @@ export class TicketCoreService {
         return list.map((r) => this.mapEntryToTicketDto(r, ''));
       }),
       catchError((err) => {
-        this.logError('GET /Ticket/SearchTicket', err);
         return of([]);
       }),
+    );
+  }
+
+  // ========= Exit Validation (New) =========
+
+  validateExitByVehicleNumber(vehicleNumber: string): Observable<ValidateExitByVehicleNumberResponse> {
+    const params = new HttpParams().set('vehicleNumber', vehicleNumber);
+    return this.http.get<ValidateExitByVehicleNumberResponse>(this.endpoint('validate-exit-by-vehicle-number'), { params }).pipe(
+      catchError((err) => {
+        this.logError('GET /Ticket/validate-exit-by-vehicle-number', err);
+        return throwError(() => err);
+      })
+    );
+  }
+
+  validateExitByText(body: ValidateExitByTextRequest): Observable<ValidateExitByTextResponse> {
+    return this.http.post<ValidateExitByTextResponse>(this.endpoint('validate-exit-by-text'), body).pipe(
+      catchError((err) => {
+        this.logError('POST /Ticket/validate-exit-by-text', err);
+        return throwError(() => err);
+      })
     );
   }
 }

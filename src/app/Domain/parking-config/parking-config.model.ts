@@ -14,13 +14,21 @@ export enum PrintType {
   Rfid = 1,
 }
 
+export interface OnvifCameraSettingDto {
+  urlRequest: string;
+  userName: string;
+  password: string;
+}
+
 export interface GateConfigDto {
   gateNumber: number;
   lprIp: string;
   pcIp?: string;
+  controlIp: string;
   gateId: string | null;
   isAssigned?: boolean;
   assignedTo?: string | null;
+  onvifCameraSetting?: OnvifCameraSettingDto | null;
 }
 
 
@@ -66,8 +74,8 @@ export interface ParkingConfigurationView {
   ticketIdFlag: boolean;
   feesFlag: boolean;
 
-  pricingSchemaId: string;
-  pricingSchemaName?: string;
+  pricingSchemaId: string | null;
+  pricingSchemaName?: string | null;
 
   ticketCard?: TicketCardDto;
 

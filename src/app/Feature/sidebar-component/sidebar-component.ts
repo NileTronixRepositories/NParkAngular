@@ -17,6 +17,7 @@ import { Subscription } from 'rxjs';
 
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { AuthService } from '../../Services/Auth/auth-service';
+import { ToastServices } from '../../Services/Toster/toast-services';
 
 @Component({
   selector: 'app-sidebar-component',
@@ -33,6 +34,7 @@ export class SidebarComponent implements OnDestroy {
   public i18n = inject(LanguageService);
   private auth = inject(AuthService);
   private el = inject(ElementRef);
+  private toast = inject(ToastServices);
 
   private dict: Record<AppLang, Record<string, string>> = {
     ar: {
@@ -56,6 +58,7 @@ export class SidebarComponent implements OnDestroy {
       toggleSubmenu: 'تبديل القائمة الفرعية',
       brand: 'إن بارك',
       langButton: 'English',
+      gateSelection: 'اختيار البوابة',
     },
     en: {
       overview: 'Overview',
@@ -78,6 +81,7 @@ export class SidebarComponent implements OnDestroy {
       toggleSubmenu: 'Toggle submenu',
       brand: 'NPark',
       langButton: 'العربية',
+      gateSelection: 'Gate Selection',
     },
   };
 
@@ -131,6 +135,43 @@ export class SidebarComponent implements OnDestroy {
         this.gateOpen = false;
       }
     }
+  }
+
+  // ====== Gate Navigation with Check ======
+  get isEntryRoute(): boolean {
+    return this.router.url.startsWith('/tickets/entry');
+  }
+
+  get isExitRoute(): boolean {
+    return this.router.url.startsWith('/tickets/exit');
+  }
+
+  onEntryGateClick(): void {
+    const gateData = this.auth.getGateData();
+    if (!gateData) {
+      this.toast.warn(
+        this.i18n.current === 'ar' ? 'يرجى اختيار بوابة أولاً' : 'Please select a gate first',
+      );
+      this.router.navigate(['/gate-selection']);
+      this.gateOpen = false;
+      return;
+    }
+    this.router.navigate(['/tickets/entry']);
+    this.gateOpen = false;
+  }
+
+  onExitGateClick(): void {
+    const gateData = this.auth.getGateData();
+    if (!gateData) {
+      this.toast.warn(
+        this.i18n.current === 'ar' ? 'يرجى اختيار بوابة أولاً' : 'Please select a gate first',
+      );
+      this.router.navigate(['/gate-selection']);
+      this.gateOpen = false;
+      return;
+    }
+    this.router.navigate(['/tickets/exit']);
+    this.gateOpen = false;
   }
 
   ngOnDestroy(): void {

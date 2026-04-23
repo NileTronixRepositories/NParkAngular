@@ -1,8 +1,11 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable, of, map, catchError } from 'rxjs';
+import { Observable, of, map, catchError, throwError } from 'rxjs';
 
-import { ParkingCardSummaryDto } from '../../Domain/tickets/tickets.model';
+import {
+  MembershipCheckResponse,
+  ParkingCardSummaryDto,
+} from '../../Domain/tickets/tickets.model';
 import { environment } from '../../Shared/environment/environment';
 
 @Injectable({
@@ -30,5 +33,63 @@ export class MembershipCardService {
         return of(null);
       })
     );
+  }
+
+  getCardSummaryByVehicleNumber(vehicleNumber: string): Observable<ParkingCardSummaryDto | null> {
+    const trimmed = vehicleNumber?.trim();
+    if (!trimmed) return of(null);
+
+    const params = new HttpParams().set('VehicleNumber', trimmed);
+
+    return this.http.get<any>(`${this.membershipsUrl}/GetCardSummary`, { params }).pipe(
+      map((res: any) => res as ParkingCardSummaryDto),
+      catchError((err) => {
+        this.logError('GET /ParkingMemberships/GetCardSummary by vehicle number', err);
+        return of(null);
+      }),
+    );
+  }
+
+  isMembership(vehicleNumber: string): Observable<MembershipCheckResponse> {
+    const trimmed = vehicleNumber?.trim();
+    if (!trimmed) {
+      return of({ isExist: false });
+    }
+
+    const params = new HttpParams().set('VehicleNumber', trimmed);
+
+    return this.http.get<any>(`${this.membershipsUrl}/IsMemberShip`, { params }).pipe(
+      map((res: any): MembershipCheckResponse => {
+        const summary = this.extractSummary(res);
+        const rawSummary = summary as any;
+
+        return {
+          isExist: !!(res?.isExist ?? res?.IsExist ?? res?.exists ?? res?.Exists),
+          cardNumber:
+            res?.cardNumber ??
+            res?.CardNumber ??
+            rawSummary?.cardNumber ??
+            rawSummary?.CardNumber ??
+            null,
+          vehicleNumber:
+            res?.vehicleNumber ??
+            res?.VehicleNumber ??
+            rawSummary?.vehicleNumber ??
+            rawSummary?.VehicleNumber ??
+            trimmed,
+          summary,
+        };
+      }),
+      catchError((err) => {
+        this.logError('GET /ParkingMemberships/IsMemberShip', err);
+        return throwError(() => err);
+      }),
+    );
+  }
+
+  private extractSummary(res: any): ParkingCardSummaryDto | null {
+    return (res?.summary ?? res?.Summary ?? res?.membership ?? res?.Membership ?? res?.data ?? res?.Data ?? null) as
+      | ParkingCardSummaryDto
+      | null;
   }
 }

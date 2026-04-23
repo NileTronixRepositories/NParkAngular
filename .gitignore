@@ -40,3 +40,8 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Print Service
+print-service/node_modules
+print-service/temp_prints
+print-service/*.pdf

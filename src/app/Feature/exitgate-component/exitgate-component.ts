@@ -2,6 +2,7 @@ import { Component, Inject, OnInit, OnDestroy, inject, ChangeDetectorRef } from 
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Router } from '@angular/router';
 
 import {
   TicketDto,
@@ -10,6 +11,8 @@ import {
   CollectDailyTicketsResponse,
   CalculateSalaryResponse,
   ScanTicketResponse,
+  ValidateExitByVehicleNumberResponse,
+  ValidateExitByTextResponse,
 } from '../../Domain/tickets/tickets.model';
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
 
@@ -25,6 +28,7 @@ import { NfcReaderService } from '../../Services/registration/nfc-reader.service
 import { ExitGateDevicesBlockComponent } from './exit-gate-devices-block-component/exit-gate-devices-block-component';
 import { ExitScanCollectBlockComponent } from './exit-scan-collect-block-component/exit-scan-collect-block-component';
 import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-component/exit-tickets-table-block-component';
+import { ExitValidationBlockComponent } from './exit-validation-block-component/exit-validation-block-component';
 import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
 import { ExitTourService } from '../../Services/Exit/exit-tour.service';
 
@@ -53,6 +57,7 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
     SupervisorModalBlockComponent,
     TicketDetailsModalBlockComponent,
     TranslatePipePipe,
+    ExitValidationBlockComponent,
   ],
   templateUrl: './exitgate-component.html',
   styleUrls: ['./exitgate-component.css'],
@@ -198,6 +203,26 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           ticket_not_found: 'لم يتم العثور على بيانات التذكرة: {0}',
           subscriber_card_found: 'تم العثور على بطاقة المشترك: {0}',
           incorrect_credentials: 'اسم المستخدم أو كلمة المرور غير صحيحة',
+
+          supervisor_mode: 'وضع المشرف',
+          detected_vehicle_number: 'رقم السيارة المكتشف',
+          validation_status: 'حالة التحقق',
+          ticket_number: 'رقم التذكرة',
+          start_date: 'تاريخ البداية',
+          card_number: 'رقم الكارت',
+          vehicle_number: 'رقم السيارة',
+          message: 'الرسالة',
+          validate: 'تحقق',
+          valid_for_exit: 'صالح للخروج',
+          not_valid_for_exit: 'غير صالح للخروج',
+          text_required: 'النص مطلوب',
+          enter_card_or_qr: 'أدخل رقم الكارت أو كود الـ QR',
+          failed_to_validate: 'فشل التحقق من الخروج، يرجى المحاولة مرة أخرى',
+          no_matching_ticket: 'لم يتم العثور على تذكرة مطابقة',
+          lpr_detection: 'اكتشاف السيارة (LPR)',
+          manual_validation: 'التحقق اليدوي',
+          validation_result: 'نتيجة التحقق',
+          match_type: 'نوع التطابق',
         },
         en: {
           exitTicket: 'Exit Gate',
@@ -338,6 +363,26 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           ticket_not_found: 'Ticket details not found: {0}',
           subscriber_card_found: 'Subscriber card found: {0}',
           incorrect_credentials: 'Incorrect user name or password',
+
+          supervisor_mode: 'Supervisor mode',
+          detected_vehicle_number: 'Detected Vehicle Number',
+          validation_status: 'Validation Status',
+          ticket_number: 'Ticket Number',
+          start_date: 'Start Date',
+          card_number: 'Card Number',
+          vehicle_number: 'Vehicle Number',
+          message: 'Message',
+          validate: 'Validate',
+          valid_for_exit: 'Valid for exit',
+          not_valid_for_exit: 'Not valid for exit',
+          text_required: 'Text is required',
+          enter_card_or_qr: 'Enter Card Number or QR Code',
+          failed_to_validate: 'Failed to validate exit, please try again',
+          no_matching_ticket: 'No matching ticket found',
+          lpr_detection: 'LPR Detection',
+          manual_validation: 'Manual Validation',
+          validation_result: 'Validation Result',
+          match_type: 'Match Type',
         },
       },
     },
@@ -351,6 +396,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   private readonly toast = inject(ToastServices);
   private readonly nfc = inject(NfcReaderService);
   private readonly exitTour = inject(ExitTourService);
+  private readonly router = inject(Router);
 
   // NEW: SignalR Hub
   private readonly dashboardHub = inject(DashboardHubService);
@@ -453,6 +499,15 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // Sanctions
   allSanctions: SanctionDto[] = [];
   selectedSanctionIds: string[] = [];
+
+  // ====== Exit Validation ======
+  vehicleValidationLoading = false;
+  textValidationLoading = false;
+  vehicleValidationResult: ValidateExitByVehicleNumberResponse | null = null;
+  textValidationResult: ValidateExitByTextResponse | null = null;
+  detectedVehicleNumber = '';
+  validationMessage: string | null = null;
+  validationError: string | null = null;
 
   get currentTotalWithSanctions(): number {
     return this.salarySummary?.totalSalary || 0;
@@ -573,23 +628,15 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   private initGatePeripheral(): void {
     this.gatePeripheral = this.auth.getGateData();
 
-    if (this.gatePeripheral || !this.auth.isLoggedIn()) {
+    if (!this.auth.isLoggedIn()) return;
+
+    if (!this.gatePeripheral) {
+      this.toast.warn(
+        this.lang.current === 'ar' ? 'يرجى اختيار بوابة أولاً' : 'Please select a gate first',
+      );
+      this.router.navigate(['/gate-selection']);
       return;
     }
-
-    this.auth.checkGate().subscribe({
-      next: (res) => {
-        if (res?.gateDevicePeripheral) {
-          this.gatePeripheral = res.gateDevicePeripheral;
-        } else {
-          this.gatePeripheral = this.auth.getGateData();
-        }
-      },
-      error: (err) => {
-        this.handleError('CheckGate', err);
-        this.gatePeripheral = this.auth.getGateData();
-      },
-    });
   }
 
   private handleError(operation: string, err: any): void {
@@ -800,11 +847,102 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.toast.warn(this.t('ticket_already_collected', [identifier, summaryText]));
     }
 
-    // Show Details Modal
-    this.selectedTicketForModal = ticket;
-    this.showTicketDetailsModal = true;
-
     this.searchResults = [];
+  }
+
+  // ========= Exit Validation Methods =========
+
+  onDetectedVehicleNumber(vehicleNumber: string): void {
+    const normalized = vehicleNumber?.trim();
+    if (!normalized) return;
+
+    this.detectedVehicleNumber = normalized;
+    this.onValidateExitByVehicleNumber(normalized);
+  }
+
+  onValidateExitByVehicleNumber(vehicleNumber: string): void {
+    if (!vehicleNumber?.trim()) return;
+    this.detectedVehicleNumber = vehicleNumber.trim();
+    this.validationError = null;
+    this.validationMessage = null;
+    this.vehicleValidationLoading = true;
+    this.vehicleValidationResult = null;
+    this.textValidationResult = null;
+
+    this.svc.validateExitByVehicleNumber(this.detectedVehicleNumber).subscribe({
+      next: (res) => {
+        this.vehicleValidationResult = res;
+        this.vehicleValidationLoading = false;
+        if (res.isValidForExit) {
+          this.validationMessage = this.t('valid_for_exit');
+          this.toast.success(this.t('valid_for_exit'));
+        } else if (res.ticketId) {
+          this.validationMessage = this.t('not_valid_for_exit');
+          this.toast.warn(this.t('not_valid_for_exit'));
+        } else {
+          this.validationMessage = this.t('no_matching_ticket');
+          this.toast.warn(this.t('no_matching_ticket'));
+        }
+      },
+      error: (err) => {
+        this.validationError = this.t('failed_to_validate');
+        this.handleError('validateExitByVehicleNumber', err);
+        this.vehicleValidationLoading = false;
+      },
+    });
+  }
+
+  onValidateExitByText(text: string): void {
+    if (!text?.trim()) {
+      this.validationError = this.t('text_required');
+      this.toast.warn(this.t('text_required'));
+      return;
+    }
+
+    this.validationError = null;
+    this.validationMessage = null;
+    this.textValidationLoading = true;
+    this.textValidationResult = null;
+    this.vehicleValidationResult = null;
+
+    this.svc.validateExitByText({ text: text.trim() }).subscribe({
+      next: (res) => {
+        this.textValidationResult = res;
+        this.textValidationLoading = false;
+        if (res.isValidForExit) {
+          this.validationMessage = this.t('valid_for_exit');
+          this.toast.success(this.t('valid_for_exit'));
+        } else if (res.ticketId) {
+          this.validationMessage = this.t('not_valid_for_exit');
+          this.toast.warn(this.t('not_valid_for_exit'));
+        } else {
+          this.validationMessage = this.t('no_matching_ticket');
+          this.toast.warn(this.t('no_matching_ticket'));
+        }
+      },
+      error: (err) => {
+        this.validationError = this.t('failed_to_validate');
+        this.handleError('validateExitByText', err);
+        this.textValidationLoading = false;
+      },
+    });
+  }
+
+  onConfirmValidationExit(ticketId: string): void {
+    const res = this.vehicleValidationResult || this.textValidationResult;
+    if (!res || res.ticketId !== ticketId || !res.isValidForExit) {
+      this.toast.warn(this.t('not_valid_for_exit'));
+      return;
+    }
+
+    this.addExitTicket({
+      id: res.ticketId!,
+      ticketNumber: res.ticketNumber || '',
+      ticketInfo: res.vehicleNumber || res.cardNumber || '',
+      price: 0,
+      startDate: res.startDate || '',
+      isCollectedByCashier: false,
+    } as ScanTicketResponse);
   }
 
   closeTicketDetailsModal(): void {
@@ -843,16 +981,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     });
   }
 
-  /** Step 1: Scan QR to get ticket data */
+  /** Scan QR to get ticket data */
   private triggerUnifiedSearch(value: string): void {
     if (!value?.trim()) return;
     const trimmed = value.trim();
-
-    // Logic to distinguish QR vs Card UID
-    // QR tickets usually have a specific format or length.
-    // Card UIDs are usually hex strings of specific lengths (e.g., 8-14 chars).
-    // For now, we follow the user's two-step requirement: first scan ticket, then calculate.
-    // However, for cards, we usually go straight to calculate.
 
     this.fetchTicketAndSalaryByQr(trimmed, false);
   }
@@ -875,11 +1007,9 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.scannedTicket = res;
           this.searchingManual = false;
 
-          // Show success toast ONLY after fetching details successfully
           const identifier = res.ticketNumber || String(res.id);
           this.toast.success(this.t('ticket_selected_success', [identifier]));
         } else {
-          // Handle 204
           if (isForcedTicket) {
             this.searchingManual = false;
             this.toast.error(this.t('ticket_not_found', [code]));
@@ -893,8 +1023,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.searchingManual = false;
           this.handleError('scanTicket', err);
         } else {
-          // Fallback to card calculation
-          this.fetchSalaryForCard(code);
+           this.fetchSalaryForCard(code);
         }
       },
     });
@@ -1410,8 +1539,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     isCollectedByCashier: boolean,
   ): void {
     const numericPrice = Number(price ?? 0);
-    const gateNumber = this.auth.getGateData()?.gateNumber;
-    const gate = gateNumber != null ? String(gateNumber) : '';
+    const gateData = this.auth.getGateData();
+    const gateValue = gateData?.gateNumber != null ? String(gateData.gateNumber) : '';
     const nowIso = new Date().toISOString();
 
     const idStr = String(ticketId).toLowerCase();
@@ -1443,14 +1572,14 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       const oldPrice = Number(this.tickets[idx].price ?? 0);
       this.totalPriceToday = this.totalPriceToday - oldPrice + numericPrice;
 
-      const updatedTicket = {
+      const updatedTicket: TicketDto = {
         ...this.tickets[idx],
         plate: plate || this.tickets[idx].plate,
-        action: 'OUT' as const,
+        action: 'OUT',
         time: nowIso,
-        gate: gate || this.tickets[idx].gate,
+        gate: gateValue || this.tickets[idx].gate,
         price: numericPrice,
-        isCollectedByCashier,
+        isCollectedByCashier: isCollectedByCashier,
         ticketNumber: ticketNumber || this.tickets[idx].ticketNumber,
         info: displayId,
       };
@@ -1466,9 +1595,9 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         plate: plate || '',
         action: 'OUT',
         time: nowIso,
-        gate,
+        gate: gateValue,
         price: numericPrice,
-        isCollectedByCashier,
+        isCollectedByCashier: isCollectedByCashier,
         info: displayId,
       };
 

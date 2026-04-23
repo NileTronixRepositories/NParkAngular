@@ -323,6 +323,46 @@
                                   />
                                 </div>
 
+                                <div>
+                                  <label
+                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
+                                    >Control IP Address</label
+                                  >
+                                  <input
+                                    class="form-control form-control-sm font-monospace"
+                                    type="text"
+                                    formControlName="controlIp"
+                                    [placeholder]="'ipPlaceholder' | t"
+                                  />
+                                </div>
+
+                                <div
+                                  class="d-flex flex-column gap-2 mt-2 pt-2 border-top"
+                                  formGroupName="onvifCameraSetting"
+                                >
+                                  <label class="form-label small fw-bold text-muted text-uppercase mb-0">
+                                    ONVIF Camera Settings
+                                  </label>
+                                  <input
+                                    class="form-control form-control-sm"
+                                    type="text"
+                                    formControlName="urlRequest"
+                                    placeholder="ONVIF URL Request"
+                                  />
+                                  <input
+                                    class="form-control form-control-sm"
+                                    type="text"
+                                    formControlName="userName"
+                                    placeholder="ONVIF Username"
+                                  />
+                                  <input
+                                    class="form-control form-control-sm"
+                                    type="password"
+                                    formControlName="password"
+                                    placeholder="ONVIF Password"
+                                  />
+                                </div>
+
                                 <div class="d-flex flex-column gap-2 mt-2 pt-2 border-top">
                                   <mat-checkbox formControlName="isAssigned" color="primary">
                                     {{ 'assignTo' | t }}
@@ -415,6 +455,46 @@
                                     type="text"
                                     formControlName="deviceIp"
                                     [placeholder]="'ipPlaceholder' | t"
+                                  />
+                                </div>
+
+                                <div>
+                                  <label
+                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
+                                    >Control IP Address</label
+                                  >
+                                  <input
+                                    class="form-control form-control-sm font-monospace"
+                                    type="text"
+                                    formControlName="controlIp"
+                                    [placeholder]="'ipPlaceholder' | t"
+                                  />
+                                </div>
+
+                                <div
+                                  class="d-flex flex-column gap-2 mt-2 pt-2 border-top"
+                                  formGroupName="onvifCameraSetting"
+                                >
+                                  <label class="form-label small fw-bold text-muted text-uppercase mb-0">
+                                    ONVIF Camera Settings
+                                  </label>
+                                  <input
+                                    class="form-control form-control-sm"
+                                    type="text"
+                                    formControlName="urlRequest"
+                                    placeholder="ONVIF URL Request"
+                                  />
+                                  <input
+                                    class="form-control form-control-sm"
+                                    type="text"
+                                    formControlName="userName"
+                                    placeholder="ONVIF Username"
+                                  />
+                                  <input
+                                    class="form-control form-control-sm"
+                                    type="password"
+                                    formControlName="password"
+                                    placeholder="ONVIF Password"
                                   />
                                 </div>
 
@@ -562,6 +642,17 @@
                   <span>{{ 'printType' | t }}</span>
                 </div>
                 <span class="fw-bold text-dark small">{{ summaryForView.printType }}</span>
+              </div>
+
+              <div
+                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
+                *ngIf="summaryForView.pricingSchemaName"
+              >
+                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
+                  <i class="bi bi-tags"></i>
+                  <span>{{ 'pricingSchema' | t }}</span>
+                </div>
+                <span class="fw-bold text-dark small">{{ summaryForView.pricingSchemaName }}</span>
               </div>
 
               <div class="d-flex justify-content-between align-items-center p-2">

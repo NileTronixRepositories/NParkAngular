@@ -1,15 +1,19 @@
-<div class="tickets-theme container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
+<div
+  class="tickets-theme container-fluid px-2 px-sm-3"
+  [class.page-rtl]="isRTL()"
+  [attr.dir]="dir()"
+>
   <!-- Page Header -->
   <div class="page-header mb-3 fade-in-down p-2 px-3">
     <div
       class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3"
     >
-      <div class="d-flex align-items-center gap-3">
+      <div class="d-flex align-items-center gap-2 gap-sm-3 min-w-0">
         <div class="header-icon-wrapper d-flex align-items-center justify-content-center">
           <i class="bi bi-box-arrow-in-right header-icon fs-4"></i>
         </div>
-        <div>
-          <h1 class="page-title fs-5 mb-0 fw-bold d-flex align-items-center gap-2">
+        <div class="min-w-0">
+          <h1 class="page-title fs-5 mb-0 fw-bold d-flex align-items-center gap-2 flex-wrap">
             {{ t('entry') }}
             <span
               class="gate-badge x-small px-2 py-0 rounded-pill"
@@ -18,8 +22,13 @@
               <span class="gate-label text-uppercase fw-bold">{{ t('gate') }}</span>
               <span class="gate-value fw-bold">{{ gatePeripheral?.gateNumber }}</span>
             </span>
+            <span class="badge bg-warning text-dark ms-2" *ngIf="isSupervisor">
+              <i class="bi bi-shield-check me-1"></i>{{ t('supervisor_mode') }}
+            </span>
           </h1>
-          <p class="page-subtitle x-small text-muted mb-0">{{ t('tickets_entry_title') }}</p>
+          <p class="page-subtitle x-small text-muted mb-0 text-truncate">
+            {{ t('tickets_entry_title') }}
+          </p>
         </div>
       </div>
 
@@ -50,22 +59,28 @@
   </div>
 
   <!-- 4 BLOCKS RESPONSIVE GRID -->
-  <div class="row mb-3">
+  <div class="row g-2 g-lg-3 mb-3">
     <!-- Block 1: Gate Devices -->
-    <div class="col-12 col-md-6 col-lg-4">
+    <div class="col-12 col-md-6 col-xl-4">
       <app-gate-devices-block-component
         [t]="t"
         [gatePeripheral]="gatePeripheral"
         [scannedFile]="scannedFile"
+        [uploadedVehicleImages]="uploadedVehicleImages"
+        [selectedPreviewUrl]="scannedFile?.url ?? null"
         [manualLprPlate]="manualLprPlate"
         [adding]="adding"
-        (manualLprPlateChange)="manualLprPlate = $event"
+        (manualLprPlateChange)="onManualLprPlateChange($event)"
+        (manualLprPlateBlur)="onManualLprPlateBlur()"
         (createTicketWithPlate)="createTicket($event)"
+        (vehicleImagesSelected)="onVehicleImagesSelected($event)"
+        (removeVehicleImage)="removeVehicleImage($event)"
+        (vehicleImagePreviewSelected)="selectVehicleImagePreview($event)"
       ></app-gate-devices-block-component>
     </div>
 
     <!-- Block 2: Issue Ticket -->
-    <div class="col-12 col-md-6 col-lg-4">
+    <div class="col-12 col-md-6 col-xl-4" *ngIf="!isSupervisor">
       <app-issue-ticket-block-component
         [t]="t"
         [isRTL]="i18n.isRTL()"
@@ -73,6 +88,13 @@
         [cardSummary]="cardSummary"
         [adding]="adding"
         [readingCard]="readingCard()"
+        [lprVehicleNumber]="currentLprVehicleNumber"
+        [lprMembershipStatus]="lprMembershipStatus"
+        [lprCardNumber]="lprMembershipCardNumber"
+        [selectedPricingSchemaId]="selectedPricingSchemaId"
+        [pricingSchemas]="pricingSchemas"
+        [pricingSchemasLoading]="pricingSchemasLoading"
+        [hasVehicleImages]="hasVehicleImages"
         [currentIssuedQr]="currentIssuedQr"
         [currentIssuedQrType]="currentIssuedQrType"
         [lastIssuedTicketId]="lastIssuedTicketId"
@@ -88,11 +110,12 @@
         (createSubscriberTicketClicked)="createSubscriberTicket()"
         (confirmCashierClicked)="confirmCashier()"
         (clearCardSummaryClicked)="clearCardSummary($event)"
+        (selectedPricingSchemaIdChange)="selectedPricingSchemaId = $event"
       ></app-issue-ticket-block-component>
     </div>
 
     <!-- Block 3: Tickets Table + Collect Summary -->
-    <div class="col-12 col-md-12 col-xl-4">
+    <div class="col-12 col-xl-4">
       <app-tickets-table-block-component
         [t]="t"
         [isRTL]="i18n.isRTL()"

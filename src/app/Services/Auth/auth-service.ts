@@ -37,6 +37,7 @@ export class AuthService {
 
   private gateData: GateDevicePeripheral | null = null;
   private collectLoading = false;
+  private unloadLogoutStarted = false;
 
   // ================== STORAGE HELPERS ==================
   private storage(remember: boolean): Storage {
@@ -179,6 +180,10 @@ export class AuthService {
     return user?.gateId ?? null;
   }
 
+  hasActiveGateSession(): boolean {
+    return this.isLoggedIn() && !!this.getGateId();
+  }
+
   updateGateData(gp: GateDevicePeripheral | null) {
     this.gateData = gp;
 
@@ -192,6 +197,22 @@ export class AuthService {
       gateId: current?.gateId ?? null,
     };
 
+    store.setItem(USER_KEY, JSON.stringify(updated));
+  }
+
+  // Clear gate data (used when cashier needs to explicitly select a gate)
+  clearGateData(): void {
+    const store = this.detectStorage();
+    const user = this.getStoredUser();
+    if (!user) return;
+
+    const updated = {
+      ...user,
+      gateId: null,
+      gateDevicePeripheral: null,
+    };
+
+    this.gateData = null;
     store.setItem(USER_KEY, JSON.stringify(updated));
   }
 
@@ -220,6 +241,24 @@ export class AuthService {
         return of(void 0);
       }),
     );
+  }
+
+  logoutOnPageExit(): void {
+    if (this.unloadLogoutStarted || !this.hasActiveGateSession()) return;
+
+    this.unloadLogoutStarted = true;
+    const token = this.token;
+    this.clearUserData();
+
+    if (!token || typeof fetch !== 'function') return;
+
+    void fetch(`${API_BASE}/logout`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      keepalive: true,
+    }).catch(() => void 0);
   }
 
   clearUserData() {

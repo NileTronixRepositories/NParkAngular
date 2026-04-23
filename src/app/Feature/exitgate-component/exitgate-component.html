@@ -1,30 +1,35 @@
 <div
-  class="exit-theme container-fluid px-3 px-md-4"
+  class="exit-theme container-fluid px-2 px-sm-3"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
 >
   <!-- Page Header -->
-  <div class="page-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
-    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
-      <div class="d-flex align-items-center gap-3">
+  <div class="page-header mb-3 fade-in-down p-2 px-3 rounded-3 shadow-sm">
+    <div
+      class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3"
+    >
+      <div class="d-flex align-items-center gap-2 gap-sm-3 min-w-0">
         <div class="header-icon-wrapper d-flex align-items-center justify-content-center rounded-3">
           <i class="bi bi-box-arrow-left header-icon fs-5"></i>
         </div>
-        <div>
-          <h1 class="page-title mb-0">
+        <div class="min-w-0">
+          <h1 class="page-title mb-0 flex-wrap">
             {{ t('exitTicket') }}
             <span class="gate-badge ms-2" *ngIf="gatePeripheral?.gateNumber">
               <span class="gate-label">{{ t('gate') }}</span>
               <span class="gate-value">{{ gatePeripheral?.gateNumber }}</span>
             </span>
+            <span class="badge bg-warning text-dark ms-2" *ngIf="isSupervisor">
+              <i class="bi bi-shield-check me-1"></i>{{ t('supervisor_mode') }}
+            </span>
           </h1>
-          <p class="page-subtitle mb-0">{{ t('ticketsExit') }}</p>
+          <p class="page-subtitle mb-0 text-truncate">{{ t('ticketsExit') }}</p>
         </div>
       </div>
 
       <!-- Quick Search in Header -->
-      <div class="ms-md-auto me-md-3">
+      <div class="ms-md-auto me-md-3 search-header-container">
         <app-search-block-component
           [isCompact]="true"
           [placeholder]="t('search_tickets_placeholder')"
@@ -48,19 +53,20 @@
     </div>
   </div>
 
-  <!-- 4-block grid: xs=1col | md=2col | xl=4col -->
-  <div class="row g-3">
+  <!-- 4-block grid: xs=1col | md=2col | xl=3col -->
+  <div class="row g-2 g-lg-3">
     <!-- Block 1: Gate Devices -->
-    <div class="col-12 col-md-6 col-lg-4">
+    <div class="col-12 col-md-6 col-xl-3">
       <app-exit-gate-devices-block-component
         [gatePeripheral]="gatePeripheral"
         [scannedFile]="scannedFile"
         (searchTicketNumber)="onSearchTicketNumber($event)"
+        (vehicleDetected)="onDetectedVehicleNumber($event)"
       ></app-exit-gate-devices-block-component>
     </div>
 
-    <!-- Block 2: Scan & Collect -->
-    <div class="col-12 col-md-6 col-lg-4">
+    <!-- Block 2: Scan & Collect (hidden for Supervisor) -->
+    <div class="col-12 col-md-6 col-xl-3" *ngIf="!isSupervisor">
       <app-exit-scan-collect-block-component
         [universalInput]="universalInput"
         (universalInputChange)="onUniversalInputChange($event)"
@@ -90,8 +96,24 @@
       ></app-exit-scan-collect-block-component>
     </div>
 
-    <!-- Block 3: Tickets Table -->
-    <div class="col-12 col-md-6 col-lg-4">
+    <!-- Block 3: Exit Validation (New) -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-exit-validation-block-component
+        [detectedVehicleNumber]="detectedVehicleNumber"
+        [vehicleValidationLoading]="vehicleValidationLoading"
+        [textValidationLoading]="textValidationLoading"
+        [vehicleResult]="vehicleValidationResult"
+        [textResult]="textValidationResult"
+        [validationMessage]="validationMessage"
+        [validationError]="validationError"
+        (validateText)="onValidateExitByText($event)"
+        (validateVehicle)="onValidateExitByVehicleNumber($event)"
+        (confirmExit)="onConfirmValidationExit($event)"
+      ></app-exit-validation-block-component>
+    </div>
+
+    <!-- Block 4: Tickets Table -->
+    <div class="col-12 col-xl-3">
       <app-exit-tickets-table-block-component
         [tickets]="filtered"
         [page]="page"
@@ -116,7 +138,6 @@
         (ticketSelected)="onTicketSelected($event)"
       ></app-exit-tickets-table-block-component>
     </div>
-
   </div>
 
   <!-- Supervisor Login Modal (Global Context Shared) -->

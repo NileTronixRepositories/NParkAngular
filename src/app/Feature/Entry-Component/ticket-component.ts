@@ -12,8 +12,9 @@ import {
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription, timer } from 'rxjs';
+import { Subscription, forkJoin, timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
+import { Router } from '@angular/router';
 
 import {
   TicketDto,
@@ -22,6 +23,7 @@ import {
   IssuedTicketResponse,
   ParkingCardSummaryDto,
   CollectDailyTicketsResponse,
+  MembershipCheckResponse,
 } from '../../Domain/tickets/tickets.model';
 
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
@@ -45,6 +47,20 @@ import { ErrorExtractorService } from '../../Services/Shared/error-extractor.ser
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal-block-component/ticket-details-modal-block-component';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
+import { PricingSchemaDto } from '../../Domain/registration/registration-model';
+import { Registrationservice } from '../../Services/registration/registrationservice';
+import { LocalPrintService } from '../../Services/Print/local-print.service';
+import { environment } from '../../Shared/environment/environment';
+
+type LprMembershipStatus = 'idle' | 'checking' | 'subscriber' | 'non-subscriber' | 'error';
+
+interface EntryVehicleImage {
+  name: string;
+  url: string;
+  safeUrl?: SafeResourceUrl;
+  type: string;
+  file: File;
+}
 
 @Component({
   selector: 'app-ticket-component',
@@ -93,6 +109,9 @@ export class TicketComponent implements OnInit, OnDestroy {
   private readonly errorExtractor = inject(ErrorExtractorService);
   private readonly hubSubscriptions = new Subscription();
   private readonly localHealth = inject(LocalHealthService);
+  private readonly router = inject(Router);
+  private readonly registrationSvc = inject(Registrationservice);
+  private readonly localPrint = inject(LocalPrintService);
 
   startTour(): void {
     this.entryTour.startTour();
@@ -116,6 +135,16 @@ export class TicketComponent implements OnInit, OnDestroy {
   manualLprPlate = '';
   cardNumber = '';
   readonly readingCard = signal(false);
+  private lprMembershipCheckTimer?: ReturnType<typeof setTimeout>;
+  private lastCheckedLprVehicleNumber = '';
+  private readonly lprMembershipCache = new Map<string, MembershipCheckResponse>();
+  private readonly autoCreatedLprVehicleNumbers = new Set<string>();
+  currentLprVehicleNumber: string | null = null;
+  lprMembershipStatus: LprMembershipStatus = 'idle';
+  lprMembershipCardNumber: string | null = null;
+  pricingSchemas: PricingSchemaDto[] = [];
+  pricingSchemasLoading = false;
+  selectedPricingSchemaId = '';
 
   // =======================
   // Card summary (subscriber)
@@ -179,7 +208,8 @@ export class TicketComponent implements OnInit, OnDestroy {
   collecting = false;
 
   totalPriceToday = 0;
-  scannedFile: { name: string; url: string; safeUrl?: any; type: string; bytes: any } | null = null;
+  scannedFile: EntryVehicleImage | null = null;
+  uploadedVehicleImages: EntryVehicleImage[] = [];
 
   // =======================
   // Real-time search
@@ -216,6 +246,10 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
   set cashierConfirming(v: boolean) {
     this.collectingCashierCash = v;
+  }
+
+  get hasVehicleImages(): boolean {
+    return !!this.scannedFile || this.uploadedVehicleImages.length > 0;
   }
 
   get isSupervisor(): boolean {
@@ -312,6 +346,8 @@ export class TicketComponent implements OnInit, OnDestroy {
       actions: 'الإجراءات',
       save: 'حفظ',
       enter_plate_first: 'يرجى إدخال رقم السيارة أولاً',
+      lpr_non_subscriber_manual: 'هذه المركبة غير مشتركة. اضغط إنشاء تذكرة لإصدار تذكرة عادية.',
+      membership_check_failed: 'تعذر التحقق من الاشتراك لهذه المركبة.',
       no_card_for_subscriber: 'لا يوجد رقم كارت لعميل مشترك',
       qr_invalid_warning: 'تم إصدار التذكرة بنجاح، لكن QR code غير صالح.',
       enter_supervisor_creds: 'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر',
@@ -323,6 +359,20 @@ export class TicketComponent implements OnInit, OnDestroy {
       // Search
       search_tickets_placeholder: 'ابحث برقم التذكرة، اللوحة، أو الكارت',
       helpTour: 'شرح الواجهة',
+      supervisor_mode: 'وضع المشرف',
+      lpr_status_checking: 'جار التحقق من الاشتراك...',
+      lpr_status_subscriber: 'تم التعرف على مشترك. سيتم إنشاء التذكرة تلقائيا.',
+      lpr_status_non_subscriber: 'المركبة غير مشتركة. اختر تعريفة ثم أنشئ التذكرة يدويا.',
+      lpr_status_error: 'فشل التحقق من الاشتراك.',
+      pricing_schema: 'التعريفة',
+      select_pricing_schema: 'اختر التعريفة',
+      select_pricing_schema_first: 'يرجى اختيار التعريفة أولا',
+      create_lpr_ticket: 'إنشاء تذكرة LPR',
+      vehicle_images: 'صور المركبة',
+      vehicle_images_optional: 'صور المركبة اختيارية.',
+      vehicle_images_attached: 'تم إرفاق صور المركبة',
+      printing_failed: 'تعذر إرسال أوامر الطباعة إلى خدمة الطابعة المحلية.',
+      printing_sent: 'تم إرسال أوامر الطباعة بنجاح.',
     },
     en: {
       issue_ticket: 'Issue Ticket',
@@ -410,6 +460,9 @@ export class TicketComponent implements OnInit, OnDestroy {
       actions: 'Actions',
       save: 'Save',
       enter_plate_first: 'Please enter vehicle number first',
+      lpr_non_subscriber_manual:
+        'This vehicle is not a subscriber. Click Create Ticket to issue a normal ticket.',
+      membership_check_failed: 'Could not check membership for this vehicle.',
       no_card_for_subscriber: 'No card number for subscriber',
       qr_invalid_warning: 'Ticket issued successfully, but QR code is invalid.',
       enter_supervisor_creds: 'Please enter supervisor username and password',
@@ -420,6 +473,21 @@ export class TicketComponent implements OnInit, OnDestroy {
       // Search
       search_tickets_placeholder: 'Search by ticket, plate, or card number',
       helpTour: 'Help Tour',
+      supervisor_mode: 'Supervisor mode',
+      lpr_status_checking: 'Checking membership...',
+      lpr_status_subscriber: 'Subscriber detected. Creating ticket automatically.',
+      lpr_status_non_subscriber:
+        'Non-subscriber detected. Select a pricing schema and create the ticket manually.',
+      lpr_status_error: 'Membership lookup failed.',
+      pricing_schema: 'Pricing schema',
+      select_pricing_schema: 'Select pricing schema',
+      select_pricing_schema_first: 'Please select a pricing schema first',
+      create_lpr_ticket: 'Create LPR ticket',
+      vehicle_images: 'Vehicle images',
+      vehicle_images_optional: 'Vehicle images are optional.',
+      vehicle_images_attached: 'Vehicle images attached',
+      printing_failed: 'Failed to send print jobs to the local printer service.',
+      printing_sent: 'Print jobs were sent successfully.',
     },
   };
 
@@ -475,11 +543,6 @@ export class TicketComponent implements OnInit, OnDestroy {
     });
     this.toast.success(this.t('scanner_ready') + ': ' + msg.fileName);
 
-    // Cleanup old URL if exists
-    if (this.scannedFile?.url) {
-      URL.revokeObjectURL(this.scannedFile.url);
-    }
-
     try {
       let data: Uint8Array;
       if (typeof msg.bytes === 'string') {
@@ -497,14 +560,20 @@ export class TicketComponent implements OnInit, OnDestroy {
       console.log('TicketComponent: Final data size:', data.length);
       const blob = new Blob([data as any], { type: msg.contentType });
       const rawUrl = URL.createObjectURL(blob);
+      const file = new File([blob], msg.fileName, {
+        type: msg.contentType || 'application/octet-stream',
+      });
 
-      this.scannedFile = {
+      const scannedAttachment: EntryVehicleImage = {
         name: msg.fileName,
         url: rawUrl,
         safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
         type: msg.contentType,
-        bytes: msg.bytes,
+        file,
       };
+
+      this.scannedFile = scannedAttachment;
+      this.uploadedVehicleImages = [...this.uploadedVehicleImages, scannedAttachment];
 
       console.log('TicketComponent: Successfully processed file', {
         name: msg.fileName,
@@ -520,6 +589,16 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    if (this.lprMembershipCheckTimer) {
+      clearTimeout(this.lprMembershipCheckTimer);
+    }
+    this.uploadedVehicleImages.forEach((file) => this.revokeImageUrl(file));
+    if (
+      this.scannedFile &&
+      !this.uploadedVehicleImages.some((file) => file.url === this.scannedFile?.url)
+    ) {
+      this.revokeImageUrl(this.scannedFile);
+    }
     this.hubSubscriptions.unsubscribe();
   }
 
@@ -538,17 +617,17 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.cashierToken = this.auth.token;
     this.gatePeripheral = this.auth.getGateData();
 
-    if (this.gatePeripheral || !this.auth.isLoggedIn()) return;
+    // If not logged in, don't redirect
+    if (!this.auth.isLoggedIn()) return;
 
-    this.auth.checkGate().subscribe({
-      next: (res) => {
-        this.gatePeripheral = res?.gateDevicePeripheral ?? this.auth.getGateData();
-      },
-      error: (err) => {
-        this.handleBackendError('CheckGate error', err);
-        this.gatePeripheral = this.auth.getGateData();
-      },
-    });
+    // If no gate selected, redirect to gate selection page
+    if (!this.gatePeripheral) {
+      this.toast.warn(
+        this.i18n.current === 'ar' ? 'يرجى اختيار بوابة أولاً' : 'Please select a gate first',
+      );
+      this.router.navigate(['/gate-selection']);
+      return;
+    }
   }
 
   // =======================
@@ -629,35 +708,111 @@ export class TicketComponent implements OnInit, OnDestroy {
   // =======================
   // Create ticket (Normal / Subscriber)
   // =======================
+  onManualLprPlateChange(value: string): void {
+    this.manualLprPlate = value;
+
+    const vehicleNumber = this.normalizeVehicleNumber(value);
+    if (this.lprMembershipCheckTimer) {
+      clearTimeout(this.lprMembershipCheckTimer);
+    }
+
+    this.currentLprVehicleNumber = vehicleNumber || null;
+
+    if (vehicleNumber.length < 3) {
+      this.resetLprLookupState(vehicleNumber || null);
+      this.lastCheckedLprVehicleNumber = '';
+      return;
+    }
+
+    this.resetLprLookupState(vehicleNumber);
+
+    this.lprMembershipCheckTimer = setTimeout(() => {
+      const currentVehicleNumber = this.normalizeVehicleNumber(this.manualLprPlate);
+      if (
+        !currentVehicleNumber ||
+        currentVehicleNumber !== vehicleNumber ||
+        currentVehicleNumber === this.lastCheckedLprVehicleNumber
+      ) {
+        return;
+      }
+
+      this.checkCurrentLprMembership(true);
+    }, 650);
+  }
+
+  onManualLprPlateBlur(): void {
+    this.checkCurrentLprMembership(true);
+  }
+
+  async onVehicleImagesSelected(files: FileList | null): Promise<void> {
+    if (!files?.length) return;
+
+    const uploaded: EntryVehicleImage[] = [];
+
+    for (const file of Array.from(files)) {
+      const rawUrl = URL.createObjectURL(file);
+      uploaded.push({
+        name: file.name,
+        url: rawUrl,
+        safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
+        type: file.type || 'application/octet-stream',
+        file,
+      });
+    }
+
+    this.uploadedVehicleImages = [...this.uploadedVehicleImages, ...uploaded];
+    this.scannedFile = uploaded[uploaded.length - 1] ?? this.scannedFile;
+  }
+
+  removeVehicleImage(index: number): void {
+    if (index < 0 || index >= this.uploadedVehicleImages.length) return;
+
+    const removed = this.uploadedVehicleImages[index];
+    this.uploadedVehicleImages = this.uploadedVehicleImages.filter((_, i) => i !== index);
+
+    if (this.scannedFile?.url === removed?.url) {
+      this.scannedFile = this.findLastScannedAttachment();
+    }
+
+    this.revokeImageUrl(removed);
+  }
+
+  selectVehicleImagePreview(index: number): void {
+    if (index < 0 || index >= this.uploadedVehicleImages.length) return;
+    this.scannedFile = this.uploadedVehicleImages[index];
+  }
+
   createTicket(vehicleNumber?: string): void {
     if (this.adding) return;
 
-    const trimmed = vehicleNumber?.trim();
-    if (vehicleNumber !== undefined && !trimmed) {
+    const normalizedVehicleNumber =
+      vehicleNumber !== undefined
+        ? this.normalizeVehicleNumber(vehicleNumber)
+        : (this.currentLprVehicleNumber ?? undefined);
+
+    if (vehicleNumber !== undefined && !normalizedVehicleNumber) {
       this.toast.warn(this.t('enter_plate_first'));
       return;
     }
 
-    this.prepareNewTicketState();
-    this.lastIssuedVehicleNumber = trimmed ?? null;
+    if (normalizedVehicleNumber) {
+      this.currentLprVehicleNumber = normalizedVehicleNumber;
 
-    const payload = {
-      isSubscriber: false,
-      vehicleNumber: trimmed,
-      scannedFile: this.scannedFile?.bytes,
-    };
-    console.log('CREATING TICKET PAYLOAD:', payload);
+      const cachedMembership = this.lprMembershipCache.get(normalizedVehicleNumber);
 
-    this.ticketsSvc.addTicket(payload).subscribe({
-      next: (res) => this.handleIssuedTicketResponse(res),
-      error: (e) => {
-        this.handleBackendError('AddTicket (normal) error', e);
-        this.adding = false;
-      },
-      complete: () => {
-        this.adding = false;
-      },
-    });
+      if (cachedMembership) {
+        this.applyLprMembershipResult(normalizedVehicleNumber, cachedMembership, false);
+        if (!cachedMembership.isExist) {
+          this.createNonSubscriberLprTicket(normalizedVehicleNumber);
+        }
+        return;
+      }
+
+      this.checkLprMembership(normalizedVehicleNumber, false);
+      return;
+    }
+
+    this.createNormalTicket();
   }
 
   createSubscriberTicket(): void {
@@ -669,13 +824,242 @@ export class TicketComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.prepareNewTicketState();
-    this.lastIssuedVehicleNumber = this.cardSummary?.vehicleNumber?.trim() ?? null;
+    this.createSubscriberTicketWithPayload({
+      cardNumber: card,
+      vehicleNumber: this.cardSummary?.vehicleNumber?.trim() || undefined,
+    });
+  }
+
+  private checkCurrentLprMembership(autoCreateSubscriber: boolean): void {
+    const vehicleNumber = this.normalizeVehicleNumber(this.manualLprPlate);
+    if (vehicleNumber.length < 3) return;
+
+    this.currentLprVehicleNumber = vehicleNumber;
+
+    const cachedMembership = this.lprMembershipCache.get(vehicleNumber);
+    if (cachedMembership) {
+      this.applyLprMembershipResult(vehicleNumber, cachedMembership, autoCreateSubscriber);
+      return;
+    }
+
+    this.checkLprMembership(vehicleNumber, autoCreateSubscriber);
+  }
+
+  private checkLprMembership(vehicleNumber: string, autoCreateSubscriber: boolean): void {
+    this.lastCheckedLprVehicleNumber = vehicleNumber;
+    this.currentLprVehicleNumber = vehicleNumber;
+    this.lprMembershipStatus = 'checking';
+    this.lprMembershipCardNumber = null;
+
+    this.ticketsSvc.isMembership(vehicleNumber).subscribe({
+      next: (membership) => {
+        this.lprMembershipCache.set(vehicleNumber, membership);
+        this.applyLprMembershipResult(vehicleNumber, membership, autoCreateSubscriber);
+      },
+      error: (err) => {
+        this.handleBackendError('IsMemberShip error', err);
+        this.lprMembershipStatus = 'error';
+        this.lprMembershipCardNumber = null;
+        this.toast.warn(this.t('membership_check_failed'));
+      },
+    });
+  }
+
+  private applyLprMembershipResult(
+    vehicleNumber: string,
+    membership: MembershipCheckResponse,
+    autoCreateSubscriber: boolean,
+  ): void {
+    this.currentLprVehicleNumber = vehicleNumber;
+    const cardNumber = this.getMembershipCardNumber(membership);
+
+    if (membership.isExist) {
+      this.lprMembershipStatus = 'subscriber';
+      this.lprMembershipCardNumber = cardNumber;
+      this.selectedPricingSchemaId = '';
+
+      if (cardNumber) {
+        this.cardNumber = cardNumber;
+      }
+      if (membership.summary) {
+        this.cardSummary = membership.summary;
+      }
+
+      if (autoCreateSubscriber) {
+        if (this.autoCreatedLprVehicleNumbers.has(vehicleNumber)) return;
+        this.autoCreatedLprVehicleNumbers.add(vehicleNumber);
+        setTimeout(() => this.autoCreatedLprVehicleNumbers.delete(vehicleNumber), 10000);
+      }
+
+      this.createSubscriberTicketForVehicle(vehicleNumber, membership);
+      return;
+    }
+
+    this.lprMembershipStatus = 'non-subscriber';
+    this.lprMembershipCardNumber = null;
+    this.cardSummary = null;
+    this.cardNumber = '';
+    this.ensurePricingSchemasLoaded();
+
+    if (autoCreateSubscriber) {
+      this.toast.warn(this.t('lpr_non_subscriber_manual'));
+    }
+  }
+
+  private ensurePricingSchemasLoaded(): void {
+    if (this.pricingSchemasLoading || this.pricingSchemas.length) return;
+
+    this.pricingSchemasLoading = true;
+
+    this.registrationSvc.getAll().subscribe({
+      next: (schemas) => {
+        this.pricingSchemas = (schemas ?? []).map((schema: any) => ({
+          id: schema.id ?? schema.Id ?? '',
+          name: schema.name ?? schema.Name ?? '',
+          description: schema.description ?? schema.Description ?? null,
+        }));
+      },
+      error: (err) => {
+        this.handleBackendError('Get Pricing Schemas error', err);
+      },
+      complete: () => {
+        this.pricingSchemasLoading = false;
+      },
+    });
+  }
+
+  private createNonSubscriberLprTicket(vehicleNumber?: string): void {
+    const normalizedVehicleNumber = vehicleNumber
+      ? this.normalizeVehicleNumber(vehicleNumber)
+      : this.currentLprVehicleNumber;
+
+    if (!normalizedVehicleNumber) {
+      this.toast.warn(this.t('enter_plate_first'));
+      return;
+    }
+
+    const pricingSchemaId = this.selectedPricingSchemaId?.trim();
+    if (!pricingSchemaId) {
+      this.ensurePricingSchemasLoaded();
+      this.toast.warn(this.t('select_pricing_schema_first'));
+      this.lprMembershipStatus = 'non-subscriber';
+      return;
+    }
+
+    this.createNormalTicket(normalizedVehicleNumber, false, pricingSchemaId);
+  }
+
+  private createNormalTicket(
+    vehicleNumber?: string,
+    statePrepared = false,
+    pricingSchemaId?: string,
+  ): void {
+    if (!statePrepared) {
+      if (this.adding) return;
+      this.prepareNewTicketState();
+    }
+
+    const normalizedVehicleNumber = vehicleNumber
+      ? this.normalizeVehicleNumber(vehicleNumber)
+      : undefined;
+
+    this.lastIssuedVehicleNumber = normalizedVehicleNumber ?? null;
+    const vehicleImages = this.getVehicleImagePayloads();
+
+    const payload = {
+      isSubscriber: false,
+      vehicleNumber: normalizedVehicleNumber,
+      pricingSchemaId,
+      vehicleImages,
+    };
+    console.log('CREATING TICKET PAYLOAD:', payload);
+
+    this.ticketsSvc.addTicket(payload).subscribe({
+      next: (res) => this.handleIssuedTicketResponse(res),
+      error: (e) => {
+        this.handleBackendError('AddTicket (normal) error', e);
+        this.adding = false;
+      },
+    });
+  }
+
+  private createSubscriberTicketForVehicle(
+    vehicleNumber: string,
+    membership: MembershipCheckResponse,
+    statePrepared = false,
+  ): void {
+    const card = this.getMembershipCardNumber(membership);
+    if (!card) {
+      this.loadSubscriberCardThenCreateTicket(vehicleNumber, statePrepared);
+      return;
+    }
+
+    this.cardNumber = card;
+    this.cardSummary = membership.summary ?? this.cardSummary;
+
+    this.createSubscriberTicketWithPayload(
+      {
+        cardNumber: card,
+        vehicleNumber,
+      },
+      statePrepared,
+    );
+  }
+
+  private loadSubscriberCardThenCreateTicket(vehicleNumber: string, statePrepared: boolean): void {
+    if (!statePrepared) {
+      if (this.adding) return;
+      this.prepareNewTicketState();
+    }
+
+    this.ticketsSvc.getCardSummaryByVehicleNumber(vehicleNumber).subscribe({
+      next: (summary) => {
+        const card = summary?.cardNumber ?? (summary as any)?.CardNumber ?? null;
+        if (!card) {
+          this.toast.warn(this.t('no_card_for_subscriber'));
+          this.adding = false;
+          return;
+        }
+
+        this.cardNumber = String(card).trim();
+        this.cardSummary = summary;
+
+        this.createSubscriberTicketWithPayload(
+          {
+            cardNumber: this.cardNumber,
+            vehicleNumber,
+          },
+          true,
+        );
+      },
+      error: (err) => {
+        this.handleBackendError('GetCardSummary by vehicle number error', err);
+        this.adding = false;
+      },
+    });
+  }
+
+  private createSubscriberTicketWithPayload(
+    data: { cardNumber: string; vehicleNumber?: string },
+    statePrepared = false,
+  ): void {
+    if (!statePrepared) {
+      if (this.adding) return;
+      this.prepareNewTicketState();
+    }
+
+    const normalizedVehicleNumber = data.vehicleNumber
+      ? this.normalizeVehicleNumber(data.vehicleNumber)
+      : undefined;
+
+    this.lastIssuedVehicleNumber = normalizedVehicleNumber ?? null;
+    const vehicleImages = this.getVehicleImagePayloads();
 
     const payload = {
       isSubscriber: true,
-      cardNumber: card,
-      scannedFile: this.scannedFile?.bytes,
+      vehicleNumber: normalizedVehicleNumber,
+      cardNumber: data.cardNumber,
+      vehicleImages,
     };
     console.log('CREATING SUBSCRIBER TICKET PAYLOAD:', payload);
 
@@ -685,10 +1069,55 @@ export class TicketComponent implements OnInit, OnDestroy {
         this.handleBackendError('AddTicket (subscriber) error', e);
         this.adding = false;
       },
-      complete: () => {
-        this.adding = false;
-      },
     });
+  }
+
+  private getMembershipCardNumber(membership: MembershipCheckResponse): string | null {
+    const card =
+      membership.cardNumber ??
+      (membership.summary as any)?.cardNumber ??
+      (membership.summary as any)?.CardNumber ??
+      null;
+
+    return card ? String(card).trim() : null;
+  }
+
+  private normalizeVehicleNumber(value: string | undefined | null): string {
+    return (value ?? '').replace(/\s+/g, '').trim().toUpperCase();
+  }
+
+  private resetLprLookupState(vehicleNumber: string | null): void {
+    this.currentLprVehicleNumber = vehicleNumber;
+    this.lprMembershipStatus = 'idle';
+    this.lprMembershipCardNumber = null;
+    this.selectedPricingSchemaId = '';
+  }
+
+  private getVehicleImagePayloads(): File[] {
+    if (this.uploadedVehicleImages.length) {
+      return this.uploadedVehicleImages
+        .map((file) => file.file)
+        .filter((file): file is File => !!file);
+    }
+
+    return [this.scannedFile?.file ?? null].filter((file): file is File => !!file);
+  }
+
+  private revokeImageUrl(file: EntryVehicleImage | null | undefined): void {
+    if (file?.url?.startsWith('blob:')) {
+      URL.revokeObjectURL(file.url);
+    }
+  }
+
+  private findLastScannedAttachment(): EntryVehicleImage | null {
+    for (let i = this.uploadedVehicleImages.length - 1; i >= 0; i--) {
+      const file = this.uploadedVehicleImages[i];
+      if (file?.url?.startsWith('blob:')) {
+        return file;
+      }
+    }
+
+    return null;
   }
 
   private prepareNewTicketState(): void {
@@ -703,11 +1132,26 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   private handleIssuedTicketResponse(res: IssuedTicketResponse | null): void {
-    this.adding = false;
-    if (!res) return;
+    if (!res) {
+      this.adding = false;
+      return;
+    }
 
-    // Clear scanned file state
+    this.uploadedVehicleImages.forEach((file) => this.revokeImageUrl(file));
+    if (
+      this.scannedFile &&
+      !this.uploadedVehicleImages.some((file) => file.url === this.scannedFile?.url)
+    ) {
+      this.revokeImageUrl(this.scannedFile);
+    }
     this.scannedFile = null;
+    this.uploadedVehicleImages = [];
+    this.selectedPricingSchemaId = '';
+    this.lprMembershipStatus = 'idle';
+    this.lprMembershipCardNumber = null;
+    this.currentLprVehicleNumber = null;
+    this.manualLprPlate = '';
+    this.lastCheckedLprVehicleNumber = '';
 
     this.lastIssuedTicketId = res.ticketId ?? null;
     this.lastIssuedTicketInfo = res.ticketInfo ?? null;
@@ -717,8 +1161,6 @@ export class TicketComponent implements OnInit, OnDestroy {
     const fromResponse: string | undefined = (res as any)?.vehicleNumber;
     if (fromResponse && fromResponse.trim().length > 0) {
       this.lastIssuedVehicleNumber = fromResponse.trim();
-    } else {
-      this.lastIssuedVehicleNumber = null;
     }
 
     const normalizedQr = this.normalizeQrImage(res.qrCode);
@@ -730,24 +1172,39 @@ export class TicketComponent implements OnInit, OnDestroy {
       this.currentIssuedQrType = null;
 
       // هنا الرسالة محلية لأنها حالة خاصة (API رجع قيمة غير قابلة للاستخدام)
-      this.toast.error(this.t('qr_invalid_warning'));
-
-      this.loadTicketsForEntry();
-      return;
     }
 
-    this.currentIssuedQr = normalizedQr;
-    this.currentIssuedQrType = 'image';
+    if (normalizedQr) {
+      this.currentIssuedQr = normalizedQr;
+      this.currentIssuedQrType = 'image';
+    }
+
+    this.finalizeIssuedTicketAfterCreate();
+  }
+
+  private finalizeIssuedTicketAfterCreate(): void {
+    this._cashierCollected = true;
+
+    if (this.lastIssuedTicketId) {
+      this.markTicketAsCashierCollected(this.lastIssuedTicketId);
+    }
 
     this.toast.success(this.t('create_ticket'));
-    this.printTicket();
+
+    if (!this.currentIssuedQr) {
+      this.toast.error(this.t('qr_invalid_warning'));
+    } else {
+      this.printTicketDocuments();
+    }
+
     this.loadTicketsForEntry();
+    this.adding = false;
   }
 
   // =======================
   // Printing
   // =======================
-  printTicket(): void {
+  printTicketDocuments(): void {
     if (!this.currentIssuedQr) return;
 
     const imgSrc =
@@ -755,24 +1212,54 @@ export class TicketComponent implements OnInit, OnDestroy {
         ? this.currentIssuedQr
         : this.qrDataUrl(this.currentIssuedQr);
 
-    const popup = window.open('', '_blank', 'width=400,height=600');
-    if (!popup) return;
-
     const createdAtText = this.buildCreatedAtText();
     const gateNumber = this.gatePeripheral?.gateNumber ?? '—';
+    const isExit = this.gatePeripheral?.gateType === GateType.Exit;
+    const dateTimeLabel = isExit ? 'تاريخ الخروج:' : 'تاريخ الدخول:';
 
-    const html = this.buildTicketPrintHtml({
+    const qrTicketHtml = this.buildQrTicketPrintHtml({
       imgSrc,
       createdAt: createdAtText,
       gateNumber,
       ticketInfo: this.lastIssuedTicketInfo,
-      price: this.lastIssuedPrice,
-      vehicleNumber: this.lastIssuedVehicleNumber,
+      dateTimeLabel: dateTimeLabel,
     });
 
-    popup.document.open();
-    popup.document.write(html);
-    popup.document.close();
+    const feesTicketHtml = this.buildFeesTicketPrintHtml({
+      createdAt: createdAtText,
+      gateNumber,
+      ticketInfo: this.lastIssuedTicketInfo,
+      vehicleNumber: this.lastIssuedVehicleNumber,
+      price: this.lastIssuedPrice,
+      dateTimeLabel: dateTimeLabel,
+    });
+
+    this.printHtmlNative(qrTicketHtml, feesTicketHtml);
+  }
+
+  private printHtmlNative(qrHtml: string, feesHtml: string): void {
+    const qrJob = {
+      printerName: environment.qrPrinterName,
+      htmlContent: qrHtml,
+      jobName: `QR-Ticket-${this.lastIssuedTicketId ?? 'unknown'}`,
+    };
+
+    const feesJob = {
+      printerName: environment.receiptPrinterName,
+      htmlContent: feesHtml,
+      jobName: `Receipt-Ticket-${this.lastIssuedTicketId ?? 'unknown'}`,
+    };
+
+    forkJoin([this.localPrint.printHtml(qrJob), this.localPrint.printHtml(feesJob)]).subscribe({
+      next: () => {
+        this.toast.success(this.t('printing_sent'));
+        this.resetIssuedTicketOutput();
+      },
+      error: (err) => {
+        console.error('[printHtmlNative] Print jobs failed', err);
+        this.toast.error(this.t('printing_failed'));
+      },
+    });
   }
 
   private buildCreatedAtText(): string {
@@ -787,50 +1274,18 @@ export class TicketComponent implements OnInit, OnDestroy {
     });
   }
 
-  private buildTicketPrintHtml(opts: {
+  private buildQrTicketPrintHtml(opts: {
     imgSrc: string;
     createdAt: string;
     gateNumber: string | number;
     ticketInfo: string | null;
-    price: number | null;
-    vehicleNumber: string | null;
+    dateTimeLabel: string;
   }): string {
-    const ticketIdBlock = this.lastIssuedTicketId
-      ? `
-      <div class="ticket-id">
-        رقم التذكرة: ${opts.ticketInfo}
-      </div>`
-      : '';
-
-    const priceRow =
-      opts.price !== null && opts.price !== undefined
-        ? `
-        <div class="info-row">
-          <span class="label">الرسوم:</span>
-          <span class="value price">${opts.price} ج.م</span>
-        </div>`
-        : '';
-
-    const vehicleRow = opts.vehicleNumber
-      ? `
-      <div class="info-row">
-        <span class="label">رقم السيارة:</span>
-        <span class="value">${opts.vehicleNumber}</span>
-      </div>`
-      : '';
-
-    const extraInfo = opts.ticketInfo
-      ? `
-      <div class="extra-info">
-        ${opts.ticketInfo}
-      </div>`
-      : '';
-
     return `
     <html dir="rtl" lang="ar">
       <head>
         <meta charset="utf-8" />
-        <title>NPark</title>
+        <title>NPark QR Ticket</title>
         <style>
           * {
             box-sizing: border-box;
@@ -839,163 +1294,314 @@ export class TicketComponent implements OnInit, OnDestroy {
           }
 
           @page {
-            size: 80mm 50mm;
             margin: 0;
+            size: 80mm auto;
           }
 
           body {
             margin: 0;
-            padding: 2mm;
-            font-family: Arial, sans-serif;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
             direction: rtl;
+            width: 80mm;
+            color: #000;
+            background: #fff;
+            font-weight: 900;
+            overflow: hidden;
           }
 
-          .wrap {
-            width: 76mm;
-            height: 46mm;
+          .rotation-wrapper {
+            width: 80mm;
+            padding: 2mm;
+            transform: rotate(90deg);
+            transform-origin: top left;
+            position: absolute;
+            top: 0;
+            left: 80mm; /* Move it back into view after rotation */
+            height: 80mm;
             display: flex;
-            flex-direction: row;
-            justify-content: space-between;
-            align-items: stretch;
+            align-items: center;
+            justify-content: center;
           }
 
-          .info-side {
-            flex: 1;
-            max-width: 42mm;
-            display: flex;
-            flex-direction: column;
-            justify-content: flex-start;
-            padding-inline-end: 1.5mm;
-          }
-
-          .info-top {
+          .ticket-wrapper {
+            width: 76mm; 
+            border: 0.6mm solid #000;
+            padding: 2mm;
             display: flex;
             flex-direction: column;
             gap: 1mm;
           }
 
-          .header-title {
-            font-size: 11px;
-            font-weight: bold;
-            color: #000;
-            text-align: center;
-            margin-bottom: 1mm;
-          }
-
-          .ticket-id {
-            width: 100%;
-            text-align: center;
-            font-size: 9px;
-            font-weight: bold;
-            color: #000;
-            padding: 1mm;
-            background: #f0f0f0;
-            border-radius: 1mm;
-          }
-
-          .info-section {
-            width: 100%;
-            border: 0.3mm solid #000;
-            border-radius: 1mm;
-            padding: 1mm 1.5mm;
-            background: #fff;
-            margin-top: 1mm;
-          }
-
-          .info-row {
+          .header-line {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 8.2px;
-            padding: 0.35mm 0;
+            font-size: 14px;
+            border-bottom: 0.3mm dashed #000;
+            padding-bottom: 1.5mm;
+            margin-bottom: 1mm;
+          }
+
+          .main-row {
+            display: flex;
+            width: 100%;
+            gap: 2mm;
+            align-items: center;
+            justify-content: space-between;
+          }
+
+          .info-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5mm;
+          }
+
+          .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
           }
 
           .label {
-            font-weight: 600;
-            color: #000;
+            white-space: nowrap;
           }
 
           .value {
-            font-weight: 700;
-            color: #000;
-          }
-
-          .price {
-            font-size: 8.5px;
-          }
-
-          .extra-info {
-            font-size: 8px;
-            color: #000;
-            text-align: center;
-            font-weight: bold;
-            margin-top: 1mm;
-          }
-
-          .footer-link {
-            margin-top: 2mm;
-            font-size: 9.5px;
-            color: #000;
-            font-weight: bold;
-            text-align: center;
+            text-align: left;
+            direction: ltr;
+            font-size: 13px;
           }
 
           .qr-side {
-            width: 30mm;
+            width: 32mm;
+            height: 32mm;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
           }
 
-          .qr-container {
-            width: 28mm;
-            height: 28mm;
-          }
-
-          .qr-container img {
+          .qr-side img {
             width: 100%;
             height: 100%;
             display: block;
           }
 
-          @media print {
-            body {
-              padding: 1mm;
-            }
+          .footer-line {
+            text-align: center;
+            font-size: 10px;
+            border-top: 0.3mm dashed #000;
+            padding-top: 1mm;
+            margin-top: 1mm;
           }
         </style>
       </head>
-      <body onload="window.print(); window.close();">
-        <div class="wrap">
-          <div class="info-side">
-            <div class="info-top">
-              ${ticketIdBlock}
-              <div class="info-section">
-                ${priceRow}
-                <div class="info-row">
-                  <span class="label">التاريخ والوقت:</span>
+      <body>
+        <div class="rotation-wrapper">
+          <div class="ticket-wrapper">
+            <div class="header-line">
+              <span>رقم التذكرة:</span>
+              <span style="direction: ltr;">${opts.ticketInfo || '---'}</span>
+            </div>
+
+            <div class="main-row">
+              <div class="info-side">
+                <div class="info-item">
+                  <span class="label">${opts.dateTimeLabel}</span>
                   <span class="value">${opts.createdAt}</span>
                 </div>
-                ${vehicleRow}
-                <div class="info-row">
+                <div class="info-item">
                   <span class="label">رقم البوابة:</span>
                   <span class="value">${opts.gateNumber}</span>
                 </div>
               </div>
-              ${extraInfo}
-            </div>
-            <div class="footer-link">www.niletronix.com</div>
-          </div>
 
-          <div class="qr-side">
-            <div class="qr-container">
-              <img src="${opts.imgSrc}" alt="QR Code" />
+              <div class="qr-side">
+                <img src="${opts.imgSrc}" alt="QR" />
+              </div>
+            </div>
+
+            <div class="footer-line">
+              <div>www.niletronix.com</div>
             </div>
           </div>
         </div>
       </body>
     </html>`;
+  }
+
+  private buildFeesTicketPrintHtml(opts: {
+    createdAt: string;
+    gateNumber: string | number;
+    ticketInfo: string | null;
+    vehicleNumber: string | null;
+    price: number | null;
+    dateTimeLabel: string;
+  }): string {
+    const priceText = opts.price !== null && opts.price !== undefined ? `${opts.price} ج.م` : '---';
+
+    return `
+    <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="utf-8" />
+        <title>NPark Payment Receipt</title>
+        <style>
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+          }
+
+          @page {
+            margin: 0;
+            size: 80mm auto;
+          }
+
+          body {
+            margin: 0;
+            padding: 1mm;
+            font-family: 'Arial', sans-serif;
+            direction: rtl;
+            width: 80mm;
+            font-weight: 900;
+          }
+
+          .receipt-wrap {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5mm;
+            border: 0.8mm solid #000;
+            padding: 2mm;
+            border-radius: 1.5mm;
+          }
+
+          .receipt-header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 1.5mm;
+          }
+
+          .receipt-title {
+            font-size: 20px;
+            font-weight: 900;
+            color: #000;
+          }
+
+          .receipt-subtitle {
+            font-size: 13px;
+            font-weight: 900;
+            margin-top: 0.5mm;
+          }
+
+          .receipt-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1mm;
+          }
+
+          .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 14px;
+            padding: 1mm 0;
+            border-bottom: 0.2mm solid #000;
+          }
+
+          .receipt-row:last-child {
+            border-bottom: none;
+          }
+
+          .receipt-label {
+            font-weight: bold;
+          }
+
+          .receipt-value {
+            font-weight: 900;
+          }
+
+          .total-section {
+            margin-top: 1mm;
+            background: #f0f0f0;
+            padding: 2mm;
+            border-radius: 1mm;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border: 0.6mm solid #000;
+          }
+
+          .total-label {
+            font-size: 16px;
+            font-weight: 900;
+          }
+
+          .total-value {
+            font-size: 20px;
+            font-weight: 900;
+          }
+
+          .receipt-footer {
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 1mm;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt-wrap">
+          <div class="receipt-header">
+            <div class="receipt-title">إيصال دفع</div>
+            <div class="receipt-subtitle">NPark Management System</div>
+          </div>
+          
+          <div class="receipt-body">
+            <div class="receipt-row">
+              <span class="receipt-label">رقم التذكرة:</span>
+              <span class="receipt-value">${opts.ticketInfo ?? '---'}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">رقم السيارة:</span>
+              <span class="receipt-value">${opts.vehicleNumber ?? '---'}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">رقم البوابة:</span>
+              <span class="receipt-value">${opts.gateNumber}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">${opts.dateTimeLabel}</span>
+              <span class="receipt-value" style="direction: ltr;">${opts.createdAt}</span>
+            </div>
+          </div>
+
+          <div class="total-section">
+            <span class="total-label">الإجمالي:</span>
+            <span class="total-value">${priceText}</span>
+          </div>
+
+          <div class="receipt-footer">
+            شكراً لزيارتكم<br>
+            www.niletronix.com
+          </div>
+        </div>
+      </body>
+    </html>`;
+  }
+
+  private resetIssuedTicketOutput(): void {
+    this.currentIssuedQr = null;
+    this.currentIssuedQrType = null;
+    this.lastIssuedTicketId = null;
+    this.lastIssuedTicketInfo = null;
+    this.lastIssuedPrice = null;
+    this.lastIssuedCreatedAt = null;
+    this.lastIssuedVehicleNumber = null;
+    this._cashierCollected = false;
+    this.collectingCashierCash = false;
   }
 
   qrDataUrl(text: string): string {
@@ -1157,25 +1763,8 @@ export class TicketComponent implements OnInit, OnDestroy {
   // Collect from table
   // =======================
   collectTicketFromTable(ticketId: string): void {
-    if (this.collectingTicketId) return;
-
-    this.collectingTicketId = ticketId;
-
-    this.ticketsSvc.collectCashier(ticketId).subscribe({
-      next: (ok) => {
-        if (ok) {
-          this.markTicketAsCashierCollected(ticketId);
-          this.loadTicketsForEntry();
-        }
-      },
-      error: (err) => {
-        this.handleBackendError('collectTicketFromTable error', err);
-        this.collectingTicketId = null;
-      },
-      complete: () => {
-        this.collectingTicketId = null;
-      },
-    });
+    // Backend removed /Ticket/CollectCashier for entry cashier flow.
+    this.markTicketAsCashierCollected(ticketId);
   }
 
   // =======================
@@ -1262,29 +1851,13 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   confirmCashierCollection(): void {
-    if (!this.lastIssuedTicketId || this._cashierCollected || this.collectingCashierCash) {
+    if (!this.lastIssuedTicketId || this._cashierCollected) {
       return;
     }
 
-    this.collectingCashierCash = true;
-
-    this.ticketsSvc.collectCashier(String(this.lastIssuedTicketId)).subscribe({
-      next: (ok) => {
-        if (ok) {
-          this._cashierCollected = true;
-          this.markTicketAsCashierCollected(this.lastIssuedTicketId!);
-          this.toast.success(this.t('cashier_collected'));
-          this.loadTicketsForEntry();
-        }
-      },
-      error: (err) => {
-        this.handleBackendError('confirmCashierCollection error', err);
-        this.collectingCashierCash = false;
-      },
-      complete: () => {
-        this.collectingCashierCash = false;
-      },
-    });
+    // Backend removed /Ticket/CollectCashier for entry cashier flow.
+    this._cashierCollected = true;
+    this.markTicketAsCashierCollected(this.lastIssuedTicketId);
   }
 
   // =======================

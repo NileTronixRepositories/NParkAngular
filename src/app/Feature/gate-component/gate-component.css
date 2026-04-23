@@ -27,3 +27,95 @@
   max-height: 60vh;
   overflow-y: auto;
 }
+
+/* ===== Compact Gate Selection Styles ===== */
+.gate-selection-container {
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+/* Compact Cards */
+.gate-card-compact {
+  transition: all 0.2s ease;
+  border: 1.5px solid #dee2e6;
+  cursor: pointer;
+  border-radius: 8px;
+}
+
+.gate-card-compact:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.gate-card-compact.border-success {
+  border-color: #198754 !important;
+  box-shadow: 0 0 0 3px rgba(25, 135, 84, 0.15);
+}
+
+.gate-card-compact.border-danger {
+  border-color: #dc3545 !important;
+  box-shadow: 0 0 0 3px rgba(220, 53, 69, 0.15);
+}
+
+.gate-card-compact.bg-success-subtle {
+  background-color: rgba(25, 135, 84, 0.08) !important;
+}
+
+.gate-card-compact.bg-danger-subtle {
+  background-color: rgba(220, 53, 69, 0.08) !important;
+}
+
+/* Compact Icon */
+.gate-icon-compact {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  border-radius: 50%;
+  font-size: 1.25rem;
+}
+
+.gate-card-compact:hover .gate-icon-compact {
+  transform: scale(1.05);
+}
+
+/* Gate Name - Compact */
+.gate-name-compact {
+  font-size: 0.875rem;
+  line-height: 1.2;
+  margin-bottom: 0.25rem;
+}
+
+/* Smaller Badge */
+.fs-8 {
+  font-size: 0.65rem !important;
+  padding: 0.15em 0.4em;
+}
+
+/* Compact Alert */
+.alert-compact {
+  font-size: 0.875rem;
+  margin-bottom: 0.5rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .gate-card-compact {
+    margin-bottom: 0.5rem;
+  }
+
+  .gate-icon-compact {
+    width: 36px;
+    height: 36px;
+    font-size: 1.1rem;
+  }
+}
+
+@media (min-width: 1400px) {
+  .gate-selection-container {
+    max-width: 1600px;
+  }
+}

@@ -3,6 +3,8 @@ import { ParkingCardSummaryDto } from '../../../Domain/tickets/tickets.model';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
+type LprMembershipStatus = 'idle' | 'checking' | 'subscriber' | 'non-subscriber' | 'error';
+
 @Component({
   selector: 'app-issue-ticket-block-component',
   standalone: true,
@@ -18,6 +20,13 @@ export class IssueTicketBlockComponent {
   @Input() cardSummary: ParkingCardSummaryDto | null = null;
   @Input() adding = false;
   @Input() readingCard = false;
+  @Input() lprVehicleNumber: string | null = null;
+  @Input() lprMembershipStatus: LprMembershipStatus = 'idle';
+  @Input() lprCardNumber: string | null = null;
+  @Input() selectedPricingSchemaId = '';
+  @Input() pricingSchemas: { id: string; name: string; description?: string | null }[] = [];
+  @Input() pricingSchemasLoading = false;
+  @Input() hasVehicleImages = false;
 
   @Input() currentIssuedQr: string | null = null;
   @Input() currentIssuedQrType: 'image' | 'text' | null = null;
@@ -36,6 +45,7 @@ export class IssueTicketBlockComponent {
   @Output() createSubscriberTicketClicked = new EventEmitter<void>();
   @Output() confirmCashierClicked = new EventEmitter<void>();
   @Output() clearCardSummaryClicked = new EventEmitter<Event>();
+  @Output() selectedPricingSchemaIdChange = new EventEmitter<string>();
 
   get card(): string {
     return this.cardNumber;
@@ -75,5 +85,9 @@ export class IssueTicketBlockComponent {
 
   onCardNumberChange(value: string): void {
     this.cardNumberChange.emit(value);
+  }
+
+  onPricingSchemaChange(value: string): void {
+    this.selectedPricingSchemaIdChange.emit(value);
   }
 }

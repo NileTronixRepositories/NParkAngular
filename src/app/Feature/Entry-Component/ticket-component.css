@@ -23,7 +23,46 @@
 .tickets-theme .shadow-soft {
   box-shadow: var(--ticket-shadow-soft);
   border: 0;
-  border-radius: var(--ticket-radius);
+  border-radius: 10px;
+}
+
+.tickets-theme {
+  font-size: 0.82rem;
+}
+
+.tickets-theme .card {
+  border-radius: 10px;
+}
+
+.tickets-theme .card-body {
+  padding: 0.55rem;
+}
+
+.tickets-theme .card-header,
+.tickets-theme .card-footer {
+  padding: 0.45rem 0.65rem;
+}
+
+.tickets-theme .card-header h5,
+.tickets-theme .card-header h6 {
+  font-size: 0.78rem;
+}
+
+.tickets-theme .btn {
+  --bs-btn-padding-y: 0.25rem;
+  --bs-btn-padding-x: 0.55rem;
+  --bs-btn-font-size: 0.76rem;
+}
+
+.tickets-theme .form-control,
+.tickets-theme .form-select,
+.tickets-theme .input-group-text {
+  font-size: 0.76rem;
+  padding: 0.22rem 0.45rem;
+}
+
+.tickets-theme .badge {
+  font-size: 0.66rem;
 }
 
 /* ==========================
@@ -42,8 +81,8 @@
 
 .search-header-container {
   flex: 1;
-  max-width: 450px;
-  min-width: 280px;
+  max-width: 380px;
+  min-width: 220px;
 }
 
 @media (max-width: 767.98px) {
@@ -81,8 +120,8 @@
 }
 
 .header-icon-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   background: rgba(59, 130, 246, 0.2);
   border-radius: 10px;
   display: flex;
@@ -93,12 +132,12 @@
 }
 
 .header-icon {
-  font-size: 1.2rem;
+  font-size: 1rem;
   color: #60a5fa;
 }
 
 .page-title {
-  font-size: 1.15rem;
+  font-size: 1rem;
   font-weight: 700;
   margin: 0;
   line-height: 1.2;
@@ -111,7 +150,7 @@
 .page-subtitle {
   margin: 0;
   color: #94a3b8;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
 }
 
 /* Gate Badge */
@@ -133,7 +172,7 @@
 }
 
 .gate-value {
-  font-size: 0.9rem;
+  font-size: 0.78rem;
   font-weight: 800;
   color: #10b981;
   font-family: var(--ticket-font-mono);
@@ -141,12 +180,12 @@
 
 /* Utility Classes */
 .x-small {
-  font-size: 12px;
+  font-size: 10.5px;
 }
 
 .btn-xs {
-  padding: 0.2rem 0.5rem;
-  font-size: 12px;
+  padding: 0.12rem 0.35rem;
+  font-size: 10px;
 }
 
 /* Animation */
@@ -187,29 +226,33 @@
    Mobile Compact (< 576px)
    ========================== */
 @media (max-width: 575.98px) {
+  .tickets-theme {
+    font-size: 0.74rem;
+  }
+
   .page-header {
-    padding: 0.5rem 0.75rem;
+    padding: 0.45rem 0.55rem;
     border-radius: 8px;
-    margin-bottom: 0.75rem !important;
+    margin-bottom: 0.5rem !important;
   }
 
   .header-icon-wrapper {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
     border-radius: 8px;
   }
 
   .header-icon {
-    font-size: 0.95rem;
+    font-size: 0.82rem;
   }
 
   .page-title {
-    font-size: 0.95rem;
-    gap: 0.4rem;
+    font-size: 0.84rem;
+    gap: 0.3rem;
   }
 
   .page-subtitle {
-    font-size: 0.68rem;
+    font-size: 0.62rem;
   }
 
   .gate-badge {
@@ -217,25 +260,37 @@
   }
 
   .gate-value {
-    font-size: 0.75rem;
+    font-size: 0.68rem;
   }
 
   .gate-label {
-    font-size: 0.55rem;
+    font-size: 0.5rem;
   }
 
   .tickets-theme .card .card-header {
-    padding: 0.4rem 0.65rem;
+    padding: 0.35rem 0.5rem;
   }
 
   .tickets-theme .card .card-header h6 {
-    font-size: 0.78rem;
+    font-size: 0.7rem;
+  }
+
+  .tickets-theme .card-body {
+    padding: 0.45rem;
+  }
+
+  .tickets-theme .table {
+    font-size: 0.68rem;
+  }
+
+  .tickets-theme .table > :not(caption) > * > * {
+    padding: 0.22rem 0.3rem;
   }
 
   .btn-help-tour {
-    padding: 0.35rem 0.75rem;
-    font-size: 0.72rem;
-    border-radius: 10px !important;
+    padding: 0.25rem 0.55rem;
+    font-size: 0.66rem;
+    border-radius: 8px !important;
   }
 
   .btn-xs {
@@ -244,6 +299,6 @@
   }
 
   .x-small {
-    font-size: 11px;
+    font-size: 9.5px;
   }
 }

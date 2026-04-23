@@ -69,14 +69,31 @@ export class ToastServices {
       return;
     }
 
+    const status = err?.status;
+
+    if (status === 401) {
+      this.warn(
+        lang === 'ar'
+          ? 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى.'
+          : 'Your session has expired. Please sign in again.',
+      );
+      return;
+    }
+
+    if (status === 403) {
+      this.error(
+        lang === 'ar' ? 'ليس لديك صلاحية لتنفيذ هذا الإجراء' : 'You are not allowed to perform this action',
+        t.error,
+      );
+      return;
+    }
+
     const backendMessage = this.extractBackendMessage(err);
 
     if (backendMessage) {
       this.error(backendMessage, t.error);
       return;
     }
-
-    const status = err?.status;
 
     // Network error
     if (status === 0) {

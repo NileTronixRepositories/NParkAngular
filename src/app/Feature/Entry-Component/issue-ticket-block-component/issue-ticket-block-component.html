@@ -9,7 +9,6 @@
   </div>
 
   <div class="card-body p-2 d-flex flex-column align-items-center">
-    <!-- QR preview / placeholder -->
     <div class="qr-preview border rounded bg-light mb-2">
       <ng-container *ngIf="currentIssuedQr; else noQr">
         <img
@@ -26,14 +25,77 @@
         />
       </ng-container>
       <ng-template #noQr>
-        <div class="text-muted text-center p-2">
+        <div class="text-muted text-center py-5">
           <i class="bi bi-qr-code text-secondary d-block fs-3 mb-1"></i>
           <div class="x-small">{{ t('no_ticket_yet') }}</div>
         </div>
       </ng-template>
     </div>
 
-    <!-- Card Search -->
+    <div
+      class="w-100 mb-2"
+      *ngIf="
+        lprVehicleNumber || lprMembershipStatus === 'checking' || lprMembershipStatus === 'error'
+      "
+    >
+      <div class="lpr-flow-card p-2 border rounded-2 bg-white shadow-sm">
+        <div class="d-flex justify-content-between gap-2 border-bottom pb-1 mb-1">
+          <span class="x-small fw-bold text-primary">{{ t('vehicle_number') }}</span>
+          <span class="x-small mono fw-bold">{{ lprVehicleNumber || '--' }}</span>
+        </div>
+
+        <div class="x-small status-pill status-checking" *ngIf="lprMembershipStatus === 'checking'">
+          <i class="bi bi-arrow-repeat me-1"></i>{{ t('lpr_status_checking') }}
+        </div>
+
+        <div
+          class="x-small status-pill status-subscriber"
+          *ngIf="lprMembershipStatus === 'subscriber'"
+        >
+          <i class="bi bi-patch-check me-1"></i>{{ t('lpr_status_subscriber') }}
+        </div>
+
+        <div
+          class="x-small status-pill status-non-subscriber"
+          *ngIf="lprMembershipStatus === 'non-subscriber'"
+        >
+          <i class="bi bi-person-x me-1"></i>{{ t('lpr_status_non_subscriber') }}
+        </div>
+
+        <div class="x-small status-pill status-error" *ngIf="lprMembershipStatus === 'error'">
+          <i class="bi bi-exclamation-triangle me-1"></i>{{ t('lpr_status_error') }}
+        </div>
+
+        <div class="d-flex justify-content-between gap-2 x-small mt-2" *ngIf="lprCardNumber">
+          <span class="text-muted">{{ t('cardNumber') }}</span>
+          <span class="mono fw-bold">{{ lprCardNumber }}</span>
+        </div>
+
+        <div class="mt-2" *ngIf="lprMembershipStatus === 'non-subscriber'">
+          <label class="form-label x-small fw-bold text-muted text-uppercase mb-1">{{
+            t('pricing_schema')
+          }}</label>
+          <select
+            class="form-select form-select-sm"
+            [ngModel]="selectedPricingSchemaId"
+            (ngModelChange)="onPricingSchemaChange($event)"
+            [disabled]="pricingSchemasLoading"
+          >
+            <option value="">{{ t('select_pricing_schema') }}</option>
+            <option *ngFor="let schema of pricingSchemas" [value]="schema.id">
+              {{ schema.name }}
+            </option>
+          </select>
+          <div class="x-small text-muted mt-1" *ngIf="pricingSchemasLoading">
+            {{ t('lpr_status_checking') }}
+          </div>
+          <div class="x-small text-muted mt-1">
+            {{ hasVehicleImages ? t('vehicle_images_attached') : t('vehicle_images_optional') }}
+          </div>
+        </div>
+      </div>
+    </div>
+
     <div class="w-100 mb-2">
       <label class="form-label x-small fw-bold text-muted text-uppercase mb-1 px-1">{{
         t('cardData')
@@ -57,7 +119,6 @@
       </div>
     </div>
 
-    <!-- Subscriber Summary compact -->
     <div class="w-100" *ngIf="cardSummary">
       <div class="subscriber-card p-2 border rounded-2 position-relative bg-white shadow-sm">
         <button
@@ -94,44 +155,57 @@
       </div>
     </div>
 
-    <!-- Last Issued Info -->
-    <div *ngIf="lastIssuedTicketId && !cardSummary" class="w-100 mt-1">
+    <div *ngIf="lastIssuedTicketId" class="w-100 mt-1">
       <div class="p-2 border rounded-2 bg-light shadow-sm d-flex flex-column gap-1">
         <div class="d-flex justify-content-between x-small" *ngIf="lastIssuedTicketInfo">
           <span class="text-muted">{{ t('ticket_number') }}</span>
           <span class="mono fw-bold">{{ lastIssuedTicketInfo }}</span>
         </div>
+        <div class="d-flex justify-content-between x-small" *ngIf="lastIssuedVehicleNumber">
+          <span class="text-muted">{{ t('vehicle_number') }}</span>
+          <span class="mono fw-bold">{{ lastIssuedVehicleNumber }}</span>
+        </div>
         <div class="d-flex justify-content-between x-small" *ngIf="lastIssuedPrice !== null">
           <span class="text-muted">{{ t('price') }}</span>
           <span class="mono fw-bold">{{ lastIssuedPrice }} {{ isRTL ? 'ج.م' : 'EGP' }}</span>
         </div>
-        <button
-          class="btn btn-success btn-xs w-100 mt-1 fw-bold"
-          (click)="onConfirmCashier()"
-          [disabled]="cashierConfirming || lastIssuedCollected"
+        <div class="d-flex justify-content-between x-small" *ngIf="lastIssuedCreatedAt">
+          <span class="text-muted">{{ t('created_at') }}</span>
+          <span class="mono fw-bold">{{ lastIssuedCreatedAt | date: 'short' }}</span>
+        </div>
+        <div
+          class="btn btn-success btn-xs w-100 mt-1 fw-bold disabled d-flex align-items-center justify-content-center"
         >
-          <i class="bi bi-cash-coin me-1" *ngIf="!cashierConfirming"></i>
-          <span class="spinner-border spinner-border-sm me-1" *ngIf="cashierConfirming"></span>
-          {{ lastIssuedCollected ? t('cashier_collected_yes') : t('cashier_confirm_button') }}
-        </button>
+          <i class="bi bi-cash-coin me-1"></i>
+          {{ t('cashier_collected_yes') }}
+        </div>
       </div>
     </div>
 
-    <!-- Fallback if nothing -->
-    <div class="x-small text-muted text-center py-2" *ngIf="!cardSummary && !lastIssuedTicketId">
+    <div
+      class="x-small text-muted text-center py-2"
+      *ngIf="
+        !cardSummary && !lastIssuedTicketId && !lprVehicleNumber && lprMembershipStatus === 'idle'
+      "
+    >
       {{ t('no_card_summary') }}
     </div>
 
-    <!-- Actions -->
     <div class="mt-auto w-100 pt-2 border-top">
       <button
         class="btn btn-primary btn-sm w-100 py-1"
         (click)="onCreateTicket()"
-        [disabled]="adding"
+        [disabled]="
+          adding || (lprMembershipStatus === 'non-subscriber' && !selectedPricingSchemaId)
+        "
       >
         <i class="bi bi-plus-circle me-1" *ngIf="!adding"></i>
         <span class="spinner-border spinner-border-sm me-1" *ngIf="adding"></span>
-        <span class="fw-bold">{{ t('create_ticket') }}</span>
+        <span class="fw-bold">
+          {{
+            lprMembershipStatus === 'non-subscriber' ? t('create_lpr_ticket') : t('create_ticket')
+          }}
+        </span>
       </button>
     </div>
   </div>

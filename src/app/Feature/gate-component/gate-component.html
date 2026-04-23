@@ -1,30 +1,73 @@
-<form>
-  <div class="row">
-    <!-- <div class="col-12 col-md-6 mb-3">
-      <label class="form-label">Gate Type</label>
-      <select
-        class="form-select"
-        [(ngModel)]="gateType"
-        (change)="onGateTypeChange(gateType)"
-        name="gateType"
-      >
-        <option [ngValue]="GateType.Entrance">Entrance</option>
-        <option [ngValue]="GateType.Exit">Exit</option>
-      </select>
-    </div> -->
+<div class="gate-selection-container container-fluid py-3">
+  <!-- Compact Header -->
+  <div class="text-center mb-3">
+    <h4 class="fw-bold text-primary m-0">
+      <i class="bi bi-geo-alt-fill me-1"></i>
+      {{ 'gateSelection' | t }}
+    </h4>
+    <small class="text-muted">{{ 'selectGate' | t }}</small>
+  </div>
 
-    <div class="col-12 col-md-6 mb-3">
-      <label class="form-label">Gate</label>
-      <select
-        class="form-select"
-        [(ngModel)]="selectedGateId"
-        (change)="onGateSelect()"
-        name="gateId"
-      >
-        <option *ngFor="let gate of gates" [value]="gate.gateId">
-          {{ gate.gateName || gate.name }}
-        </option>
-      </select>
+  <!-- Entry Gates Section -->
+  <div class="mb-3" *ngIf="entryGates.length > 0">
+    <h6 class="text-success fw-bold mb-2 d-flex align-items-center">
+      <i class="bi bi-arrow-right-circle me-1 small"></i>
+      <span class="small">{{ 'entryGates' | t }}</span>
+    </h6>
+    <div class="row g-2">
+      <div class="col-6 col-md-4 col-lg-3 col-xl-2" *ngFor="let gate of entryGates">
+        <div
+          class="gate-card-compact card cursor-pointer"
+          [class.border-success]="selectedGateId === gate.gateId && gateType === GateType.Entrance"
+          [class.bg-success-subtle]="
+            selectedGateId === gate.gateId && gateType === GateType.Entrance
+          "
+          (click)="selectGate(gate.gateId, GateType.Entrance)"
+        >
+          <div class="card-body text-center py-2 px-2">
+            <div class="gate-icon-compact mb-1">
+              <i class="bi bi-door-open text-success"></i>
+            </div>
+            <div class="gate-name-compact fw-semibold">{{ gate.gateName }}</div>
+            <span class="badge bg-success fs-8">{{ 'entry' | t }}</span>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
-</form>
+
+  <!-- Exit Gates Section -->
+  <div class="mb-3" *ngIf="exitGates.length > 0">
+    <h6 class="text-danger fw-bold mb-2 d-flex align-items-center">
+      <i class="bi bi-box-arrow-left me-1 small"></i>
+      <span class="small">{{ 'exitGates' | t }}</span>
+    </h6>
+    <div class="row g-2">
+      <div class="col-6 col-md-4 col-lg-3 col-xl-2" *ngFor="let gate of exitGates">
+        <div
+          class="gate-card-compact card cursor-pointer"
+          [class.border-danger]="selectedGateId === gate.gateId && gateType === GateType.Exit"
+          [class.bg-danger-subtle]="selectedGateId === gate.gateId && gateType === GateType.Exit"
+          (click)="selectGate(gate.gateId, GateType.Exit)"
+        >
+          <div class="card-body text-center py-2 px-2">
+            <div class="gate-icon-compact mb-1">
+              <i class="bi bi-door-closed text-danger"></i>
+            </div>
+            <div class="gate-name-compact fw-semibold">{{ gate.gateName }}</div>
+            <span class="badge bg-danger fs-8">{{ 'exit' | t }}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- No Gates Message -->
+  <div
+    class="alert alert-warning alert-compact text-center py-2"
+    *ngIf="entryGates.length === 0 && exitGates.length === 0"
+  >
+    <i class="bi bi-exclamation-triangle me-1 small"></i>
+    <small>{{ 'noGates' | t }}</small>
+  </div>
+</div>
