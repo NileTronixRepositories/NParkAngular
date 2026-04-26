@@ -89,12 +89,42 @@ export class TicketsServices {
     return this.core.addTicket(formData).pipe(
       map((res: any) => {
         if (!res) return null;
+        if (res === true) {
+          return {
+            success: true,
+            qrCode: '',
+            ticketId: '',
+            createdAt: new Date().toISOString(),
+            price: 0,
+          } as IssuedTicketResponse;
+        }
 
         return {
+          success: !!(
+            res.success ??
+            res.Success ??
+            res.isSuccess ??
+            res.IsSuccess ??
+            res.succeeded ??
+            res.Succeeded ??
+            res.ticketId ??
+            res.TicketId
+          ),
           ticketId: res.ticketId ?? res.TicketId,
           createdAt: res.createdAt ?? res.CreatedAt,
           price: Number(res.price ?? res.Price ?? 0),
-          qrCode: res.qrCode ?? res.QrCode,
+          qrCode:
+            res.qrCode ??
+            res.QrCode ??
+            res.qRCode ??
+            res.QRCode ??
+            res.qr ??
+            res.Qr ??
+            res.qrImage ??
+            res.QrImage ??
+            res.qrCodeBase64 ??
+            res.QrCodeBase64 ??
+            '',
           ticketInfo: res.ticketInfo ?? res.TicketInfo,
           vehicleNumber: res.vehicleNumber ?? res.VehicleNumber,
         } as IssuedTicketResponse;

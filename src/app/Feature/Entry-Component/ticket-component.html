@@ -89,12 +89,15 @@
                 <span>{{ t('control_id') }}</span>
                 <strong class="mono">{{ info.controlIp || '--' }}</strong>
               </div> -->
-              <div class="gate-info-item wide">
+              <!-- <div class="gate-info-item wide">
                 <span>{{ t('camera_url') }}</span>
                 <strong class="mono text-truncate">{{ info.onvifCameraSetting?.url || '--' }}</strong>
-              </div>
+              </div> -->
             </div>
-            <div class="mt-2 d-flex align-items-center gap-2 flex-wrap" *ngIf="openGateError || lastOpenGateResponse || openGateLoading">
+            <div
+              class="mt-2 d-flex align-items-center gap-2 flex-wrap"
+              *ngIf="openGateError || lastOpenGateResponse || openGateLoading"
+            >
               <span class="badge bg-success" *ngIf="lastOpenGateResponse && !openGateError">
                 {{ t('open_gate_success') }}
               </span>
@@ -153,10 +156,18 @@
               </button>
             </ng-template>
             <div class="d-flex gap-2 mt-2" *ngIf="snapshotError">
-              <button type="button" class="btn btn-outline-primary btn-xs" (click)="retrySnapshot()">
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-xs"
+                (click)="retrySnapshot()"
+              >
                 <i class="bi bi-arrow-clockwise me-1"></i>{{ t('retry_snapshot') }}
               </button>
-              <button type="button" class="btn btn-outline-secondary btn-xs" (click)="continueWithoutImage()">
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-xs"
+                (click)="continueWithoutImage()"
+              >
                 {{ t('continue_without_image') }}
               </button>
             </div>
@@ -272,7 +283,7 @@
               <span class="fw-semibold">{{ t('total_collected_amount') }}</span>
               <span class="mono">
                 {{ collectSummary.totalPriceCollected | number: '1.0-2' }}
-                {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}
+                {{ t('currency') }}
               </span>
             </div>
 
@@ -300,7 +311,7 @@
                     <td class="mono">{{ d.ticketNumber }}</td>
                     <td>{{ d.collectedAt | date: 'short' }}</td>
                     <td class="mono">
-                      {{ d.price | number: '1.0-2' }} {{ i18n.isRTL() ? 'ج.م' : 'EGP' }}
+                      {{ d.price | number: '1.0-2' }} {{ t('currency') }}
                     </td>
                   </tr>
                 </tbody>

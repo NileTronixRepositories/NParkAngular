@@ -78,8 +78,13 @@ export class ExitGateDevicesBlockComponent {
     return !!this.ticketNumber?.trim() && !this.searchingTicket;
   }
 
+  onManualPlateChange(value: string): void {
+    this.manualPlate = this.normalizePlate(value);
+    this.cdr.markForCheck();
+  }
+
   submitManualPlate(): void {
-    const plate = this.manualPlate?.trim();
+    const plate = this.normalizePlate(this.manualPlate);
     if (!plate || this.manualPlateSubmitting) return;
 
     this.manualPlateSubmitting = true;
@@ -153,5 +158,29 @@ export class ExitGateDevicesBlockComponent {
 
   trackByTicketNumber(_index: number, item: TicketDto): string {
     return (item.ticketNumber ?? item.id ?? _index).toString();
+  }
+
+  private normalizePlate(value: string): string {
+    const compact = String(value ?? '')
+      .replace(/[\s\u00a0\u2000-\u200f\u2028-\u202f\u205f\u3000]+/g, '')
+      .trim()
+      .toUpperCase();
+
+    const letters: string[] = [];
+    const suffix: string[] = [];
+
+    for (const char of Array.from(compact)) {
+      if (this.isPlateLetter(char) && suffix.length === 0) {
+        letters.push(char);
+      } else {
+        suffix.push(char);
+      }
+    }
+
+    return [letters.join(' '), suffix.join('')].filter(Boolean).join(' ');
+  }
+
+  private isPlateLetter(char: string): boolean {
+    return /^[A-Z\u0600-\u06FF]$/.test(char);
   }
 }

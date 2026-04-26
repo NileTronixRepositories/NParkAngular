@@ -22,6 +22,27 @@
   object-fit: contain;
 }
 
+:host .ticket-text-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.2rem;
+  width: 100%;
+  height: 100%;
+  padding: 0.35rem;
+  text-align: center;
+  color: #0f172a;
+  background: #f8fafc;
+}
+
+:host .ticket-text-preview .mono {
+  max-width: 100%;
+  font-size: 0.7rem;
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+
 /* Mono font helper */
 :host .mono {
   font-family: var(--ticket-font-mono);

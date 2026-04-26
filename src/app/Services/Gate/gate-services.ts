@@ -9,6 +9,8 @@ export interface GateConnectionInfo {
   pcIp?: string;
   lprIp?: string;
   controlIp?: string;
+  qrPrinterName?: string | null;
+  receiptPrinterName?: string | null;
   onvifCameraSetting?: {
     id?: string;
     url?: string;
@@ -36,7 +38,8 @@ export class GateServices {
       .get<any>(`${this.base}/Gate/${encodeURIComponent(String(gateId))}/connection-info`)
       .pipe(
         map((res): GateConnectionInfo => {
-          const onvif = res?.onvifCameraSetting ?? res?.OnvifCameraSetting ?? null;
+          const onvif =
+            res?.onvifCameraSetting ?? res?.OnvifCameraSetting ?? res?.ONVIFCameraSetting ?? null;
 
           return {
             gateId: res?.gateId ?? res?.GateId ?? String(gateId),
@@ -51,6 +54,8 @@ export class GateServices {
               res?.ControlId ??
               res?.controllerId ??
               res?.ControllerId,
+            qrPrinterName: res?.qrPrinterName ?? res?.QrPrinterName ?? null,
+            receiptPrinterName: res?.receiptPrinterName ?? res?.ReceiptPrinterName ?? null,
             onvifCameraSetting: onvif
               ? {
                   id: onvif.id ?? onvif.Id,

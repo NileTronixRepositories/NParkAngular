@@ -16,6 +16,7 @@ export class MembershipCardService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = environment.baseUrl;
   private readonly membershipsUrl = `${this.baseUrl}/ParkingMemberships`;
+  private readonly isMembershipUrl = `${this.baseUrl}/ParkingMemberships/IsMemberShip`;
 
   private logError(operation: string, error: unknown): void {
     console.error(`[MembershipCardService] ${operation} failed`, error);
@@ -32,7 +33,7 @@ export class MembershipCardService {
       catchError((err) => {
         this.logError('GET /ParkingMemberships/GetCardSummary', err);
         return of(null);
-      })
+      }),
     );
   }
 
@@ -59,50 +60,55 @@ export class MembershipCardService {
 
     const params = new HttpParams().set('cardNumber', trimmed);
 
-    return this.http
-      .get<any>(`${this.membershipsUrl}/check-by-card-number`, { params })
-      .pipe(
-        map((res: any): CardMembershipCheckResponse => ({
-          isMember: !!(res?.isMember ?? res?.IsMember),
-        })),
-        catchError((err) => {
-          this.logError('GET /ParkingMemberships/check-by-card-number', err);
-          return throwError(() => err);
-        }),
-      );
+    return this.http.get<any>(`${this.membershipsUrl}/check-by-card-number`, { params }).pipe(
+      map(
+        (res: any): CardMembershipCheckResponse => {
+          const summary = this.extractSummary(res);
+          const rawSummary = summary as any;
+
+          return {
+            isMember: !!(res?.isMember ?? res?.IsMember),
+            cardNumber:
+              res?.cardNumber ??
+              res?.CardNumber ??
+              rawSummary?.cardNumber ??
+              rawSummary?.CardNumber ??
+              trimmed,
+            vehicleNumber:
+              res?.vehicleNumber ??
+              res?.VehicleNumber ??
+              rawSummary?.vehicleNumber ??
+              rawSummary?.VehicleNumber ??
+              null,
+            summary,
+          };
+        },
+      ),
+      catchError((err) => {
+        this.logError('GET /ParkingMemberships/check-by-card-number', err);
+        return throwError(() => err);
+      }),
+    );
   }
 
   isMembership(vehicleNumber: string): Observable<MembershipCheckResponse> {
-    const trimmed = vehicleNumber?.trim();
+    const trimmed = this.normalizeVehicleNumber(vehicleNumber);
     if (!trimmed) {
       return of({ isExist: false });
     }
 
-    const params = new HttpParams().set('VehicleNumber', trimmed);
+    const fixedUrl = `${this.isMembershipUrl}?VehicleNumber=${encodeURIComponent(trimmed)}`;
+    const fallbackParams = new HttpParams().set('VehicleNumber', trimmed);
 
-    return this.http.get<any>(`${this.membershipsUrl}/IsMemberShip`, { params }).pipe(
-      map((res: any): MembershipCheckResponse => {
-        const summary = this.extractSummary(res);
-        const rawSummary = summary as any;
-
-        return {
-          isExist: !!(res?.isExist ?? res?.IsExist ?? res?.exists ?? res?.Exists),
-          cardNumber:
-            res?.cardNumber ??
-            res?.CardNumber ??
-            rawSummary?.cardNumber ??
-            rawSummary?.CardNumber ??
-            null,
-          vehicleNumber:
-            res?.vehicleNumber ??
-            res?.VehicleNumber ??
-            rawSummary?.vehicleNumber ??
-            rawSummary?.VehicleNumber ??
-            trimmed,
-          summary,
-        };
-      }),
+    return this.http.get<any>(fixedUrl).pipe(
+      map((res: any) => this.mapMembershipResponse(res, trimmed)),
       catchError((err) => {
+        if (err?.status === 0) {
+          return this.http
+            .get<any>(`${this.membershipsUrl}/IsMemberShip`, { params: fallbackParams })
+            .pipe(map((res: any) => this.mapMembershipResponse(res, trimmed)));
+        }
+
         this.logError('GET /ParkingMemberships/IsMemberShip', err);
         return throwError(() => err);
       }),
@@ -110,8 +116,58 @@ export class MembershipCardService {
   }
 
   private extractSummary(res: any): ParkingCardSummaryDto | null {
-    return (res?.summary ?? res?.Summary ?? res?.membership ?? res?.Membership ?? res?.data ?? res?.Data ?? null) as
-      | ParkingCardSummaryDto
-      | null;
+    return (res?.summary ??
+      res?.Summary ??
+      res?.membership ??
+      res?.Membership ??
+      res?.data ??
+      res?.Data ??
+      null) as ParkingCardSummaryDto | null;
+  }
+
+  private mapMembershipResponse(res: any, vehicleNumber: string): MembershipCheckResponse {
+    const summary = this.extractSummary(res);
+    const rawSummary = summary as any;
+
+    return {
+      isExist: !!(res?.isExist ?? res?.IsExist ?? res?.exists ?? res?.Exists),
+      cardNumber:
+        res?.cardNumber ??
+        res?.CardNumber ??
+        rawSummary?.cardNumber ??
+        rawSummary?.CardNumber ??
+        null,
+      vehicleNumber:
+        res?.vehicleNumber ??
+        res?.VehicleNumber ??
+        rawSummary?.vehicleNumber ??
+        rawSummary?.VehicleNumber ??
+        vehicleNumber,
+      summary,
+    };
+  }
+
+  private normalizeVehicleNumber(value: string | undefined | null): string {
+    const compact = String(value ?? '')
+      .replace(/[\s\u00a0\u2000-\u200f\u2028-\u202f\u205f\u3000]+/g, '')
+      .trim()
+      .toUpperCase();
+
+    const letters: string[] = [];
+    const suffix: string[] = [];
+
+    for (const char of Array.from(compact)) {
+      if (this.isVehicleLetter(char) && suffix.length === 0) {
+        letters.push(char);
+      } else {
+        suffix.push(char);
+      }
+    }
+
+    return [letters.join(' '), suffix.join('')].filter(Boolean).join(' ');
+  }
+
+  private isVehicleLetter(char: string): boolean {
+    return /^[A-Z\u0600-\u06FF]$/.test(char);
   }
 }

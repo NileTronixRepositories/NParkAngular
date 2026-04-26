@@ -109,3 +109,107 @@
 [2026-04-26T15:52:59.662Z] [Print] Sending to printer: XP-80C
 [2026-04-26T15:52:59.896Z] [PrintSuccess] Job: QR-Ticket-538da90d-06f9-40e7-8ab1-2bfd9954a558
 [2026-04-26T15:52:59.980Z] [PrintSuccess] Job: Receipt-Ticket-538da90d-06f9-40e7-8ab1-2bfd9954a558
+[2026-04-26T16:41:48.170Z] [PrintRequest] Job: QR-Ticket-4e1c02cc-b69b-4ab0-9050-bb13bb91c51c, Printer: RONGTA 80mm Series Printer(1)
+[2026-04-26T16:41:48.172Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T16:41:48.173Z] [PrintRequest] Job: Receipt-Ticket-4e1c02cc-b69b-4ab0-9050-bb13bb91c51c, Printer: XP-80C
+[2026-04-26T16:41:48.175Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T16:41:49.785Z] [Print] Sending to printer: RONGTA 80mm Series Printer(1)
+[2026-04-26T16:41:50.277Z] [PrintSuccess] Job: QR-Ticket-4e1c02cc-b69b-4ab0-9050-bb13bb91c51c
+[2026-04-26T16:41:50.532Z] [Print] Sending to printer: XP-80C
+[2026-04-26T16:41:50.846Z] [PrintSuccess] Job: Receipt-Ticket-4e1c02cc-b69b-4ab0-9050-bb13bb91c51c
+[2026-04-26T16:47:21.657Z] [PrintRequest] Job: QR-Ticket-8004b7c1-ae01-4065-a8fd-34a223cf04e3, Printer: RONGTA 80mm Series Printer(1)
+[2026-04-26T16:47:21.659Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T16:47:21.661Z] [PrintRequest] Job: Receipt-Ticket-8004b7c1-ae01-4065-a8fd-34a223cf04e3, Printer: XP-80C
+[2026-04-26T16:47:21.662Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T16:47:24.027Z] [Print] Sending to printer: RONGTA 80mm Series Printer(1)
+[2026-04-26T16:47:24.127Z] [Print] Sending to printer: XP-80C
+[2026-04-26T16:47:24.416Z] [PrintSuccess] Job: Receipt-Ticket-8004b7c1-ae01-4065-a8fd-34a223cf04e3
+[2026-04-26T16:47:24.441Z] [PrintSuccess] Job: QR-Ticket-8004b7c1-ae01-4065-a8fd-34a223cf04e3
+[2026-04-26T17:14:02.119Z] [PrintRequest] Job: Receipt-Ticket-8c5670a2-cccd-4caa-a202-171078359dcc, Printer: XP-80C
+[2026-04-26T17:14:02.120Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:14:03.809Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:14:04.247Z] [PrintSuccess] Job: Receipt-Ticket-8c5670a2-cccd-4caa-a202-171078359dcc
+[2026-04-26T17:14:33.876Z] [PrintRequest] Job: Receipt-Ticket-7d63bec4-bd7d-4c35-a86c-5d4848587d26, Printer: XP-80C
+[2026-04-26T17:14:33.878Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:14:35.593Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:14:35.902Z] [PrintSuccess] Job: Receipt-Ticket-7d63bec4-bd7d-4c35-a86c-5d4848587d26
+[2026-04-26T17:16:10.592Z] [PrintRequest] Job: Receipt-Ticket-26ae002a-85cf-4ed0-b21f-656c58f9cbb4, Printer: XP-80C
+[2026-04-26T17:16:10.594Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:16:12.255Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:16:12.593Z] [PrintSuccess] Job: Receipt-Ticket-26ae002a-85cf-4ed0-b21f-656c58f9cbb4
+[2026-04-26T17:16:24.224Z] [PrintRequest] Job: Receipt-Ticket-4dcaf95c-042b-4ee6-baac-a3fbeb233c1c, Printer: XP-80C
+[2026-04-26T17:16:24.226Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:16:25.883Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:16:26.207Z] [PrintSuccess] Job: Receipt-Ticket-4dcaf95c-042b-4ee6-baac-a3fbeb233c1c
+[2026-04-26T17:36:16.442Z] [PrintRequest] Job: Receipt-Ticket-66ce9596-0a98-4744-9070-99237ef063e1, Printer: XP-80C
+[2026-04-26T17:36:16.443Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:36:18.076Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:36:18.475Z] [PrintSuccess] Job: Receipt-Ticket-66ce9596-0a98-4744-9070-99237ef063e1
+[2026-04-26T17:36:30.954Z] [PrintRequest] Job: Receipt-Ticket-079528e1-7cd2-4309-9645-b3f3eecb002c, Printer: XP-80C
+[2026-04-26T17:36:30.957Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:36:32.586Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:36:32.875Z] [PrintSuccess] Job: Receipt-Ticket-079528e1-7cd2-4309-9645-b3f3eecb002c
+[2026-04-26T17:37:44.062Z] [PrintRequest] Job: Receipt-Ticket-2fc60f00-82f8-46ae-b606-0780cb90e90e, Printer: XP-80C
+[2026-04-26T17:37:44.063Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:37:45.661Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:37:45.955Z] [PrintSuccess] Job: Receipt-Ticket-2fc60f00-82f8-46ae-b606-0780cb90e90e
+[2026-04-26T17:38:02.213Z] [PrintRequest] Job: Receipt-Ticket-408c896e-c637-4270-8a42-cb278325d382, Printer: XP-80C
+[2026-04-26T17:38:02.215Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:38:03.885Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:38:04.166Z] [PrintSuccess] Job: Receipt-Ticket-408c896e-c637-4270-8a42-cb278325d382
+[2026-04-26T17:38:20.100Z] [PrintRequest] Job: Receipt-Ticket-2c5a23bd-9d16-4f6f-a560-79b9373c0b33, Printer: XP-80C
+[2026-04-26T17:38:20.101Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:38:21.665Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:38:21.948Z] [PrintSuccess] Job: Receipt-Ticket-2c5a23bd-9d16-4f6f-a560-79b9373c0b33
+[2026-04-26T17:38:37.982Z] [PrintRequest] Job: Receipt-Ticket-a9a92716-2520-4243-98fc-f2bad8d198b0, Printer: XP-80C
+[2026-04-26T17:38:37.983Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:38:39.577Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:38:39.848Z] [PrintSuccess] Job: Receipt-Ticket-a9a92716-2520-4243-98fc-f2bad8d198b0
+[2026-04-26T17:41:52.161Z] [PrintRequest] Job: Receipt-Ticket-1a7acfd5-e05f-42a4-b0ab-fc8da99f99de, Printer: XP-80C
+[2026-04-26T17:41:52.163Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:41:53.901Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:41:54.262Z] [PrintSuccess] Job: Receipt-Ticket-1a7acfd5-e05f-42a4-b0ab-fc8da99f99de
+[2026-04-26T17:43:42.009Z] [PrintRequest] Job: Receipt-Ticket-5992e80f-d1b7-49ee-ab54-02cbf2593636, Printer: XP-80C
+[2026-04-26T17:43:42.011Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:43:43.637Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:43:43.962Z] [PrintSuccess] Job: Receipt-Ticket-5992e80f-d1b7-49ee-ab54-02cbf2593636
+[2026-04-26T17:46:34.989Z] [PrintRequest] Job: Receipt-Ticket-2e6f4407-9471-4916-bf0d-bc8547c9ccea, Printer: XP-80C
+[2026-04-26T17:46:34.992Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:46:36.611Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:46:36.993Z] [PrintSuccess] Job: Receipt-Ticket-2e6f4407-9471-4916-bf0d-bc8547c9ccea
+[2026-04-26T17:46:45.185Z] [PrintRequest] Job: Receipt-Ticket-ac12783b-33fe-4026-b288-c1fc7cf6f4bf, Printer: XP-80C
+[2026-04-26T17:46:45.187Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:46:46.844Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:46:47.152Z] [PrintSuccess] Job: Receipt-Ticket-ac12783b-33fe-4026-b288-c1fc7cf6f4bf
+[2026-04-26T17:46:58.538Z] [PrintRequest] Job: Receipt-Ticket-50384451-59be-4722-bbfb-b89b4beb20ff, Printer: XP-80C
+[2026-04-26T17:46:58.539Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:47:00.150Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:47:00.436Z] [PrintSuccess] Job: Receipt-Ticket-50384451-59be-4722-bbfb-b89b4beb20ff
+[2026-04-26T17:47:09.368Z] [PrintRequest] Job: Receipt-Ticket-740c9bbc-5e27-4e7d-8aeb-efa9119cde93, Printer: XP-80C
+[2026-04-26T17:47:09.369Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:47:11.057Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:47:11.348Z] [PrintSuccess] Job: Receipt-Ticket-740c9bbc-5e27-4e7d-8aeb-efa9119cde93
+[2026-04-26T17:47:21.116Z] [PrintRequest] Job: Receipt-Ticket-123662b9-84da-4b4d-bae8-44ef4c931ab9, Printer: XP-80C
+[2026-04-26T17:47:21.117Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:47:22.721Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:47:23.033Z] [PrintSuccess] Job: Receipt-Ticket-123662b9-84da-4b4d-bae8-44ef4c931ab9
+[2026-04-26T17:47:32.501Z] [PrintRequest] Job: Receipt-Ticket-6dbcf20e-c508-4a12-a8ca-9b7259155ec0, Printer: XP-80C
+[2026-04-26T17:47:32.504Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:47:34.125Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:47:34.429Z] [PrintSuccess] Job: Receipt-Ticket-6dbcf20e-c508-4a12-a8ca-9b7259155ec0
+[2026-04-26T17:48:28.197Z] [PrintRequest] Job: Receipt-Ticket-ade80413-c16e-4a85-98ff-32d95258c0b3, Printer: XP-80C
+[2026-04-26T17:48:28.199Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:48:29.886Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:48:30.183Z] [PrintSuccess] Job: Receipt-Ticket-ade80413-c16e-4a85-98ff-32d95258c0b3
+[2026-04-26T17:48:39.189Z] [PrintRequest] Job: Receipt-Ticket-c6b5d16e-7c6c-4c5d-a6dd-b4c7aa1995e6, Printer: XP-80C
+[2026-04-26T17:48:39.190Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:48:40.790Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:48:41.076Z] [PrintSuccess] Job: Receipt-Ticket-c6b5d16e-7c6c-4c5d-a6dd-b4c7aa1995e6
+[2026-04-26T17:56:36.432Z] [PrintRequest] Job: Receipt-Ticket-4a58c898-507b-4c91-bbd2-6985bea05fd0, Printer: XP-80C
+[2026-04-26T17:56:36.434Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:56:38.167Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:56:38.553Z] [PrintSuccess] Job: Receipt-Ticket-4a58c898-507b-4c91-bbd2-6985bea05fd0
+[2026-04-26T17:57:19.691Z] [PrintRequest] Job: Receipt-Ticket-b044417e-4a2c-42f9-88f6-1ab2251439e0, Printer: XP-80C
+[2026-04-26T17:57:19.692Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-26T17:57:21.391Z] [Print] Sending to printer: XP-80C
+[2026-04-26T17:57:21.716Z] [PrintSuccess] Job: Receipt-Ticket-b044417e-4a2c-42f9-88f6-1ab2251439e0

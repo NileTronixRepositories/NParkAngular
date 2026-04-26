@@ -49,11 +49,14 @@
         <div class="d-flex align-items-center gap-1 mt-1">
           <div class="input-group input-group-sm">
             <textarea
+              #manualLprPlateArea
               rows="1"
               class="form-control form-control-sm mono text-center x-small py-0"
               [ngModel]="manualLprPlate"
               (ngModelChange)="onPlateChange($event)"
-              (blur)="onPlateBlur()"
+              (keydown)="onPlateKeydown($event)"
+              (focus)="onPlateFocus($event)"
+              (blur)="onPlateBlur($event)"
               [placeholder]="t('plate')"
             ></textarea>
             <button
@@ -164,7 +167,7 @@
               [download]="scannedFile.name"
               class="btn btn-success btn-xs py-1 w-100 x-small fw-bold"
             >
-              <i class="bi bi-download me-1"></i> {{ t('save_to_pc') || 'Save' }}
+              <i class="bi bi-download me-1"></i> {{ t('save_to_pc') }}
             </a>
           </div>
         </div>

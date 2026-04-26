@@ -17,12 +17,10 @@
           alt="QR"
           class="img-fluid"
         />
-        <img
-          *ngIf="currentIssuedQrType === 'text'"
-          [src]="qrDataUrl(currentIssuedQr!)"
-          alt="QR"
-          class="img-fluid"
-        />
+        <div *ngIf="currentIssuedQrType === 'text'" class="ticket-text-preview">
+          <i class="bi bi-ticket-detailed text-primary"></i>
+          <span class="mono">{{ currentIssuedQr }}</span>
+        </div>
       </ng-container>
       <ng-template #noQr>
         <div class="text-muted text-center py-5">
@@ -35,7 +33,10 @@
     <div
       class="w-100 mb-2"
       *ngIf="
-        lprVehicleNumber || lprMembershipStatus === 'checking' || lprMembershipStatus === 'error'
+        lprVehicleNumber ||
+        lprMembershipStatus === 'checking' ||
+        lprMembershipStatus === 'error' ||
+        cardMembershipStatus !== 'idle'
       "
     >
       <div class="lpr-flow-card p-2 border rounded-2 bg-white shadow-sm">
@@ -132,6 +133,8 @@
           class="form-control form-control-sm mono x-small py-0"
           [(ngModel)]="cardNumber"
           (ngModelChange)="onCardNumberChange($event)"
+          (keydown)="onCardKeydown($event)"
+          (focus)="onCardFocus($event)"
           [placeholder]="t('cardNumber')"
         />
       </div>
@@ -185,7 +188,7 @@
         </div>
         <div class="d-flex justify-content-between x-small" *ngIf="lastIssuedPrice !== null">
           <span class="text-muted">{{ t('price') }}</span>
-          <span class="mono fw-bold">{{ lastIssuedPrice }} {{ isRTL ? 'ج.م' : 'EGP' }}</span>
+          <span class="mono fw-bold">{{ lastIssuedPrice }} {{ t('currency') }}</span>
         </div>
         <div class="d-flex justify-content-between x-small" *ngIf="lastIssuedCreatedAt">
           <span class="text-muted">{{ t('created_at') }}</span>

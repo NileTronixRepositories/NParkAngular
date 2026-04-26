@@ -49,6 +49,8 @@ export class IssueTicketBlockComponent {
   @Output() clearCardSummaryClicked = new EventEmitter<Event>();
   @Output() selectedPricingSchemaIdChange = new EventEmitter<string>();
 
+  private lastCardKeyAt = 0;
+
   get card(): string {
     return this.cardNumber;
   }
@@ -89,7 +91,44 @@ export class IssueTicketBlockComponent {
     this.cardNumberChange.emit(value);
   }
 
+  onCardKeydown(event: KeyboardEvent): void {
+    if (this.adding || this.readingCard) return;
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      event.stopPropagation();
+      return;
+    }
+
+    if (event.key.length !== 1 || event.ctrlKey || event.altKey || event.metaKey) return;
+
+    const input = event.target as HTMLInputElement | null;
+    if (this.shouldReplaceExistingCard(input)) {
+      this.cardNumber = '';
+      if (input) {
+        input.value = '';
+      }
+      this.cardNumberChange.emit('');
+    }
+
+    this.lastCardKeyAt = Date.now();
+  }
+
+  onCardFocus(event: FocusEvent): void {
+    const input = event.target as HTMLInputElement | null;
+    setTimeout(() => input?.select(), 0);
+  }
+
   onPricingSchemaChange(value: string): void {
     this.selectedPricingSchemaIdChange.emit(value);
+  }
+
+  private shouldReplaceExistingCard(input: HTMLInputElement | null): boolean {
+    const hasValue = !!this.cardNumber?.trim();
+    if (!input || !hasValue) return false;
+
+    const allSelected = input.selectionStart === 0 && input.selectionEnd === input.value.length;
+
+    return !allSelected && Date.now() - this.lastCardKeyAt > 700;
   }
 }

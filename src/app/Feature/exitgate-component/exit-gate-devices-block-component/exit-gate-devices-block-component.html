@@ -180,7 +180,9 @@
         <textarea
           class="form-control form-control-sm"
           rows="1"
-          [(ngModel)]="manualPlate"
+          [ngModel]="manualPlate"
+          (ngModelChange)="onManualPlateChange($event)"
+          (keydown.enter)="submitManualPlate(); $event.preventDefault()"
           [placeholder]="'manual_plate_placeholder' | t"
         ></textarea>
       </div>

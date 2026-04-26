@@ -20,6 +20,7 @@ export interface TicketDto {
 }
 
 export interface IssuedTicketResponse {
+  success?: boolean;
   qrCode: string | number[];
   ticketId: string;
   createdAt: string;
@@ -114,6 +115,9 @@ export interface MembershipCheckResponse {
 
 export interface CardMembershipCheckResponse {
   isMember: boolean;
+  cardNumber?: string | null;
+  vehicleNumber?: string | null;
+  summary?: ParkingCardSummaryDto | null;
 }
 
 export interface AddTicketRequest {

@@ -24,6 +24,7 @@ import {
   ParkingCardSummaryDto,
   CollectDailyTicketsResponse,
   MembershipCheckResponse,
+  CardMembershipCheckResponse,
 } from '../../Domain/tickets/tickets.model';
 
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
@@ -151,9 +152,13 @@ export class TicketComponent implements OnInit, OnDestroy {
   readonly readingCard = signal(false);
   cardMembershipStatus: CardMembershipStatus = 'idle';
   private lprMembershipCheckTimer?: ReturnType<typeof setTimeout>;
+  private cardMembershipCheckTimer?: ReturnType<typeof setTimeout>;
   private lastCheckedLprVehicleNumber = '';
+  private lastCheckedCardNumber = '';
   private readonly lprMembershipCache = new Map<string, MembershipCheckResponse>();
+  private readonly cardMembershipCache = new Map<string, CardMembershipCheckResponse>();
   private readonly autoCreatedLprVehicleNumbers = new Set<string>();
+  private readonly autoCreatedCardNumbers = new Set<string>();
   currentLprVehicleNumber: string | null = null;
   lprMembershipStatus: LprMembershipStatus = 'idle';
   lprMembershipCardNumber: string | null = null;
@@ -368,6 +373,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       lpr_non_subscriber_manual: 'هذه المركبة غير مشتركة. اضغط إنشاء تذكرة لإصدار تذكرة عادية.',
       membership_check_failed: 'تعذر التحقق من الاشتراك لهذه المركبة.',
       no_card_for_subscriber: 'لا يوجد رقم كارت لعميل مشترك',
+      create_ticket_failed: 'فشل إنشاء تذكرة',
       qr_invalid_warning: 'تم إصدار التذكرة بنجاح، لكن QR code غير صالح.',
       enter_supervisor_creds: 'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر',
       supervisor_login_failed: 'فشل الدخول كـ Supervisor. تأكد من البيانات أو الصلاحيات.',
@@ -392,6 +398,23 @@ export class TicketComponent implements OnInit, OnDestroy {
       vehicle_images_attached: 'تم إرفاق صور المركبة',
       printing_failed: 'تعذر إرسال أوامر الطباعة إلى خدمة الطابعة المحلية.',
       printing_sent: 'تم إرسال أوامر الطباعة بنجاح.',
+      gate_info: 'بيانات اتصال البوابة',
+      control_id: 'معرّف وحدة التحكم',
+      camera_url: 'رابط الكاميرا',
+      camera_snapshot: 'لقطة الكاميرا',
+      take_snapshot: 'التقاط صورة',
+      retry_snapshot: 'إعادة التقاط الصورة',
+      continue_without_image: 'المتابعة بدون صورة',
+      gate_connection_failed: 'تعذر تحميل بيانات اتصال البوابة.',
+      gate_connection_loading: 'جاري تحميل بيانات اتصال البوابة.',
+      snapshot_failed: 'تعذر تحميل لقطة الكاميرا.',
+      card_not_member: 'هذا الكارت غير مسجل كعضوية.',
+      card_membership_failed: 'تعذر التحقق من عضوية الكارت.',
+      open_gate_success: 'تم فتح البوابة بنجاح.',
+      open_gate_failed: 'تم إنشاء التذكرة بنجاح، لكن تعذر فتح البوابة.',
+      retry_open_gate: 'إعادة فتح البوابة',
+      save_to_pc: 'حفظ على الجهاز',
+      currency: 'ج.م',
     },
     en: {
       issue_ticket: 'Issue Ticket',
@@ -483,6 +506,7 @@ export class TicketComponent implements OnInit, OnDestroy {
         'This vehicle is not a subscriber. Click Create Ticket to issue a normal ticket.',
       membership_check_failed: 'Could not check membership for this vehicle.',
       no_card_for_subscriber: 'No card number for subscriber',
+      create_ticket_failed: 'Failed to create ticket.',
       qr_invalid_warning: 'Ticket issued successfully, but QR code is invalid.',
       enter_supervisor_creds: 'Please enter supervisor username and password',
       supervisor_login_failed: 'Supervisor login failed. Check credentials or permissions.',
@@ -522,6 +546,8 @@ export class TicketComponent implements OnInit, OnDestroy {
       open_gate_success: 'Gate opened successfully.',
       open_gate_failed: 'Ticket created successfully, but gate open failed.',
       retry_open_gate: 'Retry open gate',
+      save_to_pc: 'Save to PC',
+      currency: 'EGP',
     },
   };
 
@@ -627,6 +653,9 @@ export class TicketComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     if (this.lprMembershipCheckTimer) {
       clearTimeout(this.lprMembershipCheckTimer);
+    }
+    if (this.cardMembershipCheckTimer) {
+      clearTimeout(this.cardMembershipCheckTimer);
     }
     this.uploadedVehicleImages.forEach((file) => this.revokeImageUrl(file));
     if (
@@ -856,11 +885,14 @@ export class TicketComponent implements OnInit, OnDestroy {
   // Create ticket (Normal / Subscriber)
   // =======================
   onManualLprPlateChange(value: string): void {
-    this.manualLprPlate = value;
-
     const vehicleNumber = this.normalizeVehicleNumber(value);
+    this.manualLprPlate = vehicleNumber;
+
     if (this.lprMembershipCheckTimer) {
       clearTimeout(this.lprMembershipCheckTimer);
+    }
+    if (this.cardMembershipCheckTimer) {
+      clearTimeout(this.cardMembershipCheckTimer);
     }
 
     this.currentLprVehicleNumber = vehicleNumber || null;
@@ -992,40 +1024,119 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   onCardNumberInput(value: string): void {
-    this.cardNumber = value;
-    this.cardMembershipStatus = value?.trim() ? 'idle' : 'idle';
+    const normalizedCard = this.normalizeCardNumber(value);
+    this.cardNumber = normalizedCard;
+
+    if (this.cardMembershipCheckTimer) {
+      clearTimeout(this.cardMembershipCheckTimer);
+    }
+
+    if (normalizedCard.length < 3) {
+      this.resetCardLookupState();
+      this.lastCheckedCardNumber = '';
+      return;
+    }
+
+    this.cardMembershipStatus = 'idle';
+    this.cardSummary = null;
+
+    this.cardMembershipCheckTimer = setTimeout(() => {
+      const currentCardNumber = this.normalizeCardNumber(this.cardNumber);
+      if (
+        !currentCardNumber ||
+        currentCardNumber !== normalizedCard ||
+        currentCardNumber === this.lastCheckedCardNumber
+      ) {
+        return;
+      }
+
+      this.checkCardMembershipAndCreate(currentCardNumber, true, false);
+    }, 650);
   }
 
-  private checkCardMembershipAndCreate(cardNumber: string): void {
+  private checkCardMembershipAndCreate(
+    cardNumber: string,
+    autoCreateSubscriber = true,
+    showWarnings = true,
+  ): void {
     if (!this.ensureGateConnectionReady()) return;
 
-    const normalizedCard = cardNumber.trim().toUpperCase();
+    const normalizedCard = this.normalizeCardNumber(cardNumber);
     if (!normalizedCard) {
       this.toast.warn(this.t('enter_card_first'));
       return;
     }
 
+    const cachedMembership = this.cardMembershipCache.get(normalizedCard);
+    if (cachedMembership) {
+      this.applyCardMembershipResult(normalizedCard, cachedMembership, autoCreateSubscriber, showWarnings);
+      return;
+    }
+
+    this.lastCheckedCardNumber = normalizedCard;
     this.cardMembershipStatus = 'checking';
 
     this.ticketsSvc.checkMembershipByCardNumber(normalizedCard).subscribe({
       next: (res) => {
-        if (!res.isMember) {
-          this.cardMembershipStatus = 'not-member';
-          this.toast.warn(this.t('card_not_member'));
+        if (this.normalizeCardNumber(this.cardNumber) !== normalizedCard) {
           return;
         }
 
-        this.cardMembershipStatus = 'member';
-        this.createSubscriberTicketWithPayload({
-          cardNumber: normalizedCard,
-          vehicleNumber: this.cardSummary?.vehicleNumber?.trim() || undefined,
-        });
+        this.cardMembershipCache.set(normalizedCard, res);
+        this.applyCardMembershipResult(normalizedCard, res, autoCreateSubscriber, showWarnings);
       },
       error: (err) => {
+        if (this.normalizeCardNumber(this.cardNumber) !== normalizedCard) {
+          return;
+        }
+
         this.cardMembershipStatus = 'error';
         this.handleBackendError('check-by-card-number error', err);
-        this.toast.warn(this.t('card_membership_failed'));
+        if (showWarnings) {
+          this.toast.warn(this.t('card_membership_failed'));
+        }
       },
+    });
+  }
+
+  private applyCardMembershipResult(
+    cardNumber: string,
+    membership: CardMembershipCheckResponse,
+    autoCreateSubscriber: boolean,
+    showWarnings: boolean,
+  ): void {
+    this.cardNumber = cardNumber;
+
+    if (!membership.isMember) {
+      this.cardMembershipStatus = 'not-member';
+      this.cardSummary = null;
+
+      if (showWarnings) {
+        this.toast.warn(this.t('card_not_member'));
+      }
+      return;
+    }
+
+    this.cardMembershipStatus = 'member';
+    this.selectedPricingSchemaId = '';
+
+    if (membership.summary) {
+      this.cardSummary = membership.summary;
+    }
+
+    if (!autoCreateSubscriber) return;
+    if (this.autoCreatedCardNumbers.has(cardNumber)) return;
+
+    this.autoCreatedCardNumbers.add(cardNumber);
+    setTimeout(() => this.autoCreatedCardNumbers.delete(cardNumber), 10000);
+
+    this.createSubscriberTicketWithPayload({
+      cardNumber: membership.cardNumber?.trim() || cardNumber,
+      vehicleNumber:
+        membership.vehicleNumber?.trim() ||
+        membership.summary?.vehicleNumber?.trim() ||
+        this.cardSummary?.vehicleNumber?.trim() ||
+        undefined,
     });
   }
 
@@ -1187,8 +1298,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.ticketsSvc.addTicket(payload).subscribe({
       next: (res) => this.handleIssuedTicketResponse(res),
       error: (e) => {
-        this.handleBackendError('AddTicket (normal) error', e);
-        this.adding = false;
+        this.handleAddTicketFailure('AddTicket (normal) error', e, normalizedVehicleNumber);
       },
     });
   }
@@ -1271,8 +1381,12 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.ticketsSvc.addTicket(payload).subscribe({
       next: (res) => this.handleIssuedTicketResponse(res),
       error: (e) => {
-        this.handleBackendError('AddTicket (subscriber) error', e);
-        this.adding = false;
+        this.handleAddTicketFailure(
+          'AddTicket (subscriber) error',
+          e,
+          normalizedVehicleNumber,
+          data.cardNumber,
+        );
       },
     });
   }
@@ -1288,7 +1402,31 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   private normalizeVehicleNumber(value: string | undefined | null): string {
-    return (value ?? '').replace(/\s+/g, '').trim().toUpperCase();
+    const compact = String(value ?? '')
+      .replace(/[\s\u00a0\u2000-\u200f\u2028-\u202f\u205f\u3000]+/g, '')
+      .trim()
+      .toUpperCase();
+
+    const letters: string[] = [];
+    const suffix: string[] = [];
+
+    for (const char of Array.from(compact)) {
+      if (this.isVehicleLetter(char) && suffix.length === 0) {
+        letters.push(char);
+      } else {
+        suffix.push(char);
+      }
+    }
+
+    return [letters.join(' '), suffix.join('')].filter(Boolean).join(' ');
+  }
+
+  private isVehicleLetter(char: string): boolean {
+    return /^[A-Z\u0600-\u06FF]$/.test(char);
+  }
+
+  private normalizeCardNumber(value: string | undefined | null): string {
+    return String(value ?? '').replace(/\s+/g, '').trim().toUpperCase();
   }
 
   private resetLprLookupState(vehicleNumber: string | null): void {
@@ -1296,6 +1434,11 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.lprMembershipStatus = 'idle';
     this.lprMembershipCardNumber = null;
     this.selectedPricingSchemaId = '';
+  }
+
+  private resetCardLookupState(): void {
+    this.cardMembershipStatus = 'idle';
+    this.cardSummary = null;
   }
 
   private getVehicleImagePayloads(): File[] {
@@ -1334,13 +1477,17 @@ export class TicketComponent implements OnInit, OnDestroy {
     this._lastTicketPrice = null;
     this._lastTicketCreatedAt = null;
     this._cashierCollected = false;
+    this.openGateLoading = false;
+    this.openGateError = null;
+    this.lastOpenGateResponse = null;
   }
 
   private handleIssuedTicketResponse(res: IssuedTicketResponse | null): void {
-    if (!res) {
-      this.adding = false;
+    if (!this.isAddTicketSuccess(res)) {
+      this.handleAddTicketFailure('AddTicket returned unsuccessful response', res);
       return;
     }
+    const issued = res as IssuedTicketResponse;
 
     this.uploadedVehicleImages.forEach((file) => this.revokeImageUrl(file));
     if (
@@ -1357,24 +1504,29 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.currentLprVehicleNumber = null;
     this.manualLprPlate = '';
     this.lastCheckedLprVehicleNumber = '';
+    this.cardMembershipStatus = 'idle';
+    this.cardNumber = '';
+    this.cardSummary = null;
+    this.lastCheckedCardNumber = '';
 
-    this.lastIssuedTicketId = res.ticketId ?? null;
-    this.lastIssuedTicketInfo = res.ticketInfo ?? null;
-    this.lastIssuedPrice = res.price ?? null;
-    this.lastIssuedCreatedAt = res.createdAt ?? null;
+    this.lastIssuedTicketId = issued.ticketId ?? null;
+    this.lastIssuedTicketInfo = issued.ticketInfo ?? null;
+    this.lastIssuedPrice = issued.price ?? null;
+    this.lastIssuedCreatedAt = issued.createdAt ?? null;
 
-    const fromResponse: string | undefined = (res as any)?.vehicleNumber;
+    const fromResponse: string | undefined = (issued as any)?.vehicleNumber;
     if (fromResponse && fromResponse.trim().length > 0) {
       this.lastIssuedVehicleNumber = fromResponse.trim();
     }
 
-    const normalizedQr = this.normalizeQrImage(res.qrCode);
+    const normalizedQr = this.normalizeQrImage(issued.qrCode);
 
     if (!normalizedQr) {
-      console.warn('Invalid qrCode returned from AddTicket', res.qrCode);
+      console.warn('Invalid qrCode returned from AddTicket', issued.qrCode);
 
-      this.currentIssuedQr = null;
-      this.currentIssuedQrType = null;
+      const fallbackTicketText = issued.ticketInfo ?? issued.ticketId ?? null;
+      this.currentIssuedQr = fallbackTicketText;
+      this.currentIssuedQrType = fallbackTicketText ? 'text' : null;
 
       // هنا الرسالة محلية لأنها حالة خاصة (API رجع قيمة غير قابلة للاستخدام)
     }
@@ -1384,10 +1536,10 @@ export class TicketComponent implements OnInit, OnDestroy {
       this.currentIssuedQrType = 'image';
     }
 
-    this.finalizeIssuedTicketAfterCreate();
+    this.finalizeIssuedTicketAfterCreate(!!issued.success);
   }
 
-  private finalizeIssuedTicketAfterCreate(): void {
+  private finalizeIssuedTicketAfterCreate(addTicketSucceeded = false): void {
     this._cashierCollected = true;
 
     if (this.lastIssuedTicketId) {
@@ -1396,15 +1548,69 @@ export class TicketComponent implements OnInit, OnDestroy {
 
     this.toast.success(this.t('create_ticket'));
     this.openGateAfterTicketCreate();
+    this.printTicketDocuments();
 
-    if (!this.currentIssuedQr) {
+    if (!this.currentIssuedQr && !addTicketSucceeded) {
       this.toast.error(this.t('qr_invalid_warning'));
-    } else {
-      this.printTicketDocuments();
     }
 
     this.loadTicketsForEntry();
     this.adding = false;
+  }
+
+  private isAddTicketSuccess(res: any): boolean {
+    return !!(
+      res === true ||
+      res?.success ||
+      res?.Success ||
+      res?.isSuccess ||
+      res?.IsSuccess ||
+      res?.succeeded ||
+      res?.Succeeded ||
+      res?.ticketId ||
+      res?.TicketId
+    );
+  }
+
+  private handleAddTicketFailure(
+    context: string,
+    err: any,
+    vehicleNumber?: string | null,
+    cardNumber?: string | null,
+  ): void {
+    console.error(context, err);
+
+    const message = this.errorExtractor.extractErrorMessage(err, this.t('create_ticket_failed'));
+
+    this.currentIssuedQr = null;
+    this.currentIssuedQrType = null;
+    this.lastIssuedTicketId = null;
+    this.lastIssuedTicketInfo = null;
+    this.lastIssuedPrice = null;
+    this.lastIssuedCreatedAt = null;
+    this._cashierCollected = false;
+    this.collectingCashierCash = false;
+    this.openGateLoading = false;
+    this.lastOpenGateResponse = null;
+    this.openGateError = message;
+    this.adding = false;
+
+    if (vehicleNumber) {
+      this.autoCreatedLprVehicleNumbers.delete(vehicleNumber);
+    }
+    if (cardNumber) {
+      this.autoCreatedCardNumbers.delete(this.normalizeCardNumber(cardNumber));
+    }
+
+    if (this.lprMembershipStatus === 'subscriber') {
+      this.lprMembershipStatus = 'error';
+    }
+
+    if (this.cardMembershipStatus === 'member' || this.cardMembershipStatus === 'checking') {
+      this.cardMembershipStatus = 'error';
+    }
+
+    this.toast.error(message);
   }
 
   retryOpenGate(): void {
@@ -1443,25 +1649,20 @@ export class TicketComponent implements OnInit, OnDestroy {
   // Printing
   // =======================
   printTicketDocuments(): void {
-    if (!this.currentIssuedQr) return;
-
-    const imgSrc =
-      this.currentIssuedQrType === 'image'
-        ? this.currentIssuedQr
-        : this.qrDataUrl(this.currentIssuedQr);
-
     const createdAtText = this.buildCreatedAtText();
     const gateNumber = this.gatePeripheral?.gateNumber ?? '—';
     const isExit = this.gatePeripheral?.gateType === GateType.Exit;
     const dateTimeLabel = isExit ? 'تاريخ الخروج:' : 'تاريخ الدخول:';
 
-    const qrTicketHtml = this.buildQrTicketPrintHtml({
-      imgSrc,
-      createdAt: createdAtText,
-      gateNumber,
-      ticketInfo: this.lastIssuedTicketInfo,
-      dateTimeLabel: dateTimeLabel,
-    });
+    const qrTicketHtml = this.currentIssuedQr && this.currentIssuedQrType === 'image'
+      ? this.buildQrTicketPrintHtml({
+          imgSrc: this.currentIssuedQr,
+          createdAt: createdAtText,
+          gateNumber,
+          ticketInfo: this.lastIssuedTicketInfo,
+          dateTimeLabel: dateTimeLabel,
+        })
+      : null;
 
     const feesTicketHtml = this.buildFeesTicketPrintHtml({
       createdAt: createdAtText,
@@ -1475,20 +1676,31 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.printHtmlNative(qrTicketHtml, feesTicketHtml);
   }
 
-  private printHtmlNative(qrHtml: string, feesHtml: string): void {
-    const qrJob = {
-      printerName: environment.qrPrinterName,
-      htmlContent: qrHtml,
-      jobName: `QR-Ticket-${this.lastIssuedTicketId ?? 'unknown'}`,
-    };
+  private printHtmlNative(qrHtml: string | null, feesHtml: string): void {
+    const qrPrinterName = this.gateConnectionInfo?.qrPrinterName?.trim() || environment.qrPrinterName;
+    const receiptPrinterName =
+      this.gateConnectionInfo?.receiptPrinterName?.trim() || environment.receiptPrinterName;
+    const jobs = [];
 
-    const feesJob = {
-      printerName: environment.receiptPrinterName,
-      htmlContent: feesHtml,
-      jobName: `Receipt-Ticket-${this.lastIssuedTicketId ?? 'unknown'}`,
-    };
+    if (qrHtml) {
+      jobs.push(
+        this.localPrint.printHtml({
+          printerName: qrPrinterName,
+          htmlContent: qrHtml,
+          jobName: `QR-Ticket-${this.lastIssuedTicketId ?? 'unknown'}`,
+        }),
+      );
+    }
 
-    forkJoin([this.localPrint.printHtml(qrJob), this.localPrint.printHtml(feesJob)]).subscribe({
+    jobs.push(
+      this.localPrint.printHtml({
+        printerName: receiptPrinterName,
+        htmlContent: feesHtml,
+        jobName: `Receipt-Ticket-${this.lastIssuedTicketId ?? 'unknown'}`,
+      }),
+    );
+
+    forkJoin(jobs).subscribe({
       next: () => {
         this.toast.success(this.t('printing_sent'));
       },
@@ -2039,9 +2251,15 @@ export class TicketComponent implements OnInit, OnDestroy {
     event?.preventDefault();
     event?.stopPropagation();
 
+    if (this.cardMembershipCheckTimer) {
+      clearTimeout(this.cardMembershipCheckTimer);
+    }
+
     this.cardSummary = null;
     this.cardNumber = '';
     this.scanBuffer = '';
+    this.cardMembershipStatus = 'idle';
+    this.lastCheckedCardNumber = '';
   }
 
   // =======================

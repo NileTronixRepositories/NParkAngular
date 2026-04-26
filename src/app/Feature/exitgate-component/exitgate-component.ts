@@ -930,7 +930,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // ========= Exit Validation Methods =========
 
   onDetectedVehicleNumber(vehicleNumber: string): void {
-    const normalized = vehicleNumber?.trim();
+    const normalized = this.normalizeLprVehicleNumber(vehicleNumber);
     if (!normalized || this.lprMembershipLoading || this.addingExitTicket || this.validationOpenGateLoading) return;
 
     this.detectedVehicleNumber = normalized;
@@ -1004,20 +1004,22 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       })
       .subscribe({
         next: (res) => {
-          if (!res?.ticketId) {
+          if (!this.isAddTicketSuccess(res)) {
             this.validationOpenGateError = this.t('exitTicketAddFailed');
             this.toast.error(this.validationOpenGateError);
             this.focusValidationTextNonce++;
             return;
           }
 
-          this.upsertExitTicketRow(
-            res.ticketId,
-            res.vehicleNumber || vehicleNumber,
-            res.ticketInfo || res.ticketId,
-            res.price ?? 0,
-            true,
-          );
+          if (res?.ticketId) {
+            this.upsertExitTicketRow(
+              res.ticketId,
+              res.vehicleNumber || vehicleNumber,
+              res.ticketInfo || res.ticketId,
+              res.price ?? 0,
+              true,
+            );
+          }
           this.pendingValidationSource = 'validationText';
           this.openGateForValidatedExit(controllerId);
         },
@@ -1030,6 +1032,20 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.addingExitTicket = false;
         },
       });
+  }
+
+  private isAddTicketSuccess(res: any): boolean {
+    return !!(
+      res === true ||
+      res?.success ||
+      res?.Success ||
+      res?.isSuccess ||
+      res?.IsSuccess ||
+      res?.succeeded ||
+      res?.Succeeded ||
+      res?.ticketId ||
+      res?.TicketId
+    );
   }
 
   onValidateExitByVehicleNumber(vehicleNumber: string): void {
@@ -1265,6 +1281,30 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     }
 
     return text;
+  }
+
+  private normalizeLprVehicleNumber(value: string | null | undefined): string {
+    const compact = String(value ?? '')
+      .replace(/[\s\u00a0\u2000-\u200f\u2028-\u202f\u205f\u3000]+/g, '')
+      .trim()
+      .toUpperCase();
+
+    const letters: string[] = [];
+    const suffix: string[] = [];
+
+    for (const char of Array.from(compact)) {
+      if (this.isLprVehicleLetter(char) && suffix.length === 0) {
+        letters.push(char);
+      } else {
+        suffix.push(char);
+      }
+    }
+
+    return [letters.join(' '), suffix.join('')].filter(Boolean).join(' ');
+  }
+
+  private isLprVehicleLetter(char: string): boolean {
+    return /^[A-Z\u0600-\u06FF]$/.test(char);
   }
 
   onConfirmValidationExit(ticketId: string): void {
