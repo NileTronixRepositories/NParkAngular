@@ -42,6 +42,13 @@
           >
             <td class="ps-2 ps-sm-3 py-1">
               <span class="mono fw-bold text-primary">{{ ticket.ticketNumber || ticket.id }}</span>
+              <div
+                *ngIf="ticket.info"
+                class="text-muted text-truncate"
+                style="font-size: 9px !important"
+              >
+                {{ ticket.info }}
+              </div>
               <div *ngIf="ticket.customerName" class="text-muted" style="font-size: 9px !important">
                 {{ ticket.customerName }}
               </div>

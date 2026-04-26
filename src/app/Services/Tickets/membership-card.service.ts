@@ -3,6 +3,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { Observable, of, map, catchError, throwError } from 'rxjs';
 
 import {
+  CardMembershipCheckResponse,
   MembershipCheckResponse,
   ParkingCardSummaryDto,
 } from '../../Domain/tickets/tickets.model';
@@ -48,6 +49,27 @@ export class MembershipCardService {
         return of(null);
       }),
     );
+  }
+
+  checkMembershipByCardNumber(cardNumber: string): Observable<CardMembershipCheckResponse> {
+    const trimmed = cardNumber?.trim();
+    if (!trimmed) {
+      return of({ isMember: false });
+    }
+
+    const params = new HttpParams().set('cardNumber', trimmed);
+
+    return this.http
+      .get<any>(`${this.membershipsUrl}/check-by-card-number`, { params })
+      .pipe(
+        map((res: any): CardMembershipCheckResponse => ({
+          isMember: !!(res?.isMember ?? res?.IsMember),
+        })),
+        catchError((err) => {
+          this.logError('GET /ParkingMemberships/check-by-card-number', err);
+          return throwError(() => err);
+        }),
+      );
   }
 
   isMembership(vehicleNumber: string): Observable<MembershipCheckResponse> {

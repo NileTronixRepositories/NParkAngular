@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 
 type LprMembershipStatus = 'idle' | 'checking' | 'subscriber' | 'non-subscriber' | 'error';
+type CardMembershipStatus = 'idle' | 'checking' | 'member' | 'not-member' | 'error';
 
 @Component({
   selector: 'app-issue-ticket-block-component',
@@ -27,6 +28,7 @@ export class IssueTicketBlockComponent {
   @Input() pricingSchemas: { id: string; name: string; description?: string | null }[] = [];
   @Input() pricingSchemasLoading = false;
   @Input() hasVehicleImages = false;
+  @Input() cardMembershipStatus: CardMembershipStatus = 'idle';
 
   @Input() currentIssuedQr: string | null = null;
   @Input() currentIssuedQrType: 'image' | 'text' | null = null;

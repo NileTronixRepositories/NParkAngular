@@ -10,6 +10,7 @@ import {
   CollectDailyTicketsResponse,
   CalculateSalaryResponse,
   MembershipCheckResponse,
+  CardMembershipCheckResponse,
   ValidateExitByVehicleNumberResponse,
   ValidateExitByTextRequest,
   ValidateExitByTextResponse,
@@ -64,9 +65,18 @@ export class TicketsServices {
       (file): file is File => !!file,
     );
 
-    formData.append('VehicleNumber', req.vehicleNumber?.trim() ?? '');
     formData.append('IsSubscriber', String(req.isSubscriber));
-    formData.append('CardNumber', req.cardNumber?.trim() ?? '');
+
+    const vehicleNumber = req.vehicleNumber?.trim();
+    const cardNumber = req.cardNumber?.trim();
+
+    if (vehicleNumber) {
+      formData.append('VehicleNumber', vehicleNumber);
+    }
+
+    if (cardNumber) {
+      formData.append('CardNumber', cardNumber);
+    }
 
     if (req.pricingSchemaId?.trim()) {
       formData.append('PricingSchemaId', req.pricingSchemaId.trim());
@@ -143,6 +153,10 @@ export class TicketsServices {
 
   getCardSummaryByVehicleNumber(vehicleNumber: string): Observable<ParkingCardSummaryDto | null> {
     return this.membership.getCardSummaryByVehicleNumber(vehicleNumber);
+  }
+
+  checkMembershipByCardNumber(cardNumber: string): Observable<CardMembershipCheckResponse> {
+    return this.membership.checkMembershipByCardNumber(cardNumber);
   }
 
   isMembership(vehicleNumber: string): Observable<MembershipCheckResponse> {

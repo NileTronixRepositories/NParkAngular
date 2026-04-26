@@ -123,7 +123,8 @@ function completeOnvifValidator(control: AbstractControl): ValidationErrors | nu
           ipPlaceholder: 'مثال: 192.168.1.100',
           pcIpLabel: 'عنوان IP للـ PC',
           deviceIpLabel: 'عنوان IP LPR',
-          controlIpLabel: 'عنوان IP للتحكم',
+          controlIpLabel: 'معرّف التحكم',
+          controlIdPlaceholder: 'مثال: 123456',
           qrPrinterName: 'اسم طابعة QR',
           receiptPrinterName: 'اسم طابعة الإيصال',
           onvifCameraSettings: 'إعدادات كاميرا ONVIF',
@@ -167,7 +168,8 @@ function completeOnvifValidator(control: AbstractControl): ValidationErrors | nu
           ipPlaceholder: 'e.g. 192.168.1.100',
           pcIpLabel: 'PC IP address',
           deviceIpLabel: 'LPR IP address',
-          controlIpLabel: 'Control IP address',
+          controlIpLabel: 'Control ID',
+          controlIdPlaceholder: 'e.g. 123456',
           qrPrinterName: 'QR printer name',
           receiptPrinterName: 'Receipt printer name',
           onvifCameraSettings: 'ONVIF camera settings',
@@ -381,9 +383,9 @@ export class ConfigurationComponent implements OnInit {
     const group = this.fb.group({
       gateId: [null],
       gateNumber: [{ value: defaultNumber, disabled: true }, [Validators.min(1)]],
-      pcIp: ['', [Validators.required, ipAddressValidator()]],
-      deviceIp: ['', [Validators.required, ipAddressValidator()]],
-      controlIp: ['', [Validators.required, ipAddressValidator()]],
+      pcIp: ['', [ipAddressValidator()]],
+      deviceIp: ['', [ipAddressValidator()]],
+      controlIp: ['', [Validators.required]],
       onvifCameraSetting: this.fb.group(
         {
           urlRequest: [''],
@@ -502,8 +504,8 @@ export class ConfigurationComponent implements OnInit {
     const s2 = this.step2Form.getRawValue() as any;
 
     const mapGate = (g: any, i: number): GateConfigDto => {
-      const pcIp = (g['pcIp'] || '').trim();
-      const deviceIp = (g['deviceIp'] || '').trim();
+      const pcIp = this.toNullableTrimmedString(g['pcIp']);
+      const deviceIp = this.toNullableTrimmedString(g['deviceIp']);
       const controlIp = (g['controlIp'] || '').trim();
       const rawOnvif = g['onvifCameraSetting'] || {};
       const onvifCameraSetting = this.normalizeOnvifSettings(rawOnvif);
@@ -511,7 +513,7 @@ export class ConfigurationComponent implements OnInit {
       return {
         gateId: g['gateId'] ?? null,
         gateNumber: Number(g['gateNumber'] ?? i + 1),
-        lprIp: deviceIp || pcIp,
+        lprIp: deviceIp,
         pcIp,
         controlIp,
         onvifCameraSetting,

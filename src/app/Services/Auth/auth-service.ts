@@ -18,7 +18,7 @@ export interface StoredUser {
   role: string;
   permissions?: string[];
   gateDevicePeripheral?: GateDevicePeripheral | null;
-  gateId?: number | null;
+  gateId?: string | number | null;
 }
 
 export interface AuthResponse {
@@ -26,7 +26,7 @@ export interface AuthResponse {
   roleName: string;
   permissions: string[];
   gateDevicePeripheral?: GateDevicePeripheral | null;
-  gateId?: number | null;
+  gateId?: string | number | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -111,7 +111,7 @@ export class AuthService {
   }
 
   // ================== SELECT GATE ==================
-  selectGate(gateId: number, gateType: GateType): Observable<AuthResponse> {
+  selectGate(gateId: string | number, gateType: GateType): Observable<AuthResponse> {
     const body = { gateId, gateType };
 
     return this.http.post<AuthResponse>(`${API_BASE}/CheckGate`, body).pipe(
@@ -175,7 +175,7 @@ export class AuthService {
     return this.gateData;
   }
 
-  getGateId(): number | null {
+  getGateId(): string | number | null {
     const user = this.getStoredUser();
     return user?.gateId ?? null;
   }
@@ -184,7 +184,7 @@ export class AuthService {
     return this.isLoggedIn() && !!this.getGateId();
   }
 
-  updateGateData(gp: GateDevicePeripheral | null) {
+  updateGateData(gp: GateDevicePeripheral | null, gateId?: string | number | null) {
     this.gateData = gp;
 
     const store = this.detectStorage();
@@ -194,7 +194,7 @@ export class AuthService {
       role: current?.role ?? '',
       permissions: current?.permissions ?? [],
       gateDevicePeripheral: gp,
-      gateId: current?.gateId ?? null,
+      gateId: gateId ?? current?.gateId ?? null,
     };
 
     store.setItem(USER_KEY, JSON.stringify(updated));

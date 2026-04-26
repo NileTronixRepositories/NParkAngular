@@ -65,6 +65,106 @@
   font-size: 0.66rem;
 }
 
+.gate-info-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.45rem;
+}
+
+.gate-info-item {
+  min-width: 0;
+  border: 1px solid var(--ticket-border-color);
+  border-radius: 8px;
+  padding: 0.35rem 0.45rem;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.gate-info-item.wide {
+  grid-column: span 4;
+}
+
+.gate-info-item span {
+  color: var(--ticket-muted);
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.gate-info-item strong {
+  display: block;
+  min-width: 0;
+  font-size: 0.75rem;
+}
+
+.mono {
+  font-family: var(--ticket-font-mono);
+}
+
+.snapshot-preview-box {
+  height: 110px;
+  border: 1px solid var(--ticket-border-color);
+  border-radius: 8px;
+  background: #f8fafc;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.snapshot-preview-box img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
+.snapshot-empty {
+  height: 110px;
+  border: 1px dashed var(--ticket-border-color);
+  border-radius: 8px;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.35rem;
+  padding: 0.5rem;
+}
+
+.snapshot-capture-button {
+  width: 100%;
+  cursor: pointer;
+  transition:
+    border-color 0.15s ease,
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.snapshot-capture-button i {
+  font-size: 1.25rem;
+  color: #2563eb;
+}
+
+.snapshot-capture-button small {
+  color: var(--ticket-muted);
+  font-size: 9.5px;
+}
+
+.snapshot-capture-button:hover:not(:disabled) {
+  border-color: #2563eb;
+  background: #eff6ff;
+  color: #1d4ed8 !important;
+}
+
+.snapshot-capture-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 /* ==========================
    Page Header
    ========================== */
@@ -226,6 +326,14 @@
    Mobile Compact (< 576px)
    ========================== */
 @media (max-width: 575.98px) {
+  .gate-info-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .gate-info-item.wide {
+    grid-column: span 1;
+  }
+
   .tickets-theme {
     font-size: 0.74rem;
   }

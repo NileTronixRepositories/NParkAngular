@@ -58,6 +58,114 @@
     </div>
   </div>
 
+  <div class="gate-flow-panel mb-3">
+    <div class="row g-2 align-items-stretch">
+      <div class="col-12 col-lg-8">
+        <div class="card shadow-soft h-100">
+          <div class="card-header bg-transparent border-bottom d-flex justify-content-between">
+            <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+              <i class="bi bi-router text-primary"></i> {{ t('gate_info') }}
+            </h6>
+            <span class="spinner-border spinner-border-sm" *ngIf="gateConnectionLoading"></span>
+          </div>
+          <div class="card-body">
+            <div class="alert alert-danger py-1 px-2 x-small mb-2" *ngIf="gateConnectionError">
+              {{ gateConnectionError }}
+            </div>
+            <div class="gate-info-grid" *ngIf="gateConnectionInfo as info">
+              <div class="gate-info-item">
+                <span>{{ t('gate') }}</span>
+                <strong class="mono">{{ info.gateId || activeGateId }}</strong>
+              </div>
+              <div class="gate-info-item">
+                <span>{{ t('pc_device') }}</span>
+                <strong class="mono">{{ info.pcIp || '--' }}</strong>
+              </div>
+              <div class="gate-info-item">
+                <span>{{ t('lpr_device') }}</span>
+                <strong class="mono">{{ info.lprIp || '--' }}</strong>
+              </div>
+              <div class="gate-info-item">
+                <span>{{ t('control_id') }}</span>
+                <strong class="mono">{{ info.controlIp || '--' }}</strong>
+              </div>
+              <div class="gate-info-item wide">
+                <span>{{ t('camera_url') }}</span>
+                <strong class="mono text-truncate">{{ info.onvifCameraSetting?.url || '--' }}</strong>
+              </div>
+            </div>
+            <div class="mt-2 d-flex align-items-center gap-2 flex-wrap" *ngIf="openGateError || lastOpenGateResponse || openGateLoading">
+              <span class="badge bg-success" *ngIf="lastOpenGateResponse && !openGateError">
+                {{ t('open_gate_success') }}
+              </span>
+              <span class="badge bg-danger" *ngIf="openGateError">{{ openGateError }}</span>
+              <span class="spinner-border spinner-border-sm" *ngIf="openGateLoading"></span>
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-xs"
+                *ngIf="openGateError"
+                (click)="retryOpenGate()"
+                [disabled]="openGateLoading"
+              >
+                <i class="bi bi-arrow-clockwise me-1"></i>{{ t('retry_open_gate') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="col-12 col-lg-4">
+        <div class="card shadow-soft h-100">
+          <div class="card-header bg-transparent border-bottom d-flex justify-content-between">
+            <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+              <i class="bi bi-camera text-primary"></i> {{ t('camera_snapshot') }}
+            </h6>
+            <div class="d-flex align-items-center gap-2">
+              <button
+                type="button"
+                class="btn btn-outline-primary btn-xs"
+                (click)="retrySnapshot()"
+                [disabled]="snapshotLoading || !gateConnectionInfo?.onvifCameraSetting?.url"
+                [title]="t('take_snapshot')"
+              >
+                <i class="bi bi-camera"></i>
+              </button>
+              <span class="spinner-border spinner-border-sm" *ngIf="snapshotLoading"></span>
+            </div>
+          </div>
+          <div class="card-body">
+            <div
+              class="snapshot-preview-box"
+              *ngIf="scannedFile?.type?.startsWith('image/'); else noSnapshotPreview"
+            >
+              <img [src]="scannedFile?.safeUrl" alt="Snapshot" />
+            </div>
+            <ng-template #noSnapshotPreview>
+              <button
+                type="button"
+                class="snapshot-empty snapshot-capture-button text-muted x-small"
+                (click)="retrySnapshot()"
+                [disabled]="snapshotLoading || !gateConnectionInfo?.onvifCameraSetting?.url"
+              >
+                <i class="bi bi-camera-fill"></i>
+                <span>{{ snapshotError || t('take_snapshot') }}</span>
+                <small>{{ t('vehicle_images_optional') }}</small>
+              </button>
+            </ng-template>
+            <div class="d-flex gap-2 mt-2" *ngIf="snapshotError">
+              <button type="button" class="btn btn-outline-primary btn-xs" (click)="retrySnapshot()">
+                <i class="bi bi-arrow-clockwise me-1"></i>{{ t('retry_snapshot') }}
+              </button>
+              <button type="button" class="btn btn-outline-secondary btn-xs" (click)="continueWithoutImage()">
+                {{ t('continue_without_image') }}
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- 4 BLOCKS RESPONSIVE GRID -->
   <div class="row g-2 g-lg-3 mb-3">
     <!-- Block 1: Gate Devices -->
@@ -95,6 +203,7 @@
         [pricingSchemas]="pricingSchemas"
         [pricingSchemasLoading]="pricingSchemasLoading"
         [hasVehicleImages]="hasVehicleImages"
+        [cardMembershipStatus]="cardMembershipStatus"
         [currentIssuedQr]="currentIssuedQr"
         [currentIssuedQrType]="currentIssuedQrType"
         [lastIssuedTicketId]="lastIssuedTicketId"
@@ -104,7 +213,7 @@
         [lastIssuedCreatedAt]="lastIssuedCreatedAt"
         [lastIssuedCollected]="lastIssuedCollected"
         [cashierConfirming]="cashierConfirming"
-        (cardNumberChange)="cardNumber = $event"
+        (cardNumberChange)="onCardNumberInput($event)"
         (readCardClicked)="readCard()"
         (createTicketClicked)="createTicket()"
         (createSubscriberTicketClicked)="createSubscriberTicket()"

@@ -7,13 +7,28 @@ const fs = require('fs-extra');
 const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = 9100;
+const PORT = Number(process.env.PORT || 9100);
 
 app.use(cors());
 app.use(bodyParser.json({ limit: '10mb' }));
 
 const TEMP_DIR = path.join(__dirname, 'temp_prints');
 fs.ensureDirSync(TEMP_DIR);
+const LOG_PATH = path.join(__dirname, 'print-service.log');
+
+function writeLog(...parts) {
+  const line = `[${new Date().toISOString()}] ${parts.join(' ')}\n`;
+  fs.appendFileSync(LOG_PATH, line);
+  console.log(...parts);
+}
+
+function errorToPayload(error) {
+  return {
+    error: error?.message || String(error),
+    code: error?.code,
+    stack: error?.stack,
+  };
+}
 
 /**
  * Finds the local path to Chrome or Edge on Windows
@@ -43,7 +58,7 @@ app.post('/api/Print/html', async (req, res) => {
     return res.status(400).send('Missing htmlContent or printerName');
   }
 
-  console.log(`[PrintRequest] Job: ${jobName || 'unnamed'}, Printer: ${printerName}`);
+  writeLog(`[PrintRequest] Job: ${jobName || 'unnamed'}, Printer: ${printerName}`);
 
   let browser;
   try {
@@ -54,6 +69,7 @@ app.post('/api/Print/html', async (req, res) => {
     if (!executablePath) {
       throw new Error('Chrome or Edge not found on this system. Please install a browser.');
     }
+    writeLog(`[Browser] Using executable: ${executablePath}`);
 
     browser = await puppeteer.launch({
       headless: 'new',
@@ -81,7 +97,7 @@ app.post('/api/Print/html', async (req, res) => {
     await browser.close();
     browser = null;
 
-    console.log(`[Print] Sending to printer: ${printerName}`);
+    writeLog(`[Print] Sending to printer: ${printerName}`);
 
     await ptp.print(pdfPath, {
       printer: printerName,
@@ -90,11 +106,12 @@ app.post('/api/Print/html', async (req, res) => {
     // Cleanup
     await fs.remove(pdfPath);
 
+    writeLog(`[PrintSuccess] Job: ${jobName || 'unnamed'}`);
     res.json({ success: true });
   } catch (error) {
-    console.error('[PrintError]', error);
+    writeLog('[PrintError]', JSON.stringify(errorToPayload(error)));
     if (browser) await browser.close();
-    res.status(500).json({ error: error.message });
+    res.status(500).json(errorToPayload(error));
   }
 });
 

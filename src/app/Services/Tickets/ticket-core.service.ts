@@ -218,12 +218,12 @@ export class TicketCoreService {
       })
       .pipe(
         map((res): TicketsForGateResult => {
-          const rows = res?.ticketInfo ?? [];
+          const rows = res?.ticketInfo ?? (res as any)?.TicketInfo ?? [];
           const items: TicketDto[] = rows.map((r) => this.mapEntryToTicketDto(r, 'IN'));
 
           return {
             items,
-            totalPrice: res?.totalPrice ?? 0,
+            totalPrice: res?.totalPrice ?? (res as any)?.TotalPrice ?? 0,
           };
         }),
         catchError((err) => {
@@ -243,12 +243,12 @@ export class TicketCoreService {
       })
       .pipe(
         map((res): TicketsForGateResult => {
-          const rows = res?.ticketInfo ?? [];
+          const rows = res?.ticketInfo ?? (res as any)?.TicketInfo ?? [];
           const items: TicketDto[] = rows.map((r) => this.mapEntryToTicketDto(r, 'OUT'));
 
           return {
             items,
-            totalPrice: res?.totalPrice ?? 0,
+            totalPrice: res?.totalPrice ?? (res as any)?.TotalPrice ?? 0,
           };
         }),
         catchError((err) => {
@@ -267,9 +267,9 @@ export class TicketCoreService {
   // ========= Manual LPR capture =========
 
   captureManualPlate(plate: string): Observable<boolean> {
-    const body = { vehicleNumber: plate.trim().toUpperCase() };
+    const params = new HttpParams().set('VehicleNumber', plate.trim().toUpperCase());
 
-    return this.http.post<any>(this.endpoint('CaptureManualPlate'), body).pipe(
+    return this.http.post<any>(this.endpoint('CaptureManualPlate'), null, { params }).pipe(
       map(() => true),
       catchError((err) => {
         this.logError('POST /Ticket/CaptureManualPlate', err);
@@ -310,22 +310,30 @@ export class TicketCoreService {
 
   // ========= Exit Validation (New) =========
 
-  validateExitByVehicleNumber(vehicleNumber: string): Observable<ValidateExitByVehicleNumberResponse> {
+  validateExitByVehicleNumber(
+    vehicleNumber: string,
+  ): Observable<ValidateExitByVehicleNumberResponse> {
     const params = new HttpParams().set('vehicleNumber', vehicleNumber);
-    return this.http.get<ValidateExitByVehicleNumberResponse>(this.endpoint('validate-exit-by-vehicle-number'), { params }).pipe(
-      catchError((err) => {
-        this.logError('GET /Ticket/validate-exit-by-vehicle-number', err);
-        return throwError(() => err);
+    return this.http
+      .get<ValidateExitByVehicleNumberResponse>(this.endpoint('validate-exit-by-vehicle-number'), {
+        params,
       })
-    );
+      .pipe(
+        catchError((err) => {
+          this.logError('GET /Ticket/validate-exit-by-vehicle-number', err);
+          return throwError(() => err);
+        }),
+      );
   }
 
   validateExitByText(body: ValidateExitByTextRequest): Observable<ValidateExitByTextResponse> {
-    return this.http.post<ValidateExitByTextResponse>(this.endpoint('validate-exit-by-text'), body).pipe(
-      catchError((err) => {
-        this.logError('POST /Ticket/validate-exit-by-text', err);
-        return throwError(() => err);
-      })
-    );
+    return this.http
+      .post<ValidateExitByTextResponse>(this.endpoint('validate-exit-by-text'), body)
+      .pipe(
+        catchError((err) => {
+          this.logError('POST /Ticket/validate-exit-by-text', err);
+          return throwError(() => err);
+        }),
+      );
   }
 }

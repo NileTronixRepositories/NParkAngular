@@ -110,7 +110,7 @@ export class GateComponent {
       .subscribe(
         (response: any) => {
           this.authService.updateToken(response.token);
-          this.authService.updateGateData(response.gateDevicePeripheral);
+          this.authService.updateGateData(response.gateDevicePeripheral, gateId);
           this.toast.success(
             this.lang.current === 'ar'
               ? `تم اختيار ${selectedGate.gateName}`
@@ -154,14 +154,14 @@ export class GateComponent {
       return;
     }
 
-    const gateId = parseInt(selectedGate.gateId, 10);
+    const gateId = selectedGate.gateId;
     const gateType = this.gateType;
 
     console.log('Selecting gateId:', gateId, 'gateType:', gateType);
 
     this.authService.checkGate().subscribe({
       next: () => {
-        this.authService.selectGate(gateId as number, gateType).subscribe({
+        this.authService.selectGate(gateId, gateType).subscribe({
           next: (selectRes) => {
             console.log('Gate selected and token updated', selectRes);
 
@@ -199,7 +199,7 @@ export class GateComponent {
       return;
     }
 
-    const gateId = parseInt(selectedGate.gateId, 10);
+    const gateId = selectedGate.gateId;
     const gateType = this.gateType;
 
     console.log('Sending gateId: ', gateId, 'gateType: ', gateType);
@@ -220,7 +220,7 @@ export class GateComponent {
       .subscribe(
         (response: any) => {
           this.authService.updateToken(response.token);
-          this.authService.updateGateData(response.gateDevicePeripheral);
+          this.authService.updateGateData(response.gateDevicePeripheral, gateId);
           console.log('Gate selected and token updated', response);
 
           if (response.roleName === 'ExitCashier') {

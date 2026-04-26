@@ -1,16 +1,16 @@
 export enum PriceType {
-  Entry = 'Enter',
-  Exit = 'Exit',
+  Entry = 0,
+  Exit = 1,
 }
 
 export enum VehiclePassengerData {
-  ScannerId = 'ScannerId',
-  VehiclePlate = 'VehiclePlate',
+  VehiclePlate = 0,
+  ScannerId = 1,
 }
 
 export enum PrintType {
-  QrCode = 'QrCode',
-  Receipt = 'Receipt',
+  QrCode = 0,
+  Receipt = 1,
 }
 
 export interface OnvifCameraSettingDto {
@@ -21,8 +21,8 @@ export interface OnvifCameraSettingDto {
 
 export interface GateConfigDto {
   gateNumber: number;
-  lprIp: string;
-  pcIp?: string;
+  lprIp?: string | null;
+  pcIp?: string | null;
   controlIp: string;
   gateId: string | null;
   isAssigned?: boolean;
@@ -41,10 +41,10 @@ export interface TicketCardDto {
 export interface ParkingConfigurationUpdateCommand {
   entryGatesCount: number;
   exitGatesCount: number;
-  allowedParkingSlots: number;
+  allowedParkingSlots: number | null;
 
   priceType: PriceType;
-  gracePeriodMinutes: number;
+  gracePeriodMinutes: number | null;
 
   vehiclePassengerData: VehiclePassengerData;
   printType: PrintType;
@@ -63,7 +63,7 @@ export interface ParkingConfigurationUpdateCommand {
 export interface ParkingConfigurationView {
   entryGatesCount: number;
   exitGatesCount: number;
-  allowedParkingSlots: number;
+  allowedParkingSlots: number | null;
 
   gracePeriodMinutes: number | null;
 

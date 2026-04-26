@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, catchError, map, throwError } from 'rxjs';
 import { environment } from '../../Shared/environment/environment';
 import {
   ParkingConfigurationUpdateCommand,
@@ -21,14 +21,67 @@ export class Configurationervices {
   constructor(private http: HttpClient) {}
 
   getConfiguration(): Observable<ParkingConfigurationView> {
-    return this.http.get<ParkingConfigurationView>(`${this.base}/Get`);
+    return this.http
+      .get<any>(`${this.base}/Get`)
+      .pipe(map((res) => this.normalizeConfiguration(res)));
   }
 
   updateConfig(dto: ParkingConfigurationUpdateCommand): Observable<any> {
-    return this.http.put(`${this.base}/Update`, dto);
+    return this.http.post(`${this.base}/Update`, dto).pipe(
+      catchError((err) => {
+        if (err?.status === 405) {
+          return this.http.put(`${this.base}/Update`, dto);
+        }
+
+        return throwError(() => err);
+      }),
+    );
   }
 
   getPricingSchemas(): Observable<PricingSchemaDto[]> {
     return this.http.get<PricingSchemaDto[]>(`${this.pricingBase}/GetWithoudPagination`);
+  }
+
+  private normalizeConfiguration(res: any): ParkingConfigurationView {
+    const normalizeGate = (gate: any) => {
+      const onvif = gate?.onvifCameraSetting ?? gate?.ONVIFCameraSetting ?? null;
+
+      return {
+        gateId: gate?.gateId ?? gate?.GateId ?? null,
+        gateNumber: gate?.gateNumber ?? gate?.GateNumber ?? 0,
+        lprIp: gate?.lprIp ?? gate?.LprIp ?? null,
+        pcIp: gate?.pcIp ?? gate?.PcIp ?? null,
+        controlIp: gate?.controlIp ?? gate?.ControlIp ?? '',
+        onvifCameraSetting: onvif
+          ? {
+              urlRequest: onvif.urlRequest ?? onvif.UrlRequest ?? '',
+              userName: onvif.userName ?? onvif.UserName ?? '',
+              password: onvif.password ?? onvif.Password ?? '',
+            }
+          : null,
+        isAssigned: !!(gate?.isAssigned ?? gate?.IsAssigned),
+        assignedTo: gate?.assignedTo ?? gate?.AssignedTo ?? null,
+        qrPrinterName: gate?.qrPrinterName ?? gate?.QrPrinterName ?? null,
+        receiptPrinterName: gate?.receiptPrinterName ?? gate?.ReceiptPrinterName ?? null,
+      };
+    };
+
+    return {
+      entryGatesCount: res?.entryGatesCount ?? res?.EntryGatesCount ?? 0,
+      exitGatesCount: res?.exitGatesCount ?? res?.ExitGatesCount ?? 0,
+      allowedParkingSlots: res?.allowedParkingSlots ?? res?.AllowedParkingSlots ?? null,
+      gracePeriodMinutes: res?.gracePeriodMinutes ?? res?.GracePeriodMinutes ?? null,
+      priceType: res?.priceType ?? res?.PriceType,
+      vehiclePassengerData: res?.vehiclePassengerData ?? res?.VehiclePassengerData,
+      printType: res?.printType ?? res?.PrintType,
+      dateTimeFlag: !!(res?.dateTimeFlag ?? res?.DateTimeFlag),
+      ticketIdFlag: !!(res?.ticketIdFlag ?? res?.TicketIdFlag),
+      feesFlag: !!(res?.feesFlag ?? res?.FeesFlag),
+      pricingSchemaId: res?.pricingSchemaId ?? res?.PricingSchemaId ?? null,
+      pricingSchemaName: res?.pricingSchemaName ?? res?.PricingSchemaName ?? '',
+      ticketCard: res?.ticketCard ?? res?.TicketCard,
+      entryGates: (res?.entryGates ?? res?.EntryGates ?? []).map(normalizeGate),
+      exitGates: (res?.exitGates ?? res?.ExitGates ?? []).map(normalizeGate),
+    };
   }
 }

@@ -11,18 +11,7 @@ export class GateSessionLifecycleService {
     if (this.initialized || typeof window === 'undefined') return;
 
     this.initialized = true;
-    window.addEventListener('beforeunload', this.onBeforeUnload);
-    window.addEventListener('pagehide', this.onPageHide);
+    // Do not auto-logout on pagehide/beforeunload: browsers fire these events on refresh too.
+    // Logging out here makes a normal reload clear the cashier session and forces login again.
   }
-
-  private onBeforeUnload = (event: BeforeUnloadEvent): void => {
-    if (!this.auth.hasActiveGateSession()) return;
-
-    event.preventDefault();
-    event.returnValue = 'Please logout before closing this window.';
-  };
-
-  private onPageHide = (): void => {
-    this.auth.logoutOnPageExit();
-  };
 }

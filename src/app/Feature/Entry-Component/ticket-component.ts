@@ -28,7 +28,11 @@ import {
 
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
-import { GateServices } from '../../Services/Gate/gate-services';
+import {
+  GateConnectionInfo,
+  GateServices,
+  OpenGateResponse,
+} from '../../Services/Gate/gate-services';
 import { AuthService } from '../../Services/Auth/auth-service';
 import { GateDevicePeripheral, GateDto, GateType } from '../../Domain/Auth/auth.models';
 import { LocalHealthService } from '../../Services/Gate/local-health.service';
@@ -53,6 +57,8 @@ import { LocalPrintService } from '../../Services/Print/local-print.service';
 import { environment } from '../../Shared/environment/environment';
 
 type LprMembershipStatus = 'idle' | 'checking' | 'subscriber' | 'non-subscriber' | 'error';
+
+type CardMembershipStatus = 'idle' | 'checking' | 'member' | 'not-member' | 'error';
 
 interface EntryVehicleImage {
   name: string;
@@ -122,12 +128,20 @@ export class TicketComponent implements OnInit, OnDestroy {
   // =======================
   showGateSelectionModal = false;
   gatesList: GateDto[] = [];
-  selectedGateId: number | null = null;
+  selectedGateId: string | number | null = null;
   gateLoading = false;
   gateSaving = false;
 
   gatePeripheral: GateDevicePeripheral | null = null;
   cashierToken: string | null = null;
+  gateConnectionInfo: GateConnectionInfo | null = null;
+  gateConnectionLoading = false;
+  gateConnectionError: string | null = null;
+  snapshotLoading = false;
+  snapshotError: string | null = null;
+  openGateLoading = false;
+  openGateError: string | null = null;
+  lastOpenGateResponse: OpenGateResponse | null = null;
 
   // =======================
   // Manual inputs / card
@@ -135,6 +149,7 @@ export class TicketComponent implements OnInit, OnDestroy {
   manualLprPlate = '';
   cardNumber = '';
   readonly readingCard = signal(false);
+  cardMembershipStatus: CardMembershipStatus = 'idle';
   private lprMembershipCheckTimer?: ReturnType<typeof setTimeout>;
   private lastCheckedLprVehicleNumber = '';
   private readonly lprMembershipCache = new Map<string, MembershipCheckResponse>();
@@ -254,6 +269,10 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   get isSupervisor(): boolean {
     return this.auth.isSupervisor;
+  }
+
+  get activeGateId(): string | number | null {
+    return this.auth.getGateId();
   }
 
   @ViewChild('scanBox') scanBox?: ElementRef<HTMLInputElement>;
@@ -488,10 +507,25 @@ export class TicketComponent implements OnInit, OnDestroy {
       vehicle_images_attached: 'Vehicle images attached',
       printing_failed: 'Failed to send print jobs to the local printer service.',
       printing_sent: 'Print jobs were sent successfully.',
+      gate_info: 'Gate connection info',
+      control_id: 'Control ID',
+      camera_url: 'Camera URL',
+      camera_snapshot: 'Camera snapshot',
+      take_snapshot: 'Take snapshot',
+      retry_snapshot: 'Retry snapshot',
+      continue_without_image: 'Continue without image',
+      gate_connection_failed: 'Cannot load gate connection information.',
+      gate_connection_loading: 'Loading gate connection information.',
+      snapshot_failed: 'Failed to load camera snapshot.',
+      card_not_member: 'This card is not registered as a membership.',
+      card_membership_failed: 'Failed to check card membership.',
+      open_gate_success: 'Gate opened successfully.',
+      open_gate_failed: 'Ticket created successfully, but gate open failed.',
+      retry_open_gate: 'Retry open gate',
     },
   };
 
-  t = (k: string) => (this.dict as any)[this.i18n.current]?.[k] ?? k;
+  t = (k: string) => (this.dict as any)[this.i18n.current]?.[k] ?? this.dict.en[k] ?? k;
   dir = computed(() => this.i18n.dir());
   isRTL = computed(() => this.i18n.isRTL());
 
@@ -500,9 +534,11 @@ export class TicketComponent implements OnInit, OnDestroy {
   // =======================
   ngOnInit(): void {
     this.initGatePeripheral();
+    this.loadGateConnectionInfo();
     this.loadGates();
     this.loadEntryGates();
     this.loadTicketsForEntry();
+    this.ensurePricingSchemasLoaded();
 
     this.scanHub.start().then(() => {
       const gateId = this.auth.getGateId();
@@ -630,6 +666,116 @@ export class TicketComponent implements OnInit, OnDestroy {
     }
   }
 
+  private loadGateConnectionInfo(gateId: string | number | null = this.auth.getGateId()): void {
+    if (!gateId) {
+      this.gateConnectionInfo = null;
+      this.gateConnectionError = this.t('gate_connection_failed');
+      return;
+    }
+
+    this.gateConnectionLoading = true;
+    this.gateConnectionError = null;
+    this.snapshotError = null;
+
+    this.gateSvc.getGateConnectionInfo(gateId).subscribe({
+      next: (info) => {
+        this.gateConnectionInfo = info;
+        this.mergeGateConnectionIntoPeripheral(info);
+
+        const cameraUrl = info.onvifCameraSetting?.url?.trim();
+        if (cameraUrl) {
+          this.loadCameraSnapshot(cameraUrl);
+        }
+      },
+      error: (err) => {
+        console.error('Gate connection-info error', err);
+        this.gateConnectionInfo = null;
+        this.gateConnectionError = this.t('gate_connection_failed');
+        this.toast.error(this.t('gate_connection_failed'));
+      },
+      complete: () => {
+        this.gateConnectionLoading = false;
+      },
+    });
+  }
+
+  private mergeGateConnectionIntoPeripheral(info: GateConnectionInfo): void {
+    const current = this.gatePeripheral;
+    if (!current) return;
+
+    this.gatePeripheral = {
+      ...current,
+      pcIp: info.pcIp ?? current.pcIp,
+      lprIp: info.lprIp ?? current.lprIp,
+      hasPc: !!info.pcIp || current.hasPc,
+      hasLpr: !!info.lprIp || current.hasLpr,
+    };
+  }
+
+  private ensureGateConnectionReady(): boolean {
+    if (this.gateConnectionInfo && !this.gateConnectionError) {
+      return true;
+    }
+
+    this.toast.warn(
+      this.gateConnectionLoading ? this.t('gate_connection_loading') : this.t('gate_connection_failed'),
+    );
+    return false;
+  }
+
+  retrySnapshot(): void {
+    const cameraUrl = this.gateConnectionInfo?.onvifCameraSetting?.url?.trim();
+    if (!cameraUrl) return;
+    this.loadCameraSnapshot(cameraUrl);
+  }
+
+  continueWithoutImage(): void {
+    this.snapshotError = null;
+  }
+
+  private loadCameraSnapshot(cameraUrl: string): void {
+    this.snapshotLoading = true;
+    this.snapshotError = null;
+
+    this.gateSvc.getSnapshot(cameraUrl).subscribe({
+      next: (blob) => {
+        const file = new File([blob], `gate-snapshot-${Date.now()}.jpg`, {
+          type: blob.type || 'image/jpeg',
+        });
+        this.attachSnapshotFile(file);
+      },
+      error: (err) => {
+        console.error('Camera snapshot error', err);
+        this.snapshotError = this.t('snapshot_failed');
+        this.toast.warn(this.t('snapshot_failed'));
+      },
+      complete: () => {
+        this.snapshotLoading = false;
+      },
+    });
+  }
+
+  private attachSnapshotFile(file: File): void {
+    const rawUrl = URL.createObjectURL(file);
+    const snapshotAttachment: EntryVehicleImage = {
+      name: file.name,
+      url: rawUrl,
+      safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
+      type: file.type || 'image/jpeg',
+      file,
+    };
+
+    this.uploadedVehicleImages
+      .filter((item) => item.name.startsWith('gate-snapshot-'))
+      .forEach((item) => this.revokeImageUrl(item));
+
+    this.uploadedVehicleImages = [
+      ...this.uploadedVehicleImages.filter((item) => !item.name.startsWith('gate-snapshot-')),
+      snapshotAttachment,
+    ];
+    this.scannedFile = snapshotAttachment;
+  }
+
   // =======================
   // GATES LOADING
   // =======================
@@ -686,6 +832,7 @@ export class TicketComponent implements OnInit, OnDestroy {
         this.gatePeripheral = res?.gateDevicePeripheral ?? this.auth.getGateData();
         this.toast.success(this.t('select_gate'));
         this.loadTicketsForEntry();
+        this.loadGateConnectionInfo(this.selectedGateId);
 
         if (this.selectedGateId) {
           this.scanHub.joinStation(this.selectedGateId.toString());
@@ -784,6 +931,7 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   createTicket(vehicleNumber?: string): void {
     if (this.adding) return;
+    if (!this.ensureGateConnectionReady()) return;
 
     const normalizedVehicleNumber =
       vehicleNumber !== undefined
@@ -797,6 +945,14 @@ export class TicketComponent implements OnInit, OnDestroy {
 
     if (normalizedVehicleNumber) {
       this.currentLprVehicleNumber = normalizedVehicleNumber;
+
+      if (
+        this.currentLprVehicleNumber === normalizedVehicleNumber &&
+        (this.lprMembershipStatus === 'non-subscriber' || this.lprMembershipStatus === 'error')
+      ) {
+        this.createNonSubscriberLprTicket(normalizedVehicleNumber);
+        return;
+      }
 
       const cachedMembership = this.lprMembershipCache.get(normalizedVehicleNumber);
 
@@ -812,11 +968,19 @@ export class TicketComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.createNormalTicket();
+    const pricingSchemaId = this.selectedPricingSchemaId?.trim();
+    if (!pricingSchemaId) {
+      this.ensurePricingSchemasLoaded();
+      this.toast.warn(this.t('select_pricing_schema_first'));
+      return;
+    }
+
+    this.createNormalTicket(undefined, false, pricingSchemaId);
   }
 
   createSubscriberTicket(): void {
     if (this.adding) return;
+    if (!this.ensureGateConnectionReady()) return;
 
     const card = this.cardNumber?.trim();
     if (!card) {
@@ -824,9 +988,44 @@ export class TicketComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.createSubscriberTicketWithPayload({
-      cardNumber: card,
-      vehicleNumber: this.cardSummary?.vehicleNumber?.trim() || undefined,
+    this.checkCardMembershipAndCreate(card);
+  }
+
+  onCardNumberInput(value: string): void {
+    this.cardNumber = value;
+    this.cardMembershipStatus = value?.trim() ? 'idle' : 'idle';
+  }
+
+  private checkCardMembershipAndCreate(cardNumber: string): void {
+    if (!this.ensureGateConnectionReady()) return;
+
+    const normalizedCard = cardNumber.trim().toUpperCase();
+    if (!normalizedCard) {
+      this.toast.warn(this.t('enter_card_first'));
+      return;
+    }
+
+    this.cardMembershipStatus = 'checking';
+
+    this.ticketsSvc.checkMembershipByCardNumber(normalizedCard).subscribe({
+      next: (res) => {
+        if (!res.isMember) {
+          this.cardMembershipStatus = 'not-member';
+          this.toast.warn(this.t('card_not_member'));
+          return;
+        }
+
+        this.cardMembershipStatus = 'member';
+        this.createSubscriberTicketWithPayload({
+          cardNumber: normalizedCard,
+          vehicleNumber: this.cardSummary?.vehicleNumber?.trim() || undefined,
+        });
+      },
+      error: (err) => {
+        this.cardMembershipStatus = 'error';
+        this.handleBackendError('check-by-card-number error', err);
+        this.toast.warn(this.t('card_membership_failed'));
+      },
     });
   }
 
@@ -846,6 +1045,11 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   private checkLprMembership(vehicleNumber: string, autoCreateSubscriber: boolean): void {
+    if (!this.ensureGateConnectionReady()) {
+      this.lprMembershipStatus = 'error';
+      return;
+    }
+
     this.lastCheckedLprVehicleNumber = vehicleNumber;
     this.currentLprVehicleNumber = vehicleNumber;
     this.lprMembershipStatus = 'checking';
@@ -902,7 +1106,13 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.ensurePricingSchemasLoaded();
 
     if (autoCreateSubscriber) {
-      this.toast.warn(this.t('lpr_non_subscriber_manual'));
+      const pricingSchemaId = this.selectedPricingSchemaId?.trim();
+      if (pricingSchemaId) {
+        this.createNormalTicket(vehicleNumber, false, pricingSchemaId);
+        return;
+      }
+
+      this.toast.warn(this.t('select_pricing_schema_first'));
     }
   }
 
@@ -989,17 +1199,12 @@ export class TicketComponent implements OnInit, OnDestroy {
     statePrepared = false,
   ): void {
     const card = this.getMembershipCardNumber(membership);
-    if (!card) {
-      this.loadSubscriberCardThenCreateTicket(vehicleNumber, statePrepared);
-      return;
-    }
-
-    this.cardNumber = card;
+    this.cardNumber = card ?? '';
     this.cardSummary = membership.summary ?? this.cardSummary;
 
     this.createSubscriberTicketWithPayload(
       {
-        cardNumber: card,
+        cardNumber: card ?? undefined,
         vehicleNumber,
       },
       statePrepared,
@@ -1040,7 +1245,7 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   private createSubscriberTicketWithPayload(
-    data: { cardNumber: string; vehicleNumber?: string },
+    data: { cardNumber?: string; vehicleNumber?: string },
     statePrepared = false,
   ): void {
     if (!statePrepared) {
@@ -1190,6 +1395,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     }
 
     this.toast.success(this.t('create_ticket'));
+    this.openGateAfterTicketCreate();
 
     if (!this.currentIssuedQr) {
       this.toast.error(this.t('qr_invalid_warning'));
@@ -1199,6 +1405,38 @@ export class TicketComponent implements OnInit, OnDestroy {
 
     this.loadTicketsForEntry();
     this.adding = false;
+  }
+
+  retryOpenGate(): void {
+    this.openGateAfterTicketCreate();
+  }
+
+  private openGateAfterTicketCreate(): void {
+    const controllerId = this.gateConnectionInfo?.controlIp?.trim();
+    if (!controllerId) {
+      this.openGateError = this.t('open_gate_failed');
+      this.toast.warn(this.t('open_gate_failed'));
+      return;
+    }
+
+    this.openGateLoading = true;
+    this.openGateError = null;
+    this.lastOpenGateResponse = null;
+
+    this.gateSvc.openGate(controllerId).subscribe({
+      next: (res) => {
+        this.lastOpenGateResponse = res;
+        this.toast.success(this.t('open_gate_success'));
+      },
+      error: (err) => {
+        console.error('OpenGate error', err);
+        this.openGateError = this.t('open_gate_failed');
+        this.toast.error(this.t('open_gate_failed'));
+      },
+      complete: () => {
+        this.openGateLoading = false;
+      },
+    });
   }
 
   // =======================
@@ -1253,7 +1491,6 @@ export class TicketComponent implements OnInit, OnDestroy {
     forkJoin([this.localPrint.printHtml(qrJob), this.localPrint.printHtml(feesJob)]).subscribe({
       next: () => {
         this.toast.success(this.t('printing_sent'));
-        this.resetIssuedTicketOutput();
       },
       error: (err) => {
         console.error('[printHtmlNative] Print jobs failed', err);
@@ -1825,6 +2062,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       this.cardSummary = null;
 
       this.loadCardSummary(normalized);
+      this.checkCardMembershipAndCreate(normalized);
     } catch (err: any) {
       console.error(err);
       // ده Error محلي (NFC) مش من الباك
@@ -1938,9 +2176,14 @@ export class TicketComponent implements OnInit, OnDestroy {
 
     this.filtered = this.tickets.filter((t) => {
       const info = t.info?.toLowerCase() ?? '';
+      const ticketNumber = String(t.ticketNumber ?? '').toLowerCase();
 
       const okQ =
-        !q || t.plate.toLowerCase().includes(q) || String(t.id).includes(q) || info.includes(q);
+        !q ||
+        t.plate.toLowerCase().includes(q) ||
+        String(t.id).toLowerCase().includes(q) ||
+        ticketNumber.includes(q) ||
+        info.includes(q);
 
       const okA = !this.action || t.action === this.action;
       const okG = !this.gate || t.gate === this.gate;
@@ -1953,8 +2196,18 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.selectedTicketForModal = null;
   }
 
-  private normalizeQrImage(qr: string | null | undefined): string | null {
+  private normalizeQrImage(qr: string | number[] | null | undefined): string | null {
     if (!qr) return null;
+    if (Array.isArray(qr)) {
+      try {
+        const binary = String.fromCharCode(...qr);
+        return `data:image/png;base64,${btoa(binary)}`;
+      } catch (err) {
+        console.error('Failed to convert QR byte array to base64:', err);
+        return null;
+      }
+    }
+
     const v = String(qr).trim();
 
     if (/^(data:image\/|blob:|https?:\/\/)/i.test(v)) return v;
