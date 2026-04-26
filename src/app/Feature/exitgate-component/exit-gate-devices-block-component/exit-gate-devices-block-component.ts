@@ -83,24 +83,10 @@ export class ExitGateDevicesBlockComponent {
     if (!plate || this.manualPlateSubmitting) return;
 
     this.manualPlateSubmitting = true;
-
-    this.ticketsSvc.captureManualPlate(plate).subscribe({
-      next: (_ok) => {
-        this.vehicleDetected.emit(plate);
-        this.toast.success(this.t('send_manual_plate'));
-        this.manualPlate = '';
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        console.error('submitManualPlate error', err);
-        this.toast.fromProblem(err);
-        this.cdr.markForCheck();
-      },
-      complete: () => {
-        this.manualPlateSubmitting = false;
-        this.cdr.markForCheck();
-      },
-    });
+    this.vehicleDetected.emit(plate);
+    this.manualPlate = '';
+    this.manualPlateSubmitting = false;
+    this.cdr.markForCheck();
   }
 
   onSearchInput(value: string): void {

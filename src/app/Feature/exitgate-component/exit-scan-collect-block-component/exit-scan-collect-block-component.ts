@@ -3,7 +3,9 @@ import {
   ElementRef,
   EventEmitter,
   Input,
+  OnChanges,
   Output,
+  SimpleChanges,
   ViewChild,
   ChangeDetectionStrategy,
 } from '@angular/core';
@@ -21,7 +23,7 @@ import { FormsModule } from '@angular/forms';
   styleUrl: './exit-scan-collect-block-component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ExitScanCollectBlockComponent {
+export class ExitScanCollectBlockComponent implements OnChanges {
   // ========== State flags ==========
   @Input() scanningQR = false;
   @Input() scanning = false;
@@ -165,9 +167,17 @@ export class ExitScanCollectBlockComponent {
   onEnterPressed(): void {
     if (!this.canSubmit) return;
     this.submitInputClick.emit();
+    this.focusInput();
   }
 
   selectAll(el: HTMLInputElement): void {
     setTimeout(() => el.select(), 0);
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    const loadingChange = changes['searchingManual'];
+    if (loadingChange && loadingChange.previousValue === true && loadingChange.currentValue === false) {
+      this.focusInput();
+    }
   }
 }

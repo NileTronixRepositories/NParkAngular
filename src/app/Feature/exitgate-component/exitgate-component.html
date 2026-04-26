@@ -65,54 +65,28 @@
       ></app-exit-gate-devices-block-component>
     </div>
 
-    <!-- Block 2: Scan & Collect (hidden for Supervisor) -->
-    <div class="col-12 col-md-6 col-xl-3" *ngIf="!isSupervisor">
-      <app-exit-scan-collect-block-component
-        [universalInput]="universalInput"
-        (universalInputChange)="onUniversalInputChange($event)"
-        (submitInputClick)="onUniversalInputSubmit()"
-        [readingCard]="readingCard"
-        [searchingManual]="searchingManual"
-        [scannedTicket]="scannedTicket"
-        [salarySummary]="salarySummary"
-        [addingExitTicket]="addingExitTicket"
-        [exitTicketAdded]="exitTicketAdded"
-        [collecting]="collecting"
-        [exitProcessing]="exitProcessing"
-        [collectingCashier]="collectingCashier"
-        [cashierConfirming]="cashierConfirming"
-        [allSanctions]="allSanctions"
-        [selectedSanctionIds]="selectedSanctionIds"
-        (toggleSanction)="onToggleSanction($event)"
-        (scanQrClick)="scanQRCode()"
-        (readCardClick)="readCard()"
-        (addExitTicketClick)="addExitTicket($event)"
-        (confirmExitClick)="confirmExit()"
-        (calculateSalaryClick)="onCalculateSalary()"
-        (printSummaryClick)="printSummary()"
-        (allowExitWithoutCollectClick)="allowExitWithoutCollect()"
-        (collectCashierClick)="collectCashier()"
-        (confirmCashierClicked)="collectCashier()"
-      ></app-exit-scan-collect-block-component>
-    </div>
-
-    <!-- Block 3: Exit Validation (New) -->
+    <!-- Block 2: Exit Validation -->
     <div class="col-12 col-md-6 col-xl-3">
       <app-exit-validation-block-component
         [detectedVehicleNumber]="detectedVehicleNumber"
         [vehicleValidationLoading]="vehicleValidationLoading"
-        [textValidationLoading]="textValidationLoading"
+        [textValidationLoading]="textValidationLoading || lprMembershipLoading"
+        [openGateLoading]="validationOpenGateLoading || addingExitTicket"
+        [gateConnectionReady]="isExitGateConnectionReady"
         [vehicleResult]="vehicleValidationResult"
         [textResult]="textValidationResult"
         [validationMessage]="validationMessage"
-        [validationError]="validationError"
+        [validationError]="validationError || validationOpenGateError || gateConnectionError"
+        [clearTextNonce]="clearValidationTextNonce"
+        [focusTextNonce]="focusValidationTextNonce"
+        [setTextNonce]="setValidationTextNonce"
+        [textValue]="validationTextValue"
         (validateText)="onValidateExitByText($event)"
-        (validateVehicle)="onValidateExitByVehicleNumber($event)"
         (confirmExit)="onConfirmValidationExit($event)"
       ></app-exit-validation-block-component>
     </div>
 
-    <!-- Block 4: Tickets Table -->
+    <!-- Block 3: Tickets Table -->
     <div class="col-12 col-xl-3">
       <app-exit-tickets-table-block-component
         [tickets]="filtered"

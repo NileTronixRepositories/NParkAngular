@@ -1,4 +1,16 @@
-import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  EventEmitter,
+  HostListener,
+  Input,
+  AfterViewInit,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewChild,
+  inject,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -16,20 +28,29 @@ import { LanguageService } from '../../../Services/i18n/language-service';
   templateUrl: './exit-validation-block-component.html',
   styleUrls: ['./exit-validation-block-component.css']
 })
-export class ExitValidationBlockComponent {
+export class ExitValidationBlockComponent implements OnChanges, AfterViewInit {
   @Input() detectedVehicleNumber: string = '';
   @Input() vehicleValidationLoading: boolean = false;
   @Input() textValidationLoading: boolean = false;
+  @Input() openGateLoading: boolean = false;
+  @Input() gateConnectionReady: boolean = false;
   @Input() vehicleResult: ValidateExitByVehicleNumberResponse | null = null;
   @Input() textResult: ValidateExitByTextResponse | null = null;
   @Input() validationMessage: string | null = null;
   @Input() validationError: string | null = null;
+  @Input() clearTextNonce: number = 0;
+  @Input() focusTextNonce: number = 0;
+  @Input() setTextNonce: number = 0;
+  @Input() textValue: string = '';
 
   @Output() validateText = new EventEmitter<string>();
-  @Output() validateVehicle = new EventEmitter<string>();
   @Output() confirmExit = new EventEmitter<string>();
 
+  @ViewChild('manualTextArea') manualTextArea?: ElementRef<HTMLTextAreaElement>;
+
   manualText = '';
+  textFieldError: string | null = null;
+  private lastSubmittedText = '';
   private readonly lang = inject(LanguageService);
   private readonly dict = inject(I18N_DICT);
 
@@ -38,15 +59,46 @@ export class ExitValidationBlockComponent {
   }
 
   onValidateText(): void {
-    if (this.manualText.trim()) {
-      this.validateText.emit(this.manualText.trim());
+    const text = this.normalizeScanText(this.manualText);
+    this.manualText = text;
+
+    if (!text) {
+      this.textFieldError = this.t('text_required');
+      return;
+    }
+
+    this.textFieldError = null;
+    this.lastSubmittedText = text;
+    this.validateText.emit(text);
+  }
+
+  onTextEnter(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.onValidateText();
+  }
+
+  onTextBlur(): void {
+    if (!this.isTextDisabled) {
+      this.focusTextArea(true);
     }
   }
 
-  onValidateVehicle(): void {
-    if (this.detectedVehicleNumber.trim()) {
-      this.validateVehicle.emit(this.detectedVehicleNumber.trim());
+  onManualTextChange(value: string): void {
+    let next = this.normalizeScanText(value);
+
+    if (
+      this.lastSubmittedText &&
+      next.startsWith(this.lastSubmittedText) &&
+      next.length > this.lastSubmittedText.length &&
+      !this.isLoading
+    ) {
+      next = this.normalizeScanText(next.slice(this.lastSubmittedText.length));
+      this.lastSubmittedText = '';
     }
+
+    this.manualText = next;
+    this.textFieldError = null;
   }
 
   get anyResult(): any {
@@ -54,7 +106,15 @@ export class ExitValidationBlockComponent {
   }
 
   get isLoading(): boolean {
-    return this.vehicleValidationLoading || this.textValidationLoading;
+    return this.vehicleValidationLoading || this.textValidationLoading || this.openGateLoading;
+  }
+
+  get isTextDisabled(): boolean {
+    return this.textValidationLoading || this.openGateLoading;
+  }
+
+  get isTextSubmitDisabled(): boolean {
+    return this.isTextDisabled || !this.gateConnectionReady || !this.manualText.trim();
   }
 
   get isValid(): boolean {
@@ -70,5 +130,100 @@ export class ExitValidationBlockComponent {
     if (ticketId) {
       this.confirmExit.emit(ticketId);
     }
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    if (changes['setTextNonce'] && !changes['setTextNonce'].firstChange) {
+      this.manualText = this.normalizeScanText(this.textValue);
+      this.textFieldError = null;
+      this.lastSubmittedText = '';
+      this.focusTextArea(true);
+    }
+
+    if (changes['clearTextNonce'] && !changes['clearTextNonce'].firstChange) {
+      this.manualText = '';
+      this.textFieldError = null;
+      this.lastSubmittedText = '';
+    }
+
+    if (changes['focusTextNonce'] && !changes['focusTextNonce'].firstChange) {
+      this.focusTextArea(true);
+    }
+  }
+
+  ngAfterViewInit(): void {
+    this.focusTextArea();
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onDocumentKeydown(event: KeyboardEvent): void {
+    if (this.isTextDisabled || event.ctrlKey || event.altKey || event.metaKey) return;
+
+    const textArea = this.manualTextArea?.nativeElement;
+    if (!textArea || document.activeElement === textArea) return;
+
+    if (event.key === 'Enter') {
+      event.preventDefault();
+      this.focusTextArea(true);
+      this.onValidateText();
+      return;
+    }
+
+    if (event.key.length !== 1) return;
+
+    event.preventDefault();
+    this.manualText = event.key;
+    this.textFieldError = null;
+    this.lastSubmittedText = '';
+    this.focusTextArea();
+  }
+
+  private focusTextArea(selectAll = false): void {
+    setTimeout(() => {
+      const el = this.manualTextArea?.nativeElement;
+      if (!el || el.disabled) return;
+      el.focus();
+      if (selectAll) {
+        el.select();
+      }
+    }, 0);
+  }
+
+  private normalizeScanText(value: string): string {
+    let text = String(value ?? '').replace(/[\r\n]+/g, '').trim();
+
+    const lastExcelQuoteStart = text.lastIndexOf('="');
+    if (lastExcelQuoteStart > 0 && lastExcelQuoteStart < text.length - 2) {
+      text = text.slice(lastExcelQuoteStart + 2).trim();
+    }
+
+    const lastQuote = text.lastIndexOf('"');
+    if (lastQuote > 0 && lastQuote < text.length - 1) {
+      text = text.slice(lastQuote + 1).trim();
+    }
+
+    if (text.startsWith('=')) {
+      text = text.slice(1).trim();
+    }
+
+    text = text.replace(/^[\s"'“”«»]+/, '').replace(/[\s"'“”«»]+$/, '').trim();
+
+    let changed = true;
+    while (changed && text.length >= 2) {
+      changed = false;
+      const first = text.charAt(0);
+      const last = text.charAt(text.length - 1);
+      if (
+        (first === '"' && last === '"') ||
+        (first === "'" && last === "'") ||
+        (first === '“' && last === '”') ||
+        (first === '«' && last === '»')
+      ) {
+        text = text.slice(1, -1).trim();
+        changed = true;
+      }
+    }
+
+    return text;
   }
 }

@@ -6,50 +6,39 @@
   </div>
 
   <div class="card-body">
-    <!-- Section 1: LPR -->
-    <div class="validation-section mb-4">
-      <h6 class="section-title small text-primary fw-bold mb-2">
-        <i class="bi bi-camera"></i> {{ 'lpr_detection' | t }}
-      </h6>
-      <div class="input-group input-group-sm">
-        <span class="input-group-text bg-light x-small">{{ 'vehicle_number' | t }}</span>
-        <input type="text" class="form-control x-small" [value]="detectedVehicleNumber" readonly>
-        <button
-          class="btn btn-primary btn-sm"
-          (click)="onValidateVehicle()"
-          [disabled]="vehicleValidationLoading || !detectedVehicleNumber"
-        >
-          <i class="bi bi-search" *ngIf="!vehicleValidationLoading"></i>
-          <span *ngIf="vehicleValidationLoading" class="spinner-border spinner-border-sm"></span>
-        </button>
-      </div>
-    </div>
-
-    <!-- Section 2: Manual -->
     <div class="validation-section mb-4">
       <h6 class="section-title small text-primary fw-bold mb-2">
         <i class="bi bi-keyboard"></i> {{ 'manual_validation' | t }}
       </h6>
       <div class="mb-2">
         <textarea
+          #manualTextArea
           class="form-control form-control-sm x-small"
-          rows="2"
-          [(ngModel)]="manualText"
-          [placeholder]="'enter_card_or_qr' | t"
+          rows="3"
+          maxlength="200"
+          [ngModel]="manualText"
+          (ngModelChange)="onManualTextChange($event)"
+          [disabled]="isTextDisabled"
+          (keydown.enter)="onTextEnter($event)"
+          (blur)="onTextBlur()"
+          [placeholder]="'scan_or_enter_exit_text_placeholder' | t"
         ></textarea>
+        <div class="invalid-feedback d-block small mt-1" *ngIf="textFieldError || validationError">
+          {{ textFieldError || validationError }}
+        </div>
       </div>
       <button
         class="btn btn-primary btn-sm w-100"
         (click)="onValidateText()"
-        [disabled]="textValidationLoading || !manualText.trim()"
+        [disabled]="isTextSubmitDisabled"
       >
-        <i class="bi bi-check2-circle" *ngIf="!textValidationLoading"></i> {{ 'validate' | t }}
-        <span *ngIf="textValidationLoading" class="spinner-border spinner-border-sm ms-1"></span>
+        <i class="bi bi-door-open" *ngIf="!textValidationLoading && !openGateLoading"></i>
+        {{ 'validate_open_gate' | t }}
+        <span *ngIf="textValidationLoading || openGateLoading" class="spinner-border spinner-border-sm ms-1"></span>
       </button>
-    </div>
-
-    <div *ngIf="validationError" class="alert alert-danger py-2 px-3 small mb-3">
-      <i class="bi bi-exclamation-triangle me-1"></i>{{ validationError }}
+      <!-- <div class="small text-muted mt-2" *ngIf="!gateConnectionReady">
+        <i class="bi bi-router me-1"></i>{{ 'gate_connection_required' | t }}
+      </div> -->
     </div>
 
     <div *ngIf="validationMessage && !validationError" class="alert py-2 px-3 small mb-3 validation-message">
@@ -109,10 +98,13 @@
         </div>
       </div>
 
-      <div class="mt-3" *ngIf="isValid">
-        <button class="btn btn-success btn-sm w-100 fw-bold" (click)="onConfirm()">
-          <i class="bi bi-door-open me-1"></i> {{ 'open_gate' | t }}
-        </button>
+      <div class="mt-3 small text-success fw-bold text-center" *ngIf="isValid">
+        <span *ngIf="openGateLoading">
+          <span class="spinner-border spinner-border-sm me-1"></span>{{ 'opening_gate' | t }}
+        </span>
+        <span *ngIf="!openGateLoading">
+          <i class="bi bi-check-circle me-1"></i>{{ 'allowed_for_exit' | t }}
+        </span>
       </div>
       
       <div class="mt-2 x-small text-danger fw-bold text-center" *ngIf="!isValid && !anyResult.ticketId">

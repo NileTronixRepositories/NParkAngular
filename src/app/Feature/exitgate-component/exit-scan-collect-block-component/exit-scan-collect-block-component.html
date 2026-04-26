@@ -31,7 +31,10 @@
           [placeholder]="'scanPlaceholder' | t"
           [ngModel]="universalInput"
           (ngModelChange)="onInputChange($event)"
-          (keydown.enter)="onEnterPressed()"
+          (keydown.enter)="onEnterPressed(); $event.preventDefault()"
+          (focus)="selectAll(uniInput)"
+          (click)="selectAll(uniInput)"
+          [disabled]="searchingManual || scanning"
           autocomplete="off"
           autofocus
         />

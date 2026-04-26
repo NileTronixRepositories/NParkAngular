@@ -73,10 +73,10 @@
               {{ gateConnectionError }}
             </div>
             <div class="gate-info-grid" *ngIf="gateConnectionInfo as info">
-              <div class="gate-info-item">
+              <!-- <div class="gate-info-item">
                 <span>{{ t('gate') }}</span>
                 <strong class="mono">{{ info.gateId || activeGateId }}</strong>
-              </div>
+              </div> -->
               <div class="gate-info-item">
                 <span>{{ t('pc_device') }}</span>
                 <strong class="mono">{{ info.pcIp || '--' }}</strong>
@@ -85,10 +85,10 @@
                 <span>{{ t('lpr_device') }}</span>
                 <strong class="mono">{{ info.lprIp || '--' }}</strong>
               </div>
-              <div class="gate-info-item">
+              <!-- <div class="gate-info-item">
                 <span>{{ t('control_id') }}</span>
                 <strong class="mono">{{ info.controlIp || '--' }}</strong>
-              </div>
+              </div> -->
               <div class="gate-info-item wide">
                 <span>{{ t('camera_url') }}</span>
                 <strong class="mono text-truncate">{{ info.onvifCameraSetting?.url || '--' }}</strong>

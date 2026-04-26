@@ -18,7 +18,11 @@ import { TicketsServices } from '../../Services/Tickets/tickets-services';
 
 import { LanguageService } from '../../Services/i18n/language-service';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
-import { GateServices } from '../../Services/Gate/gate-services';
+import {
+  GateConnectionInfo,
+  GateServices,
+  OpenGateResponse,
+} from '../../Services/Gate/gate-services';
 import { AuthService } from '../../Services/Auth/auth-service';
 import { GateType, GateDevicePeripheral, GateDto } from '../../Domain/Auth/auth.models';
 import { LocalHealthService } from '../../Services/Gate/local-health.service';
@@ -26,7 +30,6 @@ import { ToastServices } from '../../Services/Toster/toast-services';
 import { NfcReaderService } from '../../Services/registration/nfc-reader.service';
 
 import { ExitGateDevicesBlockComponent } from './exit-gate-devices-block-component/exit-gate-devices-block-component';
-import { ExitScanCollectBlockComponent } from './exit-scan-collect-block-component/exit-scan-collect-block-component';
 import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-component/exit-tickets-table-block-component';
 import { ExitValidationBlockComponent } from './exit-validation-block-component/exit-validation-block-component';
 import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
@@ -37,7 +40,7 @@ import { TicketExitedNotification } from '../../Domain/OverView/dashboard-notifi
 import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.service';
 import { SanctionService } from '../../Services/Sanction/sanction.service';
 import { SanctionDto } from '../../Domain/Sanction/sanction.models';
-import { Subject, Subscription, debounceTime, distinctUntilChanged, timer } from 'rxjs';
+import { Subscription, timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { SupervisorModalBlockComponent } from '../Shared/supervisor-modal-block-component/supervisor-modal-block-component';
 import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal-block-component/ticket-details-modal-block-component';
@@ -51,7 +54,6 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
     CommonModule,
     FormsModule,
     ExitGateDevicesBlockComponent,
-    ExitScanCollectBlockComponent,
     ExitTicketsTableBlockComponent,
     SearchBlockComponent,
     SupervisorModalBlockComponent,
@@ -217,6 +219,15 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           not_valid_for_exit: 'غير صالح للخروج',
           text_required: 'النص مطلوب',
           enter_card_or_qr: 'أدخل رقم الكارت أو كود الـ QR',
+          scan_or_enter_exit_text_placeholder: 'امسح QR أو أدخل رقم الكارت أو رقم السيارة',
+          validate_open_gate: 'تحقق وافتح البوابة',
+          gate_connection_required: 'بيانات اتصال البوابة غير محملة',
+          allowed_for_exit: 'مسموح بالخروج',
+          gate_opened_successfully: 'تم فتح البوابة بنجاح',
+          open_gate_failed: 'فشل فتح البوابة',
+          opening_gate: 'جاري فتح البوابة...',
+          ticket_already_exited_msg: 'التذكرة خرجت بالفعل',
+          ticket_not_valid_today_msg: 'التذكرة غير صالحة لليوم',
           failed_to_validate: 'فشل التحقق من الخروج، يرجى المحاولة مرة أخرى',
           no_matching_ticket: 'لم يتم العثور على تذكرة مطابقة',
           lpr_detection: 'اكتشاف السيارة (LPR)',
@@ -377,6 +388,15 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           not_valid_for_exit: 'Not valid for exit',
           text_required: 'Text is required',
           enter_card_or_qr: 'Enter Card Number or QR Code',
+          scan_or_enter_exit_text_placeholder: 'Scan QR Code / Enter Card Number / Vehicle Number',
+          validate_open_gate: 'Validate & Open Gate',
+          gate_connection_required: 'Gate connection info is not loaded',
+          allowed_for_exit: 'Allowed for exit',
+          gate_opened_successfully: 'Gate opened successfully',
+          open_gate_failed: 'Failed to open gate',
+          opening_gate: 'Opening gate...',
+          ticket_already_exited_msg: 'Ticket already exited',
+          ticket_not_valid_today_msg: 'Ticket is not valid for today',
           failed_to_validate: 'Failed to validate exit, please try again',
           no_matching_ticket: 'No matching ticket found',
           lpr_detection: 'LPR Detection',
@@ -448,7 +468,6 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   searchingTicketNumber = false;
 
   universalInput = '';
-  private readonly searchSubject = new Subject<string>();
   searchingManual = false;
 
   scannedTicket: ScanTicketResponse | null = null;
@@ -508,6 +527,23 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   detectedVehicleNumber = '';
   validationMessage: string | null = null;
   validationError: string | null = null;
+  gateConnectionInfo: GateConnectionInfo | null = null;
+  gateConnectionLoading = false;
+  gateConnectionError: string | null = null;
+  validationOpenGateLoading = false;
+  validationOpenGateError: string | null = null;
+  lastValidationOpenGateResponse: OpenGateResponse | null = null;
+  lprMembershipLoading = false;
+  clearValidationTextNonce = 0;
+  focusValidationTextNonce = 0;
+  setValidationTextNonce = 0;
+  validationTextValue = '';
+  private pendingValidationSource: 'validationText' | 'universal' = 'validationText';
+  private lastSubmittedUniversalInput = '';
+
+  get isExitGateConnectionReady(): boolean {
+    return !!this.gateConnectionInfo?.controlIp?.trim();
+  }
 
   get currentTotalWithSanctions(): number {
     return this.salarySummary?.totalSalary || 0;
@@ -522,16 +558,11 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.cashierToken = this.auth.token;
     this.initGatePeripheral();
+    this.loadGateConnectionInfo();
     this.loadExitGates();
     this.loadSanctions();
     this.reloadList(); // Added reloadList() here
 
-    // Auto-search logic
-    this.searchSubject.pipe(debounceTime(500), distinctUntilChanged()).subscribe((query) => {
-      if (query?.trim()) {
-        this.triggerUnifiedSearch(query.trim());
-      }
-    });
     this.initSignalRExitNotifications();
 
     this.scanHub.start().then(() => {
@@ -639,6 +670,36 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     }
   }
 
+  private loadGateConnectionInfo(gateId: string | number | null = this.auth.getGateId()): void {
+    if (!gateId) {
+      this.gateConnectionInfo = null;
+      this.gateConnectionLoading = false;
+      this.gateConnectionError = this.t('gate_connection_required');
+      return;
+    }
+
+    this.gateConnectionLoading = true;
+    this.gateConnectionError = null;
+
+    this.gateSvc.getGateConnectionInfo(gateId).subscribe({
+      next: (info) => {
+        this.gateConnectionInfo = info;
+        if (!info?.controlIp?.trim()) {
+          this.gateConnectionError = this.t('gate_connection_required');
+        }
+      },
+      error: (err) => {
+        this.gateConnectionInfo = null;
+        this.gateConnectionLoading = false;
+        this.gateConnectionError = this.t('gate_connection_required');
+        this.handleError('Gate/connection-info', err);
+      },
+      complete: () => {
+        this.gateConnectionLoading = false;
+      },
+    });
+  }
+
   private handleError(operation: string, err: any): void {
     console.error(`${operation} error`, err);
     this.toast.fromProblem(err);
@@ -702,6 +763,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         }
 
         this.toast.success(this.t('outOnlyTitle'));
+        this.loadGateConnectionInfo(this.selectedGateId);
 
         if (this.selectedGateId) {
           this.scanHub.joinStation(this.selectedGateId.toString());
@@ -745,12 +807,27 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   onUniversalInputChange(value: string): void {
-    this.universalInput = value;
-    this.searchSubject.next(value);
+    let next = this.normalizeExitScanText(value);
+
+    if (
+      this.lastSubmittedUniversalInput &&
+      next.startsWith(this.lastSubmittedUniversalInput) &&
+      next.length > this.lastSubmittedUniversalInput.length &&
+      !this.textValidationLoading &&
+      !this.validationOpenGateLoading
+    ) {
+      next = this.normalizeExitScanText(next.slice(this.lastSubmittedUniversalInput.length));
+      this.lastSubmittedUniversalInput = '';
+    }
+
+    this.universalInput = next;
   }
 
   onUniversalInputSubmit(): void {
-    this.triggerUnifiedSearch(this.universalInput);
+    const normalized = this.normalizeExitScanText(this.universalInput);
+    this.universalInput = normalized;
+    this.lastSubmittedUniversalInput = normalized;
+    this.onValidateExitByText(normalized, 'universal');
   }
 
   // ========= Tickets list / filters =========
@@ -854,10 +931,105 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
   onDetectedVehicleNumber(vehicleNumber: string): void {
     const normalized = vehicleNumber?.trim();
-    if (!normalized) return;
+    if (!normalized || this.lprMembershipLoading || this.addingExitTicket || this.validationOpenGateLoading) return;
 
     this.detectedVehicleNumber = normalized;
-    this.onValidateExitByVehicleNumber(normalized);
+    this.setValidationText(normalized);
+    this.handleLprMembershipVehicle(normalized);
+  }
+
+  private setValidationText(text: string): void {
+    this.validationTextValue = this.normalizeExitScanText(text);
+    this.setValidationTextNonce++;
+  }
+
+  private handleLprMembershipVehicle(vehicleNumber: string): void {
+    const normalized = this.normalizeExitScanText(vehicleNumber);
+    if (!normalized) return;
+
+    const controllerId = this.gateConnectionInfo?.controlIp?.trim();
+    if (!controllerId) {
+      this.validationOpenGateError = this.t('gate_connection_required');
+      this.toast.warn(this.validationOpenGateError);
+      this.focusValidationTextNonce++;
+      return;
+    }
+
+    this.lprMembershipLoading = true;
+    this.validationError = null;
+    this.validationOpenGateError = null;
+    this.validationMessage = this.t('searching');
+
+    this.svc.isMembership(normalized).subscribe({
+      next: (membership) => {
+        if (!membership?.isExist) {
+          this.validationMessage = this.t('not_valid_for_exit');
+          this.toast.warn(this.t('not_valid_for_exit'));
+          this.focusValidationTextNonce++;
+          return;
+        }
+
+        this.createMembershipExitTicketAndOpenGate(
+          normalized,
+          membership.cardNumber ?? (membership.summary as any)?.cardNumber ?? (membership.summary as any)?.CardNumber ?? undefined,
+          controllerId,
+        );
+      },
+      error: (err) => {
+        this.validationError = this.t('failed_to_validate');
+        this.handleError('IsMemberShip (exit LPR)', err);
+        this.focusValidationTextNonce++;
+      },
+      complete: () => {
+        this.lprMembershipLoading = false;
+      },
+    });
+  }
+
+  private createMembershipExitTicketAndOpenGate(
+    vehicleNumber: string,
+    cardNumber: string | undefined,
+    controllerId: string,
+  ): void {
+    if (this.addingExitTicket) return;
+
+    this.addingExitTicket = true;
+    this.validationMessage = this.t('allowed_for_exit');
+
+    this.svc
+      .addTicket({
+        isSubscriber: true,
+        vehicleNumber,
+        cardNumber,
+      })
+      .subscribe({
+        next: (res) => {
+          if (!res?.ticketId) {
+            this.validationOpenGateError = this.t('exitTicketAddFailed');
+            this.toast.error(this.validationOpenGateError);
+            this.focusValidationTextNonce++;
+            return;
+          }
+
+          this.upsertExitTicketRow(
+            res.ticketId,
+            res.vehicleNumber || vehicleNumber,
+            res.ticketInfo || res.ticketId,
+            res.price ?? 0,
+            true,
+          );
+          this.pendingValidationSource = 'validationText';
+          this.openGateForValidatedExit(controllerId);
+        },
+        error: (err) => {
+          this.validationOpenGateError = this.t('exitTicketAddFailed');
+          this.handleError('AddTicket (exit LPR membership)', err);
+          this.focusValidationTextNonce++;
+        },
+        complete: () => {
+          this.addingExitTicket = false;
+        },
+      });
   }
 
   onValidateExitByVehicleNumber(vehicleNumber: string): void {
@@ -892,40 +1064,207 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     });
   }
 
-  onValidateExitByText(text: string): void {
-    if (!text?.trim()) {
+  onValidateExitByText(
+    text: string,
+    source: 'validationText' | 'universal' = 'validationText',
+  ): void {
+    if (this.textValidationLoading || this.addingExitTicket || this.validationOpenGateLoading) return;
+
+    const trimmed = this.normalizeExitScanText(text);
+
+    if (!trimmed) {
       this.validationError = this.t('text_required');
       this.toast.warn(this.t('text_required'));
+      this.focusValidationTextNonce++;
+      return;
+    }
+
+    if (trimmed.length > 200) {
+      this.validationError = this.t('text_required');
+      this.toast.warn(this.validationError);
+      this.focusValidationTextNonce++;
+      return;
+    }
+
+    if (!this.isExitGateConnectionReady) {
+      this.validationError = this.t('gate_connection_required');
+      this.toast.warn(this.validationError);
+      this.focusValidationTextNonce++;
       return;
     }
 
     this.validationError = null;
+    this.validationOpenGateError = null;
     this.validationMessage = null;
+    this.pendingValidationSource = source;
     this.textValidationLoading = true;
     this.textValidationResult = null;
     this.vehicleValidationResult = null;
+    this.lastValidationOpenGateResponse = null;
 
-    this.svc.validateExitByText({ text: text.trim() }).subscribe({
+    this.svc.validateExitByText({ text: trimmed }).subscribe({
       next: (res) => {
         this.textValidationResult = res;
         this.textValidationLoading = false;
         if (res.isValidForExit) {
-          this.validationMessage = this.t('valid_for_exit');
-          this.toast.success(this.t('valid_for_exit'));
-        } else if (res.ticketId) {
-          this.validationMessage = this.t('not_valid_for_exit');
-          this.toast.warn(this.t('not_valid_for_exit'));
+          this.validationMessage = this.t('allowed_for_exit');
+          this.toast.success(this.t('allowed_for_exit'));
+          this.registerValidatedExitAndOpenGate();
         } else {
-          this.validationMessage = this.t('no_matching_ticket');
-          this.toast.warn(this.t('no_matching_ticket'));
+          this.validationMessage = this.getExitValidationBusinessMessage(res);
+          this.toast.warn(this.validationMessage);
+          this.focusValidationTextNonce++;
         }
       },
       error: (err) => {
-        this.validationError = this.t('failed_to_validate');
+        this.validationError =
+          err?.status === 422
+            ? this.errorExtractor.extractErrorMessage(err, this.t('text_required'))
+            : this.t('failed_to_validate');
         this.handleError('validateExitByText', err);
         this.textValidationLoading = false;
+        this.focusValidationTextNonce++;
       },
     });
+  }
+
+  private registerValidatedExitAndOpenGate(): void {
+    const result = this.textValidationResult;
+    const controllerId = this.gateConnectionInfo?.controlIp?.trim();
+
+    if (
+      !result?.isValidForExit ||
+      !result.ticketId ||
+      !controllerId ||
+      this.addingExitTicket ||
+      this.validationOpenGateLoading
+    ) {
+      if (!result?.ticketId) {
+        this.validationOpenGateError = this.t('no_matching_ticket');
+        this.toast.warn(this.validationOpenGateError);
+      }
+      if (!controllerId) {
+        this.validationOpenGateError = this.t('gate_connection_required');
+        this.toast.warn(this.validationOpenGateError);
+      }
+      return;
+    }
+
+    this.addingExitTicket = true;
+    this.validationOpenGateError = null;
+    this.validationMessage = this.t('exitTicketAdded');
+
+    this.svc.addExitTicket(result.ticketId).subscribe({
+      next: () => {
+        this.upsertExitTicketRow(
+          result.ticketId!,
+          result.vehicleNumber || result.cardNumber || result.inputText || '',
+          result.ticketNumber || result.ticketId!,
+          0,
+          false,
+        );
+        this.openGateForValidatedExit(controllerId);
+      },
+      error: (err) => {
+        this.validationOpenGateError = this.t('exitTicketAddFailed');
+        this.handleError('addExitTicket (validated exit)', err);
+        this.addingExitTicket = false;
+        this.focusValidationTextNonce++;
+      },
+      complete: () => {
+        this.addingExitTicket = false;
+      },
+    });
+  }
+
+  private openGateForValidatedExit(controllerId: string): void {
+    this.validationOpenGateLoading = true;
+    this.validationOpenGateError = null;
+    this.lastValidationOpenGateResponse = null;
+
+    this.gateSvc.openGate(controllerId).subscribe({
+      next: (res) => {
+        this.lastValidationOpenGateResponse = res;
+        this.validationMessage = this.t('gate_opened_successfully');
+        this.toast.success(this.t('gate_opened_successfully'));
+        if (this.pendingValidationSource === 'universal') {
+          this.universalInput = '';
+          this.lastSubmittedUniversalInput = '';
+        } else {
+          this.clearValidationTextNonce++;
+        }
+        this.focusValidationTextNonce++;
+      },
+      error: (err) => {
+        console.error('OpenGate error', err);
+        this.validationOpenGateLoading = false;
+        this.validationOpenGateError = this.t('open_gate_failed');
+        this.toast.error(this.validationOpenGateError);
+        this.focusValidationTextNonce++;
+      },
+      complete: () => {
+        this.validationOpenGateLoading = false;
+      },
+    });
+  }
+
+  private getExitValidationBusinessMessage(
+    res: ValidateExitByTextResponse | ValidateExitByVehicleNumberResponse,
+  ): string {
+    if (!res.ticketId) return this.t('no_matching_ticket');
+    if (res.endDate) return this.t('ticket_already_exited_msg');
+    if (res.startDate && !this.isToday(res.startDate)) return this.t('ticket_not_valid_today_msg');
+    return this.t('not_valid_for_exit');
+  }
+
+  private isToday(value: string): boolean {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return false;
+
+    const today = new Date();
+    return (
+      date.getFullYear() === today.getFullYear() &&
+      date.getMonth() === today.getMonth() &&
+      date.getDate() === today.getDate()
+    );
+  }
+
+  private normalizeExitScanText(value: string): string {
+    let text = String(value ?? '').replace(/[\r\n]+/g, '').trim();
+
+    const lastExcelQuoteStart = text.lastIndexOf('="');
+    if (lastExcelQuoteStart > 0 && lastExcelQuoteStart < text.length - 2) {
+      text = text.slice(lastExcelQuoteStart + 2).trim();
+    }
+
+    const lastQuote = text.lastIndexOf('"');
+    if (lastQuote > 0 && lastQuote < text.length - 1) {
+      text = text.slice(lastQuote + 1).trim();
+    }
+
+    if (text.startsWith('=')) {
+      text = text.slice(1).trim();
+    }
+
+    text = text.replace(/^[\s"'“”«»]+/, '').replace(/[\s"'“”«»]+$/, '').trim();
+
+    let changed = true;
+    while (changed && text.length >= 2) {
+      changed = false;
+      const first = text.charAt(0);
+      const last = text.charAt(text.length - 1);
+      if (
+        (first === '"' && last === '"') ||
+        (first === "'" && last === "'") ||
+        (first === '“' && last === '”') ||
+        (first === '«' && last === '»')
+      ) {
+        text = text.slice(1, -1).trim();
+        changed = true;
+      }
+    }
+
+    return text;
   }
 
   onConfirmValidationExit(ticketId: string): void {

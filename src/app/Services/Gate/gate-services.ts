@@ -42,7 +42,15 @@ export class GateServices {
             gateId: res?.gateId ?? res?.GateId ?? String(gateId),
             pcIp: res?.pcIp ?? res?.PcIp ?? res?.PCIP,
             lprIp: res?.lprIp ?? res?.LprIp ?? res?.LPRIP,
-            controlIp: res?.controlIp ?? res?.ControlIp,
+            controlIp:
+              res?.controlIp ??
+              res?.ControlIp ??
+              res?.controlID ??
+              res?.ControlID ??
+              res?.controlId ??
+              res?.ControlId ??
+              res?.controllerId ??
+              res?.ControllerId,
             onvifCameraSetting: onvif
               ? {
                   id: onvif.id ?? onvif.Id,

@@ -166,7 +166,7 @@ export interface ValidateExitByTextRequest {
 export interface ValidateExitByTextResponse {
   ticketId: string | null;
   inputText: string;
-  matchType: 'QrCode' | 'CardNumber' | null;
+  matchType: 'QrCode' | 'CardNumber' | 'VehicleNumber' | null;
   ticketNumber: string | null;
   cardNumber: string | null;
   vehicleNumber: string | null;
