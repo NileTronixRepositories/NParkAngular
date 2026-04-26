@@ -1,17 +1,16 @@
 export enum PriceType {
-  Entry = 0,
-  Exit = 1,
+  Entry = 'Enter',
+  Exit = 'Exit',
 }
 
 export enum VehiclePassengerData {
-  Lpr = 0,
-  ScannerId = 1,
-  Both = 2,
+  ScannerId = 'ScannerId',
+  VehiclePlate = 'VehiclePlate',
 }
 
 export enum PrintType {
-  QrCode = 0,
-  Rfid = 1,
+  QrCode = 'QrCode',
+  Receipt = 'Receipt',
 }
 
 export interface OnvifCameraSettingDto {
@@ -28,6 +27,8 @@ export interface GateConfigDto {
   gateId: string | null;
   isAssigned?: boolean;
   assignedTo?: string | null;
+  qrPrinterName?: string | null;
+  receiptPrinterName?: string | null;
   onvifCameraSetting?: OnvifCameraSettingDto | null;
 }
 

@@ -25,7 +25,7 @@ export class Configurationervices {
   }
 
   updateConfig(dto: ParkingConfigurationUpdateCommand): Observable<any> {
-    return this.http.post(`${this.base}/Update`, dto);
+    return this.http.put(`${this.base}/Update`, dto);
   }
 
   getPricingSchemas(): Observable<PricingSchemaDto[]> {

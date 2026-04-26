@@ -2,10 +2,13 @@ import { Component, EventEmitter, Output, OnInit } from '@angular/core';
 import { NgIf, NgFor, NgClass, CommonModule } from '@angular/common';
 import {
   FormArray,
+  AbstractControl,
   FormBuilder,
   FormControl,
   FormGroup,
   ReactiveFormsModule,
+  ValidationErrors,
+  ValidatorFn,
   Validators,
 } from '@angular/forms';
 import { MatStepperModule } from '@angular/material/stepper';
@@ -45,8 +48,27 @@ import { ConfigurationTourService } from '../../Services/configuration/configura
 
 type Mode = 'entry' | 'exit';
 
-const HOST_OR_IP_REGEX =
-  /^(?=.{1,253}$)(?:(?:[a-zA-Z0-9-]{1,63}\.)+[A-Za-z]{2,63}|(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d))$/;
+const IPV4_REGEX = /^(?:(?:25[0-5]|2[0-4]\d|1?\d?\d)\.){3}(?:25[0-5]|2[0-4]\d|1?\d?\d)$/;
+const IPV6_REGEX =
+  /^(?:(?:[0-9A-Fa-f]{1,4}:){7}[0-9A-Fa-f]{1,4}|(?:[0-9A-Fa-f]{1,4}:){1,7}:|:(?::[0-9A-Fa-f]{1,4}){1,7}|(?:[0-9A-Fa-f]{1,4}:){1,6}:[0-9A-Fa-f]{1,4}|(?:[0-9A-Fa-f]{1,4}:){1,5}(?::[0-9A-Fa-f]{1,4}){1,2}|(?:[0-9A-Fa-f]{1,4}:){1,4}(?::[0-9A-Fa-f]{1,4}){1,3}|(?:[0-9A-Fa-f]{1,4}:){1,3}(?::[0-9A-Fa-f]{1,4}){1,4}|(?:[0-9A-Fa-f]{1,4}:){1,2}(?::[0-9A-Fa-f]{1,4}){1,5}|[0-9A-Fa-f]{1,4}:(?:(?::[0-9A-Fa-f]{1,4}){1,6})|::)$/;
+
+function ipAddressValidator(): ValidatorFn {
+  return (control: AbstractControl): ValidationErrors | null => {
+    const value = String(control.value || '').trim();
+    if (!value) return null;
+    return IPV4_REGEX.test(value) || IPV6_REGEX.test(value) ? null : { ipAddress: true };
+  };
+}
+
+function completeOnvifValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value || {};
+  const urlRequest = String(value.urlRequest || '').trim();
+  const userName = String(value.userName || '').trim();
+  const password = String(value.password || '').trim();
+  const hasAny = !!(urlRequest || userName || password);
+  const hasAll = !!(urlRequest && userName && password);
+  return hasAny && !hasAll ? { incompleteOnvif: true } : null;
+}
 
 @Component({
   selector: 'app-configuration-component',
@@ -86,12 +108,11 @@ const HOST_OR_IP_REGEX =
           entry: 'Entry (دخول)',
           exit: 'Exit (خروج)',
           captureMode: 'طريقة الالتقاط',
-          lpr: 'LPR كاميرا',
+          vehiclePlate: 'رقم اللوحة',
           scanner: 'ScannerID كاميرا',
-          both: 'كلاهما',
           printType: 'أنواع التذاكر',
           qr: 'QR',
-          rfid: 'RFID',
+          receipt: 'Receipt',
           dateTimeFlag: 'إظهار التاريخ والوقت على التذكرة',
           ticketIdFlag: 'إظهار رقم التذكرة',
           feesFlag: 'إظهار الرسوم على التذكرة',
@@ -102,6 +123,13 @@ const HOST_OR_IP_REGEX =
           ipPlaceholder: 'مثال: 192.168.1.100',
           pcIpLabel: 'عنوان IP للـ PC',
           deviceIpLabel: 'عنوان IP LPR',
+          controlIpLabel: 'عنوان IP للتحكم',
+          qrPrinterName: 'اسم طابعة QR',
+          receiptPrinterName: 'اسم طابعة الإيصال',
+          onvifCameraSettings: 'إعدادات كاميرا ONVIF',
+          onvifUrlRequest: 'رابط طلب ONVIF',
+          onvifUsername: 'اسم مستخدم ONVIF',
+          onvifPassword: 'كلمة مرور ONVIF',
           back: 'رجوع',
           save: 'حفظ',
           summary: 'الملخّص',
@@ -124,12 +152,11 @@ const HOST_OR_IP_REGEX =
           entry: 'Entry',
           exit: 'Exit',
           captureMode: 'Capture mode',
-          lpr: 'LPR Cam',
+          vehiclePlate: 'Vehicle Plate',
           scanner: 'Scanner Cam',
-          both: 'Both',
           printType: 'Ticket types',
           qr: 'QR',
-          rfid: 'RFID',
+          receipt: 'Receipt',
           dateTimeFlag: 'Show date & time on ticket',
           ticketIdFlag: 'Show ticket ID',
           feesFlag: 'Show fees on ticket',
@@ -140,6 +167,13 @@ const HOST_OR_IP_REGEX =
           ipPlaceholder: 'e.g. 192.168.1.100',
           pcIpLabel: 'PC IP address',
           deviceIpLabel: 'LPR IP address',
+          controlIpLabel: 'Control IP address',
+          qrPrinterName: 'QR printer name',
+          receiptPrinterName: 'Receipt printer name',
+          onvifCameraSettings: 'ONVIF camera settings',
+          onvifUrlRequest: 'ONVIF URL request',
+          onvifUsername: 'ONVIF username',
+          onvifPassword: 'ONVIF password',
           back: 'Back',
           save: 'Save',
           summary: 'Summary',
@@ -189,7 +223,7 @@ export class ConfigurationComponent implements OnInit {
 
     // Step 2
     this.step2Form = this.fb.group({
-      captureMode: ['LPR'], // 'LPR' | 'SCANNER' | 'BOTH'
+      captureMode: ['VEHICLE_PLATE'], // 'VEHICLE_PLATE' | 'SCANNER'
       printType: ['QR'],
 
       startDate: [new Date()],
@@ -277,22 +311,9 @@ export class ConfigurationComponent implements OnInit {
 
           this.syncGateArrays();
 
-          // ✅ Handle LPR / SCANNER / BOTH
-          let captureMode: 'LPR' | 'SCANNER' | 'BOTH' = 'LPR';
-          switch (cfg.vehiclePassengerData) {
-            case VehiclePassengerData.Lpr:
-              captureMode = 'LPR';
-              break;
-            case VehiclePassengerData.ScannerId:
-              captureMode = 'SCANNER';
-              break;
-            case VehiclePassengerData.Both:
-              captureMode = 'BOTH';
-              break;
-          }
-
-          const printType = cfg.printType === PrintType.QrCode ? 'QR' : 'RFID';
-          const mode: Mode = cfg.priceType === PriceType.Exit ? 'exit' : 'entry';
+          const captureMode = this.formCaptureModeFromApi(cfg.vehiclePassengerData);
+          const printType = this.formPrintTypeFromApi(cfg.printType);
+          const mode: Mode = this.formPriceTypeFromApi(cfg.priceType);
 
           this.modeCtrl.setValue(mode, { emitEvent: true });
           this.updatePricingSchemaValidator(mode);
@@ -328,6 +349,20 @@ export class ConfigurationComponent implements OnInit {
     ctrl.updateValueAndValidity();
   }
 
+  private formCaptureModeFromApi(value: VehiclePassengerData | number | string | null | undefined) {
+    return value === VehiclePassengerData.ScannerId || value === 1 || value === 'ScannerId'
+      ? 'SCANNER'
+      : 'VEHICLE_PLATE';
+  }
+
+  private formPrintTypeFromApi(value: PrintType | number | string | null | undefined) {
+    return value === PrintType.Receipt || value === 1 || value === 'Receipt' ? 'RECEIPT' : 'QR';
+  }
+
+  private formPriceTypeFromApi(value: PriceType | number | string | null | undefined): Mode {
+    return value === PriceType.Exit || value === 1 || value === 'Exit' ? 'exit' : 'entry';
+  }
+
   // ======= FormArray helpers =======
   get entryGatesFA(): FormArray<FormGroup> {
     return this.step2Form.get('entryGates') as FormArray<FormGroup>;
@@ -346,16 +381,21 @@ export class ConfigurationComponent implements OnInit {
     const group = this.fb.group({
       gateId: [null],
       gateNumber: [{ value: defaultNumber, disabled: true }, [Validators.min(1)]],
-      pcIp: ['', [Validators.required, Validators.pattern(HOST_OR_IP_REGEX)]],
-      deviceIp: ['', [Validators.required, Validators.pattern(HOST_OR_IP_REGEX)]],
-      controlIp: ['', [Validators.required, Validators.pattern(HOST_OR_IP_REGEX)]],
-      onvifCameraSetting: this.fb.group({
-        urlRequest: [''],
-        userName: [''],
-        password: [''],
-      }),
+      pcIp: ['', [Validators.required, ipAddressValidator()]],
+      deviceIp: ['', [Validators.required, ipAddressValidator()]],
+      controlIp: ['', [Validators.required, ipAddressValidator()]],
+      onvifCameraSetting: this.fb.group(
+        {
+          urlRequest: [''],
+          userName: [''],
+          password: [''],
+        },
+        { validators: completeOnvifValidator },
+      ),
       isAssigned: [false],
       assignedTo: [null],
+      qrPrinterName: ['', [Validators.maxLength(100)]],
+      receiptPrinterName: ['', [Validators.maxLength(100)]],
     });
 
     group.get('isAssigned')?.valueChanges.subscribe((val) => {
@@ -411,6 +451,8 @@ export class ConfigurationComponent implements OnInit {
         },
         isAssigned: src?.isAssigned ?? false,
         assignedTo: src?.assignedTo ?? null,
+        qrPrinterName: src?.qrPrinterName ?? '',
+        receiptPrinterName: src?.receiptPrinterName ?? '',
       });
     });
   }
@@ -475,21 +517,18 @@ export class ConfigurationComponent implements OnInit {
         onvifCameraSetting,
         isAssigned: !!g['isAssigned'],
         assignedTo: g['isAssigned'] ? g['assignedTo'] : null,
+        qrPrinterName: this.toNullableTrimmedString(g['qrPrinterName']),
+        receiptPrinterName: this.toNullableTrimmedString(g['receiptPrinterName']),
       };
     };
 
     const entryGates: GateConfigDto[] = this.entryGatesFA.getRawValue().map(mapGate);
     const exitGates: GateConfigDto[] = this.exitGatesFA.getRawValue().map(mapGate);
 
-    // ✅ Handle LPR / SCANNER / BOTH
-    let vehiclePassengerData: VehiclePassengerData;
-    if (s2.captureMode === 'LPR') {
-      vehiclePassengerData = VehiclePassengerData.Lpr;
-    } else if (s2.captureMode === 'SCANNER') {
-      vehiclePassengerData = VehiclePassengerData.ScannerId;
-    } else {
-      vehiclePassengerData = VehiclePassengerData.Both;
-    }
+    const vehiclePassengerData =
+      s2.captureMode === 'SCANNER'
+        ? VehiclePassengerData.ScannerId
+        : VehiclePassengerData.VehiclePlate;
 
     return {
       entryGatesCount: s1.entryGatesCount,
@@ -498,7 +537,7 @@ export class ConfigurationComponent implements OnInit {
       priceType: this.modeCtrl.value === 'entry' ? PriceType.Entry : PriceType.Exit,
       gracePeriodMinutes: s1.gracePeriodMinutes,
       vehiclePassengerData,
-      printType: s2.printType === 'QR' ? PrintType.QrCode : PrintType.Rfid,
+      printType: s2.printType === 'QR' ? PrintType.QrCode : PrintType.Receipt,
       dateTimeFlag: !!s2.dateTimeFlag,
       ticketIdFlag: !!s2.ticketIdFlag,
       feesFlag: !!s2.feesFlag,
@@ -522,6 +561,11 @@ export class ConfigurationComponent implements OnInit {
       userName,
       password,
     };
+  }
+
+  private toNullableTrimmedString(value: unknown): string | null {
+    const trimmed = String(value || '').trim();
+    return trimmed || null;
   }
 
   private setCurrentPricingSchemaOption(
@@ -552,6 +596,8 @@ export class ConfigurationComponent implements OnInit {
   save() {
     if (this.stepIndex !== 1) return;
 
+    this.applyLocalValidationRules();
+
     if (this.step1Form.invalid) {
       this.step1Form.markAllAsTouched();
       return;
@@ -574,11 +620,67 @@ export class ConfigurationComponent implements OnInit {
             this.lang.current === 'ar' ? 'تم حفظ الإعدادات بنجاح' : 'Settings saved successfully';
           this.toast.fromSuccess(res, successMsg);
           this.submitted.emit(dto);
+          this.loadExistingConfigAndPatch();
         },
         error: (err) => {
           this.toast.fromProblem(err);
         },
       });
+  }
+
+  private applyLocalValidationRules(): void {
+    this.syncGateArrays();
+    this.validateGateCounts();
+    this.validateUniqueGateIps('controlIp');
+    this.validateUniqueGateIps('deviceIp');
+    this.step2Form.updateValueAndValidity({ emitEvent: false });
+  }
+
+  private validateGateCounts(): void {
+    this.setControlError(
+      this.step1Form.get('entryGatesCount'),
+      'countMismatch',
+      Number(this.step1Form.get('entryGatesCount')?.value) !== this.entryGatesFA.length,
+    );
+    this.setControlError(
+      this.step1Form.get('exitGatesCount'),
+      'countMismatch',
+      Number(this.step1Form.get('exitGatesCount')?.value) !== this.exitGatesFA.length,
+    );
+  }
+
+  private validateUniqueGateIps(controlName: 'controlIp' | 'deviceIp'): void {
+    const gates = [...this.entryGatesControls, ...this.exitGatesControls];
+    const normalizedValues = gates.map((gate) =>
+      String(gate.get(controlName)?.value || '')
+        .trim()
+        .toLowerCase(),
+    );
+
+    gates.forEach((gate, index) => {
+      const ctrl = gate.get(controlName);
+      const value = normalizedValues[index];
+      const isDuplicate = !!value && normalizedValues.filter((item) => item === value).length > 1;
+      this.setControlError(ctrl, 'duplicateIp', isDuplicate);
+    });
+  }
+
+  private setControlError(
+    control: AbstractControl | null | undefined,
+    key: string,
+    active: boolean,
+  ): void {
+    if (!control) return;
+
+    const errors = { ...(control.errors || {}) };
+    if (active) {
+      errors[key] = true;
+      control.setErrors(errors);
+      return;
+    }
+
+    delete errors[key];
+    control.setErrors(Object.keys(errors).length ? errors : null);
   }
 
   startConfigTour() {
