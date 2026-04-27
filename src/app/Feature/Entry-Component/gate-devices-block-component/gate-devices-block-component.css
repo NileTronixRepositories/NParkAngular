@@ -67,21 +67,26 @@
 .scan-preview-modal {
   position: fixed;
   inset: 0;
-  z-index: 1090;
+  z-index: 12000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  background: rgba(15, 23, 42, 0.72);
+  padding: clamp(0.75rem, 3vw, 2rem);
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
 }
 
 .scan-preview-dialog {
-  width: min(920px, 96vw);
-  max-height: 92vh;
+  width: min(820px, calc(100vw - 2rem));
+  max-height: min(86vh, 720px);
+  border: 1px solid rgba(226, 232, 240, 0.95);
   border-radius: 10px;
   background: #ffffff;
-  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.28);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.34);
   overflow: hidden;
+  display: flex;
+  flex-direction: column;
 }
 
 .scan-preview-header {
@@ -92,22 +97,71 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+  background: #ffffff;
+  flex: 0 0 auto;
+}
+
+.scan-preview-title {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #0f172a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+.scan-preview-title span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scan-preview-close {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.scan-preview-close:hover {
+  border-color: #94a3b8;
+  background: #f8fafc;
+  color: #0f172a;
 }
 
 .scan-preview-body {
-  height: min(76vh, 620px);
+  min-height: 220px;
+  height: min(62vh, 560px);
   padding: 0.75rem;
-  background: #f8fafc;
+  background: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
+  flex: 1 1 auto;
+  overflow: hidden;
 }
 
 .scan-preview-body img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
-  border-radius: 6px;
+  border-radius: 8px;
+  background: #000000;
 }
 
 .uploaded-images-card {
@@ -203,6 +257,26 @@
 }
 
 @media (max-width: 575.98px) {
+  .scan-preview-modal {
+    padding: 0.6rem;
+  }
+
+  .scan-preview-dialog {
+    width: calc(100vw - 1.2rem);
+    max-height: 84vh;
+    border-radius: 9px;
+  }
+
+  .scan-preview-body {
+    min-height: 180px;
+    height: 56vh;
+    padding: 0.45rem;
+  }
+
+  .scan-preview-title {
+    font-size: 0.68rem;
+  }
+
   :host .card-header {
     padding: 0.32rem 0.45rem !important;
   }

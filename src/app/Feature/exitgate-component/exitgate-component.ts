@@ -225,6 +225,8 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           enter_card_or_qr: 'أدخل رقم الكارت أو كود الـ QR',
           scan_or_enter_exit_text_placeholder: 'امسح QR أو أدخل رقم الكارت أو رقم السيارة',
           validate_open_gate: 'تحقق وافتح البوابة',
+          auto_validation_hint: 'يتم التحقق تلقائيًا بعد قراءة QR أو الكارت أو رقم السيارة',
+          last_validation_input: 'آخر قراءة',
           gate_connection_required: 'بيانات اتصال البوابة غير محملة',
           allowed_for_exit: 'مسموح بالخروج',
           gate_opened_successfully: 'تم فتح البوابة بنجاح',
@@ -236,6 +238,7 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           no_matching_ticket: 'لم يتم العثور على تذكرة مطابقة',
           lpr_detection: 'اكتشاف السيارة (LPR)',
           lpr_vehicle_received: 'تم استقبال رقم السيارة من LPR',
+          lpr_gate_mismatch: 'تم تجاهل قراءة LPR لأنها تخص بوابة مختلفة',
           manual_validation: 'التحقق اليدوي',
           validation_result: 'نتيجة التحقق',
           match_type: 'نوع التطابق',
@@ -395,6 +398,8 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           enter_card_or_qr: 'Enter Card Number or QR Code',
           scan_or_enter_exit_text_placeholder: 'Scan QR Code / Enter Card Number / Vehicle Number',
           validate_open_gate: 'Validate & Open Gate',
+          auto_validation_hint: 'Auto-validates after QR, card, or vehicle number input',
+          last_validation_input: 'Last input',
           gate_connection_required: 'Gate connection info is not loaded',
           allowed_for_exit: 'Allowed for exit',
           gate_opened_successfully: 'Gate opened successfully',
@@ -406,6 +411,7 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           no_matching_ticket: 'No matching ticket found',
           lpr_detection: 'LPR Detection',
           lpr_vehicle_received: 'LPR vehicle received',
+          lpr_gate_mismatch: 'Ignored LPR detection for a different gate',
           manual_validation: 'Manual Validation',
           validation_result: 'Validation Result',
           match_type: 'Match Type',
@@ -546,10 +552,24 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   setValidationTextNonce = 0;
   validationTextValue = '';
   private pendingValidationSource: 'validationText' | 'universal' = 'validationText';
+  private pendingExitValidation: {
+    text: string;
+    source: 'validationText' | 'universal';
+  } | null = null;
   private lastSubmittedUniversalInput = '';
 
   get isExitGateConnectionReady(): boolean {
     return !!this.gateConnectionInfo?.controlIp?.trim();
+  }
+
+  private get isExitValidationBusy(): boolean {
+    return (
+      this.textValidationLoading ||
+      this.vehicleValidationLoading ||
+      this.lprMembershipLoading ||
+      this.addingExitTicket ||
+      this.validationOpenGateLoading
+    );
   }
 
   get currentTotalWithSanctions(): number {
@@ -667,21 +687,47 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   private handleLprVehicleDetected(event: LprVehicleDetectedEvent): void {
-    if (!this.isCurrentGateEvent(event.gateId)) return;
+    const gateMatch = this.getLprGateMatch(event.gateId);
 
-    const vehicleNumber = this.normalizeLprVehicleNumber(event.vehicleNumber);
+    console.log('[Exit LPR SignalR] gate match check', {
+      eventGateId: event.gateId,
+      authGateId: this.auth.getGateId(),
+      connectionGateId: this.gateConnectionInfo?.gateId,
+      isCurrentGate: gateMatch,
+      vehicleNumber: event.vehicleNumber,
+    });
+
+    if (!gateMatch) {
+      const message = `${this.t('lpr_gate_mismatch')}: ${event.gateId}`;
+      this.validationError = message;
+      this.toast.warn(message);
+      this.cdr.markForCheck();
+      return;
+    }
+
+    const vehicleNumber = this.normalizeRawSignalRVehicleNumber(event.vehicleNumber);
     if (!vehicleNumber) return;
+
+    console.log('[Exit LPR SignalR] applying raw vehicleNumber to validation field', {
+      rawVehicleNumber: event.vehicleNumber,
+      vehicleNumber,
+      gateId: event.gateId,
+    });
 
     this.toast.success(`${this.t('lpr_vehicle_received')}: ${vehicleNumber}`);
     this.onDetectedVehicleNumber(vehicleNumber);
     this.cdr.markForCheck();
   }
 
-  private isCurrentGateEvent(gateId: string | number | null | undefined): boolean {
-    const currentGateId = this.auth.getGateId();
-    if (!gateId || !currentGateId) return false;
+  private getLprGateMatch(gateId: string | number | null | undefined): boolean {
+    if (!gateId) return false;
 
-    return String(gateId).trim().toLowerCase() === String(currentGateId).trim().toLowerCase();
+    const eventGateId = String(gateId).trim().toLowerCase();
+    const candidates = [this.auth.getGateId(), this.gateConnectionInfo?.gateId]
+      .filter((id) => id !== null && id !== undefined && String(id).trim().length > 0)
+      .map((id) => String(id).trim().toLowerCase());
+
+    return candidates.includes(eventGateId);
   }
 
   // ========= Init helpers =========
@@ -966,16 +1012,15 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // ========= Exit Validation Methods =========
 
   onDetectedVehicleNumber(vehicleNumber: string): void {
-    const normalized = this.normalizeLprVehicleNumber(vehicleNumber);
-    if (!normalized || this.lprMembershipLoading || this.addingExitTicket || this.validationOpenGateLoading) return;
+    const normalized = this.normalizeRawSignalRVehicleNumber(vehicleNumber);
+    if (!normalized) return;
 
     this.detectedVehicleNumber = normalized;
     this.setValidationText(normalized);
-    this.handleLprMembershipVehicle(normalized);
   }
 
   private setValidationText(text: string): void {
-    this.validationTextValue = this.normalizeExitScanText(text);
+    this.validationTextValue = this.normalizeRawSignalRVehicleNumber(text);
     this.setValidationTextNonce++;
   }
 
@@ -1120,9 +1165,15 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     text: string,
     source: 'validationText' | 'universal' = 'validationText',
   ): void {
-    if (this.textValidationLoading || this.addingExitTicket || this.validationOpenGateLoading) return;
-
     const trimmed = this.normalizeExitScanText(text);
+
+    if (this.isExitValidationBusy) {
+      if (trimmed) {
+        this.pendingExitValidation = { text: trimmed, source };
+        this.clearExitValidationInput(source);
+      }
+      return;
+    }
 
     if (!trimmed) {
       this.validationError = this.t('text_required');
@@ -1149,6 +1200,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.validationOpenGateError = null;
     this.validationMessage = null;
     this.pendingValidationSource = source;
+    this.clearExitValidationInput(source);
     this.textValidationLoading = true;
     this.textValidationResult = null;
     this.vehicleValidationResult = null;
@@ -1166,6 +1218,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.validationMessage = this.getExitValidationBusinessMessage(res);
           this.toast.warn(this.validationMessage);
           this.focusValidationTextNonce++;
+          this.processPendingExitValidation();
         }
       },
       error: (err) => {
@@ -1176,8 +1229,31 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         this.handleError('validateExitByText', err);
         this.textValidationLoading = false;
         this.focusValidationTextNonce++;
+        this.processPendingExitValidation();
       },
     });
+  }
+
+  private clearExitValidationInput(source: 'validationText' | 'universal'): void {
+    if (source === 'universal') {
+      this.universalInput = '';
+      this.lastSubmittedUniversalInput = '';
+      return;
+    }
+
+    this.validationTextValue = '';
+    this.clearValidationTextNonce++;
+  }
+
+  private processPendingExitValidation(): void {
+    if (!this.pendingExitValidation || this.isExitValidationBusy) return;
+
+    const pending = this.pendingExitValidation;
+    this.pendingExitValidation = null;
+
+    setTimeout(() => {
+      this.onValidateExitByText(pending.text, pending.source);
+    }, 0);
   }
 
   private registerValidatedExitAndOpenGate(): void {
@@ -1222,9 +1298,11 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         this.handleError('addExitTicket (validated exit)', err);
         this.addingExitTicket = false;
         this.focusValidationTextNonce++;
+        this.processPendingExitValidation();
       },
       complete: () => {
         this.addingExitTicket = false;
+        this.processPendingExitValidation();
       },
     });
   }
@@ -1253,9 +1331,11 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         this.validationOpenGateError = this.t('open_gate_failed');
         this.toast.error(this.validationOpenGateError);
         this.focusValidationTextNonce++;
+        this.processPendingExitValidation();
       },
       complete: () => {
         this.validationOpenGateLoading = false;
+        this.processPendingExitValidation();
       },
     });
   }
@@ -1319,28 +1399,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     return text;
   }
 
-  private normalizeLprVehicleNumber(value: string | null | undefined): string {
-    const compact = String(value ?? '')
-      .replace(/[\s\u00a0\u2000-\u200f\u2028-\u202f\u205f\u3000]+/g, '')
-      .trim()
-      .toUpperCase();
-
-    const letters: string[] = [];
-    const suffix: string[] = [];
-
-    for (const char of Array.from(compact)) {
-      if (this.isLprVehicleLetter(char) && suffix.length === 0) {
-        letters.push(char);
-      } else {
-        suffix.push(char);
-      }
-    }
-
-    return [letters.join(' '), suffix.join('')].filter(Boolean).join(' ');
-  }
-
-  private isLprVehicleLetter(char: string): boolean {
-    return /^[A-Z\u0600-\u06FF]$/.test(char);
+  private normalizeRawSignalRVehicleNumber(value: string | null | undefined): string {
+    return String(value ?? '').replace(/[\r\n]+/g, '').trim();
   }
 
   onConfirmValidationExit(ticketId: string): void {
@@ -1810,10 +1870,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       const uid = await this.nfc.readUID();
       const normalized = String(uid).trim().toUpperCase();
 
-      this.universalInput = normalized;
+      this.setValidationText(normalized);
       this.lastQrCode = null;
-
-      this.fetchSalaryForCard(normalized);
     } catch (err: any) {
       console.error(err);
       this.toast.error(err?.message || 'تعذر قراءة الكارت. تأكد من توصيل وتشغيل قارئ الـ NFC.');

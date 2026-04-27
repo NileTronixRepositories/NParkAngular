@@ -6,6 +6,7 @@ import {
   EventEmitter,
   ChangeDetectionStrategy,
   ChangeDetectorRef,
+  HostListener,
 } from '@angular/core';
 import { GateDevicePeripheral } from '../../../Domain/Auth/auth.models';
 import { CommonModule } from '@angular/common';
@@ -50,6 +51,7 @@ export class ExitGateDevicesBlockComponent {
   searchingTicket = false;
   searchResults: TicketDto[] = [];
   showResults = false;
+  scannedPreviewOpen = false;
 
   private searchSubject = new Subject<string>();
 
@@ -154,6 +156,24 @@ export class ExitGateDevicesBlockComponent {
     this.searchResults = [];
     this.showResults = false;
     this.cdr.markForCheck();
+  }
+
+  openScannedPreview(): void {
+    if (!this.scannedFile?.type?.startsWith('image/')) return;
+    this.scannedPreviewOpen = true;
+    this.cdr.markForCheck();
+  }
+
+  closeScannedPreview(): void {
+    this.scannedPreviewOpen = false;
+    this.cdr.markForCheck();
+  }
+
+  @HostListener('document:keydown', ['$event'])
+  onDocumentKeydown(event: KeyboardEvent): void {
+    if (!this.scannedPreviewOpen || event.key !== 'Escape') return;
+    event.preventDefault();
+    this.closeScannedPreview();
   }
 
   trackByTicketNumber(_index: number, item: TicketDto): string {

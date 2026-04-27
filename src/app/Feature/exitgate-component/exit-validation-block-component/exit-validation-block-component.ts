@@ -6,6 +6,7 @@ import {
   Input,
   AfterViewInit,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   ViewChild,
@@ -28,7 +29,7 @@ import { LanguageService } from '../../../Services/i18n/language-service';
   templateUrl: './exit-validation-block-component.html',
   styleUrls: ['./exit-validation-block-component.css']
 })
-export class ExitValidationBlockComponent implements OnChanges, AfterViewInit {
+export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input() detectedVehicleNumber: string = '';
   @Input() vehicleValidationLoading: boolean = false;
   @Input() textValidationLoading: boolean = false;
@@ -49,8 +50,10 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit {
   @ViewChild('manualTextArea') manualTextArea?: ElementRef<HTMLTextAreaElement>;
 
   manualText = '';
+  submittedText = '';
   textFieldError: string | null = null;
   private lastSubmittedText = '';
+  private autoSubmitTimer?: ReturnType<typeof setTimeout>;
   private readonly lang = inject(LanguageService);
   private readonly dict = inject(I18N_DICT);
 
@@ -59,8 +62,8 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit {
   }
 
   onValidateText(): void {
+    this.clearAutoSubmitTimer();
     const text = this.normalizeScanText(this.manualText);
-    this.manualText = text;
 
     if (!text) {
       this.textFieldError = this.t('text_required');
@@ -69,7 +72,10 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit {
 
     this.textFieldError = null;
     this.lastSubmittedText = text;
+    this.submittedText = text;
     this.validateText.emit(text);
+    this.manualText = '';
+    this.focusTextArea();
   }
 
   onTextEnter(event: Event): void {
@@ -99,6 +105,7 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit {
 
     this.manualText = next;
     this.textFieldError = null;
+    this.scheduleAutoSubmit();
   }
 
   get anyResult(): any {
@@ -110,7 +117,7 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit {
   }
 
   get isTextDisabled(): boolean {
-    return this.textValidationLoading || this.openGateLoading;
+    return false;
   }
 
   get isTextSubmitDisabled(): boolean {
@@ -138,9 +145,11 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit {
       this.textFieldError = null;
       this.lastSubmittedText = '';
       this.focusTextArea(true);
+      this.scheduleAutoSubmit(80);
     }
 
     if (changes['clearTextNonce'] && !changes['clearTextNonce'].firstChange) {
+      this.clearAutoSubmitTimer();
       this.manualText = '';
       this.textFieldError = null;
       this.lastSubmittedText = '';
@@ -155,9 +164,13 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit {
     this.focusTextArea();
   }
 
+  ngOnDestroy(): void {
+    this.clearAutoSubmitTimer();
+  }
+
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(event: KeyboardEvent): void {
-    if (this.isTextDisabled || event.ctrlKey || event.altKey || event.metaKey) return;
+    if (event.ctrlKey || event.altKey || event.metaKey) return;
 
     const textArea = this.manualTextArea?.nativeElement;
     if (!textArea || document.activeElement === textArea) return;
@@ -176,6 +189,23 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit {
     this.textFieldError = null;
     this.lastSubmittedText = '';
     this.focusTextArea();
+    this.scheduleAutoSubmit();
+  }
+
+  private scheduleAutoSubmit(delayMs = 500): void {
+    this.clearAutoSubmitTimer();
+
+    if (!this.manualText.trim()) return;
+
+    this.autoSubmitTimer = setTimeout(() => {
+      this.onValidateText();
+    }, delayMs);
+  }
+
+  private clearAutoSubmitTimer(): void {
+    if (!this.autoSubmitTimer) return;
+    clearTimeout(this.autoSubmitTimer);
+    this.autoSubmitTimer = undefined;
   }
 
   private focusTextArea(selectAll = false): void {

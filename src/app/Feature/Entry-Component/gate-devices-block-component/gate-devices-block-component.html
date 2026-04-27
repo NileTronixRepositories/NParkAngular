@@ -201,10 +201,13 @@
 >
   <div class="scan-preview-dialog" (click)="$event.stopPropagation()">
     <div class="scan-preview-header">
-      <div class="x-small fw-bold text-truncate">{{ scannedFile?.name }}</div>
+      <div class="scan-preview-title text-truncate">
+        <i class="bi bi-image text-primary"></i>
+        <span dir="ltr">{{ scannedFile?.name }}</span>
+      </div>
       <button
         type="button"
-        class="btn btn-outline-secondary btn-xs"
+        class="scan-preview-close"
         (click)="closeScannedPreview()"
         aria-label="Close preview"
       >

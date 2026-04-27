@@ -1,0 +1,57 @@
+[33m>[39m Building...
+[32m√[39m Building...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m                  [2m | [22m [1mRaw size[22m
+[32mstyles.css[39m         [2m | [22m[2mstyles[22m                 [2m | [22m[36m404.58 kB[39m[2m | [22m
+[32mscripts.js[39m         [2m | [22m[2mscripts[22m                [2m | [22m [36m78.70 kB[39m[2m | [22m
+[32mchunk-E3K5L5PF.js[39m  [2m | [22m[2m-[22m                      [2m | [22m [36m34.21 kB[39m[2m | [22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m                   [2m | [22m [36m19.04 kB[39m[2m | [22m
+[32mchunk-DR7OJLV3.js[39m  [2m | [22m[2m-[22m                      [2m | [22m [36m12.39 kB[39m[2m | [22m
+[32mpolyfills.js[39m       [2m | [22m[2mpolyfills[22m              [2m | [22m [36m95 bytes[39m[2m | [22m
+
+[1m [22m                  [2m | [22m[1mInitial total[22m          [2m | [22m[1m549.02 kB[22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m                  [2m | [22m [1mRaw size[22m
+[32mchunk-YGXTHRGY.js[39m  [2m | [22m[2mticket-component[22m       [2m | [22m[36m304.52 kB[39m[2m | [22m
+[32mchunk-MDQXD6BT.js[39m  [2m | [22m[2mexitgate-component[22m     [2m | [22m[36m276.75 kB[39m[2m | [22m
+[32mchunk-B5S2V4NJ.js[39m  [2m | [22m[2moverview-component[22m     [2m | [22m[36m231.40 kB[39m[2m | [22m
+[32mchunk-ZK73MXVJ.js[39m  [2m | [22m[2mconfiguration-component[22m[2m | [22m[36m175.84 kB[39m[2m | [22m
+[32mchunk-FLOZFLQH.js[39m  [2m | [22m[2mregistration-component[22m [2m | [22m[36m155.86 kB[39m[2m | [22m
+[32mchunk-R64Q5O7F.js[39m  [2m | [22m[2mAltaeriffa-component[22m   [2m | [22m[36m114.67 kB[39m[2m | [22m
+[32mchunk-HRDRM7HC.js[39m  [2m | [22m[2mshell-component[22m        [2m | [22m [36m81.93 kB[39m[2m | [22m
+[32mchunk-M4SPP737.js[39m  [2m | [22m[2musers[22m                  [2m | [22m [36m76.80 kB[39m[2m | [22m
+[32mchunk-STJ253Z5.js[39m  [2m | [22m[2m-[22m                      [2m | [22m [36m74.69 kB[39m[2m | [22m
+[32mchunk-FU6JWVRD.js[39m  [2m | [22m[2msanction-component[22m     [2m | [22m [36m64.00 kB[39m[2m | [22m
+[32mchunk-FZBUGKXZ.js[39m  [2m | [22m[2mvisitor-component[22m      [2m | [22m [36m62.81 kB[39m[2m | [22m
+[32mchunk-2V3MUEUE.js[39m  [2m | [22m[2mreports-component[22m      [2m | [22m [36m59.70 kB[39m[2m | [22m
+[32mchunk-RCTKU7OC.js[39m  [2m | [22m[2mlogin-component[22m        [2m | [22m [36m54.78 kB[39m[2m | [22m
+[32mchunk-U2UFM5MW.js[39m  [2m | [22m[2m-[22m                      [2m | [22m [36m26.60 kB[39m[2m | [22m
+[32mchunk-R3QEYR6C.js[39m  [2m | [22m[2m-[22m                      [2m | [22m [36m25.80 kB[39m[2m | [22m
+[2m...and 10 more lazy chunks files. Use "--verbose" to show all the files.[22m
+
+Application bundle generation complete. [12.252 seconds] - 2026-04-27T11:25:31.138Z
+
+Watch mode enabled. Watching for file changes...
+NOTE: Raw file sizes do not reflect development server per-request transformations.
+  [32m➜[39m  [1mLocal[22m:   [36mhttp://127.0.0.1:[1m4300[22m/[39m
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m             [2m | [22m [1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m              [2m | [22m [36m19.04 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m             [2m | [22m [1mRaw size[22m
+[32mchunk-ZZ4VEWNQ.js[39m  [2m | [22m[2mexitgate-component[22m[2m | [22m[36m276.56 kB[39m[2m | [22m
+
+Application bundle generation complete. [9.557 seconds] - 2026-04-27T11:26:50.564Z
+
+Page reload sent to client(s).
+[33m>[39m Changes detected. Rebuilding...
+[32m√[39m Changes detected. Rebuilding...
+[1mInitial chunk files[22m[2m | [22m[1mNames[22m             [2m | [22m [1mRaw size[22m
+[32mmain.js[39m            [2m | [22m[2mmain[22m              [2m | [22m [36m19.04 kB[39m[2m | [22m
+
+[1mLazy chunk files[22m   [2m | [22m[1mNames[22m             [2m | [22m [1mRaw size[22m
+[32mchunk-EW27OFXP.js[39m  [2m | [22m[2mexitgate-component[22m[2m | [22m[36m276.38 kB[39m[2m | [22m
+
+Application bundle generation complete. [1.522 seconds] - 2026-04-27T11:27:02.973Z
+
+Page reload sent to client(s).
