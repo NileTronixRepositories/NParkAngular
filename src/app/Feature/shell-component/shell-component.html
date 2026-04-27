@@ -1,7 +1,7 @@
 <div class="app-shell" [attr.dir]="dir()">
   <!-- Sidebar -->
   <app-sidebar-component
-    [collapsed]="sidebarCollapsed()"
+    [collapsed]="effectiveSidebarCollapsed()"
     (toggle)="toggleSidebar()"
   ></app-sidebar-component>
 

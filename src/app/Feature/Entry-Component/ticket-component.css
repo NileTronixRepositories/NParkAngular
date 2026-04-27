@@ -144,6 +144,29 @@
   font-size: 0.72rem;
 }
 
+.gate-info-item.printer-info-item {
+  max-width: 190px;
+}
+
+.gate-info-item.printer-on {
+  border-color: rgba(16, 185, 129, 0.28);
+  background: rgba(16, 185, 129, 0.08);
+}
+
+.gate-info-item.printer-on strong {
+  color: #047857;
+}
+
+.gate-info-item.printer-off {
+  border-color: rgba(148, 163, 184, 0.35);
+  background: #f8fafc;
+}
+
+.gate-info-item.printer-off strong,
+.gate-info-item.printer-off span {
+  color: #94a3b8;
+}
+
 .mono {
   font-family: var(--ticket-font-mono);
 }

@@ -1,1 +1,283 @@
 [1m[33m[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'cardMembershipStatus' does not exist on type 'IssueTicketBlockComponent'. Did you mean 'lprMembershipStatus'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.html:39:8:
+[37m      39 │         [32mcardMembershipStatus[37m !== 'idle'
+         ╵         [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component IssueTicketBlockComponent.
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./issue-ticket-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'cardMembershipStatus' does not exist on type 'IssueTicketBlockComponent'. Did you mean 'lprMembershipStatus'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.html:77:40:
+[37m      77 │ ... <span class="text-muted" *ngIf="[32mcardMembershipStatus[37m === 'idle'">
+         ╵                                     [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component IssueTicketBlockComponent.
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./issue-ticket-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'cardMembershipStatus' does not exist on type 'IssueTicketBlockComponent'. Did you mean 'lprMembershipStatus'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.html:80:57:
+[37m      80 │ ...pill status-checking" *ngIf="[32mcardMembershipStatus[37m === 'checking'">
+         ╵                                 [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component IssueTicketBlockComponent.
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./issue-ticket-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'cardMembershipStatus' does not exist on type 'IssueTicketBlockComponent'. Did you mean 'lprMembershipStatus'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.html:83:59:
+[37m      83 │ ...pill status-subscriber" *ngIf="[32mcardMembershipStatus[37m === 'member'">
+         ╵                                   [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component IssueTicketBlockComponent.
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./issue-ticket-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'cardMembershipStatus' does not exist on type 'IssueTicketBlockComponent'. Did you mean 'lprMembershipStatus'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.html:86:63:
+[37m      86 │ ...tus-non-subscriber" *ngIf="[32mcardMembershipStatus[37m === 'not-member'">
+         ╵                               [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component IssueTicketBlockComponent.
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./issue-ticket-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'cardMembershipStatus' does not exist on type 'IssueTicketBlockComponent'. Did you mean 'lprMembershipStatus'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.html:89:54:
+[37m      89 │ ...tatus-pill status-error" *ngIf="[32mcardMembershipStatus[37m === 'error'">
+         ╵                                    [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component IssueTicketBlockComponent.
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./issue-ticket-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onReadCard' does not exist on type 'IssueTicketBlockComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.html:152:19:
+[37m      152 │           (click)="[32monReadCard[37m()"
+          ╵                    [32m~~~~~~~~~~[0m
+
+  Error occurs in the template of component IssueTicketBlockComponent.
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./issue-ticket-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'readingCard' does not exist on type 'IssueTicketBlockComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.html:153:22:
+[37m      153 │           [disabled]="[32mreadingCard[37m"
+          ╵                       [32m~~~~~~~~~~~[0m
+
+  Error occurs in the template of component IssueTicketBlockComponent.
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./issue-ticket-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onCardNumberChange' does not exist on type 'IssueTicketBlockComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.html:161:27:
+[37m      161 │           (ngModelChange)="[32monCardNumberChange[37m($event)"
+          ╵                            [32m~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component IssueTicketBlockComponent.
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./issue-ticket-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onCardKeydown' does not exist on type 'IssueTicketBlockComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.html:162:21:
+[37m      162 │           (keydown)="[32monCardKeydown[37m($event)"
+          ╵                      [32m~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component IssueTicketBlockComponent.
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./issue-ticket-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onCardFocus' does not exist on type 'IssueTicketBlockComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.html:163:19:
+[37m      163 │           (focus)="[32monCardFocus[37m($event)"
+          ╵                    [32m~~~~~~~~~~~[0m
+
+  Error occurs in the template of component IssueTicketBlockComponent.
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./issue-ticket-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'onCreateSubscriberTicket' does not exist on type 'IssueTicketBlockComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.html:197:19:
+[37m      197 │           (click)="[32monCreateSubscriberTicket[37m()"
+          ╵                    [32m~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component IssueTicketBlockComponent.
+
+    src/app/Feature/Entry-Component/issue-ticket-block-component/issue-ticket-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./issue-ticket-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'readingCard' does not exist on type 'TicketComponent'. Did you mean 'readCard'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2349:13:
+[37m      2349 │     if (this.[32mreadingCard[37m()) return;
+           ╵              [32m~~~~~~~~~~~[0m
+
+  'readCard' is declared here.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2348:8:
+[37m      2348 │   async [32mreadCard[37m(): Promise<void> {
+           ╵         [32m~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'readingCard' does not exist on type 'TicketComponent'. Did you mean 'readCard'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2350:9:
+[37m      2350 │     this.[32mreadingCard[37m.set(true);
+           ╵          [32m~~~~~~~~~~~[0m
+
+  'readCard' is declared here.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2348:8:
+[37m      2348 │   async [32mreadCard[37m(): Promise<void> {
+           ╵         [32m~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'nfc' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2353:29:
+[37m      2353 │       const uid = await this.[32mnfc[37m.readUID();
+           ╵                              [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'readingCard' does not exist on type 'TicketComponent'. Did you mean 'readCard'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2369:11:
+[37m      2369 │       this.[32mreadingCard[37m.set(false);
+           ╵            [32m~~~~~~~~~~~[0m
+
+  'readCard' is declared here.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2348:8:
+[37m      2348 │   async [32mreadCard[37m(): Promise<void> {
+           ╵         [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'readingCard' does not exist on type 'TicketComponent'. Did you mean 'readCard'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2413:13:
+[37m      2413 │     if (this.[32mreadingCard[37m()) return;
+           ╵              [32m~~~~~~~~~~~[0m
+
+  'readCard' is declared here.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2412:8:
+[37m      2412 │   async [32mreadCard[37m(): Promise<void> {
+           ╵         [32m~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'readingCard' does not exist on type 'TicketComponent'. Did you mean 'readCard'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2414:9:
+[37m      2414 │     this.[32mreadingCard[37m.set(true);
+           ╵          [32m~~~~~~~~~~~[0m
+
+  'readCard' is declared here.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2412:8:
+[37m      2412 │   async [32mreadCard[37m(): Promise<void> {
+           ╵         [32m~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'nfc' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2417:29:
+[37m      2417 │       const uid = await this.[32mnfc[37m.readUID();
+           ╵                              [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'readingCard' does not exist on type 'TicketComponent'. Did you mean 'readCard'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2433:11:
+[37m      2433 │       this.[32mreadingCard[37m.set(false);
+           ╵            [32m~~~~~~~~~~~[0m
+
+  'readCard' is declared here.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2412:8:
+[37m      2412 │   async [32mreadCard[37m(): Promise<void> {
+           ╵         [32m~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2739: Type '{ gateId: any; gateNumber: number; lprIp: string | null; pcIp: string | null; controlIp: any; onvifCameraSetting: OnvifCameraSettingDto | null; isAssigned: boolean; assignedTo: any; qrPrinterName: string | null; receiptPrinterName: string | null; }' is missing the following properties from type 'GateConfigDto': hasQrPrinterName, hasReceiptPrinterName[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/configuration-component/configuration-component.ts:513:6:
+[37m      513 │       [32mreturn[37m {
+          ╵       [32m~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2739: Type '{ gateId: any; gateNumber: number; lprIp: string | null; pcIp: string | null; controlIp: any; onvifCameraSetting: OnvifCameraSettingDto | null; isAssigned: boolean; assignedTo: any; qrPrinterName: string | null; receiptPrinterName: string | null; }' is missing the following properties from type 'GateConfigDto': hasQrPrinterName, hasReceiptPrinterName[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/configuration-component/configuration-component.ts:517:6:
+[37m      517 │       [32mreturn[37m {
+          ╵       [32m~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2739: Type '{ gateId: any; gateNumber: number; lprIp: string | null; pcIp: string | null; controlIp: any; onvifCameraSetting: OnvifCameraSettingDto | null; isAssigned: boolean; assignedTo: any; qrPrinterName: string | null; receiptPrinterName: string | null; }' is missing the following properties from type 'GateConfigDto': hasQrPrinterName, hasReceiptPrinterName[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/configuration-component/configuration-component.ts:560:6:
+[37m      560 │       [32mreturn[37m {
+          ╵       [32m~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'printType' does not exist on type '{ entryGatesCount: any; exitGatesCount: any; allowedParkingSlots: any; gracePeriodMinutes: any; mode: Mode; captureMode: any; ticketCard: { startDate: any; ticketIdPrefix: any; }; pricingSchemaId: any; pricingSchemaName: string; entryGates: any; exitGates: any; }'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/configuration-component/configuration-component.html:753:72:
+[37m      753 │ ...s="fw-bold text-dark small">{{ summaryForView.[32mprintType[37m }}</span>
+          ╵                                                  [32m~~~~~~~~~[0m
+
+  Error occurs in the template of component ConfigurationComponent.
+
+    src/app/Feature/configuration-component/configuration-component.ts:93:15:
+[37m      93 │   templateUrl: [32m'./configuration-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m

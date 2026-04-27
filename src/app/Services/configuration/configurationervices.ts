@@ -30,7 +30,7 @@ export class Configurationervices {
     return this.http.post(`${this.base}/Update`, dto).pipe(
       catchError((err) => {
         if (err?.status === 405) {
-          return this.http.put(`${this.base}/Update`, dto);
+          return this.http.post(`${this.base}/Update`, dto);
         }
 
         return throwError(() => err);
@@ -61,7 +61,19 @@ export class Configurationervices {
           : null,
         isAssigned: !!(gate?.isAssigned ?? gate?.IsAssigned),
         assignedTo: gate?.assignedTo ?? gate?.AssignedTo ?? null,
+        hasQrPrinterName: !!(
+          gate?.hasQrPrinterName ??
+          gate?.HasQrPrinterName ??
+          gate?.qrPrinterName ??
+          gate?.QrPrinterName
+        ),
         qrPrinterName: gate?.qrPrinterName ?? gate?.QrPrinterName ?? null,
+        hasReceiptPrinterName: !!(
+          gate?.hasReceiptPrinterName ??
+          gate?.HasReceiptPrinterName ??
+          gate?.receiptPrinterName ??
+          gate?.ReceiptPrinterName
+        ),
         receiptPrinterName: gate?.receiptPrinterName ?? gate?.ReceiptPrinterName ?? null,
       };
     };

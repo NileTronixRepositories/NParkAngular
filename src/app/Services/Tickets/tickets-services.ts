@@ -189,6 +189,10 @@ export class TicketsServices {
     return this.membership.checkMembershipByCardNumber(cardNumber);
   }
 
+  membershipExists(searchValue: string): Observable<MembershipCheckResponse> {
+    return this.membership.membershipExists(searchValue);
+  }
+
   isMembership(vehicleNumber: string): Observable<MembershipCheckResponse> {
     return this.membership.isMembership(vehicleNumber);
   }

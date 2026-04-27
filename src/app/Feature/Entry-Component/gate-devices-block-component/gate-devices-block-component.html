@@ -1,10 +1,19 @@
 <div class="card h-100 shadow-soft border-0">
   <div class="card-header bg-transparent border-bottom p-2 px-3">
-    <div class="d-flex justify-content-between align-items-center">
-      <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
-        <i class="bi bi-hdd-network text-primary"></i> {{ t('gate_devices') }}
-      </h6>
-      <div class="x-small text-muted">{{ t('devices_status') }}</div>
+    <div class="d-flex justify-content-between align-items-center gap-2">
+      <div class="min-w-0 d-flex flex-column gap-1">
+        <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+          <i class="bi bi-hdd-network text-primary"></i> {{ t('gate_devices') }}
+        </h6>
+        <div
+          class="header-vehicle d-inline-flex align-items-center gap-1 min-w-0"
+          *ngIf="headerVehicleNumber"
+        >
+          <span class="header-vehicle-label">{{ t('vehicle_number') }}</span>
+          <span class="header-vehicle-value mono text-truncate">{{ headerVehicleNumber }}</span>
+        </div>
+      </div>
+      <div class="x-small text-muted flex-shrink-0">{{ t('devices_status') }}</div>
     </div>
   </div>
 
@@ -55,6 +64,7 @@
               [ngModel]="manualLprPlate"
               (ngModelChange)="onPlateChange($event)"
               (keydown)="onPlateKeydown($event)"
+              (paste)="onPlatePaste($event)"
               (focus)="onPlateFocus($event)"
               (blur)="onPlateBlur($event)"
               [placeholder]="t('plate')"
@@ -72,9 +82,21 @@
         </div>
 
         <div class="mt-2">
-          <label class="form-label x-small fw-bold text-muted text-uppercase mb-1 px-1">{{
-            t('vehicle_images')
-          }}</label>
+          <div class="d-flex align-items-center justify-content-between gap-2 mb-1 px-1">
+            <label class="form-label x-small fw-bold text-muted text-uppercase mb-0">
+              {{ t('vehicle_images') }}
+            </label>
+            <button
+              type="button"
+              class="btn btn-outline-primary btn-xs camera-snapshot-btn"
+              (click)="onCameraSnapshotClick()"
+              [disabled]="cameraSnapshotLoading || cameraSnapshotDisabled"
+              [title]="cameraSnapshotTitle || t('take_snapshot')"
+            >
+              <i class="bi bi-camera" *ngIf="!cameraSnapshotLoading"></i>
+              <span class="spinner-border spinner-border-sm" *ngIf="cameraSnapshotLoading"></span>
+            </button>
+          </div>
           <input
             type="file"
             class="form-control form-control-sm x-small"
@@ -138,22 +160,20 @@
           <button
             *ngIf="scannedFile.type.startsWith('image/'); else scannedDocumentPreview"
             type="button"
-            class="preview-box preview-box-button border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
-            [style.height.px]="80"
+            class="preview-box preview-box-button scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
             (click)="openScannedPreview()"
             [attr.aria-label]="scannedFile.name"
           >
             <img
               [src]="scannedFile.safeUrl"
-              class="h-100 w-auto"
+              class="preview-media"
               alt="Preview"
             />
           </button>
 
           <ng-template #scannedDocumentPreview>
             <div
-              class="preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden"
-              [style.height.px]="scannedFile.type === 'application/pdf' ? 180 : 80"
+              class="preview-box scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden"
             >
             <iframe
               *ngIf="scannedFile.type === 'application/pdf'"

@@ -110,6 +110,7 @@ function completeOnvifValidator(control: AbstractControl): ValidationErrors | nu
           captureMode: 'طريقة الالتقاط',
           vehiclePlate: 'رقم اللوحة',
           scanner: 'ScannerID كاميرا',
+          both: 'Both',
           printType: 'أنواع التذاكر',
           qr: 'QR',
           receipt: 'Receipt',
@@ -125,7 +126,9 @@ function completeOnvifValidator(control: AbstractControl): ValidationErrors | nu
           deviceIpLabel: 'عنوان IP LPR',
           controlIpLabel: 'معرّف التحكم',
           controlIdPlaceholder: 'مثال: 123456',
+          hasQrPrinterName: 'تفعيل طابعة QR',
           qrPrinterName: 'اسم طابعة QR',
+          hasReceiptPrinterName: 'تفعيل طابعة الإيصال',
           receiptPrinterName: 'اسم طابعة الإيصال',
           onvifCameraSettings: 'إعدادات كاميرا ONVIF',
           onvifUrlRequest: 'رابط طلب ONVIF',
@@ -155,6 +158,7 @@ function completeOnvifValidator(control: AbstractControl): ValidationErrors | nu
           captureMode: 'Capture mode',
           vehiclePlate: 'Vehicle Plate',
           scanner: 'Scanner Cam',
+          both: 'Both',
           printType: 'Ticket types',
           qr: 'QR',
           receipt: 'Receipt',
@@ -170,7 +174,9 @@ function completeOnvifValidator(control: AbstractControl): ValidationErrors | nu
           deviceIpLabel: 'LPR IP address',
           controlIpLabel: 'Control ID',
           controlIdPlaceholder: 'e.g. 123456',
+          hasQrPrinterName: 'Enable QR printer',
           qrPrinterName: 'QR printer name',
+          hasReceiptPrinterName: 'Enable receipt printer',
           receiptPrinterName: 'Receipt printer name',
           onvifCameraSettings: 'ONVIF camera settings',
           onvifUrlRequest: 'ONVIF URL request',
@@ -225,8 +231,7 @@ export class ConfigurationComponent implements OnInit {
 
     // Step 2
     this.step2Form = this.fb.group({
-      captureMode: ['VEHICLE_PLATE'], // 'VEHICLE_PLATE' | 'SCANNER'
-      printType: ['QR'],
+      captureMode: ['VEHICLE_PLATE'],
 
       startDate: [new Date()],
       ticketIdPrefix: ['TK', [Validators.maxLength(10)]],
@@ -314,7 +319,6 @@ export class ConfigurationComponent implements OnInit {
           this.syncGateArrays();
 
           const captureMode = this.formCaptureModeFromApi(cfg.vehiclePassengerData);
-          const printType = this.formPrintTypeFromApi(cfg.printType);
           const mode: Mode = this.formPriceTypeFromApi(cfg.priceType);
 
           this.modeCtrl.setValue(mode, { emitEvent: true });
@@ -322,7 +326,6 @@ export class ConfigurationComponent implements OnInit {
 
           this.step2Form.patchValue({
             captureMode,
-            printType,
             startDate: cfg.ticketCard?.startDate ? new Date(cfg.ticketCard.startDate) : new Date(),
             ticketIdPrefix: cfg.ticketCard?.ticketIdPrefix ?? 'TK',
             dateTimeFlag: cfg.dateTimeFlag ?? true,
@@ -352,13 +355,15 @@ export class ConfigurationComponent implements OnInit {
   }
 
   private formCaptureModeFromApi(value: VehiclePassengerData | number | string | null | undefined) {
-    return value === VehiclePassengerData.ScannerId || value === 1 || value === 'ScannerId'
-      ? 'SCANNER'
-      : 'VEHICLE_PLATE';
-  }
+    if (value === VehiclePassengerData.Both || value === 2 || value === 'Both') {
+      return 'BOTH';
+    }
 
-  private formPrintTypeFromApi(value: PrintType | number | string | null | undefined) {
-    return value === PrintType.Receipt || value === 1 || value === 'Receipt' ? 'RECEIPT' : 'QR';
+    if (value === VehiclePassengerData.ScannerId || value === 1 || value === 'ScannerId') {
+      return 'SCANNER';
+    }
+
+    return 'VEHICLE_PLATE';
   }
 
   private formPriceTypeFromApi(value: PriceType | number | string | null | undefined): Mode {
@@ -396,8 +401,10 @@ export class ConfigurationComponent implements OnInit {
       ),
       isAssigned: [false],
       assignedTo: [null],
-      qrPrinterName: ['', [Validators.maxLength(100)]],
-      receiptPrinterName: ['', [Validators.maxLength(100)]],
+      hasQrPrinterName: [false],
+      qrPrinterName: [{ value: '', disabled: true }, [Validators.maxLength(100)]],
+      hasReceiptPrinterName: [false],
+      receiptPrinterName: [{ value: '', disabled: true }, [Validators.maxLength(100)]],
     });
 
     group.get('isAssigned')?.valueChanges.subscribe((val) => {
@@ -411,7 +418,48 @@ export class ConfigurationComponent implements OnInit {
       ctrl?.updateValueAndValidity();
     });
 
+    this.setupPrinterNameToggle(group, 'hasQrPrinterName', 'qrPrinterName');
+    this.setupPrinterNameToggle(group, 'hasReceiptPrinterName', 'receiptPrinterName');
+
     return group;
+  }
+
+  private setupPrinterNameToggle(
+    group: FormGroup,
+    flagControlName: 'hasQrPrinterName' | 'hasReceiptPrinterName',
+    printerControlName: 'qrPrinterName' | 'receiptPrinterName',
+  ): void {
+    const flagCtrl = group.get(flagControlName);
+    const printerCtrl = group.get(printerControlName);
+    if (!flagCtrl || !printerCtrl) return;
+
+    this.applyPrinterNameToggle(group, flagControlName, printerControlName, false);
+    flagCtrl.valueChanges.subscribe(() => {
+      this.applyPrinterNameToggle(group, flagControlName, printerControlName, true);
+    });
+  }
+
+  private applyPrinterNameToggle(
+    group: FormGroup,
+    flagControlName: 'hasQrPrinterName' | 'hasReceiptPrinterName',
+    printerControlName: 'qrPrinterName' | 'receiptPrinterName',
+    clearWhenDisabled: boolean,
+  ): void {
+    const printerCtrl = group.get(printerControlName);
+    if (!printerCtrl) return;
+
+    if (group.get(flagControlName)?.value) {
+      printerCtrl.enable({ emitEvent: false });
+      printerCtrl.setValidators([Validators.required, Validators.maxLength(100)]);
+    } else {
+      if (clearWhenDisabled) {
+        printerCtrl.setValue('', { emitEvent: false });
+      }
+      printerCtrl.clearValidators();
+      printerCtrl.disable({ emitEvent: false });
+    }
+
+    printerCtrl.updateValueAndValidity({ emitEvent: false });
   }
 
   private resizeFormArray(arr: FormArray, target: number) {
@@ -453,9 +501,13 @@ export class ConfigurationComponent implements OnInit {
         },
         isAssigned: src?.isAssigned ?? false,
         assignedTo: src?.assignedTo ?? null,
+        hasQrPrinterName: src?.hasQrPrinterName ?? !!src?.qrPrinterName,
         qrPrinterName: src?.qrPrinterName ?? '',
+        hasReceiptPrinterName: src?.hasReceiptPrinterName ?? !!src?.receiptPrinterName,
         receiptPrinterName: src?.receiptPrinterName ?? '',
       });
+      this.applyPrinterNameToggle(fg, 'hasQrPrinterName', 'qrPrinterName', true);
+      this.applyPrinterNameToggle(fg, 'hasReceiptPrinterName', 'receiptPrinterName', true);
     });
   }
 
@@ -490,7 +542,6 @@ export class ConfigurationComponent implements OnInit {
       gracePeriodMinutes: s1.gracePeriodMinutes,
       mode,
       captureMode: s2.captureMode,
-      printType: s2.printType,
       ticketCard: { startDate: s2.startDate, ticketIdPrefix: s2.ticketIdPrefix },
       pricingSchemaId: s2.pricingSchemaId,
       pricingSchemaName,
@@ -509,6 +560,8 @@ export class ConfigurationComponent implements OnInit {
       const controlIp = (g['controlIp'] || '').trim();
       const rawOnvif = g['onvifCameraSetting'] || {};
       const onvifCameraSetting = this.normalizeOnvifSettings(rawOnvif);
+      const hasQrPrinterName = !!g['hasQrPrinterName'];
+      const hasReceiptPrinterName = !!g['hasReceiptPrinterName'];
 
       return {
         gateId: g['gateId'] ?? null,
@@ -519,18 +572,19 @@ export class ConfigurationComponent implements OnInit {
         onvifCameraSetting,
         isAssigned: !!g['isAssigned'],
         assignedTo: g['isAssigned'] ? g['assignedTo'] : null,
-        qrPrinterName: this.toNullableTrimmedString(g['qrPrinterName']),
-        receiptPrinterName: this.toNullableTrimmedString(g['receiptPrinterName']),
+        hasQrPrinterName,
+        qrPrinterName: hasQrPrinterName ? this.toNullableTrimmedString(g['qrPrinterName']) : null,
+        hasReceiptPrinterName,
+        receiptPrinterName: hasReceiptPrinterName
+          ? this.toNullableTrimmedString(g['receiptPrinterName'])
+          : null,
       };
     };
 
     const entryGates: GateConfigDto[] = this.entryGatesFA.getRawValue().map(mapGate);
     const exitGates: GateConfigDto[] = this.exitGatesFA.getRawValue().map(mapGate);
 
-    const vehiclePassengerData =
-      s2.captureMode === 'SCANNER'
-        ? VehiclePassengerData.ScannerId
-        : VehiclePassengerData.VehiclePlate;
+    const vehiclePassengerData = this.vehiclePassengerDataFromCaptureMode(s2.captureMode);
 
     return {
       entryGatesCount: s1.entryGatesCount,
@@ -539,7 +593,7 @@ export class ConfigurationComponent implements OnInit {
       priceType: this.modeCtrl.value === 'entry' ? PriceType.Entry : PriceType.Exit,
       gracePeriodMinutes: s1.gracePeriodMinutes,
       vehiclePassengerData,
-      printType: s2.printType === 'QR' ? PrintType.QrCode : PrintType.Receipt,
+      printType: PrintType.QrCode,
       dateTimeFlag: !!s2.dateTimeFlag,
       ticketIdFlag: !!s2.ticketIdFlag,
       feesFlag: !!s2.feesFlag,
@@ -547,6 +601,12 @@ export class ConfigurationComponent implements OnInit {
       entryGates,
       exitGates,
     };
+  }
+
+  private vehiclePassengerDataFromCaptureMode(value: string): VehiclePassengerData {
+    if (value === 'BOTH') return VehiclePassengerData.Both;
+    if (value === 'SCANNER') return VehiclePassengerData.ScannerId;
+    return VehiclePassengerData.VehiclePlate;
   }
 
   private normalizeOnvifSettings(raw: any): OnvifCameraSettingDto | null {

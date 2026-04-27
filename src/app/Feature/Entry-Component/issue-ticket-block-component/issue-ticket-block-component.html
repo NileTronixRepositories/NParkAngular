@@ -2,14 +2,23 @@
   <div
     class="card-header bg-transparent border-bottom p-2 px-3 d-flex justify-content-between align-items-center"
   >
-    <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
-      <i class="bi bi-door-open text-primary"></i> {{ t('issue_ticket') }}
-    </h6>
-    <span class="badge rounded-pill theme-green x-small">{{ t('chip_entry') }}</span>
+    <div class="min-w-0 d-flex flex-column gap-1">
+      <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+        <i class="bi bi-door-open text-primary"></i> {{ t('issue_ticket') }}
+      </h6>
+      <div
+        class="header-identifier d-flex align-items-center gap-1 min-w-0"
+        *ngIf="headerIdentifier"
+      >
+        <span class="header-identifier-label">{{ headerIdentifierLabel }}</span>
+        <span class="header-identifier-value mono text-truncate">{{ headerIdentifier }}</span>
+      </div>
+    </div>
+    <span class="badge rounded-pill theme-green x-small flex-shrink-0">{{ t('chip_entry') }}</span>
   </div>
 
   <div class="card-body p-2 d-flex flex-column align-items-center">
-    <div class="qr-preview border rounded bg-light mb-2">
+    <!-- <div class="qr-preview border rounded bg-light mb-2">
       <ng-container *ngIf="currentIssuedQr; else noQr">
         <img
           *ngIf="currentIssuedQrType === 'image' || !currentIssuedQrType"
@@ -28,23 +37,15 @@
           <div class="x-small">{{ t('no_ticket_yet') }}</div>
         </div>
       </ng-template>
-    </div>
+    </div> -->
 
     <div
       class="w-100 mb-2"
       *ngIf="
-        lprVehicleNumber ||
-        lprMembershipStatus === 'checking' ||
-        lprMembershipStatus === 'error' ||
-        cardMembershipStatus !== 'idle'
+        lprVehicleNumber || lprMembershipStatus === 'checking' || lprMembershipStatus === 'error'
       "
     >
       <div class="lpr-flow-card p-2 border rounded-2 bg-white shadow-sm">
-        <div class="d-flex justify-content-between gap-2 border-bottom pb-1 mb-1">
-          <span class="x-small fw-bold text-primary">{{ t('vehicle_number') }}</span>
-          <span class="x-small mono fw-bold">{{ lprVehicleNumber || '--' }}</span>
-        </div>
-
         <div class="x-small status-pill status-checking" *ngIf="lprMembershipStatus === 'checking'">
           <i class="bi bi-arrow-repeat me-1"></i>{{ t('lpr_status_checking') }}
         </div>
@@ -66,29 +67,6 @@
         <div class="x-small status-pill status-error" *ngIf="lprMembershipStatus === 'error'">
           <i class="bi bi-exclamation-triangle me-1"></i>{{ t('lpr_status_error') }}
         </div>
-
-        <div class="d-flex justify-content-between gap-2 x-small mt-2" *ngIf="lprCardNumber">
-          <span class="text-muted">{{ t('cardNumber') }}</span>
-          <span class="mono fw-bold">{{ lprCardNumber }}</span>
-        </div>
-
-      </div>
-      <div class="x-small mt-1">
-        <span class="text-muted" *ngIf="cardMembershipStatus === 'idle'">
-          {{ t('cardNumber') }}: --
-        </span>
-        <span class="status-pill status-checking" *ngIf="cardMembershipStatus === 'checking'">
-          <i class="bi bi-arrow-repeat me-1"></i>{{ t('lpr_status_checking') }}
-        </span>
-        <span class="status-pill status-subscriber" *ngIf="cardMembershipStatus === 'member'">
-          <i class="bi bi-patch-check me-1"></i>{{ t('issue_ticket_subscriber') }}
-        </span>
-        <span class="status-pill status-non-subscriber" *ngIf="cardMembershipStatus === 'not-member'">
-          <i class="bi bi-person-x me-1"></i>{{ t('card_not_member') }}
-        </span>
-        <span class="status-pill status-error" *ngIf="cardMembershipStatus === 'error'">
-          <i class="bi bi-exclamation-triangle me-1"></i>{{ t('card_membership_failed') }}
-        </span>
       </div>
     </div>
 
@@ -96,73 +74,30 @@
       <label class="form-label x-small fw-bold text-muted text-uppercase mb-1 px-1">{{
         t('pricing_schema')
       }}</label>
-      <select
-        class="form-select form-select-sm"
-        [ngModel]="selectedPricingSchemaId"
-        (ngModelChange)="onPricingSchemaChange($event)"
-        [disabled]="pricingSchemasLoading"
-      >
-        <option value="">{{ t('select_pricing_schema') }}</option>
-        <option *ngFor="let schema of pricingSchemas" [value]="schema.id">
-          {{ schema.name }}
-        </option>
-      </select>
+      <div class="pricing-schema-grid" *ngIf="pricingSchemas.length; else noPricingSchemas">
+        <button
+          type="button"
+          class="pricing-schema-btn"
+          *ngFor="let schema of pricingSchemas; let i = index"
+          [ngClass]="'schema-tone-' + (i % 6)"
+          [class.selected]="selectedPricingSchemaId === schema.id"
+          [disabled]="pricingSchemasLoading"
+          (click)="onPricingSchemaChange(schema.id)"
+        >
+          <span class="schema-dot"></span>
+          <span class="schema-name text-truncate">{{ schema.name }}</span>
+        </button>
+      </div>
+      <ng-template #noPricingSchemas>
+        <div class="empty-pricing-state x-small text-muted border rounded-2 bg-white px-2 py-1">
+          {{ t('select_pricing_schema') }}
+        </div>
+      </ng-template>
       <div class="x-small text-muted mt-1" *ngIf="pricingSchemasLoading">
         {{ t('lpr_status_checking') }}
       </div>
       <div class="x-small text-muted mt-1">
         {{ hasVehicleImages ? t('vehicle_images_attached') : t('vehicle_images_optional') }}
-      </div>
-    </div>
-
-    <div class="w-100 mb-2 print-options-card border rounded-2 bg-white p-2">
-      <div class="x-small fw-bold text-muted text-uppercase mb-1">{{ t('print_options') }}</div>
-      <div class="d-flex align-items-center gap-3 flex-wrap">
-        <label class="form-check form-check-inline x-small mb-0">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            [ngModel]="printQrEnabled"
-            [disabled]="printQrEnabled && !printReceiptEnabled"
-            (ngModelChange)="onPrintQrChange($event)"
-          />
-          <span class="form-check-label">{{ t('print_qr') }}</span>
-        </label>
-        <label class="form-check form-check-inline x-small mb-0">
-          <input
-            class="form-check-input"
-            type="checkbox"
-            [ngModel]="printReceiptEnabled"
-            [disabled]="printReceiptEnabled && !printQrEnabled"
-            (ngModelChange)="onPrintReceiptChange($event)"
-          />
-          <span class="form-check-label">{{ t('print_receipt') }}</span>
-        </label>
-      </div>
-    </div>
-
-    <div class="w-100 mb-2">
-      <label class="form-label x-small fw-bold text-muted text-uppercase mb-1 px-1">{{
-        t('cardData')
-      }}</label>
-      <div class="input-group input-group-sm">
-        <button
-          class="btn btn-outline-primary btn-xs px-2"
-          type="button"
-          (click)="onReadCard()"
-          [disabled]="readingCard"
-        >
-          <i class="bi bi-upc-scan"></i>
-        </button>
-        <input
-          type="text"
-          class="form-control form-control-sm mono x-small py-0"
-          [(ngModel)]="cardNumber"
-          (ngModelChange)="onCardNumberChange($event)"
-          (keydown)="onCardKeydown($event)"
-          (focus)="onCardFocus($event)"
-          [placeholder]="t('cardNumber')"
-        />
       </div>
     </div>
 
@@ -190,15 +125,6 @@
             <span class="mono">{{ cardSummary.endDate | date: 'dd/MM/yy' }}</span>
           </div>
         </div>
-
-        <button
-          type="button"
-          class="btn btn-primary btn-xs w-100 mt-2 fw-bold"
-          (click)="onCreateSubscriberTicket()"
-          [disabled]="adding || !cardNumber"
-        >
-          <i class="bi bi-plus-circle-fill me-1"></i> {{ t('issue_ticket_subscriber') }}
-        </button>
       </div>
     </div>
 
@@ -240,7 +166,7 @@
 
     <div class="mt-auto w-100 pt-2 border-top">
       <button
-        class="btn btn-primary btn-sm w-100 py-1"
+        class="btn btn-primary btn-sm w-100 py-1 create-ticket-btn"
         (click)="onCreateTicket()"
         [disabled]="adding || !selectedPricingSchemaId"
       >

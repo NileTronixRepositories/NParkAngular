@@ -9,7 +9,9 @@ export interface GateConnectionInfo {
   pcIp?: string;
   lprIp?: string;
   controlIp?: string;
+  hasQrPrinterName: boolean;
   qrPrinterName?: string | null;
+  hasReceiptPrinterName: boolean;
   receiptPrinterName?: string | null;
   onvifCameraSetting?: {
     id?: string;
@@ -54,7 +56,19 @@ export class GateServices {
               res?.ControlId ??
               res?.controllerId ??
               res?.ControllerId,
+            hasQrPrinterName: !!(
+              res?.hasQrPrinterName ??
+              res?.HasQrPrinterName ??
+              res?.qrPrinterName ??
+              res?.QrPrinterName
+            ),
             qrPrinterName: res?.qrPrinterName ?? res?.QrPrinterName ?? null,
+            hasReceiptPrinterName: !!(
+              res?.hasReceiptPrinterName ??
+              res?.HasReceiptPrinterName ??
+              res?.receiptPrinterName ??
+              res?.ReceiptPrinterName
+            ),
             receiptPrinterName: res?.receiptPrinterName ?? res?.ReceiptPrinterName ?? null,
             onvifCameraSetting: onvif
               ? {

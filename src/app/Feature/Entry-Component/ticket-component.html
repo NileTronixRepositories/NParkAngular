@@ -79,6 +79,26 @@
             <span>{{ t('lpr_device') }}</span>
             <strong class="mono">{{ info.lprIp || '--' }}</strong>
           </div>
+          <div
+            class="gate-info-item printer-info-item"
+            [class.printer-on]="info.hasQrPrinterName"
+            [class.printer-off]="!info.hasQrPrinterName"
+          >
+            <span>{{ t('print_qr') }}</span>
+            <strong class="text-truncate">{{
+              info.hasQrPrinterName ? info.qrPrinterName || '--' : '--'
+            }}</strong>
+          </div>
+          <div
+            class="gate-info-item printer-info-item"
+            [class.printer-on]="info.hasReceiptPrinterName"
+            [class.printer-off]="!info.hasReceiptPrinterName"
+          >
+            <span>{{ t('print_receipt') }}</span>
+            <strong class="text-truncate">{{
+              info.hasReceiptPrinterName ? info.receiptPrinterName || '--' : '--'
+            }}</strong>
+          </div>
           <span class="badge bg-success" *ngIf="lastOpenGateResponse && !openGateError">
             {{ t('open_gate_success') }}
           </span>
@@ -96,48 +116,13 @@
         </div>
       </div>
 
-      <div class="gate-strip-section gate-strip-camera">
-        <div class="gate-camera-title">
-          <i class="bi bi-camera text-primary"></i>
-          <span class="fw-bold">{{ t('camera_snapshot') }}</span>
-          <span class="spinner-border spinner-border-sm" *ngIf="snapshotLoading"></span>
-        </div>
-        <div class="gate-camera-actions">
-          <div
-            class="snapshot-mini"
-            *ngIf="scannedFile?.type?.startsWith('image/'); else noCompactSnapshotPreview"
-          >
-            <img [src]="scannedFile?.safeUrl" alt="Snapshot" />
-          </div>
-          <ng-template #noCompactSnapshotPreview>
-            <button
-              type="button"
-              class="snapshot-mini snapshot-mini-empty text-muted"
-              (click)="retrySnapshot()"
-              [disabled]="snapshotLoading || !gateConnectionInfo?.onvifCameraSetting?.url"
-              [title]="snapshotError || t('take_snapshot')"
-            >
-              <i class="bi bi-camera-fill"></i>
-            </button>
-          </ng-template>
-          <button
-            type="button"
-            class="btn btn-outline-primary btn-xs"
-            (click)="retrySnapshot()"
-            [disabled]="snapshotLoading || !gateConnectionInfo?.onvifCameraSetting?.url"
-            [title]="t('take_snapshot')"
-          >
-            <i class="bi bi-camera"></i>
-          </button>
-        </div>
-      </div>
     </div>
   </div>
 
   <!-- Entry workspace grid -->
   <div class="row g-2 g-lg-3 mb-3">
     <!-- Block 1: Gate Devices -->
-    <div class="col-12" [class.col-lg-4]="!isSupervisor" [class.col-lg-6]="isSupervisor">
+    <div class="col-12" [class.col-lg-3]="!isSupervisor" [class.col-lg-6]="isSupervisor">
       <app-gate-devices-block-component
         [t]="t"
         [gatePeripheral]="gatePeripheral"
@@ -146,24 +131,27 @@
         [selectedPreviewUrl]="scannedFile?.url ?? null"
         [manualLprPlate]="manualLprPlate"
         [adding]="adding"
+        [cameraSnapshotLoading]="snapshotLoading"
+        [cameraSnapshotDisabled]="!gateConnectionInfo?.onvifCameraSetting?.url"
+        [cameraSnapshotTitle]="snapshotError || t('take_snapshot')"
         (manualLprPlateChange)="onManualLprPlateChange($event)"
         (manualLprPlateBlur)="onManualLprPlateBlur()"
         (createTicketWithPlate)="createTicket($event)"
         (vehicleImagesSelected)="onVehicleImagesSelected($event)"
+        (cameraSnapshotClick)="retrySnapshot()"
         (removeVehicleImage)="removeVehicleImage($event)"
         (vehicleImagePreviewSelected)="selectVehicleImagePreview($event)"
       ></app-gate-devices-block-component>
     </div>
 
     <!-- Block 2: Issue Ticket -->
-    <div class="col-12 col-lg-4" *ngIf="!isSupervisor">
+    <div class="col-12 col-lg-6" *ngIf="!isSupervisor">
       <app-issue-ticket-block-component
         [t]="t"
         [isRTL]="i18n.isRTL()"
         [cardNumber]="cardNumber"
         [cardSummary]="cardSummary"
         [adding]="adding"
-        [readingCard]="readingCard()"
         [lprVehicleNumber]="currentLprVehicleNumber"
         [lprMembershipStatus]="lprMembershipStatus"
         [lprCardNumber]="lprMembershipCardNumber"
@@ -171,11 +159,8 @@
         [pricingSchemas]="pricingSchemas"
         [pricingSchemasLoading]="pricingSchemasLoading"
         [hasVehicleImages]="hasVehicleImages"
-        [cardMembershipStatus]="cardMembershipStatus"
         [currentIssuedQr]="currentIssuedQr"
         [currentIssuedQrType]="currentIssuedQrType"
-        [printQrEnabled]="printQrEnabled"
-        [printReceiptEnabled]="printReceiptEnabled"
         [lastIssuedTicketId]="lastIssuedTicketId"
         [lastIssuedTicketInfo]="lastIssuedTicketInfo"
         [lastIssuedVehicleNumber]="lastIssuedVehicleNumber"
@@ -183,20 +168,15 @@
         [lastIssuedCreatedAt]="lastIssuedCreatedAt"
         [lastIssuedCollected]="lastIssuedCollected"
         [cashierConfirming]="cashierConfirming"
-        (cardNumberChange)="onCardNumberInput($event)"
-        (readCardClicked)="readCard()"
         (createTicketClicked)="createTicket()"
-        (createSubscriberTicketClicked)="createSubscriberTicket()"
         (confirmCashierClicked)="confirmCashier()"
         (clearCardSummaryClicked)="clearCardSummary($event)"
         (selectedPricingSchemaIdChange)="selectedPricingSchemaId = $event"
-        (printQrEnabledChange)="onPrintQrEnabledChange($event)"
-        (printReceiptEnabledChange)="onPrintReceiptEnabledChange($event)"
       ></app-issue-ticket-block-component>
     </div>
 
     <!-- Block 3: Tickets Table + Collect Summary -->
-    <div class="col-12" [class.col-lg-4]="!isSupervisor" [class.col-lg-6]="isSupervisor">
+    <div class="col-12" [class.col-lg-3]="!isSupervisor" [class.col-lg-6]="isSupervisor">
       <app-tickets-table-block-component
         [t]="t"
         [isRTL]="i18n.isRTL()"

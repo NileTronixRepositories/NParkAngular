@@ -3,7 +3,9 @@
   "version": "0.0.0",
   "scripts": {
     "ng": "ng",
-    "start": "concurrently \"ng serve\" \"cd print-service && npm start\"",
+    "start": "concurrently -k --names \"Angular,Print\" --prefix-colors \"blue,green\" \"ng serve --port 4200\" \"npm --prefix print-service start\"",
+    "dev": "npm start",
+    "print": "npm --prefix print-service start",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"

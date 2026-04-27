@@ -74,13 +74,20 @@ export class ShellComponent implements OnDestroy {
 
   // Sidebar collapse state
   sidebarCollapsed = signal(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+  currentUrl = signal(this.router.url);
+  effectiveSidebarCollapsed = computed(
+    () => this.sidebarCollapsed() || (this.isEntryRoute() && !this.isAdmin),
+  );
 
   gateOpen = false;
   private sub?: Subscription;
 
   constructor() {
     this.sub = this.router.events.subscribe((event) => {
-      if (event instanceof NavigationEnd) this.gateOpen = false;
+      if (event instanceof NavigationEnd) {
+        this.currentUrl.set(event.urlAfterRedirects);
+        this.gateOpen = false;
+      }
     });
   }
 
@@ -105,11 +112,16 @@ export class ShellComponent implements OnDestroy {
     return this.role === 'Supervisor';
   }
 
+  isEntryRoute(): boolean {
+    return this.currentUrl().startsWith('/tickets/entry');
+  }
+
   toggleGate() {
     this.gateOpen = !this.gateOpen;
   }
 
   toggleSidebar() {
+    if (this.isEntryRoute() && !this.isAdmin) return;
     this.sidebarCollapsed.update((v) => !v);
   }
 

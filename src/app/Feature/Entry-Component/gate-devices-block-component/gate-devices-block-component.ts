@@ -6,6 +6,7 @@ import {
   HostListener,
   Input,
   OnChanges,
+  OnDestroy,
   Output,
   SimpleChanges,
   ViewChild,
@@ -23,7 +24,7 @@ import { GateDevicePeripheral } from '../../../Domain/Auth/auth.models';
   templateUrl: './gate-devices-block-component.html',
   styleUrls: ['./gate-devices-block-component.css'],
 })
-export class GateDevicesBlockComponent implements OnChanges, AfterViewInit {
+export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input({ required: true }) t!: (key: string) => string;
   @Input() gatePeripheral: GateDevicePeripheral | null = null;
   @Input() scannedFile: {
@@ -45,12 +46,16 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit {
   @Input() manualLprPlate: string = '';
 
   @Input() adding = false;
+  @Input() cameraSnapshotLoading = false;
+  @Input() cameraSnapshotDisabled = false;
+  @Input() cameraSnapshotTitle = '';
 
   @Output() manualLprPlateChange = new EventEmitter<string>();
   @Output() manualLprPlateBlur = new EventEmitter<void>();
 
   @Output() createTicketWithPlate = new EventEmitter<string>();
   @Output() vehicleImagesSelected = new EventEmitter<FileList | null>();
+  @Output() cameraSnapshotClick = new EventEmitter<void>();
   @Output() removeVehicleImage = new EventEmitter<number>();
   @Output() vehicleImagePreviewSelected = new EventEmitter<number>();
 
@@ -59,6 +64,18 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit {
   scannedPreviewOpen = false;
 
   private lastPlateKeyAt = 0;
+  private scannerBurstBase = '';
+  private scannerBurstChars = '';
+  private scannerBurstStartedAt = 0;
+  private scannerMode = false;
+  private scannerBurstResetTimer?: ReturnType<typeof setTimeout>;
+  private readonly scannerBurstIdleMs = 120;
+  private readonly scannerDetectionChars = 5;
+  private readonly scannerDetectionWindowMs = 220;
+
+  get headerVehicleNumber(): string {
+    return this.manualLprPlate?.trim() ?? '';
+  }
 
   onPlateChange(value: string): void {
     this.manualLprPlateChange.emit(this.normalizePlate(value));
@@ -76,6 +93,10 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit {
 
     if (event.key.length !== 1 || event.ctrlKey || event.altKey || event.metaKey) return;
 
+    if (this.consumeScannerKey(event)) {
+      return;
+    }
+
     if (this.shouldReplaceExistingPlate()) {
       this.manualLprPlate = '';
       this.manualLprPlateChange.emit('');
@@ -86,6 +107,16 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit {
 
   onPlateFocus(event: FocusEvent): void {
     this.selectTextControl(event.target);
+  }
+
+  onPlatePaste(event: ClipboardEvent): void {
+    const text = event.clipboardData?.getData('text') ?? '';
+    if (!text.trim()) return;
+
+    event.preventDefault();
+    event.stopPropagation();
+    this.resetScannerBurst();
+    this.setPlateValue(text);
   }
 
   onCreateTicketClicked(): void {
@@ -110,6 +141,11 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit {
     const input = event.target as HTMLInputElement;
     this.vehicleImagesSelected.emit(input.files);
     input.value = '';
+  }
+
+  onCameraSnapshotClick(): void {
+    if (this.cameraSnapshotLoading || this.cameraSnapshotDisabled) return;
+    this.cameraSnapshotClick.emit();
   }
 
   onRemoveVehicleImage(index: number): void {
@@ -143,6 +179,10 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit {
     }
   }
 
+  ngOnDestroy(): void {
+    this.resetScannerBurst();
+  }
+
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(event: KeyboardEvent): void {
     if (this.scannedPreviewOpen) {
@@ -170,9 +210,76 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit {
 
     event.preventDefault();
     this.manualLprPlate = event.key;
+    this.resetScannerBurst();
     this.lastPlateKeyAt = Date.now();
     this.manualLprPlateChange.emit(this.normalizePlate(this.manualLprPlate));
     this.focusPlateArea();
+  }
+
+  private consumeScannerKey(event: KeyboardEvent): boolean {
+    const textArea = this.manualLprPlateArea?.nativeElement;
+    if (!textArea) return false;
+
+    const now = Date.now();
+    const currentValue = textArea.value || this.manualLprPlate || '';
+    const gap = this.lastPlateKeyAt ? now - this.lastPlateKeyAt : Number.MAX_SAFE_INTEGER;
+
+    if (!this.lastPlateKeyAt || gap > this.scannerBurstIdleMs) {
+      this.scannerBurstBase = currentValue;
+      this.scannerBurstChars = '';
+      this.scannerBurstStartedAt = now;
+      this.scannerMode = false;
+    }
+
+    this.scannerBurstChars += event.key;
+
+    const elapsed = now - this.scannerBurstStartedAt;
+    const hasExistingBase = !!this.scannerBurstBase.trim();
+    const scannerDetected =
+      hasExistingBase &&
+      (this.scannerMode ||
+        (this.scannerBurstChars.length >= this.scannerDetectionChars &&
+          elapsed <= this.scannerDetectionWindowMs));
+
+    if (!scannerDetected) {
+      this.scheduleScannerBurstReset();
+      return false;
+    }
+
+    this.scannerMode = true;
+    event.preventDefault();
+    event.stopPropagation();
+    this.setPlateValue(this.scannerBurstChars);
+    this.lastPlateKeyAt = now;
+    this.scheduleScannerBurstReset();
+    return true;
+  }
+
+  private setPlateValue(value: string): void {
+    const normalized = this.normalizePlate(value);
+    this.manualLprPlate = normalized;
+    this.manualLprPlateChange.emit(normalized);
+  }
+
+  private scheduleScannerBurstReset(): void {
+    if (this.scannerBurstResetTimer) {
+      clearTimeout(this.scannerBurstResetTimer);
+    }
+
+    this.scannerBurstResetTimer = setTimeout(() => {
+      this.resetScannerBurst();
+    }, this.scannerBurstIdleMs);
+  }
+
+  private resetScannerBurst(): void {
+    if (this.scannerBurstResetTimer) {
+      clearTimeout(this.scannerBurstResetTimer);
+      this.scannerBurstResetTimer = undefined;
+    }
+    this.scannerBurstBase = '';
+    this.scannerBurstChars = '';
+    this.scannerBurstStartedAt = 0;
+    this.scannerMode = false;
   }
 
   private shouldReplaceExistingPlate(): boolean {

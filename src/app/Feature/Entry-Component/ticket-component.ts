@@ -59,7 +59,6 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import { PricingSchemaDto } from '../../Domain/registration/registration-model';
 import { Registrationservice } from '../../Services/registration/registrationservice';
 import { LocalPrintService } from '../../Services/Print/local-print.service';
-import { environment } from '../../Shared/environment/environment';
 
 type LprMembershipStatus = 'idle' | 'checking' | 'subscriber' | 'non-subscriber' | 'error';
 
@@ -769,6 +768,7 @@ export class TicketComponent implements OnInit, OnDestroy {
   private loadGateConnectionInfo(gateId: string | number | null = this.auth.getGateId()): void {
     if (!gateId) {
       this.gateConnectionInfo = null;
+      this.applyGatePrinterOptions(null);
       this.gateConnectionError = this.t('gate_connection_failed');
       return;
     }
@@ -780,6 +780,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.gateSvc.getGateConnectionInfo(gateId).subscribe({
       next: (info) => {
         this.gateConnectionInfo = info;
+        this.applyGatePrinterOptions(info);
         this.mergeGateConnectionIntoPeripheral(info);
 
         const cameraUrl = info.onvifCameraSetting?.url?.trim();
@@ -790,6 +791,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Gate connection-info error', err);
         this.gateConnectionInfo = null;
+        this.applyGatePrinterOptions(null);
         this.gateConnectionError = this.t('gate_connection_failed');
         this.toast.error(this.t('gate_connection_failed'));
       },
@@ -810,6 +812,11 @@ export class TicketComponent implements OnInit, OnDestroy {
       hasPc: !!info.pcIp || current.hasPc,
       hasLpr: !!info.lprIp || current.hasLpr,
     };
+  }
+
+  private applyGatePrinterOptions(info: GateConnectionInfo | null): void {
+    this.printQrEnabled = !!info?.hasQrPrinterName;
+    this.printReceiptEnabled = !!info?.hasReceiptPrinterName;
   }
 
   private ensureGateConnectionReady(): boolean {
@@ -957,6 +964,7 @@ export class TicketComponent implements OnInit, OnDestroy {
   // =======================
   onManualLprPlateChange(value: string): void {
     const vehicleNumber = this.normalizeVehicleNumber(value);
+    const searchValue = this.normalizeMembershipSearchValue(vehicleNumber);
     this.manualLprPlate = vehicleNumber;
 
     if (this.lprMembershipCheckTimer) {
@@ -968,7 +976,7 @@ export class TicketComponent implements OnInit, OnDestroy {
 
     this.currentLprVehicleNumber = vehicleNumber || null;
 
-    if (vehicleNumber.length < 3) {
+    if (searchValue.length < 3) {
       this.resetLprLookupState(vehicleNumber || null);
       this.lastCheckedLprVehicleNumber = '';
       return;
@@ -978,10 +986,11 @@ export class TicketComponent implements OnInit, OnDestroy {
 
     this.lprMembershipCheckTimer = setTimeout(() => {
       const currentVehicleNumber = this.normalizeVehicleNumber(this.manualLprPlate);
+      const currentSearchValue = this.normalizeMembershipSearchValue(currentVehicleNumber);
       if (
-        !currentVehicleNumber ||
-        currentVehicleNumber !== vehicleNumber ||
-        currentVehicleNumber === this.lastCheckedLprVehicleNumber
+        !currentSearchValue ||
+        currentSearchValue !== searchValue ||
+        currentSearchValue === this.lastCheckedLprVehicleNumber
       ) {
         return;
       }
@@ -992,24 +1001,6 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   onManualLprPlateBlur(): void {
     this.checkCurrentLprMembership(true);
-  }
-
-  onPrintQrEnabledChange(enabled: boolean): void {
-    if (!enabled && !this.printReceiptEnabled) {
-      this.toast.warn(this.t('select_print_option'));
-      return;
-    }
-
-    this.printQrEnabled = enabled;
-  }
-
-  onPrintReceiptEnabledChange(enabled: boolean): void {
-    if (!enabled && !this.printQrEnabled) {
-      this.toast.warn(this.t('select_print_option'));
-      return;
-    }
-
-    this.printReceiptEnabled = enabled;
   }
 
   async onVehicleImagesSelected(files: FileList | null): Promise<void> {
@@ -1056,8 +1047,8 @@ export class TicketComponent implements OnInit, OnDestroy {
 
     const normalizedVehicleNumber =
       vehicleNumber !== undefined
-        ? this.normalizeVehicleNumber(vehicleNumber)
-        : (this.currentLprVehicleNumber ?? undefined);
+        ? this.normalizeMembershipSearchValue(vehicleNumber)
+        : this.normalizeMembershipSearchValue(this.currentLprVehicleNumber);
 
     if (vehicleNumber !== undefined && !normalizedVehicleNumber) {
       this.toast.warn(this.t('enter_plate_first'));
@@ -1230,10 +1221,11 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   private checkCurrentLprMembership(autoCreateSubscriber: boolean): void {
-    const vehicleNumber = this.normalizeVehicleNumber(this.manualLprPlate);
+    const displayValue = this.normalizeVehicleNumber(this.manualLprPlate);
+    const vehicleNumber = this.normalizeMembershipSearchValue(displayValue);
     if (vehicleNumber.length < 3) return;
 
-    this.currentLprVehicleNumber = vehicleNumber;
+    this.currentLprVehicleNumber = displayValue || vehicleNumber;
 
     const cachedMembership = this.lprMembershipCache.get(vehicleNumber);
     if (cachedMembership) {
@@ -1255,13 +1247,13 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.lprMembershipStatus = 'checking';
     this.lprMembershipCardNumber = null;
 
-    this.ticketsSvc.isMembership(vehicleNumber).subscribe({
+    this.ticketsSvc.membershipExists(vehicleNumber).subscribe({
       next: (membership) => {
         this.lprMembershipCache.set(vehicleNumber, membership);
         this.applyLprMembershipResult(vehicleNumber, membership, autoCreateSubscriber);
       },
       error: (err) => {
-        this.handleBackendError('IsMemberShip error', err);
+        this.handleBackendError('membership-exists error', err);
         this.lprMembershipStatus = 'error';
         this.lprMembershipCardNumber = null;
         this.toast.warn(this.t('membership_check_failed'));
@@ -1274,8 +1266,9 @@ export class TicketComponent implements OnInit, OnDestroy {
     membership: MembershipCheckResponse,
     autoCreateSubscriber: boolean,
   ): void {
-    this.currentLprVehicleNumber = vehicleNumber;
+    const resolvedVehicleNumber = this.getMembershipVehicleNumber(membership, vehicleNumber);
     const cardNumber = this.getMembershipCardNumber(membership);
+    this.currentLprVehicleNumber = resolvedVehicleNumber;
 
     if (membership.isExist) {
       this.lprMembershipStatus = 'subscriber';
@@ -1295,14 +1288,85 @@ export class TicketComponent implements OnInit, OnDestroy {
         setTimeout(() => this.autoCreatedLprVehicleNumbers.delete(vehicleNumber), 10000);
       }
 
-      this.createSubscriberTicketForVehicle(vehicleNumber, membership);
+      this.createSubscriberTicketFromMembership(vehicleNumber, membership);
       return;
     }
 
+    this.applyLprNonSubscriberResult(vehicleNumber, autoCreateSubscriber);
+  }
+
+  private tryCardMembershipFromLprInput(
+    inputText: string,
+    autoCreateSubscriber: boolean,
+  ): void {
+    const normalizedCard = this.normalizeCardNumber(inputText);
+    if (normalizedCard.length < 3) {
+      this.applyLprNonSubscriberResult(inputText, autoCreateSubscriber);
+      return;
+    }
+
+    const cachedMembership = this.cardMembershipCache.get(normalizedCard);
+    if (cachedMembership) {
+      this.applyLprCardFallbackResult(
+        inputText,
+        normalizedCard,
+        cachedMembership,
+        autoCreateSubscriber,
+      );
+      return;
+    }
+
+    this.lastCheckedCardNumber = normalizedCard;
+    this.cardMembershipStatus = 'checking';
+
+    this.ticketsSvc.checkMembershipByCardNumber(normalizedCard).subscribe({
+      next: (membership) => {
+        this.cardMembershipCache.set(normalizedCard, membership);
+        this.applyLprCardFallbackResult(
+          inputText,
+          normalizedCard,
+          membership,
+          autoCreateSubscriber,
+        );
+      },
+      error: (err) => {
+        this.cardMembershipStatus = 'error';
+        this.handleBackendError('check-by-card-number from LPR input error', err);
+        this.applyLprNonSubscriberResult(inputText, autoCreateSubscriber);
+      },
+    });
+  }
+
+  private applyLprCardFallbackResult(
+    inputText: string,
+    cardNumber: string,
+    membership: CardMembershipCheckResponse,
+    autoCreateSubscriber: boolean,
+  ): void {
+    if (membership.isMember) {
+      this.currentLprVehicleNumber =
+        membership.vehicleNumber?.trim() ||
+        membership.summary?.vehicleNumber?.trim() ||
+        inputText;
+      this.lprMembershipStatus = 'subscriber';
+      this.lprMembershipCardNumber = membership.cardNumber?.trim() || cardNumber;
+      this.selectedPricingSchemaId = '';
+      this.applyCardMembershipResult(cardNumber, membership, autoCreateSubscriber, false);
+      return;
+    }
+
+    this.applyLprNonSubscriberResult(inputText, autoCreateSubscriber);
+  }
+
+  private applyLprNonSubscriberResult(
+    vehicleNumber: string,
+    autoCreateSubscriber: boolean,
+  ): void {
     this.lprMembershipStatus = 'non-subscriber';
     this.lprMembershipCardNumber = null;
     this.cardSummary = null;
     this.cardNumber = '';
+    this.cardMembershipStatus = 'idle';
     this.ensurePricingSchemasLoaded();
 
     if (autoCreateSubscriber) {
@@ -1340,8 +1404,8 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   private createNonSubscriberLprTicket(vehicleNumber?: string): void {
     const normalizedVehicleNumber = vehicleNumber
-      ? this.normalizeVehicleNumber(vehicleNumber)
-      : this.currentLprVehicleNumber;
+      ? this.normalizeMembershipSearchValue(vehicleNumber)
+      : this.normalizeMembershipSearchValue(this.currentLprVehicleNumber);
 
     if (!normalizedVehicleNumber) {
       this.toast.warn(this.t('enter_plate_first'));
@@ -1405,6 +1469,26 @@ export class TicketComponent implements OnInit, OnDestroy {
       {
         cardNumber: card ?? undefined,
         vehicleNumber,
+      },
+      statePrepared,
+    );
+  }
+
+  private createSubscriberTicketFromMembership(
+    searchValue: string,
+    membership: MembershipCheckResponse,
+    statePrepared = false,
+  ): void {
+    const card = this.getMembershipCardNumber(membership);
+    const vehicleNumber = this.getMembershipVehicleNumber(membership, searchValue);
+
+    this.cardNumber = card ?? '';
+    this.cardSummary = membership.summary ?? this.cardSummary;
+
+    this.createSubscriberTicketWithPayload(
+      {
+        cardNumber: card ?? undefined,
+        vehicleNumber: vehicleNumber ?? undefined,
       },
       statePrepared,
     );
@@ -1490,11 +1574,37 @@ export class TicketComponent implements OnInit, OnDestroy {
     return card ? String(card).trim() : null;
   }
 
+  private getMembershipVehicleNumber(
+    membership: MembershipCheckResponse,
+    fallback: string,
+  ): string | null {
+    const vehicle =
+      membership.vehicleNumber ??
+      (membership.summary as any)?.vehicleNumber ??
+      (membership.summary as any)?.VehicleNumber ??
+      null;
+
+    if (vehicle && String(vehicle).trim()) {
+      return this.normalizeMembershipSearchValue(String(vehicle));
+    }
+
+    const card = this.getMembershipCardNumber(membership);
+    if (card && this.normalizeCardNumber(card) === this.normalizeCardNumber(fallback)) {
+      return null;
+    }
+
+    return this.normalizeMembershipSearchValue(fallback);
+  }
+
   private normalizeVehicleNumber(value: string | undefined | null): string {
     return String(value ?? '').trim();
   }
 
   private normalizeCardNumber(value: string | undefined | null): string {
+    return String(value ?? '').replace(/\s+/g, '').trim().toUpperCase();
+  }
+
+  private normalizeMembershipSearchValue(value: string | undefined | null): string {
     return String(value ?? '').replace(/\s+/g, '').trim().toUpperCase();
   }
 
@@ -1754,12 +1864,11 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   private printHtmlNative(qrHtml: string | null, feesHtml: string | null): void {
-    const qrPrinterName = this.gateConnectionInfo?.qrPrinterName?.trim() || environment.qrPrinterName;
-    const receiptPrinterName =
-      this.gateConnectionInfo?.receiptPrinterName?.trim() || environment.receiptPrinterName;
+    const qrPrinterName = this.gateConnectionInfo?.qrPrinterName?.trim();
+    const receiptPrinterName = this.gateConnectionInfo?.receiptPrinterName?.trim();
     const jobs = [];
 
-    if (qrHtml) {
+    if (qrHtml && this.printQrEnabled && qrPrinterName) {
       jobs.push(
         this.localPrint.printHtml({
           printerName: qrPrinterName,
@@ -1769,7 +1878,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       );
     }
 
-    if (feesHtml) {
+    if (feesHtml && this.printReceiptEnabled && receiptPrinterName) {
       jobs.push(
         this.localPrint.printHtml({
           printerName: receiptPrinterName,
@@ -2357,14 +2466,8 @@ export class TicketComponent implements OnInit, OnDestroy {
       const uid = await this.nfc.readUID();
       const normalized = String(uid).trim().toUpperCase();
 
-      this.cardNumber = normalized;
-      this.scanBuffer = normalized;
-
-      this.resetTicketPreview();
-      this.cardSummary = null;
-
-      this.loadCardSummary(normalized);
-      this.checkCardMembershipAndCreate(normalized);
+      this.onManualLprPlateChange(normalized);
+      this.onManualLprPlateBlur();
     } catch (err: any) {
       console.error(err);
       // ده Error محلي (NFC) مش من الباك

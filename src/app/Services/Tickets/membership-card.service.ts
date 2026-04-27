@@ -91,6 +91,23 @@ export class MembershipCardService {
     );
   }
 
+  membershipExists(searchValue: string): Observable<MembershipCheckResponse> {
+    const trimmed = searchValue?.trim();
+    if (!trimmed) {
+      return of({ isExist: false });
+    }
+
+    const params = new HttpParams().set('searchValue', trimmed);
+
+    return this.http.get<any>(`${this.membershipsUrl}/membership-exists`, { params }).pipe(
+      map((res: any) => this.mapMembershipExistsResponse(res, trimmed)),
+      catchError((err) => {
+        this.logError('GET /ParkingMemberships/membership-exists', err);
+        return throwError(() => err);
+      }),
+    );
+  }
+
   isMembership(vehicleNumber: string): Observable<MembershipCheckResponse> {
     const trimmed = this.normalizeVehicleNumber(vehicleNumber);
     if (!trimmed) {
@@ -143,6 +160,49 @@ export class MembershipCardService {
         rawSummary?.vehicleNumber ??
         rawSummary?.VehicleNumber ??
         vehicleNumber,
+      summary,
+    };
+  }
+
+  private mapMembershipExistsResponse(res: any, searchValue: string): MembershipCheckResponse {
+    if (typeof res === 'boolean') {
+      return {
+        isExist: res,
+        vehicleNumber: res ? searchValue : null,
+        cardNumber: null,
+        summary: null,
+      };
+    }
+
+    const summary = this.extractSummary(res);
+    const rawSummary = summary as any;
+
+    const isExist = !!(
+      res?.isExist ??
+      res?.IsExist ??
+      res?.exists ??
+      res?.Exists ??
+      res?.isMember ??
+      res?.IsMember ??
+      res?.found ??
+      res?.Found ??
+      summary
+    );
+
+    return {
+      isExist,
+      cardNumber:
+        res?.cardNumber ??
+        res?.CardNumber ??
+        rawSummary?.cardNumber ??
+        rawSummary?.CardNumber ??
+        null,
+      vehicleNumber:
+        res?.vehicleNumber ??
+        res?.VehicleNumber ??
+        rawSummary?.vehicleNumber ??
+        rawSummary?.VehicleNumber ??
+        (isExist ? searchValue : null),
       summary,
     };
   }

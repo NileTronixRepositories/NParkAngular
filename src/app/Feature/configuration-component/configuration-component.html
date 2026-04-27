@@ -175,25 +175,8 @@
                         <mat-radio-button value="SCANNER" color="primary">{{
                           'scanner' | t
                         }}</mat-radio-button>
-                      </mat-radio-group>
-                    </div>
-                  </div>
-                </div>
-
-                <!-- PRINT TYPE -->
-                <div class="col-12 col-md-6 col-lg-4">
-                  <div class="card h-100 border bg-light shadow-sm">
-                    <div class="card-body p-2">
-                      <div class="d-flex align-items-center gap-2 mb-2 text-primary">
-                        <i class="bi bi-printer fs-5"></i>
-                        <h6 class="mb-0 fw-bold">{{ 'printType' | t }}</h6>
-                      </div>
-                      <mat-radio-group formControlName="printType" class="d-flex flex-column gap-2">
-                        <mat-radio-button value="QR" color="primary">{{
-                          'qr' | t
-                        }}</mat-radio-button>
-                        <mat-radio-button value="RECEIPT" color="primary">{{
-                          'receipt' | t
+                        <mat-radio-button value="BOTH" color="primary">{{
+                          'both' | t
                         }}</mat-radio-button>
                       </mat-radio-group>
                     </div>
@@ -339,34 +322,45 @@
                                   <div class="invalid-feedback">Required or duplicated Control ID</div>
                                 </div>
 
-                                <div>
-                                  <label
-                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                    >{{ 'qrPrinterName' | t }}</label
-                                  >
-                                  <input
-                                    class="form-control form-control-sm"
-                                    [class.is-invalid]="g.get('qrPrinterName')?.invalid && g.get('qrPrinterName')?.touched"
-                                    type="text"
-                                    formControlName="qrPrinterName"
-                                    maxlength="100"
-                                  />
-                                  <div class="invalid-feedback">Maximum length is 100 characters</div>
-                                </div>
+                                <div class="d-flex flex-column gap-2">
+                                  <mat-checkbox formControlName="hasQrPrinterName" color="primary">
+                                    {{ 'hasQrPrinterName' | t }}
+                                  </mat-checkbox>
+                                  <div *ngIf="g.get('hasQrPrinterName')?.value">
+                                    <label
+                                      class="form-label small fw-bold text-muted text-uppercase mb-1"
+                                      >{{ 'qrPrinterName' | t }}</label
+                                    >
+                                    <input
+                                      class="form-control form-control-sm"
+                                      [class.is-invalid]="g.get('qrPrinterName')?.invalid && g.get('qrPrinterName')?.touched"
+                                      type="text"
+                                      formControlName="qrPrinterName"
+                                      maxlength="100"
+                                    />
+                                    <div class="invalid-feedback">Printer name is required</div>
+                                  </div>
 
-                                <div>
-                                  <label
-                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                    >{{ 'receiptPrinterName' | t }}</label
+                                  <mat-checkbox
+                                    formControlName="hasReceiptPrinterName"
+                                    color="primary"
                                   >
-                                  <input
-                                    class="form-control form-control-sm"
-                                    [class.is-invalid]="g.get('receiptPrinterName')?.invalid && g.get('receiptPrinterName')?.touched"
-                                    type="text"
-                                    formControlName="receiptPrinterName"
-                                    maxlength="100"
-                                  />
-                                  <div class="invalid-feedback">Maximum length is 100 characters</div>
+                                    {{ 'hasReceiptPrinterName' | t }}
+                                  </mat-checkbox>
+                                  <div *ngIf="g.get('hasReceiptPrinterName')?.value">
+                                    <label
+                                      class="form-label small fw-bold text-muted text-uppercase mb-1"
+                                      >{{ 'receiptPrinterName' | t }}</label
+                                    >
+                                    <input
+                                      class="form-control form-control-sm"
+                                      [class.is-invalid]="g.get('receiptPrinterName')?.invalid && g.get('receiptPrinterName')?.touched"
+                                      type="text"
+                                      formControlName="receiptPrinterName"
+                                      maxlength="100"
+                                    />
+                                    <div class="invalid-feedback">Printer name is required</div>
+                                  </div>
                                 </div>
 
                                 <div
@@ -519,34 +513,45 @@
                                   <div class="invalid-feedback">Required or duplicated Control ID</div>
                                 </div>
 
-                                <div>
-                                  <label
-                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                    >{{ 'qrPrinterName' | t }}</label
-                                  >
-                                  <input
-                                    class="form-control form-control-sm"
-                                    [class.is-invalid]="g.get('qrPrinterName')?.invalid && g.get('qrPrinterName')?.touched"
-                                    type="text"
-                                    formControlName="qrPrinterName"
-                                    maxlength="100"
-                                  />
-                                  <div class="invalid-feedback">Maximum length is 100 characters</div>
-                                </div>
+                                <div class="d-flex flex-column gap-2">
+                                  <mat-checkbox formControlName="hasQrPrinterName" color="primary">
+                                    {{ 'hasQrPrinterName' | t }}
+                                  </mat-checkbox>
+                                  <div *ngIf="g.get('hasQrPrinterName')?.value">
+                                    <label
+                                      class="form-label small fw-bold text-muted text-uppercase mb-1"
+                                      >{{ 'qrPrinterName' | t }}</label
+                                    >
+                                    <input
+                                      class="form-control form-control-sm"
+                                      [class.is-invalid]="g.get('qrPrinterName')?.invalid && g.get('qrPrinterName')?.touched"
+                                      type="text"
+                                      formControlName="qrPrinterName"
+                                      maxlength="100"
+                                    />
+                                    <div class="invalid-feedback">Printer name is required</div>
+                                  </div>
 
-                                <div>
-                                  <label
-                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                    >{{ 'receiptPrinterName' | t }}</label
+                                  <mat-checkbox
+                                    formControlName="hasReceiptPrinterName"
+                                    color="primary"
                                   >
-                                  <input
-                                    class="form-control form-control-sm"
-                                    [class.is-invalid]="g.get('receiptPrinterName')?.invalid && g.get('receiptPrinterName')?.touched"
-                                    type="text"
-                                    formControlName="receiptPrinterName"
-                                    maxlength="100"
-                                  />
-                                  <div class="invalid-feedback">Maximum length is 100 characters</div>
+                                    {{ 'hasReceiptPrinterName' | t }}
+                                  </mat-checkbox>
+                                  <div *ngIf="g.get('hasReceiptPrinterName')?.value">
+                                    <label
+                                      class="form-label small fw-bold text-muted text-uppercase mb-1"
+                                      >{{ 'receiptPrinterName' | t }}</label
+                                    >
+                                    <input
+                                      class="form-control form-control-sm"
+                                      [class.is-invalid]="g.get('receiptPrinterName')?.invalid && g.get('receiptPrinterName')?.touched"
+                                      type="text"
+                                      formControlName="receiptPrinterName"
+                                      maxlength="100"
+                                    />
+                                    <div class="invalid-feedback">Printer name is required</div>
+                                  </div>
                                 </div>
 
                                 <div
@@ -719,16 +724,6 @@
                   <span>{{ 'captureMode' | t }}</span>
                 </div>
                 <span class="fw-bold text-dark small">{{ summaryForView.captureMode }}</span>
-              </div>
-
-              <div
-                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
-              >
-                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
-                  <i class="bi bi-printer"></i>
-                  <span>{{ 'printType' | t }}</span>
-                </div>
-                <span class="fw-bold text-dark small">{{ summaryForView.printType }}</span>
               </div>
 
               <div

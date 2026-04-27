@@ -6,6 +6,7 @@ export enum PriceType {
 export enum VehiclePassengerData {
   VehiclePlate = 0,
   ScannerId = 1,
+  Both = 2,
 }
 
 export enum PrintType {
@@ -27,7 +28,9 @@ export interface GateConfigDto {
   gateId: string | null;
   isAssigned?: boolean;
   assignedTo?: string | null;
+  hasQrPrinterName: boolean;
   qrPrinterName?: string | null;
+  hasReceiptPrinterName: boolean;
   receiptPrinterName?: string | null;
   onvifCameraSetting?: OnvifCameraSettingDto | null;
 }
