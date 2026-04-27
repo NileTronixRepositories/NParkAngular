@@ -56,6 +56,8 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit {
 
   @ViewChild('manualLprPlateArea') manualLprPlateArea?: ElementRef<HTMLTextAreaElement>;
 
+  scannedPreviewOpen = false;
+
   private lastPlateKeyAt = 0;
 
   onPlateChange(value: string): void {
@@ -118,6 +120,15 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit {
     this.vehicleImagePreviewSelected.emit(index);
   }
 
+  openScannedPreview(): void {
+    if (!this.scannedFile?.type?.startsWith('image/')) return;
+    this.scannedPreviewOpen = true;
+  }
+
+  closeScannedPreview(): void {
+    this.scannedPreviewOpen = false;
+  }
+
   isPreviewSelected(fileUrl: string): boolean {
     return this.selectedPreviewUrl === fileUrl;
   }
@@ -134,6 +145,14 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit {
 
   @HostListener('document:keydown', ['$event'])
   onDocumentKeydown(event: KeyboardEvent): void {
+    if (this.scannedPreviewOpen) {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        this.closeScannedPreview();
+      }
+      return;
+    }
+
     if (this.adding || event.ctrlKey || event.altKey || event.metaKey) return;
     if (this.isInteractiveElement(event.target)) return;
 

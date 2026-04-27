@@ -45,10 +45,69 @@
   transition: height 0.3s ease;
 }
 
+.preview-box-button {
+  cursor: zoom-in;
+  padding: 0;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.preview-box-button:hover {
+  border-color: #2563eb !important;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.2);
+}
+
 .preview-box img {
   max-width: 100%;
   max-height: 100%;
   object-fit: contain;
+}
+
+.scan-preview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1090;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+  background: rgba(15, 23, 42, 0.72);
+}
+
+.scan-preview-dialog {
+  width: min(920px, 96vw);
+  max-height: 92vh;
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 22px 60px rgba(0, 0, 0, 0.28);
+  overflow: hidden;
+}
+
+.scan-preview-header {
+  min-height: 42px;
+  padding: 0.45rem 0.65rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.scan-preview-body {
+  height: min(76vh, 620px);
+  padding: 0.75rem;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scan-preview-body img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 6px;
 }
 
 .uploaded-images-card {

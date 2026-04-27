@@ -38,6 +38,10 @@ import { ExitTourService } from '../../Services/Exit/exit-tour.service';
 import { DashboardHubService } from '../../Services/OverView/dashboard-hub.service';
 import { TicketExitedNotification } from '../../Domain/OverView/dashboard-notifications.model';
 import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.service';
+import {
+  LprSignalRService,
+  LprVehicleDetectedEvent,
+} from '../../Services/Gate/lpr-signalr.service';
 import { SanctionService } from '../../Services/Sanction/sanction.service';
 import { SanctionDto } from '../../Domain/Sanction/sanction.models';
 import { Subscription, timer } from 'rxjs';
@@ -231,6 +235,7 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           failed_to_validate: 'فشل التحقق من الخروج، يرجى المحاولة مرة أخرى',
           no_matching_ticket: 'لم يتم العثور على تذكرة مطابقة',
           lpr_detection: 'اكتشاف السيارة (LPR)',
+          lpr_vehicle_received: 'تم استقبال رقم السيارة من LPR',
           manual_validation: 'التحقق اليدوي',
           validation_result: 'نتيجة التحقق',
           match_type: 'نوع التطابق',
@@ -400,6 +405,7 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           failed_to_validate: 'Failed to validate exit, please try again',
           no_matching_ticket: 'No matching ticket found',
           lpr_detection: 'LPR Detection',
+          lpr_vehicle_received: 'LPR vehicle received',
           manual_validation: 'Manual Validation',
           validation_result: 'Validation Result',
           match_type: 'Match Type',
@@ -421,6 +427,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // NEW: SignalR Hub
   private readonly dashboardHub = inject(DashboardHubService);
   private readonly scanHub = inject(ScanHubService);
+  private readonly lprSignalR = inject(LprSignalRService);
   private readonly sanctionSvc = inject(SanctionService);
   private readonly hubSubscriptions = new Subscription();
   private readonly localHealth = inject(LocalHealthService);
@@ -572,10 +579,20 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       }
     });
 
+    this.lprSignalR
+      .start()
+      .catch((err) => console.error('LPR SignalR (Exitgate) connection error', err));
+
     this.hubSubscriptions.add(
       this.scanHub.scan$.subscribe((msg) => {
         console.log('ExitgateComponent: Received scan event', msg.fileName);
         this.handleScannedFile(msg);
+      }),
+    );
+
+    this.hubSubscriptions.add(
+      this.lprSignalR.vehicleDetected$.subscribe((event) => {
+        this.handleLprVehicleDetected(event);
       }),
     );
 
@@ -646,6 +663,25 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.hubSubscriptions.unsubscribe();
     this.dashboardHub.stop();
     this.scanHub.stop();
+    this.lprSignalR.stop();
+  }
+
+  private handleLprVehicleDetected(event: LprVehicleDetectedEvent): void {
+    if (!this.isCurrentGateEvent(event.gateId)) return;
+
+    const vehicleNumber = this.normalizeLprVehicleNumber(event.vehicleNumber);
+    if (!vehicleNumber) return;
+
+    this.toast.success(`${this.t('lpr_vehicle_received')}: ${vehicleNumber}`);
+    this.onDetectedVehicleNumber(vehicleNumber);
+    this.cdr.markForCheck();
+  }
+
+  private isCurrentGateEvent(gateId: string | number | null | undefined): boolean {
+    const currentGateId = this.auth.getGateId();
+    if (!gateId || !currentGateId) return false;
+
+    return String(gateId).trim().toLowerCase() === String(currentGateId).trim().toLowerCase();
   }
 
   // ========= Init helpers =========

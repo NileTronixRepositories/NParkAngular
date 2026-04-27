@@ -135,16 +135,26 @@
           <span>{{ t('scanner_ready') }}</span>
         </div>
         <div class="p-1">
-          <div
-            class="preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden"
-            [style.height.px]="scannedFile.type === 'application/pdf' ? 180 : 80"
+          <button
+            *ngIf="scannedFile.type.startsWith('image/'); else scannedDocumentPreview"
+            type="button"
+            class="preview-box preview-box-button border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
+            [style.height.px]="80"
+            (click)="openScannedPreview()"
+            [attr.aria-label]="scannedFile.name"
           >
             <img
-              *ngIf="scannedFile.type.startsWith('image/')"
               [src]="scannedFile.safeUrl"
               class="h-100 w-auto"
               alt="Preview"
             />
+          </button>
+
+          <ng-template #scannedDocumentPreview>
+            <div
+              class="preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden"
+              [style.height.px]="scannedFile.type === 'application/pdf' ? 180 : 80"
+            >
             <iframe
               *ngIf="scannedFile.type === 'application/pdf'"
               [src]="scannedFile.safeUrl"
@@ -159,7 +169,8 @@
               <i class="bi bi-file-earmark-pdf fs-2"></i>
               <div class="x-small fw-bold text-uppercase">{{ scannedFile.type.split('/')[1] }}</div>
             </div>
-          </div>
+            </div>
+          </ng-template>
           <div class="mt-1 d-flex flex-column gap-1">
             <div class="x-small text-muted text-center text-truncate">{{ scannedFile.name }}</div>
             <a
@@ -180,5 +191,28 @@
         <div class="x-small text-muted">{{ t('no_gate_devices') }}</div>
       </div>
     </ng-template>
+  </div>
+</div>
+
+<div
+  class="scan-preview-modal"
+  *ngIf="scannedPreviewOpen && scannedFile?.type?.startsWith('image/')"
+  (click)="closeScannedPreview()"
+>
+  <div class="scan-preview-dialog" (click)="$event.stopPropagation()">
+    <div class="scan-preview-header">
+      <div class="x-small fw-bold text-truncate">{{ scannedFile?.name }}</div>
+      <button
+        type="button"
+        class="btn btn-outline-secondary btn-xs"
+        (click)="closeScannedPreview()"
+        aria-label="Close preview"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="scan-preview-body">
+      <img [src]="scannedFile?.safeUrl" alt="Preview" />
+    </div>
   </div>
 </div>

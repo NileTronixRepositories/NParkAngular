@@ -46,6 +46,10 @@ import { IssueTicketBlockComponent } from './issue-ticket-block-component/issue-
 import { TicketsTableBlockComponent } from './tickets-table-block-component/tickets-table-block-component';
 import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
 import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.service';
+import {
+  LprSignalRService,
+  LprVehicleDetectedEvent,
+} from '../../Services/Gate/lpr-signalr.service';
 import { EntryTourService } from '../../Services/Entry/entry-tour.service';
 import { SupervisorModalBlockComponent } from '../Shared/supervisor-modal-block-component/supervisor-modal-block-component';
 import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
@@ -111,6 +115,7 @@ export class TicketComponent implements OnInit, OnDestroy {
   private readonly toast = inject(ToastServices);
   private readonly entryTour = inject(EntryTourService);
   private readonly scanHub = inject(ScanHubService);
+  private readonly lprSignalR = inject(LprSignalRService);
   private readonly sanitizer = inject(DomSanitizer);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly errorExtractor = inject(ErrorExtractorService);
@@ -548,6 +553,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       retry_open_gate: 'Retry open gate',
       save_to_pc: 'Save to PC',
       currency: 'EGP',
+      lpr_vehicle_received: 'LPR vehicle received',
     },
   };
 
@@ -573,10 +579,26 @@ export class TicketComponent implements OnInit, OnDestroy {
       }
     });
 
+    this.lprSignalR
+      .start()
+      .then(() => {
+        console.log('[Entry LPR SignalR] connected', {
+          gateId: this.auth.getGateId(),
+        });
+      })
+      .catch((err) => console.error('LPR SignalR (Entry) connection error', err));
+
     this.hubSubscriptions.add(
       this.scanHub.scan$.subscribe((msg) => {
         console.log('TicketComponent: Received scan event', msg.fileName);
         this.handleScannedFile(msg);
+      }),
+    );
+
+    this.hubSubscriptions.add(
+      this.lprSignalR.vehicleDetected$.subscribe((event) => {
+        console.log('[Entry LPR SignalR] lprVehicleDetected received', event);
+        this.handleLprVehicleDetected(event);
       }),
     );
 
@@ -665,6 +687,45 @@ export class TicketComponent implements OnInit, OnDestroy {
       this.revokeImageUrl(this.scannedFile);
     }
     this.hubSubscriptions.unsubscribe();
+    this.lprSignalR.stop();
+  }
+
+  private handleLprVehicleDetected(event: LprVehicleDetectedEvent): void {
+    const currentGateId = this.auth.getGateId();
+    const isCurrentGate = this.isCurrentGateEvent(event.gateId);
+    const rawVehicleNumber = event.vehicleNumber ?? '';
+
+    console.log('[Entry LPR SignalR] gate match check', {
+      eventGateId: event.gateId,
+      currentGateId,
+      isCurrentGate,
+      rawVehicleNumber,
+    });
+
+    if (!isCurrentGate) return;
+
+    const vehicleNumber = this.normalizeVehicleNumber(rawVehicleNumber);
+    if (!vehicleNumber) {
+      console.warn('[Entry LPR SignalR] ignored empty vehicleNumber', event);
+      return;
+    }
+
+    this.onManualLprPlateChange(vehicleNumber);
+    this.onManualLprPlateBlur();
+    console.log('[Entry LPR SignalR] applied raw vehicleNumber to Entry UI', {
+      rawVehicleNumber,
+      vehicleNumber,
+      gateId: currentGateId,
+    });
+    this.toast.success(`${this.t('lpr_vehicle_received')}: ${vehicleNumber}`);
+    this.cdr.markForCheck();
+  }
+
+  private isCurrentGateEvent(gateId: string | number | null | undefined): boolean {
+    const currentGateId = this.auth.getGateId();
+    if (!gateId || !currentGateId) return false;
+
+    return String(gateId).trim().toLowerCase() === String(currentGateId).trim().toLowerCase();
   }
 
   // =======================
@@ -1402,27 +1463,7 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   private normalizeVehicleNumber(value: string | undefined | null): string {
-    const compact = String(value ?? '')
-      .replace(/[\s\u00a0\u2000-\u200f\u2028-\u202f\u205f\u3000]+/g, '')
-      .trim()
-      .toUpperCase();
-
-    const letters: string[] = [];
-    const suffix: string[] = [];
-
-    for (const char of Array.from(compact)) {
-      if (this.isVehicleLetter(char) && suffix.length === 0) {
-        letters.push(char);
-      } else {
-        suffix.push(char);
-      }
-    }
-
-    return [letters.join(' '), suffix.join('')].filter(Boolean).join(' ');
-  }
-
-  private isVehicleLetter(char: string): boolean {
-    return /^[A-Z\u0600-\u06FF]$/.test(char);
+    return String(value ?? '').trim();
   }
 
   private normalizeCardNumber(value: string | undefined | null): string {
