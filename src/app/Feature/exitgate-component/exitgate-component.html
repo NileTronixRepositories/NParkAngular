@@ -86,7 +86,25 @@
       ></app-exit-validation-block-component>
     </div>
 
-    <!-- Block 3: Tickets Table -->
+    <!-- Block 3: Sanctions -->
+    <div class="col-12 col-md-6 col-xl-3">
+      <app-exit-sanctions-block-component
+        [allSanctions]="allSanctions"
+        [selectedSanctionIds]="selectedSanctionIds"
+        [selectedTicket]="selectedTicketForExceed"
+        [registeringExceed]="registeringExceed"
+        [isExceedRegistered]="isExceedRegistered"
+        [exceedAmount]="exceedAmount"
+        [totalPriceAfterExceed]="totalPriceAfterExceed"
+        [exitLoading]="exitSelectedTicketLoading"
+        (ticketSelected)="onExceedTicketSelected($event)"
+        (toggleSanction)="onToggleSanction($event)"
+        (registerExceed)="submitExceedForValidatedTicket()"
+        (exitTicket)="exitSelectedTicketAfterExceed()"
+      ></app-exit-sanctions-block-component>
+    </div>
+
+    <!-- Block 4: Tickets Table -->
     <div class="col-12 col-xl-3">
       <app-exit-tickets-table-block-component
         [tickets]="filtered"

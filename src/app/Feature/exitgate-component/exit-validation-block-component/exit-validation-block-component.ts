@@ -54,6 +54,7 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
   textFieldError: string | null = null;
   private lastSubmittedText = '';
   private autoSubmitTimer?: ReturnType<typeof setTimeout>;
+  private suppressScannerFocusUntil = 0;
   private readonly lang = inject(LanguageService);
   private readonly dict = inject(I18N_DICT);
 
@@ -84,10 +85,10 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
     this.onValidateText();
   }
 
-  onTextBlur(): void {
-    if (!this.isTextDisabled) {
-      this.focusTextArea(true);
-    }
+  onTextBlur(event: FocusEvent): void {
+    const nextTarget = event.relatedTarget as HTMLElement | null;
+    if (this.isTextDisabled || this.shouldKeepCurrentFocus(nextTarget)) return;
+    this.focusTextArea(true);
   }
 
   onManualTextChange(value: string): void {
@@ -144,7 +145,7 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
       this.manualText = this.normalizeScanText(this.textValue);
       this.textFieldError = null;
       this.lastSubmittedText = '';
-      this.focusTextArea(true);
+      this.focusTextArea(true, true);
       this.scheduleAutoSubmit(80);
     }
 
@@ -156,16 +157,27 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
     }
 
     if (changes['focusTextNonce'] && !changes['focusTextNonce'].firstChange) {
-      this.focusTextArea(true);
+      this.focusTextArea(true, true);
     }
   }
 
   ngAfterViewInit(): void {
-    this.focusTextArea();
+    this.focusTextArea(false, true);
   }
 
   ngOnDestroy(): void {
     this.clearAutoSubmitTimer();
+  }
+
+  @HostListener('document:mousedown', ['$event'])
+  onDocumentMouseDown(event: MouseEvent): void {
+    const target = event.target as HTMLElement | null;
+    const textArea = this.manualTextArea?.nativeElement;
+
+    if (target && textArea && target !== textArea && this.isEditableTarget(target)) {
+      this.suppressScannerFocusUntil = Date.now() + 600;
+      this.clearAutoSubmitTimer();
+    }
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -174,10 +186,12 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
 
     const textArea = this.manualTextArea?.nativeElement;
     if (!textArea || document.activeElement === textArea) return;
+    if (Date.now() < this.suppressScannerFocusUntil) return;
+    if (this.isEditableTarget(document.activeElement)) return;
 
     if (event.key === 'Enter') {
       event.preventDefault();
-      this.focusTextArea(true);
+      this.focusTextArea(true, true);
       this.onValidateText();
       return;
     }
@@ -208,15 +222,31 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
     this.autoSubmitTimer = undefined;
   }
 
-  private focusTextArea(selectAll = false): void {
+  private focusTextArea(selectAll = false, force = false): void {
     setTimeout(() => {
       const el = this.manualTextArea?.nativeElement;
       if (!el || el.disabled) return;
+      if (!force && this.shouldKeepCurrentFocus(document.activeElement)) return;
       el.focus();
       if (selectAll) {
         el.select();
       }
     }, 0);
+  }
+
+  private shouldKeepCurrentFocus(target: Element | null): boolean {
+    return Date.now() < this.suppressScannerFocusUntil || this.isEditableTarget(target);
+  }
+
+  private isEditableTarget(target: EventTarget | Element | null): boolean {
+    if (!(target instanceof HTMLElement)) return false;
+
+    const textArea = this.manualTextArea?.nativeElement;
+    if (textArea && target === textArea) return false;
+
+    return !!target.closest(
+      'input, select, textarea, button, a[href], [contenteditable="true"], [tabindex]:not([tabindex="-1"])',
+    );
   }
 
   private normalizeScanText(value: string): string {

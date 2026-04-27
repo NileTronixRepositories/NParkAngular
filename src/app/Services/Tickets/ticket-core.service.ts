@@ -12,6 +12,8 @@ import {
   ValidateExitByVehicleNumberResponse,
   ValidateExitByTextRequest,
   ValidateExitByTextResponse,
+  SearchTicketRequest,
+  SearchTicketResponse,
 } from '../../Domain/tickets/tickets.model';
 import { environment } from '../../Shared/environment/environment';
 
@@ -278,33 +280,92 @@ export class TicketCoreService {
     );
   }
 
-  // ========= Search Tickets (FAKE ENDPOINT - TODO: Replace when backend ready) =========
+  // ========= Search Tickets =========
 
-  /**
-   * FAKE ENDPOINT - Replace with real API when ready
-   * Real endpoint will be: GET /Ticket/Search?query={query}
-   *
-   * TODO: When backend is ready, replace with:
-   * return this.http.get<TicketDto[]>(this.endpoint('Search'), { params: { query } });
-   */
-  searchTickets(query: string): Observable<TicketDto[]> {
-    const trimmed = query?.trim();
+  searchTicketLookup(request: SearchTicketRequest): Observable<SearchTicketResponse[]> {
+    let params = new HttpParams()
+      .set('orderSort', request.orderSort ?? 'Newest')
+      .set('pageNumber', String(request.pageNumber ?? 1))
+      .set('pageSize', String(request.pageSize ?? 10));
 
-    if (!trimmed) {
-      return of([]);
+    const searchText = this.normalizeTicketSearchText(request.searchText);
+    if (searchText) {
+      params = params.set('searchText', searchText);
     }
 
-    const params = new HttpParams().set('SearchText', trimmed);
+    if (request.startDate) {
+      params = params.set('startDate', request.startDate);
+    }
 
-    return this.http.get<TicketEntryDto[]>(this.endpoint('SearchTicket'), { params }).pipe(
-      map((rows) => {
-        const list = rows ?? [];
-
-        return list.map((r) => this.mapEntryToTicketDto(r, ''));
-      }),
+    return this.http.get<SearchTicketResponse[]>(this.endpoint('search'), { params }).pipe(
+      map((rows) =>
+        (rows ?? []).map((r: any) => ({
+          id: r.id ?? r.Id,
+          startDate: r.startDate ?? r.StartDate,
+          vehicleNumber: r.vehicleNumber ?? r.VehicleNumber ?? null,
+          cardNumber: r.cardNumber ?? r.CardNumber ?? null,
+          uniqueCode: r.uniqueCode ?? r.UniqueCode ?? '',
+          isSubscribe: !!(r.isSubscribe ?? r.IsSubscribe),
+          price: Number(r.price ?? r.Price ?? 0),
+        })),
+      ),
       catchError((err) => {
-        return of([]);
+        this.logError('GET /Ticket/search', err);
+        return throwError(() => err);
       }),
+    );
+  }
+
+  private normalizeTicketSearchText(value: string | null | undefined): string {
+    let text = String(value ?? '').replace(/[\r\n]+/g, '').trim();
+
+    if (text.startsWith('=')) {
+      text = text.slice(1).trim();
+    }
+
+    text = text.replace(/^[\s"'`“”«»]+/, '').replace(/[\s"'`“”«»]+$/, '').trim();
+
+    let changed = true;
+    while (changed && text.length >= 2) {
+      changed = false;
+      const first = text.charAt(0);
+      const last = text.charAt(text.length - 1);
+      if (
+        (first === '"' && last === '"') ||
+        (first === "'" && last === "'") ||
+        (first === '`' && last === '`') ||
+        (first === '“' && last === '”') ||
+        (first === '«' && last === '»')
+      ) {
+        text = text.slice(1, -1).trim();
+        changed = true;
+      }
+    }
+
+    return text;
+  }
+
+  searchTickets(query: string): Observable<TicketDto[]> {
+    return this.searchTicketLookup({
+      searchText: query,
+      orderSort: 'Newest',
+      pageNumber: 1,
+      pageSize: 10,
+    }).pipe(
+      map((rows) =>
+        rows.map((r) => ({
+          id: r.id,
+          ticketNumber: r.uniqueCode,
+          plate: r.vehicleNumber ?? '',
+          action: '' as TicketDto['action'],
+          time: r.startDate,
+          gate: '',
+          price: r.price,
+          info: r.cardNumber ?? r.uniqueCode,
+          cardNumber: r.cardNumber,
+        })),
+      ),
+      catchError(() => of([])),
     );
   }
 

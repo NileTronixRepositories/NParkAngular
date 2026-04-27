@@ -1,0 +1,104 @@
+.glass {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(10px);
+}
+
+.sanctions-card {
+  min-height: 100%;
+}
+
+.select-sanction {
+  border-color: rgba(220, 53, 69, 0.24);
+}
+
+.search-results {
+  max-height: 260px;
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.ticket-result {
+  width: 100%;
+  display: block;
+  padding: 0.5rem;
+  border: 0;
+  border-bottom: 1px solid #eef2f7;
+  background: #ffffff;
+}
+
+.ticket-result:hover,
+.ticket-result.selected {
+  background: rgba(13, 110, 253, 0.08);
+}
+
+.ticket-result.selected {
+  outline: 2px solid rgba(13, 110, 253, 0.22);
+  outline-offset: -2px;
+}
+
+.ticket-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.ticket-meta span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selected-ticket {
+  padding: 0.45rem 0.55rem;
+  border: 1px solid rgba(25, 135, 84, 0.18);
+  border-radius: 8px;
+  background: rgba(25, 135, 84, 0.06);
+}
+
+.page-size {
+  width: 72px;
+}
+
+.sanction-tag {
+  max-width: 100%;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  border-radius: 999px;
+  padding: 0.18rem 0.45rem;
+  background: #ffffff;
+  color: #842029;
+  font-size: 0.72rem;
+  line-height: 1.2;
+}
+
+.sanction-tag.active {
+  background: rgba(220, 53, 69, 0.09);
+}
+
+.sanction-tag:disabled {
+  opacity: 0.75;
+  cursor: not-allowed;
+}
+
+.tag-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.exceed-preview,
+.empty-sanctions {
+  min-height: 32px;
+  padding: 0.35rem 0.5rem;
+  border: 1px dashed rgba(220, 53, 69, 0.25);
+  border-radius: 7px;
+  background: #ffffff;
+}
+
+.mono {
+  font-family: 'Courier New', Courier, monospace;
+}

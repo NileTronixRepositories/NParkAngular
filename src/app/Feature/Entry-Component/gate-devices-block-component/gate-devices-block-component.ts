@@ -20,7 +20,7 @@ import { GateDevicePeripheral } from '../../../Domain/Auth/auth.models';
 @Component({
   selector: 'app-gate-devices-block-component',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule, SafePipe],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule],
   templateUrl: './gate-devices-block-component.html',
   styleUrls: ['./gate-devices-block-component.css'],
 })

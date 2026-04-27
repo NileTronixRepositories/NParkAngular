@@ -135,7 +135,7 @@
                     <div class="card-body p-2">
                       <div class="d-flex align-items-center gap-2 mb-2 text-primary">
                         <i class="bi bi-currency-exchange fs-5"></i>
-                        <h6 class="mb-0 fw-bold">{{ 'Price Type' | t }}</h6>
+                        <h6 class="mb-0 fw-bold">{{ 'Due_collection' | t }}</h6>
                       </div>
                       <div class="d-flex flex-column gap-2">
                         <mat-checkbox
@@ -163,7 +163,7 @@
                     <div class="card-body p-2">
                       <div class="d-flex align-items-center gap-2 mb-2 text-primary">
                         <i class="bi bi-camera-video fs-5"></i>
-                        <h6 class="mb-0 fw-bold">{{ 'Image Capture Mode' | t }}</h6>
+                        <h6 class="mb-0 fw-bold">{{ 'Image_Capture_Mode' | t }}</h6>
                       </div>
                       <mat-radio-group
                         formControlName="captureMode"
@@ -284,7 +284,9 @@
                                   >
                                   <input
                                     class="form-control form-control-sm font-monospace"
-                                    [class.is-invalid]="g.get('pcIp')?.invalid && g.get('pcIp')?.touched"
+                                    [class.is-invalid]="
+                                      g.get('pcIp')?.invalid && g.get('pcIp')?.touched
+                                    "
                                     type="text"
                                     formControlName="pcIp"
                                     [placeholder]="'ipPlaceholder' | t"
@@ -299,7 +301,9 @@
                                   >
                                   <input
                                     class="form-control form-control-sm font-monospace"
-                                    [class.is-invalid]="g.get('deviceIp')?.invalid && g.get('deviceIp')?.touched"
+                                    [class.is-invalid]="
+                                      g.get('deviceIp')?.invalid && g.get('deviceIp')?.touched
+                                    "
                                     type="text"
                                     formControlName="deviceIp"
                                     [placeholder]="'ipPlaceholder' | t"
@@ -314,12 +318,16 @@
                                   >
                                   <input
                                     class="form-control form-control-sm font-monospace"
-                                    [class.is-invalid]="g.get('controlIp')?.invalid && g.get('controlIp')?.touched"
+                                    [class.is-invalid]="
+                                      g.get('controlIp')?.invalid && g.get('controlIp')?.touched
+                                    "
                                     type="text"
                                     formControlName="controlIp"
                                     [placeholder]="'controlIdPlaceholder' | t"
                                   />
-                                  <div class="invalid-feedback">Required or duplicated Control ID</div>
+                                  <div class="invalid-feedback">
+                                    Required or duplicated Control ID
+                                  </div>
                                 </div>
 
                                 <div class="d-flex flex-column gap-2">
@@ -333,7 +341,10 @@
                                     >
                                     <input
                                       class="form-control form-control-sm"
-                                      [class.is-invalid]="g.get('qrPrinterName')?.invalid && g.get('qrPrinterName')?.touched"
+                                      [class.is-invalid]="
+                                        g.get('qrPrinterName')?.invalid &&
+                                        g.get('qrPrinterName')?.touched
+                                      "
                                       type="text"
                                       formControlName="qrPrinterName"
                                       maxlength="100"
@@ -354,7 +365,10 @@
                                     >
                                     <input
                                       class="form-control form-control-sm"
-                                      [class.is-invalid]="g.get('receiptPrinterName')?.invalid && g.get('receiptPrinterName')?.touched"
+                                      [class.is-invalid]="
+                                        g.get('receiptPrinterName')?.invalid &&
+                                        g.get('receiptPrinterName')?.touched
+                                      "
                                       type="text"
                                       formControlName="receiptPrinterName"
                                       maxlength="100"
@@ -367,33 +381,47 @@
                                   class="d-flex flex-column gap-2 mt-2 pt-2 border-top"
                                   formGroupName="onvifCameraSetting"
                                 >
-                                  <label class="form-label small fw-bold text-muted text-uppercase mb-0">
+                                  <label
+                                    class="form-label small fw-bold text-muted text-uppercase mb-0"
+                                  >
                                     {{ 'onvifCameraSettings' | t }}
                                   </label>
                                   <input
                                     class="form-control form-control-sm"
-                                    [class.is-invalid]="g.get('onvifCameraSetting')?.invalid && g.get('onvifCameraSetting')?.touched"
+                                    [class.is-invalid]="
+                                      g.get('onvifCameraSetting')?.invalid &&
+                                      g.get('onvifCameraSetting')?.touched
+                                    "
                                     type="text"
                                     formControlName="urlRequest"
                                     [placeholder]="'onvifUrlRequest' | t"
                                   />
                                   <input
                                     class="form-control form-control-sm"
-                                    [class.is-invalid]="g.get('onvifCameraSetting')?.invalid && g.get('onvifCameraSetting')?.touched"
+                                    [class.is-invalid]="
+                                      g.get('onvifCameraSetting')?.invalid &&
+                                      g.get('onvifCameraSetting')?.touched
+                                    "
                                     type="text"
                                     formControlName="userName"
                                     [placeholder]="'onvifUsername' | t"
                                   />
                                   <input
                                     class="form-control form-control-sm"
-                                    [class.is-invalid]="g.get('onvifCameraSetting')?.invalid && g.get('onvifCameraSetting')?.touched"
+                                    [class.is-invalid]="
+                                      g.get('onvifCameraSetting')?.invalid &&
+                                      g.get('onvifCameraSetting')?.touched
+                                    "
                                     type="password"
                                     formControlName="password"
                                     [placeholder]="'onvifPassword' | t"
                                   />
                                   <div
                                     class="text-danger small"
-                                    *ngIf="g.get('onvifCameraSetting')?.invalid && g.get('onvifCameraSetting')?.touched"
+                                    *ngIf="
+                                      g.get('onvifCameraSetting')?.invalid &&
+                                      g.get('onvifCameraSetting')?.touched
+                                    "
                                   >
                                     Fill URL, username, and password or leave all ONVIF fields empty
                                   </div>
@@ -475,7 +503,9 @@
                                   >
                                   <input
                                     class="form-control form-control-sm font-monospace"
-                                    [class.is-invalid]="g.get('pcIp')?.invalid && g.get('pcIp')?.touched"
+                                    [class.is-invalid]="
+                                      g.get('pcIp')?.invalid && g.get('pcIp')?.touched
+                                    "
                                     type="text"
                                     formControlName="pcIp"
                                     [placeholder]="'ipPlaceholder' | t"
@@ -490,7 +520,9 @@
                                   >
                                   <input
                                     class="form-control form-control-sm font-monospace"
-                                    [class.is-invalid]="g.get('deviceIp')?.invalid && g.get('deviceIp')?.touched"
+                                    [class.is-invalid]="
+                                      g.get('deviceIp')?.invalid && g.get('deviceIp')?.touched
+                                    "
                                     type="text"
                                     formControlName="deviceIp"
                                     [placeholder]="'ipPlaceholder' | t"
@@ -505,12 +537,16 @@
                                   >
                                   <input
                                     class="form-control form-control-sm font-monospace"
-                                    [class.is-invalid]="g.get('controlIp')?.invalid && g.get('controlIp')?.touched"
+                                    [class.is-invalid]="
+                                      g.get('controlIp')?.invalid && g.get('controlIp')?.touched
+                                    "
                                     type="text"
                                     formControlName="controlIp"
                                     [placeholder]="'controlIdPlaceholder' | t"
                                   />
-                                  <div class="invalid-feedback">Required or duplicated Control ID</div>
+                                  <div class="invalid-feedback">
+                                    Required or duplicated Control ID
+                                  </div>
                                 </div>
 
                                 <div class="d-flex flex-column gap-2">
@@ -524,7 +560,10 @@
                                     >
                                     <input
                                       class="form-control form-control-sm"
-                                      [class.is-invalid]="g.get('qrPrinterName')?.invalid && g.get('qrPrinterName')?.touched"
+                                      [class.is-invalid]="
+                                        g.get('qrPrinterName')?.invalid &&
+                                        g.get('qrPrinterName')?.touched
+                                      "
                                       type="text"
                                       formControlName="qrPrinterName"
                                       maxlength="100"
@@ -545,7 +584,10 @@
                                     >
                                     <input
                                       class="form-control form-control-sm"
-                                      [class.is-invalid]="g.get('receiptPrinterName')?.invalid && g.get('receiptPrinterName')?.touched"
+                                      [class.is-invalid]="
+                                        g.get('receiptPrinterName')?.invalid &&
+                                        g.get('receiptPrinterName')?.touched
+                                      "
                                       type="text"
                                       formControlName="receiptPrinterName"
                                       maxlength="100"
@@ -558,33 +600,47 @@
                                   class="d-flex flex-column gap-2 mt-2 pt-2 border-top"
                                   formGroupName="onvifCameraSetting"
                                 >
-                                  <label class="form-label small fw-bold text-muted text-uppercase mb-0">
+                                  <label
+                                    class="form-label small fw-bold text-muted text-uppercase mb-0"
+                                  >
                                     {{ 'onvifCameraSettings' | t }}
                                   </label>
                                   <input
                                     class="form-control form-control-sm"
-                                    [class.is-invalid]="g.get('onvifCameraSetting')?.invalid && g.get('onvifCameraSetting')?.touched"
+                                    [class.is-invalid]="
+                                      g.get('onvifCameraSetting')?.invalid &&
+                                      g.get('onvifCameraSetting')?.touched
+                                    "
                                     type="text"
                                     formControlName="urlRequest"
                                     [placeholder]="'onvifUrlRequest' | t"
                                   />
                                   <input
                                     class="form-control form-control-sm"
-                                    [class.is-invalid]="g.get('onvifCameraSetting')?.invalid && g.get('onvifCameraSetting')?.touched"
+                                    [class.is-invalid]="
+                                      g.get('onvifCameraSetting')?.invalid &&
+                                      g.get('onvifCameraSetting')?.touched
+                                    "
                                     type="text"
                                     formControlName="userName"
                                     [placeholder]="'onvifUsername' | t"
                                   />
                                   <input
                                     class="form-control form-control-sm"
-                                    [class.is-invalid]="g.get('onvifCameraSetting')?.invalid && g.get('onvifCameraSetting')?.touched"
+                                    [class.is-invalid]="
+                                      g.get('onvifCameraSetting')?.invalid &&
+                                      g.get('onvifCameraSetting')?.touched
+                                    "
                                     type="password"
                                     formControlName="password"
                                     [placeholder]="'onvifPassword' | t"
                                   />
                                   <div
                                     class="text-danger small"
-                                    *ngIf="g.get('onvifCameraSetting')?.invalid && g.get('onvifCameraSetting')?.touched"
+                                    *ngIf="
+                                      g.get('onvifCameraSetting')?.invalid &&
+                                      g.get('onvifCameraSetting')?.touched
+                                    "
                                   >
                                     Fill URL, username, and password or leave all ONVIF fields empty
                                   </div>

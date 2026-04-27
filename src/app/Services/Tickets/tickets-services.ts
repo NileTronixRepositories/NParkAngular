@@ -14,6 +14,8 @@ import {
   ValidateExitByVehicleNumberResponse,
   ValidateExitByTextRequest,
   ValidateExitByTextResponse,
+  SearchTicketRequest,
+  SearchTicketResponse,
 } from '../../Domain/tickets/tickets.model';
 
 import { TicketCoreService, TicketsForGateResult } from './ticket-core.service';
@@ -220,6 +222,10 @@ export class TicketsServices {
 
   searchTickets(query: string): Observable<TicketDto[]> {
     return this.core.searchTickets(query);
+  }
+
+  searchTicketLookup(request: SearchTicketRequest): Observable<SearchTicketResponse[]> {
+    return this.core.searchTicketLookup(request);
   }
 
   validateExitByVehicleNumber(vehicleNumber: string): Observable<ValidateExitByVehicleNumberResponse> {

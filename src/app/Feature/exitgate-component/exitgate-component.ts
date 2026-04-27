@@ -13,6 +13,7 @@ import {
   ScanTicketResponse,
   ValidateExitByVehicleNumberResponse,
   ValidateExitByTextResponse,
+  SearchTicketResponse,
 } from '../../Domain/tickets/tickets.model';
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
 
@@ -30,6 +31,7 @@ import { ToastServices } from '../../Services/Toster/toast-services';
 import { NfcReaderService } from '../../Services/registration/nfc-reader.service';
 
 import { ExitGateDevicesBlockComponent } from './exit-gate-devices-block-component/exit-gate-devices-block-component';
+import { ExitSanctionsBlockComponent } from './exit-sanctions-block-component/exit-sanctions-block-component';
 import { ExitTicketsTableBlockComponent } from './exit-tickets-table-block-component/exit-tickets-table-block-component';
 import { ExitValidationBlockComponent } from './exit-validation-block-component/exit-validation-block-component';
 import { SearchBlockComponent } from '../Shared/search-block-component/search-block-component';
@@ -44,12 +46,16 @@ import {
 } from '../../Services/Gate/lpr-signalr.service';
 import { SanctionService } from '../../Services/Sanction/sanction.service';
 import { SanctionDto } from '../../Domain/Sanction/sanction.models';
+import { TicketExceedTransactionService } from '../../Services/TicketExceedTransaction/ticket-exceed-transaction.service';
+import { CreateTicketExceedTransactionResponse } from '../../Domain/TicketExceedTransaction/ticket-exceed-transaction.models';
 import { Subscription, timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { SupervisorModalBlockComponent } from '../Shared/supervisor-modal-block-component/supervisor-modal-block-component';
 import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal-block-component/ticket-details-modal-block-component';
 import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
+import { LocalPrintService } from '../../Services/Print/local-print.service';
+import { environment } from '../../Shared/environment/environment';
 
 @Component({
   selector: 'app-exitgate-component',
@@ -58,6 +64,7 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
     CommonModule,
     FormsModule,
     ExitGateDevicesBlockComponent,
+    ExitSanctionsBlockComponent,
     ExitTicketsTableBlockComponent,
     SearchBlockComponent,
     SupervisorModalBlockComponent,
@@ -108,6 +115,31 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           collectAllToday: 'تحصيل إيرادات اليوم للبوابة',
           sanctions: 'الغرامات',
           select_sanction_placeholder: 'اختر غرامة للتحصيل...',
+          selected_sanctions: 'Selected Sanctions',
+          total_exceed_amount: 'Total Exceed Amount',
+          register_exceed: 'Register Exceed',
+          exceed_registered_success: 'Exceed amount registered successfully.',
+          please_select_ticket: 'Please select a ticket.',
+          please_select_sanction: 'Please select at least one sanction.',
+          duplicate_sanctions: 'Duplicate sanctions are not allowed.',
+          exceed_already_exists: 'Exceed transaction already exists for this ticket.',
+          ticket_refresh_required: 'Ticket does not exist. Please refresh or search again.',
+          sanction_refresh_required: 'One selected sanction does not exist. Refreshing sanctions list.',
+          gate_session_invalid: 'Current session is not linked to a valid gate.',
+          user_not_found: 'User was not found for the current session.',
+          failed_register_exceed: 'Failed to register exceed amount.',
+          ticket_lookup_sanctions: 'Search Tickets / Sanctions',
+          ticket_search_placeholder: 'Search by vehicle number, card number, national ID, or ticket code',
+          from_date: 'From Date',
+          sort: 'Sort',
+          newest: 'Newest',
+          oldest: 'Oldest',
+          page: 'Page',
+          selected_ticket: 'Selected Ticket',
+          no_tickets_found: 'No tickets found.',
+          printing_sent: 'Print job was sent successfully.',
+          printing_failed: 'Failed to send receipt to the local printer service.',
+          receipt_printer_missing: 'Receipt printer is not configured for this gate.',
 
           // Gate devices
           gate_devices: 'أجهزة البوابة',
@@ -280,6 +312,31 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
           collectAllToday: "Collect today's revenue for this gate",
           sanctions: 'Fines',
           select_sanction_placeholder: 'Select fine to apply...',
+          selected_sanctions: 'Selected Sanctions',
+          total_exceed_amount: 'Total Exceed Amount',
+          register_exceed: 'Register Exceed',
+          exceed_registered_success: 'Exceed amount registered successfully.',
+          please_select_ticket: 'Please select a ticket.',
+          please_select_sanction: 'Please select at least one sanction.',
+          duplicate_sanctions: 'Duplicate sanctions are not allowed.',
+          exceed_already_exists: 'Exceed transaction already exists for this ticket.',
+          ticket_refresh_required: 'Ticket does not exist. Please refresh or search again.',
+          sanction_refresh_required: 'One selected sanction does not exist. Refreshing sanctions list.',
+          gate_session_invalid: 'Current session is not linked to a valid gate.',
+          user_not_found: 'User was not found for the current session.',
+          failed_register_exceed: 'Failed to register exceed amount.',
+          ticket_lookup_sanctions: 'Search Tickets / Sanctions',
+          ticket_search_placeholder: 'Search by vehicle number, card number, national ID, or ticket code',
+          from_date: 'From Date',
+          sort: 'Sort',
+          newest: 'Newest',
+          oldest: 'Oldest',
+          page: 'Page',
+          selected_ticket: 'Selected Ticket',
+          no_tickets_found: 'No tickets found.',
+          printing_sent: 'Print job was sent successfully.',
+          printing_failed: 'Failed to send receipt to the local printer service.',
+          receipt_printer_missing: 'Receipt printer is not configured for this gate.',
 
           // Gate devices
           gate_devices: 'Gate Devices',
@@ -435,6 +492,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   private readonly scanHub = inject(ScanHubService);
   private readonly lprSignalR = inject(LprSignalRService);
   private readonly sanctionSvc = inject(SanctionService);
+  private readonly ticketExceedTransactionSvc = inject(TicketExceedTransactionService);
+  private readonly localPrint = inject(LocalPrintService);
   private readonly hubSubscriptions = new Subscription();
   private readonly localHealth = inject(LocalHealthService);
 
@@ -531,6 +590,13 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // Sanctions
   allSanctions: SanctionDto[] = [];
   selectedSanctionIds: string[] = [];
+  registeringExceed = false;
+  isExceedRegistered = false;
+  exceedAmount = 0;
+  totalPriceAfterExceed = 0;
+  ticketExceedTransaction: CreateTicketExceedTransactionResponse | null = null;
+  selectedTicketForExceed: SearchTicketResponse | null = null;
+  exitSelectedTicketLoading = false;
 
   // ====== Exit Validation ======
   vehicleValidationLoading = false;
@@ -574,6 +640,14 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
   get currentTotalWithSanctions(): number {
     return this.salarySummary?.totalSalary || 0;
+  }
+
+  get hasValidatedTicketForExceed(): boolean {
+    return !!(
+      this.selectedTicketForExceed?.id ||
+      this.vehicleValidationResult?.ticketId ||
+      this.textValidationResult?.ticketId
+    );
   }
 
   get isSupervisor(): boolean {
@@ -787,6 +861,67 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.toast.fromProblem(err);
   }
 
+  private handleTicketExceedError(err: any): void {
+    const code = this.extractProblemCode(err);
+
+    if (err?.status === 409 || code === 'TicketExceedTransaction.AlreadyExists') {
+      this.isExceedRegistered = true;
+      this.toast.warn(this.t('exceed_already_exists'));
+      return;
+    }
+
+    if (code === 'Ticket.NotFound') {
+      this.toast.warn(this.t('ticket_refresh_required'));
+      return;
+    }
+
+    if (code === 'Sanction.NotFound') {
+      this.toast.warn(this.t('sanction_refresh_required'));
+      this.loadSanctions();
+      return;
+    }
+
+    if (code === 'Token.GateOrUser.NotFound' || code === 'Gate.NotFound') {
+      this.toast.warn(this.t('gate_session_invalid'));
+      return;
+    }
+
+    if (code === 'User.NotFound') {
+      this.toast.warn(this.t('user_not_found'));
+      return;
+    }
+
+    if (code === 'TicketId.Required') {
+      this.toast.warn(this.t('please_select_ticket'));
+      return;
+    }
+
+    if (code === 'SanctionIds.Required') {
+      this.toast.warn(this.t('please_select_sanction'));
+      return;
+    }
+
+    if (code === 'SanctionIds.Duplicated') {
+      this.toast.warn(this.t('duplicate_sanctions'));
+      return;
+    }
+
+    const message = this.errorExtractor.extractErrorMessage(err, this.t('failed_register_exceed'));
+    this.toast.error(message);
+  }
+
+  private extractProblemCode(err: any): string | null {
+    const raw = err?.error ?? err;
+    const errors = raw?.errors;
+
+    if (Array.isArray(errors)) {
+      const match = errors.find((item) => item?.code);
+      return match?.code ?? null;
+    }
+
+    return typeof raw?.code === 'string' ? raw.code : null;
+  }
+
   // ========= SignalR Exit Notifications =========
 
   private initSignalRExitNotifications(): void {
@@ -868,6 +1003,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   onToggleSanction(id: string): void {
+    if (!id || this.registeringExceed || this.isExceedRegistered) return;
+
     const idx = this.selectedSanctionIds.indexOf(id);
     if (idx >= 0) {
       this.selectedSanctionIds.splice(idx, 1);
@@ -880,6 +1017,290 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     } else if (this.universalInput) {
       this.fetchSalaryForCard(this.universalInput);
     }
+  }
+
+  onExceedTicketSelected(ticket: SearchTicketResponse): void {
+    this.selectedTicketForExceed = ticket;
+    this.resetExceedState(true);
+  }
+
+  submitExceedForValidatedTicket(): void {
+    const result = this.vehicleValidationResult || this.textValidationResult;
+    const ticketId = this.selectedTicketForExceed?.id ?? result?.ticketId ?? null;
+    this.submitExceed(ticketId, false);
+  }
+
+  exitSelectedTicketAfterExceed(): void {
+    const ticket = this.selectedTicketForExceed;
+    const controllerId = this.gateConnectionInfo?.controlIp?.trim();
+
+    if (!ticket?.id) {
+      this.toast.warn(this.t('please_select_ticket'));
+      return;
+    }
+
+    if (!this.isExceedRegistered) {
+      this.toast.warn(this.t('register_exceed'));
+      return;
+    }
+
+    if (!controllerId) {
+      this.validationOpenGateError = this.t('gate_connection_required');
+      this.toast.warn(this.validationOpenGateError);
+      return;
+    }
+
+    this.exitSelectedTicketLoading = true;
+
+    this.svc.addExitTicket(ticket.id).subscribe({
+      next: () => {
+        this.upsertExitTicketRow(
+          ticket.id,
+          ticket.vehicleNumber || ticket.cardNumber || '',
+          ticket.uniqueCode || ticket.id,
+          this.totalPriceAfterExceed || ticket.price || 0,
+          false,
+        );
+        this.openGateForSelectedTicket(controllerId);
+      },
+      error: (err) => {
+        this.handleError('addExitTicket (selected exceed ticket)', err);
+        this.exitSelectedTicketLoading = false;
+      },
+    });
+  }
+
+  private submitExceed(
+    ticketId: string | null | undefined,
+    continueExitAfterSuccess: boolean,
+  ): void {
+    if (!ticketId) {
+      this.toast.warn(this.t('please_select_ticket'));
+      return;
+    }
+
+    if (!this.selectedSanctionIds || this.selectedSanctionIds.length === 0) {
+      this.toast.warn(this.t('please_select_sanction'));
+      return;
+    }
+
+    const uniqueSanctionIds = Array.from(new Set(this.selectedSanctionIds));
+    if (uniqueSanctionIds.length !== this.selectedSanctionIds.length) {
+      this.toast.warn(this.t('duplicate_sanctions'));
+      return;
+    }
+
+    this.registeringExceed = true;
+
+    this.ticketExceedTransactionSvc
+      .create({
+        ticketId,
+        sanctionIds: uniqueSanctionIds,
+      })
+      .subscribe({
+        next: (response) => {
+          this.ticketExceedTransaction = response;
+          this.exceedAmount = Number(response.exceedAmount ?? 0);
+          this.totalPriceAfterExceed = Number(response.totalPriceAfterExceed ?? 0);
+          this.isExceedRegistered = true;
+          this.toast.success(this.t('exceed_registered_success'));
+          this.printExceedReceipt(response);
+
+          if (continueExitAfterSuccess) {
+            this.registerValidatedExitAndOpenGate();
+          }
+        },
+        error: (err) => {
+          this.handleTicketExceedError(err);
+        },
+        complete: () => {
+          this.registeringExceed = false;
+        },
+      });
+  }
+
+  private printExceedReceipt(response: CreateTicketExceedTransactionResponse): void {
+    const printerName =
+      this.gateConnectionInfo?.receiptPrinterName?.trim() || environment.receiptPrinterName?.trim();
+
+    if (!printerName) {
+      this.toast.warn(this.t('receipt_printer_missing'));
+      return;
+    }
+
+    const htmlContent = this.buildExceedReceiptHtml(response);
+
+    this.localPrint
+      .printHtml({
+        printerName,
+        htmlContent,
+        jobName: `Exceed-Receipt-${response.ticketId}`,
+      })
+      .subscribe({
+        next: () => this.toast.success(this.t('printing_sent')),
+        error: (err) => {
+          console.error('[printExceedReceipt] Print failed', err);
+          this.toast.error(this.t('printing_failed'));
+        },
+      });
+  }
+
+  private buildExceedReceiptHtml(response: CreateTicketExceedTransactionResponse): string {
+    const ticket = this.selectedTicketForExceed;
+    const gateNumber = this.gatePeripheral?.gateNumber ?? '---';
+    const createdAt = response.createdAt
+      ? new Date(response.createdAt).toLocaleString('ar-EG', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : new Date().toLocaleString('ar-EG');
+    const sanctions = this.allSanctions.filter((sanction) =>
+      response.sanctionIds?.includes(sanction.id),
+    );
+    const sanctionRows = sanctions.length
+      ? sanctions
+          .map(
+            (sanction) => `
+              <div class="receipt-row">
+                <span class="receipt-label">${this.escapeHtml(sanction.name)}</span>
+                <span class="receipt-value">${Number(sanction.amount || 0).toFixed(2)} ج.م</span>
+              </div>
+            `,
+          )
+          .join('')
+      : `
+          <div class="receipt-row">
+            <span class="receipt-label">الغرامات</span>
+            <span class="receipt-value">${response.exceedAmount.toFixed(2)} ج.م</span>
+          </div>
+        `;
+
+    return `
+    <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="utf-8" />
+        <title>NPark Exceed Receipt</title>
+        <style>
+          * { box-sizing: border-box; margin: 0; padding: 0; }
+          @page { margin: 0; size: 80mm auto; }
+          body {
+            margin: 0;
+            padding: 1mm;
+            font-family: Arial, sans-serif;
+            direction: rtl;
+            width: 80mm;
+            font-weight: 900;
+            color: #000;
+          }
+          .receipt-wrap {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5mm;
+            border: 0.8mm solid #000;
+            padding: 2mm;
+            border-radius: 1.5mm;
+          }
+          .receipt-header {
+            text-align: center;
+            border-bottom: 2px solid #000;
+            padding-bottom: 1.5mm;
+          }
+          .receipt-title { font-size: 19px; font-weight: 900; }
+          .receipt-subtitle { font-size: 12px; margin-top: 0.5mm; }
+          .receipt-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2mm;
+            font-size: 13px;
+            padding: 1mm 0;
+            border-bottom: 0.2mm solid #000;
+          }
+          .receipt-label { font-weight: 900; }
+          .receipt-value { font-weight: 900; direction: ltr; text-align: left; }
+          .total-section {
+            margin-top: 1mm;
+            background: #f0f0f0;
+            padding: 2mm;
+            border: 0.6mm solid #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .total-label { font-size: 15px; font-weight: 900; }
+          .total-value { font-size: 19px; font-weight: 900; direction: ltr; }
+          .receipt-footer {
+            text-align: center;
+            font-size: 11px;
+            font-weight: bold;
+            margin-top: 1mm;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt-wrap">
+          <div class="receipt-header">
+            <div class="receipt-title">إيصال مخالفات</div>
+            <div class="receipt-subtitle">NPark Management System</div>
+          </div>
+
+          <div class="receipt-row">
+            <span class="receipt-label">كود التذكرة:</span>
+            <span class="receipt-value">${this.escapeHtml(ticket?.uniqueCode || response.ticketId)}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">رقم السيارة:</span>
+            <span class="receipt-value">${this.escapeHtml(ticket?.vehicleNumber || '---')}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">رقم الكارت:</span>
+            <span class="receipt-value">${this.escapeHtml(ticket?.cardNumber || '---')}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">رقم البوابة:</span>
+            <span class="receipt-value">${this.escapeHtml(String(gateNumber))}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">وقت العملية:</span>
+            <span class="receipt-value">${this.escapeHtml(createdAt)}</span>
+          </div>
+
+          ${sanctionRows}
+
+          <div class="receipt-row">
+            <span class="receipt-label">سعر التذكرة:</span>
+            <span class="receipt-value">${response.ticketPrice.toFixed(2)} ج.م</span>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">إجمالي المخالفات:</span>
+            <span class="receipt-value">${response.exceedAmount.toFixed(2)} ج.م</span>
+          </div>
+
+          <div class="total-section">
+            <span class="total-label">الإجمالي:</span>
+            <span class="total-value">${response.totalPriceAfterExceed.toFixed(2)} ج.م</span>
+          </div>
+
+          <div class="receipt-footer">
+            شكراً لزيارتكم<br />
+            www.niletronix.com
+          </div>
+        </div>
+      </body>
+    </html>`;
+  }
+
+  private escapeHtml(value: string): string {
+    return String(value ?? '')
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 
   onCalculateSalary(): void {
@@ -970,6 +1391,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.selectedSanctionIds = [];
     this.addingExitTicket = false;
     this.exitTicketAdded = false;
+    this.resetExceedState(true);
     this.loadSanctions();
   }
 
@@ -1134,6 +1556,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.detectedVehicleNumber = vehicleNumber.trim();
     this.validationError = null;
     this.validationMessage = null;
+    this.resetExceedState(false);
     this.vehicleValidationLoading = true;
     this.vehicleValidationResult = null;
     this.textValidationResult = null;
@@ -1199,6 +1622,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.validationError = null;
     this.validationOpenGateError = null;
     this.validationMessage = null;
+    this.resetExceedState(false);
     this.pendingValidationSource = source;
     this.clearExitValidationInput(source);
     this.textValidationLoading = true;
@@ -1213,7 +1637,12 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         if (res.isValidForExit) {
           this.validationMessage = this.t('allowed_for_exit');
           this.toast.success(this.t('allowed_for_exit'));
-          this.registerValidatedExitAndOpenGate();
+          if (this.selectedSanctionIds.length > 0 && !this.isExceedRegistered) {
+            this.validationMessage = this.t('register_exceed');
+            this.focusValidationTextNonce++;
+          } else {
+            this.registerValidatedExitAndOpenGate();
+          }
         } else {
           this.validationMessage = this.getExitValidationBusinessMessage(res);
           this.toast.warn(this.validationMessage);
@@ -1257,8 +1686,13 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   private registerValidatedExitAndOpenGate(): void {
-    const result = this.textValidationResult;
+    const result = this.textValidationResult || this.vehicleValidationResult;
     const controllerId = this.gateConnectionInfo?.controlIp?.trim();
+
+    if (this.selectedSanctionIds.length > 0 && !this.isExceedRegistered) {
+      this.validationMessage = this.t('register_exceed');
+      return;
+    }
 
     if (
       !result?.isValidForExit ||
@@ -1286,7 +1720,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       next: () => {
         this.upsertExitTicketRow(
           result.ticketId!,
-          result.vehicleNumber || result.cardNumber || result.inputText || '',
+          result.vehicleNumber || result.cardNumber || (result as ValidateExitByTextResponse).inputText || '',
           result.ticketNumber || result.ticketId!,
           0,
           false,
@@ -1336,6 +1770,32 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       complete: () => {
         this.validationOpenGateLoading = false;
         this.processPendingExitValidation();
+      },
+    });
+  }
+
+  private openGateForSelectedTicket(controllerId: string): void {
+    this.validationOpenGateLoading = true;
+    this.validationOpenGateError = null;
+    this.lastValidationOpenGateResponse = null;
+
+    this.gateSvc.openGate(controllerId).subscribe({
+      next: (res) => {
+        this.lastValidationOpenGateResponse = res;
+        this.validationMessage = this.t('gate_opened_successfully');
+        this.toast.success(this.t('gate_opened_successfully'));
+        this.reloadList();
+        this.selectedTicketForExceed = null;
+        this.resetExceedState(true);
+      },
+      error: (err) => {
+        console.error('OpenGate error', err);
+        this.validationOpenGateError = this.t('open_gate_failed');
+        this.toast.error(this.validationOpenGateError);
+      },
+      complete: () => {
+        this.validationOpenGateLoading = false;
+        this.exitSelectedTicketLoading = false;
       },
     });
   }
@@ -1962,6 +2422,20 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.scannedTicket = null;
     this.salarySummary = null;
     this.lastQrCode = null;
+    this.resetExceedState(true);
+  }
+
+  private resetExceedState(clearSanctions: boolean = false): void {
+    this.registeringExceed = false;
+    this.isExceedRegistered = false;
+    this.exceedAmount = 0;
+    this.totalPriceAfterExceed = 0;
+    this.ticketExceedTransaction = null;
+    this.exitSelectedTicketLoading = false;
+
+    if (clearSanctions) {
+      this.selectedSanctionIds = [];
+    }
   }
 
   private deduplicateTickets(list: TicketDto[]): TicketDto[] {

@@ -20,7 +20,7 @@
           (ngModelChange)="onManualTextChange($event)"
           [disabled]="isTextDisabled"
           (keydown.enter)="onTextEnter($event)"
-          (blur)="onTextBlur()"
+          (blur)="onTextBlur($event)"
           [placeholder]="'scan_or_enter_exit_text_placeholder' | t"
         ></textarea>
         <div class="invalid-feedback d-block small mt-1" *ngIf="textFieldError || validationError">

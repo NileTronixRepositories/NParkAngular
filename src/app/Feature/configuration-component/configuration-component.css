@@ -1,27 +1,27 @@
-/* Page Background */
+/* ==========================================
+   HOST
+   ========================================== */
 :host {
   display: block;
   background-color: #f8fafc;
-  /* min-height: 100vh; */
+  font-size: 0.8rem; /* base down-shift */
 }
 
-/* ==========================
-   Page Header
-   ========================== */
+/* ==========================================
+   PAGE HEADER
+   ========================================== */
 .page-header {
   background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
-  border-radius: 12px;
+  border-radius: 10px;
   color: #fff;
-  box-shadow:
-    0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 3px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
 .header-icon-wrapper {
-  width: 40px;
-  height: 40px;
+  width: 32px;
+  height: 32px;
   background: rgba(255, 255, 255, 0.1);
-  border-radius: 10px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -29,37 +29,33 @@
 
 .header-icon {
   color: #f87171;
+  font-size: 1rem !important;
 }
 
 .page-title {
-  font-size: 1.5rem;
+  font-size: 1.1rem;
   font-weight: 800;
   margin: 0;
-  line-height: 1.1;
+  line-height: 1.2;
   color: #fff;
-  letter-spacing: -0.02em;
-}
-
-@media (max-width: 576px) {
-  .page-title {
-    font-size: 1.25rem;
-  }
+  letter-spacing: -0.01em;
 }
 
 .page-subtitle {
   margin: 0;
   color: #cbd5e1;
-  font-size: 0.9375rem;
+  font-size: 0.75rem;
   font-weight: 500;
 }
 
 @media (max-width: 576px) {
-  .page-subtitle {
-    font-size: 0.75rem;
-  }
+  .page-title    { font-size: 0.95rem; }
+  .page-subtitle { font-size: 0.68rem; }
 }
 
-/* Stepper Customization */
+/* ==========================================
+   STEPPER
+   ========================================== */
 .mat-horizontal-stepper-header-container {
   background-color: transparent !important;
 }
@@ -70,11 +66,12 @@
 }
 
 .mat-step-header .mat-step-icon-selected {
-  background-color: #0d6efd; /* Bootstrap primary */
+  background-color: #0d6efd;
   color: white;
 }
 
 .mat-step-label {
+  font-size: 0.72rem;
   font-weight: 600;
   color: #64748b;
 }
@@ -83,17 +80,28 @@
   color: #0f172a;
 }
 
-/* Material Form Fields Overrides */
+/* Step transition */
+.mat-horizontal-stepper-content {
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+/* ==========================================
+   MATERIAL FORM FIELDS
+   ========================================== */
 .mat-mdc-form-field {
   width: 100%;
+  font-size: 0.78rem !important;
 }
 
 .mat-mdc-form-field-subscript-wrapper {
   display: none;
 }
 
-/* Tabs Customization */
+/* ==========================================
+   TABS
+   ========================================== */
 .mat-tab-label {
+  font-size: 0.78rem;
   font-weight: 600;
   color: #64748b;
 }
@@ -106,546 +114,544 @@
   background-color: #0d6efd !important;
 }
 
-/* Expansion Panel Overrides for Clean Look */
+/* ==========================================
+   EXPANSION PANELS (global)
+   ========================================== */
 .mat-expansion-panel {
   box-shadow: none !important;
 }
 
 .mat-expansion-panel-header {
   height: auto !important;
-  padding: 0.5rem 0.75rem !important; /* Reduced further for minimalist look */
+  padding: 0.35rem 0.6rem !important;
 }
 
 .mat-content {
   overflow: visible !important;
 }
 
-/* RTL Support for Material Components */
+.mat-expansion-panel-body {
+  padding: 6px 10px !important;
+}
 
-/* Checkbox & Radio spacing */
+/* ==========================================
+   CHECKBOX / RADIO (global)
+   ========================================== */
 .mat-mdc-checkbox,
 .mat-mdc-radio-button {
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.3rem;
+  font-size: 0.78rem;
 }
 
-/* Material Override for smaller screens */
-@media (max-width: 576px) {
-  .mat-mdc-radio-button .mdc-form-field,
-  .mat-mdc-checkbox .mdc-form-field {
-    font-size: 0.75rem !important;
-    gap: 4px !important;
-  }
-  
-  .mat-mdc-radio-button .mdc-radio,
-  .mat-mdc-checkbox .mdc-checkbox {
-    padding: 4px !important;
-    margin-right: 4px !important;
-  }
+.mat-mdc-radio-button .mdc-form-field,
+.mat-mdc-checkbox .mdc-form-field {
+  font-size: 0.78rem !important;
+  gap: 4px !important;
 }
 
-/* Animation for step transitions */  
-.mat-horizontal-stepper-content {
-  animation: fadeIn 0.3s ease-in-out;
+.mat-mdc-radio-button .mdc-radio,
+.mat-mdc-checkbox .mdc-checkbox {
+  padding: 3px !important;
+  margin-inline-end: 3px !important;
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Hint styling */
-.mat-hint {
-  font-size: 0.75rem;
-  color: #64748b;
-  margin-top: 4px;
-}
-
-/* Error styling */
+/* ==========================================
+   HINT / ERROR
+   ========================================== */
+.mat-hint,
 .mat-error {
+  font-size: 0.68rem;
+  color: #64748b;
+  margin-top: 2px;
+}
+
+/* ==========================================
+   MATERIAL ICONS
+   ========================================== */
+.mat-icon {
+  font-size: 16px !important;
+  width: 16px !important;
+  height: 16px !important;
+  margin-inline-end: 5px;
+}
+
+.icon-sm {
+  font-size: 14px !important;
+  width: 14px !important;
+  height: 14px !important;
+}
+
+.gate-icon  { color: #197b46; }
+.device-icon {
+  color: #64748b;
+  font-size: 14px !important;
+}
+
+/* ==========================================
+   SETTINGS CARDS (mode / capture / options / pricing)
+   ========================================== */
+.config-mode-group .card,
+.config-capture-group .card,
+.config-pricing-group .card {
+  border-radius: 8px !important;
+}
+
+.config-mode-group .card-body,
+.config-capture-group .card-body,
+.config-pricing-group .card-body {
+  padding: 0.45rem 0.6rem !important;
+}
+
+.config-mode-group .card-body h6,
+.config-capture-group .card-body h6,
+.config-pricing-group .card-body h6 {
+  font-size: 0.75rem !important;
+}
+
+.config-mode-group .card-body i.fs-5,
+.config-capture-group .card-body i.fs-5,
+.config-pricing-group .card-body i.fs-5 {
+  font-size: 0.9rem !important;
+}
+
+/* ==========================================
+   MAIN CARD
+   ========================================== */
+.config-main-card {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* ==========================================
+   SIDEBAR SUMMARY
+   ========================================== */
+.config-sidebar-sticky {
+  position: sticky;
+  top: 0.75rem;
+  z-index: 10;
+}
+
+.config-summary-card .card-header {
+  padding: 0.35rem 0.6rem !important;
+}
+
+.config-summary-card .card-header h6 {
+  font-size: 0.75rem !important;
+}
+
+.config-summary-card .card-body .d-flex {
+  font-size: 0.72rem;
+}
+
+.config-summary-card .badge {
+  font-size: 0.68rem !important;
+  padding: 0.2em 0.45em !important;
+}
+
+/* ==========================================
+   GATES TABS
+   ========================================== */
+.config-gates-tabs .mat-tab-label {
+  min-width: 110px;
   font-size: 0.75rem;
+  font-weight: 700;
+  padding: 0 10px !important;
 }
-.gates-accordion {
-  margin-top: 1rem;
+
+.config-gates-tabs .mat-ink-bar {
+  background-color: #0d6efd !important;
+  height: 2px;
 }
+
+/* ==========================================
+   GATE ACCORDION PANELS
+   ========================================== */
 .gates-accordion .mat-expansion-panel {
-  border-radius: 12px !important;
-  margin-bottom: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
-  border: 1px solid #edf2f7;
-  transition: all 0.3s ease;
-}
-.gates-accordion .mat-expansion-panel:hover {
-  box-shadow: 0 4px 12px rgba(25, 123, 70, 0.12) !important;
-}
-.gates-accordion .mat-expansion-panel-header {
-  padding: 6px 12px; /* Reduced from 10px 16px */
   border-radius: 10px !important;
-  background-color: #f8fdf9;
-  transition: all 0.2s ease;
+  margin-bottom: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04) !important;
+  border: 1px solid #edf2f7;
+  transition: box-shadow 0.2s ease;
 }
+
+.gates-accordion .mat-expansion-panel:hover {
+  box-shadow: 0 3px 10px rgba(25, 123, 70, 0.1) !important;
+}
+
+.gates-accordion .mat-expansion-panel-header {
+  padding: 0.3rem 0.65rem !important;
+  border-radius: 8px !important;
+  background-color: #f8fdf9;
+  transition: background 0.18s ease;
+}
+
 .gates-accordion .mat-expansion-panel-header:hover {
   background-color: #e8f7ef;
 }
+
 .gates-accordion .mat-expansion-panel-header-title {
   color: #197b46;
   font-weight: 700;
-  font-size: 0.9rem;
+  font-size: 0.75rem;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
 }
+
 .gates-accordion .mat-expansion-panel-header-description {
   color: #64748b;
-  font-size: 0.85rem;
+  font-size: 0.72rem;
 }
+
 .gates-accordion .mat-expansion-indicator::after {
   color: #197b46;
 }
 
-.mat-expansion-panel-body {
-  padding: 8px 12px !important;
-}
-
-.horizontal-accordion {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-@media (max-width: 1024px) {
-  .horizontal-accordion {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-}
-
-.main-accordion {
-  height: fit-content;
-}
+/* ==========================================
+   MAIN ACCORDION
+   ========================================== */
 .main-accordion .mat-expansion-panel {
-  border-radius: 12px !important;
-  box-shadow: 0 4px 12px rgba(25, 123, 70, 0.1) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 3px 10px rgba(25, 123, 70, 0.08) !important;
   border: 1px solid #e2f0e8;
-  transition: all 0.3s ease;
+  transition: box-shadow 0.2s ease;
   margin-bottom: 0;
 }
+
 .main-accordion .mat-expansion-panel:hover {
-  box-shadow: 0 6px 16px rgba(25, 123, 70, 0.15) !important;
+  box-shadow: 0 5px 14px rgba(25, 123, 70, 0.13) !important;
 }
+
 .main-accordion .mat-expansion-panel-header {
-  padding: 8px 12px; /* Reduced from 12px 16px */
-  border-radius: 12px !important;
+  padding: 0.4rem 0.75rem !important;
+  border-radius: 10px !important;
   background: linear-gradient(135deg, #f8fdf9 0%, #e8f7ef 100%);
-  transition: all 0.2s ease;
+  transition: background 0.18s ease;
 }
+
 .main-accordion .mat-expansion-panel-header:hover {
   background: linear-gradient(135deg, #e8f7ef 0%, #d8f2e4 100%);
 }
+
 .main-accordion .mat-expansion-panel-header-title {
   color: #197b46;
   font-weight: 800;
-  font-size: 1rem;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.main-accordion .mat-expansion-indicator::after {
-  color: #197b46;
-}
-
-/* Panel Content */
-.mat-expansion-panel-body {
-  padding: 10px 14px !important; /* Reduced from 12px 16px */
-}
-
-/* Gates Grid Layout */
-.gates-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1rem;
-  padding: 0.25rem 0;
-}
-
-/* Individual Gate Accordion */
-.gate-accordion {
-  margin-bottom: 0.5rem;
-}
-.gate-accordion .mat-expansion-panel {
-  border-radius: 12px !important;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.04) !important;
-  border: 1px solid #edf2f7;
-  transition: all 0.2s ease;
-}
-.gate-accordion .mat-expansion-panel:hover {
-  box-shadow: 0 4px 10px rgba(25, 123, 70, 0.12) !important;
-}
-.gate-accordion .mat-expansion-panel-header {
-  padding: 8px 12px;
-  border-radius: 8px !important;
-  background-color: #ffffff;
-  min-height: 48px;
-}
-.gate-accordion .mat-expansion-panel-header-title {
-  color: #2d3748;
-  font-weight: 600;
-  font-size: 0.9rem;
+  font-size: 0.8rem;
   display: flex;
   align-items: center;
   gap: 8px;
 }
+
+.main-accordion .mat-expansion-indicator::after {
+  color: #197b46;
+}
+
+/* ==========================================
+   GATE ACCORDION (individual)
+   ========================================== */
+.gate-accordion {
+  margin-bottom: 0.35rem;
+}
+
+.gate-accordion .mat-expansion-panel {
+  border-radius: 10px !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03) !important;
+  border: 1px solid #edf2f7;
+  transition: box-shadow 0.2s ease;
+}
+
+.gate-accordion .mat-expansion-panel:hover {
+  box-shadow: 0 3px 8px rgba(25, 123, 70, 0.1) !important;
+}
+
+.gate-accordion .mat-expansion-panel-header {
+  padding: 0.3rem 0.6rem !important;
+  border-radius: 8px !important;
+  background-color: #ffffff;
+  min-height: 36px;
+}
+
+.gate-accordion .mat-expansion-panel-header-title {
+  color: #2d3748;
+  font-weight: 600;
+  font-size: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
 .gate-accordion .mat-expansion-indicator::after {
   color: #64748b;
 }
 
-/* Gate Details */
+/* ==========================================
+   GATE DETAILS
+   ========================================== */
 .gate-details {
-  padding: 12px;
+  padding: 8px 10px;
   background-color: #fafdfb;
-  border-radius: 6px;
+  border-radius: 5px;
   border: 1px solid #f1f5f9;
 }
+
 .gate-info {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
+
 .gate-number {
   font-weight: 700;
   color: #197b46;
-  font-size: 0.95rem;
+  font-size: 0.78rem;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
+
 .device-name {
-  font-size: 0.85rem;
+  font-size: 0.72rem;
   color: #64748b;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
 }
+
+/* ==========================================
+   IP INPUTS
+   ========================================== */
 .ip-input-container {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
+
 .ip-label {
-  font-size: 0.8rem;
+  font-size: 0.68rem;
   color: #64748b;
   font-weight: 500;
 }
+
 .ip-address {
   width: 100%;
-  padding: 8px 10px;
+  padding: 5px 8px;
   border: 1px solid #cbd5e1;
-  border-radius: 6px;
-  font-size: 0.85rem;
-  transition: all 0.2s ease;
+  border-radius: 5px;
+  font-size: 0.75rem;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   background-color: white;
   font-family: 'Courier New', monospace;
 }
+
 .ip-address:focus {
   outline: none;
   border-color: #197b46;
-  box-shadow: 0 0 0 3px rgba(25, 123, 70, 0.1);
+  box-shadow: 0 0 0 2px rgba(25, 123, 70, 0.1);
 }
 
-/* Accordion Header Status */
+/* ==========================================
+   ACCORDION HEADER / BADGE
+   ========================================== */
 .accordion-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
   width: 100%;
 }
+
 .gate-count {
   background: #197b46;
   color: white;
-  padding: 4px 10px;
-  border-radius: 16px;
-  font-size: 0.8rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.68rem;
   font-weight: 700;
-  min-width: 30px;
+  min-width: 22px;
   text-align: center;
-  margin: 10px;
+  margin: 6px;
 }
 
-/* Icons */
-.mat-icon {
-  font-size: 20px;
-  width: 20px;
-  height: 20px;
-  margin-inline-end: 8px; /* Logical margin */
-}
-.gate-icon {
-  color: #197b46;
-}
-.device-icon {
-  color: #64748b;
-  font-size: 18px !important;
-}
-
-/* RTL Adjustments */
-
-/* Responsive */
-@media (max-width: 768px) {
-  .horizontal-accordion {
-    grid-template-columns: 1fr;
-  }
-  .gates-grid {
-    grid-template-columns: 1fr;
-  }
-  .main-accordion .mat-expansion-panel-header {
-    padding: 10px 14px !important;
-  }
-  .gate-accordion .mat-expansion-panel-header {
-    padding: 8px 12px !important;
-  }
-}
-
-/* Animation */
-.mat-expansion-panel-content {
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-5px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-.config-main-card {
-  background: rgba(255, 255, 255, 0.9);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-}
-
-.gates-tabs {
-  margin-top: 1.25rem;
-}
-
-.gates-tabs .mat-tab-header {
-  background-color: #f8fdf9;
-  border-radius: 10px 10px 0 0;
-  border: 1px solid #e2f0e8;
-  box-shadow: 0 2px 6px rgba(25, 123, 70, 0.06);
-}
-
-.gates-tabs .mat-tab-label {
-  min-width: 150px;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.9rem;
-  color: #64748b;
-  opacity: 1;
-}
-
-.gates-tabs .mat-tab-label.mat-tab-label-active {
-  color: #197b46;
-}
-
-.gates-tabs .mat-ink-bar {
-  background-color: #197b46 !important;
-  height: 3px;
-}
-
-.gates-tabs .mat-tab-body-wrapper {
-  border: 1px solid #e2f0e8;
-  border-top: none;
-  border-radius: 0 0 10px 10px;
-  background: #ffffff;
-  padding: 0.5rem 0.75rem; /* Reduced from 0.75rem 1rem */
-}
-
-.tab-content {
-  padding-top: 0.25rem;
-}
+/* ==========================================
+   SETTINGS GRID (legacy)
+   ========================================== */
 .settings-grid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 24px;
-  margin-bottom: 32px;
+  gap: 16px;
+  margin-bottom: 20px;
 }
 
 .settings-group {
-  padding: 16px;
+  padding: 10px;
   background: #fff;
-  border-radius: 8px;
+  border-radius: 7px;
   border: 1px solid #e2e2e2;
 }
 
 .settings-title {
+  font-size: 0.75rem;
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
   display: block;
 }
 
 .row-inline {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 6px;
+}
+
+/* ==========================================
+   STEP INDICATOR
+   ========================================== */
+.step-indicator-wrapper  { z-index: 1; }
+.step-indicator-circle   { width: 24px; height: 24px; }
+
+/* ==========================================
+   BUTTONS
+   ========================================== */
+.btn-help-tour {
+  font-size: 0.75rem !important;
+  padding: 0.2rem 0.65rem !important;
+}
+
+/* ==========================================
+   FORM CONTROL OVERRIDES (sm inputs)
+   ========================================== */
+.form-control-sm {
+  font-size: 0.75rem !important;
+  padding: 0.2rem 0.45rem !important;
+}
+
+.form-label.small {
+  font-size: 0.68rem !important;
+}
+
+/* ==========================================
+   HORIZONTAL ACCORDION GRID
+   ========================================== */
+.horizontal-accordion {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.gates-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 0.6rem;
+  padding: 0.15rem 0;
+}
+
+/* ==========================================
+   ANIMATION
+   ========================================== */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+.mat-expansion-panel-content {
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* ==========================================
+   RESPONSIVE — md
+   ========================================== */
+@media (max-width: 1024px) {
+  .horizontal-accordion { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 900px) {
-  .settings-grid {
-    grid-template-columns: 1fr;
-  }
+  .settings-grid { grid-template-columns: 1fr; }
 }
 
-/* =========================================
-   Refactored Inline Styles
-   ========================================= */
-
-/* Sidebar Sticky wrapper */
-.config-sidebar-sticky {
-  position: sticky;
-  top: 1rem;
-  z-index: 10;
-}
-
-/* Config Title Icon */
-/* Config Title Icon Container refactored to .header-icon-wrapper */
-
-.step-indicator-wrapper {
-  z-index: 1;
-}
-
-.step-indicator-circle {
-  width: 28px;
-  height: 28px;
-}
-
-/* ==========================
-   Responsive Refinement
-   ========================== */
 @media (max-width: 768px) {
   .horizontal-accordion,
   .gates-grid,
   .settings-grid {
     grid-template-columns: 1fr !important;
-    gap: 0.75rem !important;
+    gap: 0.5rem !important;
   }
 
   .main-accordion .mat-expansion-panel-header {
-    padding: 0.6rem 0.8rem !important;
+    padding: 0.35rem 0.65rem !important;
   }
 
   .gate-accordion .mat-expansion-panel-header {
-    padding: 0.5rem 0.75rem !important;
+    padding: 0.25rem 0.55rem !important;
   }
 }
 
+/* ==========================================
+   RESPONSIVE — sm
+   ========================================== */
 @media (max-width: 576px) {
-  .page-header {
-    padding: 0.75rem !important;
-    margin-bottom: 0.75rem !important;
-  }
+  :host { font-size: 0.75rem; }
 
-  .header-icon-wrapper {
-    width: 32px;
-    height: 32px;
-  }
-
-  .header-icon {
-    font-size: 1.1rem !important;
-  }
-
-  .card-body h6 {
-    font-size: 0.8rem !important;
-  }
-
-  .card-body i.fs-5 {
-    font-size: 1rem !important;
-  }
-
-  .mat-step-header {
-    padding: 4px 8px !important;
-  }
-
-  .mat-step-icon {
-    width: 18px !important;
-    height: 18px !important;
-    font-size: 0.65rem !important;
-  }
-
-  .mat-step-label {
-    font-size: 0.65rem !important;
-    font-weight: 500 !important;
-  }
-
-  /* Hide labels on small screens to save space */
-  @media (max-width: 480px) {
-    .mat-step-label {
-      display: none !important;
-    }
-    .mat-horizontal-stepper-header {
-      padding: 4px !important;
-    }
-  }
-
-  .mat-expansion-panel-header-title {
-    font-size: 0.8rem !important;
-  }
+  .page-header { padding: 0.5rem 0.75rem !important; margin-bottom: 0.5rem !important; }
+  .header-icon-wrapper { width: 26px; height: 26px; }
 
   .card-header,
-  .card-body,
+  .card-body {
+    padding: 0.3rem 0.45rem !important;
+  }
+
+  .card-body h6 { font-size: 0.7rem !important; }
+
+  .mat-step-header  { padding: 3px 6px !important; }
+  .mat-step-icon    { width: 16px !important; height: 16px !important; font-size: 0.6rem !important; }
+  .mat-step-label   { font-size: 0.6rem !important; font-weight: 500 !important; }
+
+  .mat-expansion-panel-header-title { font-size: 0.72rem !important; }
+
   .mat-expansion-panel-body,
-  .p-2.config-step1-form,
-  .p-2.config-step2-form,
   .config-mode-group .card-body,
   .config-capture-group .card-body,
   .config-pricing-group .card-body {
-    padding: 0.4rem 0.5rem !important;
+    padding: 0.3rem 0.45rem !important;
   }
 
   .config-mode-group .d-flex.align-items-center.gap-2.mb-2,
   .config-capture-group .d-flex.align-items-center.gap-2.mb-2,
   .config-pricing-group .d-flex.align-items-center.gap-2.mb-2 {
-     margin-bottom: 0.25rem !important;
-     gap: 0.25rem !important;
+    margin-bottom: 0.2rem !important;
+    gap: 0.2rem !important;
   }
 
-  .mat-tab-label {
-    min-width: 80px !important;
-    font-size: 0.75rem !important;
-    padding: 0 8px !important;
+  .config-gates-tabs .mat-tab-label {
+    min-width: 70px !important;
+    font-size: 0.68rem !important;
+    padding: 0 6px !important;
   }
 
   .ip-address {
-    padding: 5px 6px !important;
-    font-size: 0.7rem !important;
+    padding: 4px 5px !important;
+    font-size: 0.68rem !important;
   }
 
-  .badge {
-    font-size: 0.65rem !important;
-  }
-  
+  .badge { font-size: 0.6rem !important; }
+
   .btn.btn-sm {
-    font-size: 0.75rem !important;
-    padding: 0.25rem 0.5rem !important;
+    font-size: 0.68rem !important;
+    padding: 0.2rem 0.4rem !important;
+  }
+
+  .form-control-sm {
+    font-size: 0.7rem !important;
+    padding: 0.15rem 0.35rem !important;
   }
 }
 
+@media (max-width: 480px) {
+  .mat-step-label { display: none !important; }
+  .mat-horizontal-stepper-header { padding: 3px !important; }
+}
+
 @media (max-width: 400px) {
-  .btn-help-tour span {
-    display: none;
-  }
-
-  .config-summary-card .card-body span {
-    font-size: 0.75rem !important;
-  }
-
-  .step-indicator-wrapper span {
-    font-size: 0.65rem !important;
-  }
+  .btn-help-tour span { display: none; }
+  .config-summary-card .card-body span { font-size: 0.68rem !important; }
+  .step-indicator-wrapper span        { font-size: 0.6rem  !important; }
 }

@@ -1,4 +1,23 @@
 export type TicketAction = 'IN' | 'OUT';
+export type OrderSort = 'Newest' | 'Oldest';
+
+export interface SearchTicketRequest {
+  searchText?: string | null;
+  startDate?: string | null;
+  orderSort?: OrderSort;
+  pageNumber?: number;
+  pageSize?: number;
+}
+
+export interface SearchTicketResponse {
+  id: string;
+  startDate: string;
+  vehicleNumber: string | null;
+  cardNumber: string | null;
+  uniqueCode: string;
+  isSubscribe: boolean;
+  price: number;
+}
 
 export interface TicketDto {
   id: number | string;

@@ -16,11 +16,72 @@
       <div class="x-small text-muted flex-shrink-0">{{ t('devices_status') }}</div>
     </div>
   </div>
+  <!--  Premium Scanned Document Preview -->
+  <div class="d-flex align-items-center justify-content-between gap-2 mb-1 px-1 mt-3">
+    <label class="form-label x-small fw-bold text-muted text-uppercase mb-0">
+      {{ t('vehicle_images') }}
+    </label>
+    <button
+      type="button"
+      class="btn btn-outline-primary btn-xs camera-snapshot-btn"
+      (click)="onCameraSnapshotClick()"
+      [disabled]="cameraSnapshotLoading || cameraSnapshotDisabled"
+      [title]="cameraSnapshotTitle || t('take_snapshot')"
+    >
+      <i class="bi bi-camera" *ngIf="!cameraSnapshotLoading"></i>
+      <span class="spinner-border spinner-border-sm" *ngIf="cameraSnapshotLoading"></span>
+    </button>
+  </div>
+  <div class="scanned-card-premium mt-2 rounded-3 border overflow-hidden" *ngIf="scannedFile">
+    <div class="bg-dark text-white p-1 px-2 x-small d-flex align-items-center gap-2">
+      <i class="bi bi-file-earmark-check"></i>
+      <span>{{ t('scanner_ready') }}</span>
+    </div>
+    <div class="p-1">
+      <button
+        *ngIf="scannedFile.type.startsWith('image/'); else scannedDocumentPreview"
+        type="button"
+        class="preview-box preview-box-button scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
+        (click)="openScannedPreview()"
+        [attr.aria-label]="scannedFile.name"
+      >
+        <img [src]="scannedFile.safeUrl" class="preview-media" alt="Preview" />
+      </button>
 
+      <ng-template #scannedDocumentPreview>
+        <div
+          class="preview-box scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden"
+        >
+          <iframe
+            *ngIf="scannedFile.type === 'application/pdf'"
+            [src]="scannedFile.safeUrl"
+            class="w-100 h-100 border-0"
+          ></iframe>
+          <div
+            *ngIf="!scannedFile.type.startsWith('image/') && scannedFile.type !== 'application/pdf'"
+            class="text-danger text-center py-2"
+          >
+            <i class="bi bi-file-earmark-pdf fs-2"></i>
+            <div class="x-small fw-bold text-uppercase">{{ scannedFile.type.split('/')[1] }}</div>
+          </div>
+        </div>
+      </ng-template>
+      <!-- <div class="mt-1 d-flex flex-column gap-1">
+        <div class="x-small text-muted text-center text-truncate">{{ scannedFile.name }}</div>
+        <a
+          [href]="scannedFile.url | safe: 'url'"
+          [download]="scannedFile.name"
+          class="btn btn-success btn-xs py-1 w-100 x-small fw-bold"
+        >
+          <i class="bi bi-download me-1"></i> {{ t('save_to_pc') }}
+        </a>
+      </div> -->
+    </div>
+  </div>
   <div class="card-body p-2">
     <ng-container *ngIf="gatePeripheral as gp; else noGateDevices">
       <!-- PC Device -->
-      <div class="device-row p-1 mb-1 rounded-2 border">
+      <!-- <div class="device-row p-1 mb-1 rounded-2 border">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
           <div class="d-flex align-items-center gap-2">
             <i class="bi bi-pc-display text-secondary x-small"></i>
@@ -37,7 +98,7 @@
         <div class="mt-0" *ngIf="gp.pcIp">
           <span class="device-ip mono x-small text-muted px-1 rounded bg-light">{{ gp.pcIp }}</span>
         </div>
-      </div>
+      </div> -->
 
       <!-- LPR Device -->
       <div class="device-row p-1 mb-2 rounded-2 border">
@@ -82,39 +143,27 @@
         </div>
 
         <div class="mt-2">
-          <div class="d-flex align-items-center justify-content-between gap-2 mb-1 px-1">
-            <label class="form-label x-small fw-bold text-muted text-uppercase mb-0">
-              {{ t('vehicle_images') }}
-            </label>
-            <button
-              type="button"
-              class="btn btn-outline-primary btn-xs camera-snapshot-btn"
-              (click)="onCameraSnapshotClick()"
-              [disabled]="cameraSnapshotLoading || cameraSnapshotDisabled"
-              [title]="cameraSnapshotTitle || t('take_snapshot')"
-            >
-              <i class="bi bi-camera" *ngIf="!cameraSnapshotLoading"></i>
-              <span class="spinner-border spinner-border-sm" *ngIf="cameraSnapshotLoading"></span>
-            </button>
-          </div>
-          <input
+          <!-- <input
             type="file"
             class="form-control form-control-sm x-small"
             accept="image/*,.pdf"
             multiple
             (change)="onVehicleImagesChange($event)"
           />
-          <div class="x-small text-muted mt-1">{{ t('vehicle_images_optional') }}</div>
+          <div class="x-small text-muted mt-1">{{ t('vehicle_images_optional') }}</div> -->
         </div>
 
-        <div class="mt-1" *ngIf="gp.lprIp">
+        <!-- <div class="mt-1" *ngIf="gp.lprIp">
           <span class="device-ip mono x-small text-muted px-1 rounded bg-light">{{
             gp.lprIp
           }}</span>
-        </div>
+        </div> -->
       </div>
 
-      <div class="uploaded-images-card mt-2 rounded-3 border p-2 bg-white" *ngIf="uploadedVehicleImages.length">
+      <div
+        class="uploaded-images-card mt-2 rounded-3 border p-2 bg-white"
+        *ngIf="uploadedVehicleImages.length"
+      >
         <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
           <div class="x-small fw-bold text-primary">
             {{ t('vehicle_images_attached') }}
@@ -146,60 +195,6 @@
             >
               <i class="bi bi-x-lg"></i>
             </button>
-          </div>
-        </div>
-      </div>
-
-      <!--  Premium Scanned Document Preview -->
-      <div class="scanned-card-premium mt-2 rounded-3 border overflow-hidden" *ngIf="scannedFile">
-        <div class="bg-dark text-white p-1 px-2 x-small d-flex align-items-center gap-2">
-          <i class="bi bi-file-earmark-check"></i>
-          <span>{{ t('scanner_ready') }}</span>
-        </div>
-        <div class="p-1">
-          <button
-            *ngIf="scannedFile.type.startsWith('image/'); else scannedDocumentPreview"
-            type="button"
-            class="preview-box preview-box-button scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
-            (click)="openScannedPreview()"
-            [attr.aria-label]="scannedFile.name"
-          >
-            <img
-              [src]="scannedFile.safeUrl"
-              class="preview-media"
-              alt="Preview"
-            />
-          </button>
-
-          <ng-template #scannedDocumentPreview>
-            <div
-              class="preview-box scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden"
-            >
-            <iframe
-              *ngIf="scannedFile.type === 'application/pdf'"
-              [src]="scannedFile.safeUrl"
-              class="w-100 h-100 border-0"
-            ></iframe>
-            <div
-              *ngIf="
-                !scannedFile.type.startsWith('image/') && scannedFile.type !== 'application/pdf'
-              "
-              class="text-danger text-center py-2"
-            >
-              <i class="bi bi-file-earmark-pdf fs-2"></i>
-              <div class="x-small fw-bold text-uppercase">{{ scannedFile.type.split('/')[1] }}</div>
-            </div>
-            </div>
-          </ng-template>
-          <div class="mt-1 d-flex flex-column gap-1">
-            <div class="x-small text-muted text-center text-truncate">{{ scannedFile.name }}</div>
-            <a
-              [href]="scannedFile.url | safe: 'url'"
-              [download]="scannedFile.name"
-              class="btn btn-success btn-xs py-1 w-100 x-small fw-bold"
-            >
-              <i class="bi bi-download me-1"></i> {{ t('save_to_pc') }}
-            </a>
           </div>
         </div>
       </div>
