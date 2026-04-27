@@ -65,6 +65,23 @@
   background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
 }
 
+.print-options-card {
+  border-color: #e2e8f0 !important;
+}
+
+:host .form-check {
+  min-height: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+:host .form-check-input {
+  width: 0.86rem;
+  height: 0.86rem;
+  margin: 0;
+}
+
 .status-pill {
   display: inline-flex;
   align-items: center;

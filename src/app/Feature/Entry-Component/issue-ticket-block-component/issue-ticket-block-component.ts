@@ -32,6 +32,8 @@ export class IssueTicketBlockComponent {
 
   @Input() currentIssuedQr: string | null = null;
   @Input() currentIssuedQrType: 'image' | 'text' | null = null;
+  @Input() printQrEnabled = true;
+  @Input() printReceiptEnabled = true;
 
   @Input() lastIssuedTicketId: string | number | null = null;
   @Input() lastIssuedTicketInfo: string | null = null;
@@ -48,6 +50,8 @@ export class IssueTicketBlockComponent {
   @Output() confirmCashierClicked = new EventEmitter<void>();
   @Output() clearCardSummaryClicked = new EventEmitter<Event>();
   @Output() selectedPricingSchemaIdChange = new EventEmitter<string>();
+  @Output() printQrEnabledChange = new EventEmitter<boolean>();
+  @Output() printReceiptEnabledChange = new EventEmitter<boolean>();
 
   private lastCardKeyAt = 0;
 
@@ -121,6 +125,14 @@ export class IssueTicketBlockComponent {
 
   onPricingSchemaChange(value: string): void {
     this.selectedPricingSchemaIdChange.emit(value);
+  }
+
+  onPrintQrChange(value: boolean): void {
+    this.printQrEnabledChange.emit(value);
+  }
+
+  onPrintReceiptChange(value: boolean): void {
+    this.printReceiptEnabledChange.emit(value);
   }
 
   private shouldReplaceExistingCard(input: HTMLInputElement | null): boolean {

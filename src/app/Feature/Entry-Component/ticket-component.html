@@ -174,6 +174,8 @@
         [cardMembershipStatus]="cardMembershipStatus"
         [currentIssuedQr]="currentIssuedQr"
         [currentIssuedQrType]="currentIssuedQrType"
+        [printQrEnabled]="printQrEnabled"
+        [printReceiptEnabled]="printReceiptEnabled"
         [lastIssuedTicketId]="lastIssuedTicketId"
         [lastIssuedTicketInfo]="lastIssuedTicketInfo"
         [lastIssuedVehicleNumber]="lastIssuedVehicleNumber"
@@ -188,6 +190,8 @@
         (confirmCashierClicked)="confirmCashier()"
         (clearCardSummaryClicked)="clearCardSummary($event)"
         (selectedPricingSchemaIdChange)="selectedPricingSchemaId = $event"
+        (printQrEnabledChange)="onPrintQrEnabledChange($event)"
+        (printReceiptEnabledChange)="onPrintReceiptEnabledChange($event)"
       ></app-issue-ticket-block-component>
     </div>
 

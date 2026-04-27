@@ -223,6 +223,8 @@ export class TicketComponent implements OnInit, OnDestroy {
   adding = false;
   currentIssuedQr: string | null = null;
   currentIssuedQrType: 'image' | 'text' | null = null;
+  printQrEnabled = true;
+  printReceiptEnabled = true;
 
   // =======================
   // Scan / admit
@@ -403,6 +405,10 @@ export class TicketComponent implements OnInit, OnDestroy {
       vehicle_images_attached: 'تم إرفاق صور المركبة',
       printing_failed: 'تعذر إرسال أوامر الطباعة إلى خدمة الطابعة المحلية.',
       printing_sent: 'تم إرسال أوامر الطباعة بنجاح.',
+      print_options: 'خيارات الطباعة',
+      print_qr: 'QR',
+      print_receipt: 'الإيصال',
+      select_print_option: 'اختر نوع طباعة واحد على الأقل',
       gate_info: 'بيانات اتصال البوابة',
       control_id: 'معرّف وحدة التحكم',
       camera_url: 'رابط الكاميرا',
@@ -536,6 +542,10 @@ export class TicketComponent implements OnInit, OnDestroy {
       vehicle_images_attached: 'Vehicle images attached',
       printing_failed: 'Failed to send print jobs to the local printer service.',
       printing_sent: 'Print jobs were sent successfully.',
+      print_options: 'Print options',
+      print_qr: 'QR',
+      print_receipt: 'Receipt',
+      select_print_option: 'Select at least one print option.',
       gate_info: 'Gate connection info',
       control_id: 'Control ID',
       camera_url: 'Camera URL',
@@ -982,6 +992,24 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   onManualLprPlateBlur(): void {
     this.checkCurrentLprMembership(true);
+  }
+
+  onPrintQrEnabledChange(enabled: boolean): void {
+    if (!enabled && !this.printReceiptEnabled) {
+      this.toast.warn(this.t('select_print_option'));
+      return;
+    }
+
+    this.printQrEnabled = enabled;
+  }
+
+  onPrintReceiptEnabledChange(enabled: boolean): void {
+    if (!enabled && !this.printQrEnabled) {
+      this.toast.warn(this.t('select_print_option'));
+      return;
+    }
+
+    this.printReceiptEnabled = enabled;
   }
 
   async onVehicleImagesSelected(files: FileList | null): Promise<void> {
@@ -1690,34 +1718,42 @@ export class TicketComponent implements OnInit, OnDestroy {
   // Printing
   // =======================
   printTicketDocuments(): void {
+    if (!this.printQrEnabled && !this.printReceiptEnabled) {
+      this.toast.warn(this.t('select_print_option'));
+      return;
+    }
+
     const createdAtText = this.buildCreatedAtText();
     const gateNumber = this.gatePeripheral?.gateNumber ?? '—';
     const isExit = this.gatePeripheral?.gateType === GateType.Exit;
     const dateTimeLabel = isExit ? 'تاريخ الخروج:' : 'تاريخ الدخول:';
 
-    const qrTicketHtml = this.currentIssuedQr && this.currentIssuedQrType === 'image'
-      ? this.buildQrTicketPrintHtml({
-          imgSrc: this.currentIssuedQr,
+    const qrTicketHtml =
+      this.printQrEnabled && this.currentIssuedQr && this.currentIssuedQrType === 'image'
+        ? this.buildQrTicketPrintHtml({
+            imgSrc: this.currentIssuedQr,
+            createdAt: createdAtText,
+            gateNumber,
+            ticketInfo: this.lastIssuedTicketInfo,
+            dateTimeLabel: dateTimeLabel,
+          })
+        : null;
+
+    const feesTicketHtml = this.printReceiptEnabled
+      ? this.buildFeesTicketPrintHtml({
           createdAt: createdAtText,
           gateNumber,
           ticketInfo: this.lastIssuedTicketInfo,
+          vehicleNumber: this.lastIssuedVehicleNumber,
+          price: this.lastIssuedPrice,
           dateTimeLabel: dateTimeLabel,
         })
       : null;
 
-    const feesTicketHtml = this.buildFeesTicketPrintHtml({
-      createdAt: createdAtText,
-      gateNumber,
-      ticketInfo: this.lastIssuedTicketInfo,
-      vehicleNumber: this.lastIssuedVehicleNumber,
-      price: this.lastIssuedPrice,
-      dateTimeLabel: dateTimeLabel,
-    });
-
     this.printHtmlNative(qrTicketHtml, feesTicketHtml);
   }
 
-  private printHtmlNative(qrHtml: string | null, feesHtml: string): void {
+  private printHtmlNative(qrHtml: string | null, feesHtml: string | null): void {
     const qrPrinterName = this.gateConnectionInfo?.qrPrinterName?.trim() || environment.qrPrinterName;
     const receiptPrinterName =
       this.gateConnectionInfo?.receiptPrinterName?.trim() || environment.receiptPrinterName;
@@ -1733,13 +1769,20 @@ export class TicketComponent implements OnInit, OnDestroy {
       );
     }
 
-    jobs.push(
-      this.localPrint.printHtml({
-        printerName: receiptPrinterName,
-        htmlContent: feesHtml,
-        jobName: `Receipt-Ticket-${this.lastIssuedTicketId ?? 'unknown'}`,
-      }),
-    );
+    if (feesHtml) {
+      jobs.push(
+        this.localPrint.printHtml({
+          printerName: receiptPrinterName,
+          htmlContent: feesHtml,
+          jobName: `Receipt-Ticket-${this.lastIssuedTicketId ?? 'unknown'}`,
+        }),
+      );
+    }
+
+    if (!jobs.length) {
+      this.toast.warn(this.t('select_print_option'));
+      return;
+    }
 
     forkJoin(jobs).subscribe({
       next: () => {
