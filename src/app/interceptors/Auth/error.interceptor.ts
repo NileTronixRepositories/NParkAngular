@@ -27,12 +27,7 @@ export const errorInterceptor: HttpInterceptorFn = (req, next) => {
         return EMPTY;
       }
 
-      if (error.status === 403) {
-        router.navigate(['/overview']);
-        return EMPTY;
-      }
-
-      if (error.status !== 401 && error.status !== 403) {
+      if (error.status !== 401) {
         toastService.fromProblem(error);
       }
 

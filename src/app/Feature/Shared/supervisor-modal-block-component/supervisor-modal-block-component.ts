@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LanguageService } from '../../../Services/i18n/language-service';
 import { CollectDailyTicketsResponse } from '../../../Domain/tickets/tickets.model';
+import { CollectExceedTransactionsResponse } from '../../../Domain/TicketExceedTransaction/ticket-exceed-transaction.models';
 
 @Component({
   selector: 'app-supervisor-modal-block-component',
@@ -20,6 +21,8 @@ export class SupervisorModalBlockComponent {
   @Input() username = '';
   @Input() password = '';
   @Input() summary: CollectDailyTicketsResponse | null = null;
+  @Input() exceedSummary: CollectExceedTransactionsResponse | null = null;
+  @Input() readyToCollect = false;
 
   @Output() usernameChange = new EventEmitter<string>();
   @Output() passwordChange = new EventEmitter<string>();
@@ -51,6 +54,15 @@ export class SupervisorModalBlockComponent {
       yes: 'نعم',
       no: 'لا',
       amount: 'المبلغ',
+      total_exceed: 'إجمالي الغرامات',
+      total_transactions: 'عدد المعاملات',
+      transaction: 'المعاملة',
+      created_at: 'تاريخ المعاملة',
+      collected_at: 'وقت التحصيل',
+      ticket_price: 'سعر التذكرة',
+      old_exceed: 'غرامات سابقة',
+      total_after_exceed: 'الإجمالي بعد الغرامة',
+      ready_to_collect: 'جاهز للتحصيل',
       collect_now: 'تحصيل',
       currency: 'ج.م',
     },
@@ -77,6 +89,15 @@ export class SupervisorModalBlockComponent {
       yes: 'Yes',
       no: 'No',
       amount: 'Amount',
+      total_exceed: 'Total exceed',
+      total_transactions: 'Transactions',
+      transaction: 'Transaction',
+      created_at: 'Created at',
+      collected_at: 'Collected at',
+      ticket_price: 'Ticket price',
+      old_exceed: 'Old exceed',
+      total_after_exceed: 'Total after exceed',
+      ready_to_collect: 'Ready to collect',
       collect_now: 'Collect',
       currency: 'EGP',
     },

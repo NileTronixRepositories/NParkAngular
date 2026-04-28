@@ -74,6 +74,13 @@
   font-family: 'Courier New', Courier, monospace;
 }
 
+.scanner-token,
+textarea[dir='ltr'] {
+  direction: ltr;
+  unicode-bidi: isolate;
+  text-align: left;
+}
+
 .animate-fade-in {
   animation: fadeIn 0.4s ease-out;
 }

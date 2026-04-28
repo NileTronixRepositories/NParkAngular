@@ -12,7 +12,7 @@
 }
 
 .search-results {
-  max-height: 260px;
+  max-height: 190px;
   overflow: auto;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
@@ -22,7 +22,7 @@
 .ticket-result {
   width: 100%;
   display: block;
-  padding: 0.5rem;
+  padding: 0.32rem 0.45rem;
   border: 0;
   border-bottom: 1px solid #eef2f7;
   background: #ffffff;
@@ -38,18 +38,46 @@
   outline-offset: -2px;
 }
 
-.ticket-meta {
+.ticket-result-line {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-  gap: 0.35rem;
+  grid-template-columns:
+    minmax(80px, 1.25fr)
+    auto
+    minmax(92px, 1.2fr)
+    minmax(48px, 0.8fr)
+    minmax(48px, 0.8fr)
+    auto;
+  gap: 0.4rem;
   align-items: center;
+  font-size: 0.68rem;
 }
 
-.ticket-meta span {
+.ticket-result-line span {
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+.ticket-code {
+  color: #111827;
+}
+
+.ticket-type {
+  font-size: 0.58rem;
+  line-height: 1;
+}
+
+.ticket-date,
+.ticket-vehicle,
+.ticket-card {
+  color: #6b7280;
+}
+
+.ticket-price {
+  font-family: 'Courier New', Courier, monospace;
+  font-weight: 700;
+  text-align: end;
 }
 
 .selected-ticket {
@@ -60,7 +88,7 @@
 }
 
 .page-size {
-  width: 72px;
+  width: 68px;
 }
 
 .sanction-tag {
@@ -130,4 +158,15 @@
 
 .mono {
   font-family: 'Courier New', Courier, monospace;
+}
+
+@media (max-width: 575.98px) {
+  .ticket-result-line {
+    grid-template-columns: minmax(70px, 1.1fr) auto minmax(72px, 1fr) auto;
+  }
+
+  .ticket-vehicle,
+  .ticket-card {
+    display: none;
+  }
 }

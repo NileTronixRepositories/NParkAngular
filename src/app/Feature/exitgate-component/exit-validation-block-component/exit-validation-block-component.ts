@@ -239,7 +239,7 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
     this.scheduleAutoSubmit();
   }
 
-  private scheduleAutoSubmit(delayMs = 500): void {
+  private scheduleAutoSubmit(delayMs = 900): void {
     this.clearAutoSubmitTimer();
 
     if (!this.manualText.trim()) return;

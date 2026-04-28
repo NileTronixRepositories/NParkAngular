@@ -1,6 +1,6 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpBackend, HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, catchError, map, switchMap, throwError } from 'rxjs';
 import { environment } from '../../Shared/environment/environment';
 import {
   CollectExceedTransactionDetail,
@@ -8,11 +8,25 @@ import {
   CreateTicketExceedTransactionRequest,
   CreateTicketExceedTransactionResponse,
 } from '../../Domain/TicketExceedTransaction/ticket-exceed-transaction.models';
+import { GateType } from '../../Domain/Auth/auth.models';
+import { AuthResponse } from '../Auth/auth-service';
+import { LanguageService } from '../i18n/language-service';
 
 @Injectable({ providedIn: 'root' })
 export class TicketExceedTransactionService {
   private readonly http = inject(HttpClient);
+  private readonly httpBackend = inject(HttpBackend);
+  private readonly i18n = inject(LanguageService);
   private readonly base = `${environment.baseUrl}/TicketExceedTransaction`;
+  private readonly authUrl = `${environment.baseUrl}/auth`;
+
+  private _rawHttp?: HttpClient;
+  private get rawHttp(): HttpClient {
+    if (!this._rawHttp) {
+      this._rawHttp = new HttpClient(this.httpBackend);
+    }
+    return this._rawHttp;
+  }
 
   create(
     request: CreateTicketExceedTransactionRequest,
@@ -26,6 +40,64 @@ export class TicketExceedTransactionService {
     return this.http
       .post<any>(`${this.base}/collect-exceed-transactions`, {})
       .pipe(map((res) => this.normalizeCollectResponse(res)));
+  }
+
+  collectExceedTransactionsAsSupervisor(credentials: {
+    userName: string;
+    password: string;
+    gateNumber: number | null;
+    gateType: GateType | null;
+  }): Observable<CollectExceedTransactionsResponse> {
+    return this.startExceedCollectAsSupervisor(credentials).pipe(
+      switchMap((token) => this.collectExceedTransactionsWithToken(token)),
+    );
+  }
+
+  startExceedCollectAsSupervisor(credentials: {
+    userName: string;
+    password: string;
+    gateNumber: number | null;
+    gateType: GateType | null;
+  }): Observable<string> {
+    const loginBody = {
+      userName: credentials.userName,
+      password: credentials.password,
+      gateNumber: credentials.gateNumber,
+      gateType: credentials.gateType,
+    };
+
+    return this.rawHttp
+      .post<AuthResponse>(`${this.authUrl}/SuperVisorLogin`, loginBody, {
+        headers: this.languageHeaders(),
+      })
+      .pipe(
+        map((loginRes) => {
+          if (!loginRes?.token) {
+            throw new Error('No token returned from supervisor login');
+          }
+
+          return loginRes.token;
+        }),
+        catchError((err) => throwError(() => err)),
+      );
+  }
+
+  collectExceedTransactionsWithToken(token: string): Observable<CollectExceedTransactionsResponse> {
+    return this.rawHttp
+      .post<any>(
+        `${this.base}/collect-exceed-transactions`,
+        {},
+        { headers: this.authHeaders(token) },
+      )
+      .pipe(map((res) => this.normalizeCollectResponse(res)));
+  }
+
+  private languageHeaders(): HttpHeaders {
+    return new HttpHeaders().set('Accept-Language', this.i18n.current ?? 'ar');
+  }
+
+  private authHeaders(token: string): HttpHeaders {
+    return this.languageHeaders().set('Authorization', `Bearer ${token}`);
   }
 
   private normalizeResponse(res: any): CreateTicketExceedTransactionResponse {

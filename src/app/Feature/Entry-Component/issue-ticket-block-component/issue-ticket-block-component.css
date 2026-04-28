@@ -84,11 +84,12 @@
 
 .pricing-schema-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr));
   gap: 0.5rem;
 }
 
 .pricing-schema-btn {
+  width: 100%;
   min-height: 44px;
   border: 1px solid transparent;
   border-radius: 0.55rem;
@@ -123,6 +124,9 @@
 
 .schema-name {
   min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .schema-tone-0 {
@@ -157,6 +161,20 @@
 
 .empty-pricing-state {
   border-color: #e2e8f0 !important;
+}
+
+.empty-entry-hint {
+  color: #64748b;
+}
+
+.empty-entry-hint-warning {
+  width: 100%;
+  margin-top: 0.25rem;
+  border: 1px solid rgba(245, 158, 11, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 251, 235, 0.86);
+  color: #92400e;
+  font-weight: 800;
 }
 
 .create-ticket-btn {
@@ -221,6 +239,7 @@
 
 :host .card-body {
   padding: 0.45rem !important;
+  min-width: 0;
 }
 
 :host .form-label {
@@ -238,6 +257,16 @@
 }
 
 @media (max-width: 575.98px) {
+  .pricing-schema-grid {
+    gap: 0.4rem;
+  }
+
+  .pricing-schema-btn {
+    min-height: 40px;
+    padding: 0.4rem 0.5rem;
+    font-size: 0.68rem;
+  }
+
   :host .qr-preview {
     width: 72px;
     height: 62px;

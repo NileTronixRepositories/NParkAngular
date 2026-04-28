@@ -16,13 +16,14 @@
           class="form-control form-control-sm x-small"
           rows="3"
           maxlength="200"
-          [ngModel]="manualText"
-          (ngModelChange)="onManualTextChange($event)"
-          [disabled]="isTextDisabled"
-          (keydown.enter)="onTextEnter($event)"
-          (blur)="onTextBlur($event)"
-          [placeholder]="'scan_or_enter_exit_text_placeholder' | t"
-        ></textarea>
+        [ngModel]="manualText"
+        (ngModelChange)="onManualTextChange($event)"
+        [disabled]="isTextDisabled"
+        (keydown.enter)="onTextEnter($event)"
+        (blur)="onTextBlur($event)"
+        dir="ltr"
+        [placeholder]="'scan_or_enter_exit_text_placeholder' | t"
+      ></textarea>
         <div class="invalid-feedback d-block small mt-1" *ngIf="textFieldError || validationError">
           {{ textFieldError || validationError }}
         </div>
@@ -70,7 +71,7 @@
         *ngIf="submittedText"
       >
         <span class="text-muted">{{ 'last_validation_input' | t }}</span>
-        <span class="mono fw-bold text-truncate">{{ submittedText }}</span>
+        <span class="mono scanner-token fw-bold text-truncate">{{ submittedText }}</span>
       </div>
       <!-- <div class="small text-muted mt-2" *ngIf="!gateConnectionReady">
         <i class="bi bi-router me-1"></i>{{ 'gate_connection_required' | t }}

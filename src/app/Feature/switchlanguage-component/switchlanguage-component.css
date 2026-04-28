@@ -2,6 +2,8 @@
   position: relative;
   display: inline-flex;
   align-items: center;
+  direction: ltr;
+  unicode-bidi: isolate;
   background: linear-gradient(135deg, #1e293b, #0f172a);
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 50px;
@@ -23,7 +25,9 @@
   z-index: 2;
   display: flex;
   align-items: center;
+  justify-content: center;
   gap: 4px;
+  min-width: 58px;
   padding: 6px 12px;
   border-radius: 50px;
   font-size: 13px;
@@ -39,11 +43,14 @@
 .lang-icon {
   font-size: 14px;
   line-height: 1;
+  direction: ltr;
 }
 
 .lang-text {
   font-weight: 600;
   letter-spacing: 0.02em;
+  direction: ltr;
+  unicode-bidi: isolate;
 }
 
 /* Sliding Background Indicator */

@@ -37,9 +37,9 @@
     </div>
   </div>
 
-  <div class="row g-3">
+  <div class="row g-3 config-layout">
     <!-- ===================== WIZARD (MAIN CONTENT) ===================== -->
-    <div class="col-12 col-lg-8 col-xl-9 order-1 order-lg-1">
+    <div class="col-12 col-xl-10 order-1 order-xl-1 config-main-col">
       <div class="card border-0 shadow-soft rounded-4 overflow-hidden mb-3 config-main-card">
         <mat-horizontal-stepper
           [linear]="true"
@@ -130,7 +130,7 @@
               <!-- ===== Settings (Mode / Capture / Print / Options / Pricing) ===== -->
               <div class="row g-2 mb-2">
                 <!-- MODE -->
-                <div class="col-12 col-md-6 col-lg-4 config-mode-group">
+                <div class="col-12 col-sm-6 col-xxl-3 config-mode-group">
                   <div class="card h-100 border bg-light shadow-sm">
                     <div class="card-body p-2">
                       <div class="d-flex align-items-center gap-2 mb-2 text-primary">
@@ -158,7 +158,7 @@
                 </div>
 
                 <!-- CAPTURE MODE -->
-                <div class="col-12 col-md-6 col-lg-4 config-capture-group">
+                <div class="col-12 col-sm-6 col-xxl-3 config-capture-group">
                   <div class="card h-100 border bg-light shadow-sm">
                     <div class="card-body p-2">
                       <div class="d-flex align-items-center gap-2 mb-2 text-primary">
@@ -184,22 +184,22 @@
                 </div>
 
                 <!-- OPTIONS -->
-                <div class="col-12 col-md-6">
+                <div class="col-12 col-sm-6 col-xxl-3 config-options-group">
                   <div class="card h-100 border bg-light shadow-sm">
                     <div class="card-body p-2">
                       <div class="d-flex align-items-center gap-2 mb-2 text-primary">
                         <i class="bi bi-ticket-perforated fs-5"></i>
-                        <h6 class="mb-0 fw-bold">{{ 'Ticket Options' | t }}</h6>
+                        <h6 class="mb-0 fw-bold">{{ 'ticketOptions' | t }}</h6>
                       </div>
                       <div class="d-flex flex-wrap gap-3">
                         <mat-checkbox formControlName="dateTimeFlag" color="primary">
-                          {{ 'Date Time' | t }}
+                          {{ 'ticketDateTime' | t }}
                         </mat-checkbox>
                         <mat-checkbox formControlName="ticketIdFlag" color="primary">
-                          {{ 'Ticket ID' | t }}
+                          {{ 'ticketNumberOnTicket' | t }}
                         </mat-checkbox>
                         <mat-checkbox formControlName="feesFlag" color="primary">
-                          {{ 'Fees' | t }}
+                          {{ 'ticketFees' | t }}
                         </mat-checkbox>
                       </div>
                     </div>
@@ -208,24 +208,24 @@
 
                 <!-- PRICING SCHEMA (ENTRY ONLY) -->
                 <div
-                  class="col-12 col-md-6 config-pricing-group"
+                  class="col-12 col-sm-6 col-xxl-3 config-pricing-group"
                   *ngIf="modeCtrl.value === 'entry'"
                 >
                   <div class="card h-100 border bg-light shadow-sm">
                     <div class="card-body p-2">
                       <div class="d-flex align-items-center gap-2 mb-2 text-primary">
                         <i class="bi bi-tags fs-5"></i>
-                        <h6 class="mb-0 fw-bold">{{ 'Pricing Schema' | t }}</h6>
+                        <h6 class="mb-0 fw-bold">{{ 'pricingSchema' | t }}</h6>
                       </div>
                       <mat-form-field appearance="outline" class="w-100 bg-white rounded-2">
-                        <mat-label>{{ 'Pricing Schema' | t }}</mat-label>
+                        <mat-label>{{ 'pricingSchema' | t }}</mat-label>
                         <mat-select formControlName="pricingSchemaId">
                           <mat-option *ngFor="let s of pricingSchemas" [value]="s.id">
                             {{ s.name }}
                           </mat-option>
                         </mat-select>
                         <mat-error *ngIf="step2Form.get('pricingSchemaId')?.hasError('required')">
-                          Pricing schema is required
+                          {{ 'pricingSchemaRequired' | t }}
                         </mat-error>
                       </mat-form-field>
                     </div>
@@ -256,7 +256,7 @@
 
                       <div class="row g-2" formArrayName="entryGates">
                         <div
-                          class="col-12 col-lg-6"
+                          class="col-12 col-xxl-6"
                           *ngFor="let g of entryGatesControls; let i = index"
                           [formGroupName]="i"
                         >
@@ -475,7 +475,7 @@
 
                       <div class="row g-2" formArrayName="exitGates">
                         <div
-                          class="col-12 col-lg-6"
+                          class="col-12 col-xxl-6"
                           *ngFor="let g of exitGatesControls; let i = index"
                           [formGroupName]="i"
                         >
@@ -691,7 +691,7 @@
     </div>
 
     <!-- ===================== SUMMARY SIDEBAR ===================== -->
-    <div class="col-12 col-lg-4 col-xl-3 order-2 order-lg-2">
+    <div class="col-12 col-xl-2 order-2 order-xl-2 config-summary-col">
       <div class="d-flex flex-column gap-2 sticky-top config-sidebar-sticky">
         <!-- Summary Card -->
         <div class="card border-0 shadow-soft rounded-4 config-summary-card overflow-hidden">

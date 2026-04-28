@@ -62,7 +62,6 @@ export class ExitTourService {
       },
     } as any);
 
-    // Exit Page Steps
     const stepsData = [
       {
         id: 'exit-help',
@@ -76,49 +75,79 @@ export class ExitTourService {
       },
       {
         id: 'exit-header',
-        titleAr: 'شاشة الخروج',
+        titleAr: 'بوابة الخروج',
         titleEn: 'Exit Screen',
-        textAr: 'هذه الشاشة مخصصة لإدارة عمليات خروج المركبات وتحصيل الرسوم.',
-        textEn: 'This screen is dedicated to managing vehicle exits and collecting fees.',
+        textAr: 'هذه الشاشة مخصصة للتحقق من التذاكر، تسجيل الخروج، فتح البوابة، وتحصيل الغرامات.',
+        textEn:
+          'This screen validates tickets, records exits, opens the gate, and collects exceed fines.',
         attachTo: '.page-header',
         position: 'bottom',
       },
       {
-        id: 'exit-gate-devices',
-        titleAr: 'أجهزة البوابة',
-        titleEn: 'Gate Devices',
-        textAr: 'هنا تظهر حالة الأجهزة ويمكنك البحث عن تذكرة برقمها مباشرة.',
-        textEn: 'Here you can see device status and search for a ticket directly by number.',
+        id: 'exit-gate-connection',
+        titleAr: 'بيانات اتصال البوابة',
+        titleEn: 'Gate Connection Info',
+        textAr:
+          'هنا يظهر عنوان جهاز الكمبيوتر، كاميرا قراءة اللوحات، وطابعات QR والإيصال للبوابة الحالية.',
+        textEn:
+          'This strip shows the PC, LPR camera, QR printer, and receipt printer connected to the current gate.',
+        attachTo: '.gate-flow-panel',
+        position: 'bottom',
+      },
+      {
+        id: 'exit-header-search',
+        titleAr: 'بحث التذاكر من الهيدر',
+        titleEn: 'Ticket Search In Header',
+        textAr:
+          'استخدم هذا البحث للوصول للتذكرة برقم التذكرة أو اللوحة أو الكارت. نفس البحث يغذي قائمة التذاكر داخل بلوك الغرامات.',
+        textEn:
+          'Use this search by ticket, plate, or card number. It also drives the ticket list inside the fines block.',
+        attachTo: '.search-header-container',
+        position: 'left',
+      },
+      {
+        id: 'exit-devices-camera',
+        titleAr: 'كاميرا الخروج و LPR',
+        titleEn: 'Exit Camera And LPR',
+        textAr:
+          'هنا تظهر صورة الكاميرا الأمامية وقراءة LPR. استخدمها للتأكد من السيارة قبل التحقق أو الخروج.',
+        textEn:
+          'This block shows the front camera image and LPR readings so the operator can verify the vehicle.',
         attachTo: 'app-exit-gate-devices-block-component',
         position: 'right',
       },
       {
-        id: 'exit-scan',
-        titleAr: 'مسح وتحصيل',
-        titleEn: 'Scan & Collect',
-        textAr: 'الجزء الأهم: امسح التذكرة (QR) أو الكارت لعرض التفاصيل والمبلغ المستحق والتحصيل.',
+        id: 'exit-validation',
+        titleAr: 'نتيجة التحقق',
+        titleEn: 'Validation Result',
+        textAr:
+          'امسح QR أو أدخل رقم الكارت أو رقم السيارة. بعد التحقق الصحيح يتم تسجيل خروج التذكرة ثم فتح البوابة.',
         textEn:
-          'The main part: Scan the ticket (QR) or card to view details, due amount, and collect fees.',
-        attachTo: 'app-exit-scan-collect-block-component',
+          'Scan a QR code or enter a card/vehicle number. A valid result records the ticket exit and opens the gate.',
+        attachTo: 'app-exit-validation-block-component',
+        position: 'top',
+      },
+      {
+        id: 'exit-sanctions',
+        titleAr: 'التذاكر والغرامات',
+        titleEn: 'Tickets And Fines',
+        textAr:
+          'يعرض نتائج البحث في سطور مختصرة. اختر التذكرة، اختر الغرامة، ثم سجل مبلغ الزيادة قبل الخروج عند الحاجة.',
+        textEn:
+          'Search results are shown as compact rows. Select the ticket, choose the fine, then register the exceed amount when needed.',
+        attachTo: 'app-exit-sanctions-block-component',
         position: 'top',
       },
       {
         id: 'exit-list',
-        titleAr: 'قائمة الخارجين',
-        titleEn: 'Exit List',
-        textAr: 'جدول يوضح آخر التذاكر التي خرجت وتم تحصيلها.',
-        textEn: 'Table showing the most recent tickets that have exited and been collected.',
+        titleAr: 'تذاكر الخروج والتحصيل',
+        titleEn: 'Exit Tickets And Collection',
+        textAr:
+          'يعرض أحدث تذاكر الخروج وإجمالي رسوم اليوم، ومنه يبدأ تحصيل زيادات الخروج بواسطة المشرف.',
+        textEn:
+          'Shows recent exit tickets and today’s total fees. Supervisors can start exceed collection from here.',
         attachTo: 'app-exit-tickets-table-block-component',
         position: 'top',
-      },
-      {
-        id: 'exit-search',
-        titleAr: 'البحث الشامل',
-        titleEn: 'Global Search',
-        textAr: 'بحث سريع عن أي تذكرة باستخدام الرقم، اللوحة، أوالكارت.',
-        textEn: 'Quick search for any ticket using Number, Plate, or Card.',
-        attachTo: 'app-search-block-component',
-        position: 'left',
         isLast: true,
       },
     ];
@@ -128,21 +157,16 @@ export class ExitTourService {
     stepsData.forEach((step, index) => {
       const stepNum = index + 1;
       const isLast = index === totalSteps - 1;
-
-      const progressAr = `<span class="step-badge">${stepNum} / ${totalSteps}</span>`;
-      const progressEn = `<span class="step-badge">${stepNum} / ${totalSteps}</span>`;
-
-      const fullTitleAr = `${step.titleAr} ${progressAr}`;
-      const fullTitleEn = `${step.titleEn} ${progressEn}`;
+      const progress = `<span class="step-badge">${stepNum} / ${totalSteps}</span>`;
 
       this.addStep({
         id: step.id,
-        title: this.t(fullTitleAr, fullTitleEn),
+        title: this.t(`${step.titleAr} ${progress}`, `${step.titleEn} ${progress}`),
         text: this.t(step.textAr, step.textEn),
         attachTo: step.attachTo,
         position: step.position as any,
         hasBack: step.hasBack !== false,
-        isLast: isLast,
+        isLast,
       });
     });
   }
@@ -159,33 +183,23 @@ export class ExitTourService {
     const buttons: { text: string; action: () => void; secondary?: boolean }[] = [];
 
     if (config.hasBack) {
-      const backText = this.isRTL
-        ? `<i class="bi bi-arrow-right"></i> السابق`
-        : `<i class="bi bi-arrow-left"></i> Previous`;
-
       buttons.push({
-        text: backText,
+        text: this.isRTL
+          ? `<i class="bi bi-arrow-right"></i> السابق`
+          : `<i class="bi bi-arrow-left"></i> Previous`,
         action: () => this.tour?.back(),
         secondary: true,
       } as any);
     }
 
     if (config.isLast) {
-      const finishText = this.isRTL
-        ? `إنهاء <i class="bi bi-check-lg"></i>`
-        : `Finish <i class="bi bi-check-lg"></i>`;
-
       buttons.push({
-        text: finishText,
+        text: this.isRTL ? `إنهاء <i class="bi bi-check-lg"></i>` : `Finish <i class="bi bi-check-lg"></i>`,
         action: () => this.tour?.complete(),
       });
     } else {
-      const nextText = this.isRTL
-        ? `التالي <i class="bi bi-arrow-left"></i>`
-        : `Next <i class="bi bi-arrow-right"></i>`;
-
       buttons.push({
-        text: nextText,
+        text: this.isRTL ? `التالي <i class="bi bi-arrow-left"></i>` : `Next <i class="bi bi-arrow-right"></i>`,
         action: () => this.tour?.next(),
       });
     }

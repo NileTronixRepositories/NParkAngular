@@ -32,16 +32,18 @@ app-footer-component {
 
 .floating-logo {
   position: fixed;
-  bottom: 20px;
+  bottom: 18px;
   right: 24px;
-  width: 90px;
+  left: auto;
+  width: 112px;
   height: auto;
-  opacity: 0.85;
-  z-index: 2000;
+  opacity: 0.98;
+  z-index: 9999;
   transition:
     transform 0.2s ease,
     opacity 0.2s ease;
   pointer-events: none;
+  filter: drop-shadow(0 4px 10px rgba(15, 23, 42, 0.25));
 }
 
 .floating-logo:hover {
@@ -50,14 +52,14 @@ app-footer-component {
 }
 
 [dir='rtl'] .floating-logo {
-  right: auto;
-  left: 24px;
+  right: 24px;
+  left: auto;
 }
 
 @media (max-width: 768px) {
   .floating-logo {
-    width: 70px;
-    bottom: 14px;
+    width: 84px;
+    bottom: 12px;
     right: 14px;
   }
 }

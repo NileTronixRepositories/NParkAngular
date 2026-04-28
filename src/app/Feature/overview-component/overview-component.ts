@@ -19,7 +19,15 @@ import { TicketDto } from '../../Domain/tickets/tickets.model';
 import { FormsModule } from '@angular/forms';
 import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal-block-component/ticket-details-modal-block-component';
 import { CommonModule } from '@angular/common';
-import { Component, OnInit, OnDestroy, signal, computed, HostListener, AfterViewInit } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  signal,
+  computed,
+  HostListener,
+  AfterViewInit,
+} from '@angular/core';
 import { Subscription, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
@@ -80,9 +88,9 @@ interface UiNotification {
           liveInOut: 'الدخول/الخروج المباشر',
           in: 'دخول',
           out: 'خروج',
-          exceedAnalytics: 'تحليل التجاوزات',
-          exceededTickets: 'تذاكر متجاوزة',
-          totalExceed: 'إجمالي التجاوزات',
+          exceedAnalytics: 'تحليل الغرامات',
+          exceededTickets: 'تذاكر عليها غرامة',
+          totalExceed: 'إجمالي الغرامات',
           avgPerTicket: 'متوسط كل تذكرة',
           durationStats: 'إحصائيات المدة',
           avgDuration: 'متوسط المدة',
@@ -113,6 +121,25 @@ interface UiNotification {
           egp: 'ج.م',
           count: 'العدد',
           percentage: 'النسبة',
+          selectedDate: 'التاريخ',
+          applyDate: 'عرض',
+          ticketBaseRevenue: 'إيرادات التذاكر ',
+          totalExceedRevenue: 'إجمالي الغرامات',
+          collectedExceedRevenue: 'غرامات محصلة',
+          pendingExceedRevenue: 'غرامات معلقة',
+          ticketEnterToday: 'دخول اليوم',
+          ticketEnterNotTodayButNotExitYet: 'دخول قديم لم يخرج',
+          exitTicketsCount: 'خروج اليوم',
+          pendingPrice: 'غير محصل',
+          collectors: 'المحصلون',
+          supervisors: 'المشرفون',
+          exitedTickets: 'تذاكر خرجت',
+          exceedTransactions: 'معاملات الغرامات',
+          noDataAvailable: 'لا توجد بيانات',
+          noCollectionsYet: 'لا يوجد تحصيل بعد',
+          notAvailable: 'غير متاح',
+          topExceedCollector: 'أفضل مشرف غرامات',
+          transactions: 'معاملات',
 
           notif_in_title: 'تذكرة دخول جديدة',
           notif_out_title: 'تذكرة خروج',
@@ -180,6 +207,25 @@ interface UiNotification {
           egp: 'EGP',
           count: 'Count',
           percentage: 'Percentage',
+          selectedDate: 'Date',
+          applyDate: 'Apply',
+          ticketBaseRevenue: 'Ticket Base',
+          totalExceedRevenue: 'Total Exceed Revenue',
+          collectedExceedRevenue: 'Collected Exceed',
+          pendingExceedRevenue: 'Pending Exceed',
+          ticketEnterToday: 'Entry Today',
+          ticketEnterNotTodayButNotExitYet: 'Old Still Inside',
+          exitTicketsCount: 'Exit Today',
+          pendingPrice: 'Pending',
+          collectors: 'Collectors',
+          supervisors: 'Supervisors',
+          exitedTickets: 'Exited Tickets',
+          exceedTransactions: 'Exceed Transactions',
+          noDataAvailable: 'No data available',
+          noCollectionsYet: 'No collections yet',
+          notAvailable: 'N/A',
+          topExceedCollector: 'Top Exceed Collector',
+          transactions: 'Transactions',
 
           notif_in_title: 'New entry ticket',
           notif_out_title: 'Exit ticket',
@@ -209,6 +255,7 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   dashboard = signal<DashboardDto | null>(null);
   loading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
+  selectedDashboardDate = this.toDateInputValue(new Date());
 
   // Tickets lists
   ticketsInside = signal<TicketInsideParkDto[]>([]);
@@ -259,7 +306,11 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   estimatedFreeSlots = computed(() => this.dashboard()?.estimatedFreeSlots ?? 0);
   occupancyPercentage = computed(() => this.dashboard()?.occupancyPercentage ?? 0);
 
-  enterTicketsCount = computed(() => this.dashboard()?.enterTicketsCount ?? 0);
+  ticketEnterToday = computed(() => this.dashboard()?.ticketEnterToday ?? 0);
+  ticketEnterNotTodayButNotExitYet = computed(
+    () => this.dashboard()?.ticketEnterNotTodayButNotExitYet ?? 0,
+  );
+  enterTicketsCount = computed(() => this.ticketEnterToday());
   exitTicketsCount = computed(() => this.dashboard()?.exitTicketsCount ?? 0);
   activeTicketsCount = computed(() => this.dashboard()?.activeTicketsCount ?? 0);
 
@@ -276,6 +327,9 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   membershipRelatedRevenue = computed(() => this.dashboard()?.membershipRelatedRevenue ?? 0);
   walkInRevenue = computed(() => this.dashboard()?.walkInRevenue ?? 0);
+  ticketBaseRevenue = computed(() => this.dashboard()?.ticketBaseRevenue ?? 0);
+  collectedTicketBaseRevenue = computed(() => this.dashboard()?.collectedTicketBaseRevenue ?? 0);
+  pendingTicketBaseRevenue = computed(() => this.dashboard()?.pendingTicketBaseRevenue ?? 0);
 
   membershipRevenuePercent = computed(() => {
     const total = this.totalRevenue();
@@ -288,14 +342,32 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   });
 
   exceededTicketsCount = computed(() => this.dashboard()?.exceededTicketsCount ?? 0);
+  exceedTransactionsCount = computed(() => this.dashboard()?.exceedTransactionsCount ?? 0);
+  collectedExceedTransactionsCount = computed(
+    () => this.dashboard()?.collectedExceedTransactionsCount ?? 0,
+  );
+  pendingExceedTransactionsCount = computed(
+    () => this.dashboard()?.pendingExceedTransactionsCount ?? 0,
+  );
   totalExceedRevenue = computed(() => this.dashboard()?.totalExceedRevenue ?? 0);
+  collectedExceedRevenue = computed(() => this.dashboard()?.collectedExceedRevenue ?? 0);
+  pendingExceedRevenue = computed(() => this.dashboard()?.pendingExceedRevenue ?? 0);
   averageExceedPerTicket = computed(() => this.dashboard()?.averageExceedPerTicket ?? 0);
+  averageExceedPerTransaction = computed(() => this.dashboard()?.averageExceedPerTransaction ?? 0);
 
   averageDurationMinutes = computed(() => this.dashboard()?.averageDurationMinutes ?? 0);
   maxDurationMinutes = computed(() => this.dashboard()?.maxDurationMinutes ?? 0);
 
   busiestGateNumber = computed(() => this.dashboard()?.busiestGateNumber ?? 0);
   busiestGateTicketsCount = computed(() => this.dashboard()?.busiestGateTicketsCount ?? 0);
+  topCollectorName = computed(() => this.dashboard()?.topCollectorName ?? null);
+  topCollectorAmount = computed(() => this.dashboard()?.topCollectorAmount ?? 0);
+  topCollectorTicketsCount = computed(() => this.dashboard()?.topCollectorTicketsCount ?? 0);
+  topExceedCollectorName = computed(() => this.dashboard()?.topExceedCollectorName ?? null);
+  topExceedCollectorAmount = computed(() => this.dashboard()?.topExceedCollectorAmount ?? 0);
+  topExceedCollectorTransactionsCount = computed(
+    () => this.dashboard()?.topExceedCollectorTransactionsCount ?? 0,
+  );
 
   entryGates = computed(() => this.dashboard()?.entryGates ?? []);
   exitGates = computed(() => this.dashboard()?.exitGates ?? []);
@@ -327,7 +399,7 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   readonly liveBarThickness = 32;
   readonly liveBarsGap = 28;
 
-  liveMaxCount = computed(() => Math.max(this.enterTicketsCount(), this.exitTicketsCount(), 1));
+  liveMaxCount = computed(() => Math.max(this.ticketEnterToday(), this.exitTicketsCount(), 1));
 
   @HostListener('window:resize')
   onResize(): void {
@@ -336,7 +408,7 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   private updateChartDimensions(): void {
     const width = window.innerWidth;
-    
+
     // Adjust Live Chart Width
     if (width < 400) {
       this.liveChartWidth.set(Math.min(280, width - 20));
@@ -440,7 +512,7 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loading.set(true);
     this.errorMessage.set(null);
 
-    this.overviewServices.getDashboard().subscribe({
+    this.overviewServices.getDashboard(this.selectedDashboardDate).subscribe({
       next: (dto) => {
         this.loading.set(false);
         this.dashboard.set(dto);
@@ -583,6 +655,18 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
     const mins = minutes % 60;
     if (hours > 0) return `${hours}h ${mins}m`;
     return `${mins}m`;
+  }
+
+  formatName(value: string | null | undefined): string {
+    const normalized = String(value ?? '').trim();
+    return normalized || (this.lang.isRTL() ? 'غير متاح' : 'N/A');
+  }
+
+  private toDateInputValue(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 
   // ===== Search tickets =====

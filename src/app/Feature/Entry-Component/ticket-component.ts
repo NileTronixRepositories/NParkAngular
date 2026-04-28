@@ -48,6 +48,7 @@ import { SearchBlockComponent } from '../Shared/search-block-component/search-bl
 import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.service';
 import {
   LprSignalRService,
+  MqttCaptureDetectedEvent,
   LprVehicleDetectedEvent,
 } from '../../Services/Gate/lpr-signalr.service';
 import { EntryTourService } from '../../Services/Entry/entry-tour.service';
@@ -404,6 +405,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       pricing_schema: 'التعريفة',
       select_pricing_schema: 'اختر التعريفة',
       select_pricing_schema_first: 'يرجى اختيار التعريفة أولا',
+      lpr_vehicle_number_missing_after_pricing: 'لم يتم إدخال رقم سيارة من LPR',
       create_lpr_ticket: 'إنشاء تذكرة LPR',
       vehicle_images: 'صور المركبة',
       vehicle_images_optional: 'صور المركبة اختيارية.',
@@ -547,6 +549,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       pricing_schema: 'Pricing schema',
       select_pricing_schema: 'Select pricing schema',
       select_pricing_schema_first: 'Please select a pricing schema first',
+      lpr_vehicle_number_missing_after_pricing: 'No LPR vehicle number entered',
       create_lpr_ticket: 'Create LPR ticket',
       vehicle_images: 'Vehicle images',
       vehicle_images_optional: 'Vehicle images are optional.',
@@ -621,6 +624,13 @@ export class TicketComponent implements OnInit, OnDestroy {
       this.lprSignalR.vehicleDetected$.subscribe((event) => {
         console.log('[Entry LPR SignalR] lprVehicleDetected received', event);
         this.handleLprVehicleDetected(event);
+      }),
+    );
+
+    this.hubSubscriptions.add(
+      this.lprSignalR.mqttCaptureDetected$.subscribe((event) => {
+        console.log('[Entry LPR SignalR] mqttCaptureDetected received', event);
+        this.handleMqttCaptureDetected(event);
       }),
     );
 
@@ -748,6 +758,35 @@ export class TicketComponent implements OnInit, OnDestroy {
     if (!gateId || !currentGateId) return false;
 
     return String(gateId).trim().toLowerCase() === String(currentGateId).trim().toLowerCase();
+  }
+
+  private handleMqttCaptureDetected(event: MqttCaptureDetectedEvent): void {
+    const eventDeviceId = this.normalizeDeviceId(event.deviceId);
+    const currentControlId = this.normalizeDeviceId(this.gateConnectionInfo?.controlIp);
+    const shouldCapture = event.captureId && !!eventDeviceId && eventDeviceId === currentControlId;
+
+    console.log('[Entry LPR SignalR] MQTT capture match check', {
+      eventDeviceId,
+      currentControlId,
+      captureId: event.captureId,
+      shouldCapture,
+    });
+
+    if (!shouldCapture) return;
+
+    const cameraUrl = this.gateConnectionInfo?.onvifCameraSetting?.url?.trim();
+    if (!cameraUrl) {
+      this.snapshotError = this.t('snapshot_failed');
+      this.toast.warn(this.t('snapshot_failed'));
+      return;
+    }
+
+    if (this.snapshotLoading) return;
+    this.loadCameraSnapshot(cameraUrl);
+  }
+
+  private normalizeDeviceId(value: string | number | null | undefined): string {
+    return String(value ?? '').trim().toLowerCase();
   }
 
   // =======================
@@ -1102,7 +1141,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.createNormalTicket(undefined, false, pricingSchemaId);
+    this.toast.warn(this.t('lpr_vehicle_number_missing_after_pricing'));
   }
 
   createSubscriberTicket(): void {
@@ -2282,11 +2321,11 @@ export class TicketComponent implements OnInit, OnDestroy {
           .map(
             (detail) => `
               <div class="ticket-block">
-                <div class="ticket-title">${this.escapePrintHtml(detail.ticketNumber || '---')}</div>
-                // <div class="ticket-row">
-                //   <span>معرف التذكرة</span>
-                //   <strong>${this.escapePrintHtml(detail.ticketId || '---')}</strong>
-                // </div>
+                  <!-- <div class="ticket-title">${this.escapePrintHtml(detail.ticketNumber || '---')}</div>
+                   <div class="ticket-row">
+                   <span>معرف التذكرة</span>
+                 <strong>${this.escapePrintHtml(detail.ticketId || '---')}</strong>
+                </div>  -->
                 <div class="ticket-row">
                   <span>المصدر</span>
                   <strong>${this.escapePrintHtml(detail.source || '---')}</strong>
@@ -2454,8 +2493,12 @@ export class TicketComponent implements OnInit, OnDestroy {
     </html>`;
   }
 
-  private buildReceiptExtraFieldsHtml(extraFields: Record<string, unknown> | null | undefined): string {
-    const entries = Object.entries(extraFields ?? {}).filter(([, value]) => value !== null && value !== undefined);
+  private buildReceiptExtraFieldsHtml(
+    extraFields: Record<string, unknown> | null | undefined,
+  ): string {
+    const entries = Object.entries(extraFields ?? {}).filter(
+      ([, value]) => value !== null && value !== undefined,
+    );
     if (!entries.length) return '';
 
     return entries
@@ -2625,6 +2668,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (session) => {
           this.supervisorCollectToken = session.token;
+          this.auth.updateToken(session.token);
           this.collectSummary = session.summary;
           if (!session.summary.totalTicketsCollected) {
             this.toast.warn(this.t('no_uncollected_tickets'));
@@ -2669,6 +2713,7 @@ export class TicketComponent implements OnInit, OnDestroy {
           err,
           this.t('supervisor_login_failed'),
         );
+        this.supervisorCollectLoading = false;
       },
       complete: () => {
         this.supervisorCollectLoading = false;
@@ -2708,8 +2753,22 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   finishSupervisorCollect(): void {
-    this.auth.updateToken(this.cashierToken ?? '');
-    this.closeSupervisorCollectModal();
+    if (this.supervisorCollectLoading) return;
+
+    if (!this.supervisorCollectToken && !this.collectSummary) {
+      this.closeSupervisorCollectModal();
+      return;
+    }
+
+    this.auth.logout().subscribe({
+      next: () => this.finishSupervisorLogout(),
+      error: () => this.finishSupervisorLogout(),
+    });
+  }
+
+  private finishSupervisorLogout(): void {
+    this.auth.clearUserData();
+    this.router.navigate(['/login']);
   }
 
   // =======================

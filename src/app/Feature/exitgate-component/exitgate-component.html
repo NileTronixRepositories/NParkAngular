@@ -157,6 +157,7 @@
         [totalPriceAfterExceed]="totalPriceAfterExceed"
         [summary]="ticketExceedTransaction"
         [exitLoading]="exitSelectedTicketLoading"
+        [externalSearchText]="headerTicketSearchText"
         (ticketSelected)="onExceedTicketSelected($event)"
         (toggleSanction)="onToggleSanction($event)"
         (registerExceed)="submitExceedForValidatedTicket()"
@@ -195,13 +196,16 @@
 
   <!-- Supervisor Login Modal (Global Context Shared) -->
   <app-supervisor-modal-block-component
-    [show]="showSupervisorCollectModal && !collectSummary && !exceedCollectSummary"
+    [show]="showSupervisorCollectModal"
     [loading]="supervisorCollectLoading"
     [error]="supervisorCollectError"
+    [exceedSummary]="exceedCollectSummary"
+    [readyToCollect]="!!supervisorExceedCollectToken && !exceedCollectSummary"
     [(username)]="supervisorUsername"
     [(password)]="supervisorPassword"
     (submit)="submitSupervisorCollect()"
-    (close)="closeSupervisorCollectModal()"
+    (collect)="confirmSupervisorExceedCollection()"
+    (close)="finishSupervisorCollect()"
   ></app-supervisor-modal-block-component>
 
   <!-- Ticket Details Modal (Fixed positioning) -->

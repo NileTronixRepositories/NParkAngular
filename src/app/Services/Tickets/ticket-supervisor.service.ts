@@ -91,6 +91,8 @@ export class TicketSupervisorService {
             throw new Error('No token returned from supervisor login');
           }
 
+          this.auth.updateToken(loginRes.token);
+
           return this.loadUncollectedWithToken(loginRes.token).pipe(
             map((uncollected) => ({
               token: loginRes.token,

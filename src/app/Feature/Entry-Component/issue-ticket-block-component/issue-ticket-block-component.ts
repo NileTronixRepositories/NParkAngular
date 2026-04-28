@@ -58,6 +58,15 @@ export class IssueTicketBlockComponent {
     return this.t('cardNumber');
   }
 
+  get shouldShowMissingLprVehicleHint(): boolean {
+    return (
+      !!this.selectedPricingSchemaId?.trim() &&
+      !this.lprVehicleNumber?.trim() &&
+      !this.cardSummary &&
+      this.lprMembershipStatus === 'idle'
+    );
+  }
+
   qrDataUrl(text: string): string {
     return `data:text/plain,${encodeURIComponent(text ?? '')}`;
   }

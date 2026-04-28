@@ -168,13 +168,13 @@
 }
 
 :host-context(.tickets-theme) .tickets-table-wrapper {
-  overflow: visible;
+  overflow-x: auto;
   max-height: none;
 }
 
 :host-context(.tickets-theme) .tickets-table-scroll {
   max-height: 600px;
-  overflow-y: auto;
+  overflow: auto;
 }
 
 :host-context(.tickets-theme) .tickets-table-scroll .table {
@@ -235,6 +235,7 @@
 
 :host .table {
   font-size: 0.7rem;
+  min-width: 340px;
 }
 
 :host .table > :not(caption) > * > * {
@@ -250,6 +251,14 @@
 }
 
 @media (max-width: 575.98px) {
+  :host-context(.tickets-theme) .tickets-card {
+    border-radius: 8px;
+  }
+
+  :host .card-body {
+    min-width: 0;
+  }
+
   :host .card-header {
     padding: 0.32rem 0.45rem !important;
   }
@@ -268,6 +277,7 @@
 
   :host .table {
     font-size: 0.64rem;
+    min-width: 300px;
   }
 
   :host .table > :not(caption) > * > * {

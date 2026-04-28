@@ -1,5 +1,15 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  OnChanges,
+  OnDestroy,
+  OnInit,
+  Output,
+  SimpleChanges,
+  inject,
+} from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SanctionDto } from '../../../Domain/Sanction/sanction.models';
 import { CreateTicketExceedTransactionResponse } from '../../../Domain/TicketExceedTransaction/ticket-exceed-transaction.models';
@@ -21,7 +31,7 @@ import { Subject, Subscription, debounceTime, distinctUntilChanged } from 'rxjs'
   templateUrl: './exit-sanctions-block-component.html',
   styleUrl: './exit-sanctions-block-component.css',
 })
-export class ExitSanctionsBlockComponent implements OnInit, OnDestroy {
+export class ExitSanctionsBlockComponent implements OnInit, OnChanges, OnDestroy {
   private readonly ticketsSvc = inject(TicketsServices);
   private readonly toast = inject(ToastServices);
   private readonly errorExtractor = inject(ErrorExtractorService);
@@ -38,6 +48,7 @@ export class ExitSanctionsBlockComponent implements OnInit, OnDestroy {
   @Input() totalPriceAfterExceed = 0;
   @Input() summary: CreateTicketExceedTransactionResponse | null = null;
   @Input() exitLoading = false;
+  @Input() externalSearchText = '';
 
   @Output() ticketSelected = new EventEmitter<SearchTicketResponse>();
   @Output() toggleSanction = new EventEmitter<string>();
@@ -95,6 +106,17 @@ export class ExitSanctionsBlockComponent implements OnInit, OnDestroy {
     this.loadTickets();
   }
 
+  ngOnChanges(changes: SimpleChanges): void {
+    if (!changes['externalSearchText'] || changes['externalSearchText'].firstChange) return;
+
+    const normalized = this.normalizeTicketReadText(this.externalSearchText);
+    if (normalized === this.searchText) return;
+
+    this.searchText = normalized;
+    this.pageNumber = 1;
+    this.loadTickets();
+  }
+
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
   }
@@ -143,7 +165,7 @@ export class ExitSanctionsBlockComponent implements OnInit, OnDestroy {
   }
 
   getTicketType(ticket: SearchTicketResponse): string {
-    return ticket.isSubscribe ? 'Subscriber' : 'Normal';
+    return ticket.isSubscribe ? 'subscriber_ticket' : 'normal_ticket';
   }
 
   isSanctionSelected(id: string): boolean {

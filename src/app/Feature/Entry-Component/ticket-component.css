@@ -28,6 +28,21 @@
 
 .tickets-theme {
   font-size: 0.82rem;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
+  padding-bottom: 1rem;
+}
+
+.tickets-theme *,
+.tickets-theme *::before,
+.tickets-theme *::after {
+  min-width: 0;
+}
+
+.entry-workspace > * {
+  min-width: 0;
 }
 
 .tickets-theme .card {
@@ -76,6 +91,7 @@
   background: #ffffff;
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 0.75rem;
 }
 
@@ -142,6 +158,9 @@
   display: block;
   min-width: 0;
   font-size: 0.72rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .gate-info-item.printer-info-item {
@@ -253,7 +272,69 @@
   min-width: 220px;
 }
 
+@media (max-width: 1199.98px) {
+  .entry-workspace > [class*='col-lg-'] {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+
+  .gate-quick-strip {
+    align-items: flex-start;
+  }
+
+  .gate-strip-info {
+    flex: 1 1 520px;
+  }
+
+  .gate-strip-camera {
+    flex: 1 1 220px;
+    margin-inline-start: 0;
+    justify-content: flex-start;
+  }
+}
+
+@media (min-width: 1200px) {
+  .entry-workspace > .col-lg-3 {
+    flex: 0 0 27%;
+    max-width: 27%;
+  }
+
+  .entry-workspace > .col-lg-6 {
+    flex: 0 0 46%;
+    max-width: 46%;
+  }
+}
+
+@media (min-width: 1500px) {
+  .entry-workspace > .col-lg-3 {
+    flex: 0 0 28%;
+    max-width: 28%;
+  }
+
+  .entry-workspace > .col-lg-6 {
+    flex: 0 0 44%;
+    max-width: 44%;
+  }
+}
+
 @media (max-width: 767.98px) {
+  .tickets-theme {
+    padding-inline: 0.45rem !important;
+  }
+
+  .page-header {
+    position: relative;
+    z-index: 1;
+  }
+
+  .page-header > .d-flex {
+    align-items: stretch !important;
+  }
+
+  .page-header .header-icon-wrapper {
+    flex: 0 0 auto;
+  }
+
   .page-header > .d-flex {
     gap: 0.6rem !important;
   }
@@ -272,6 +353,49 @@
     align-self: stretch !important;
     justify-content: center !important;
     margin: 0 4px !important;
+  }
+
+  .gate-quick-strip {
+    gap: 0.5rem;
+    padding: 0.5rem;
+  }
+
+  .gate-connection-line,
+  .gate-strip-section,
+  .gate-strip-info,
+  .gate-strip-camera {
+    width: 100%;
+    flex: 1 1 100%;
+  }
+
+  .gate-connection-line {
+    align-items: flex-start;
+  }
+
+  .gate-connection-title {
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .gate-info-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gate-info-item {
+    width: 100%;
+    justify-content: flex-start;
+    border-radius: 8px;
+  }
+
+  .gate-info-item.printer-info-item {
+    max-width: 100%;
+  }
+
+  .gate-camera-title,
+  .gate-camera-actions {
+    min-width: 0;
   }
 }
 
@@ -553,6 +677,7 @@
 
   .tickets-theme {
     font-size: 0.74rem;
+    padding-inline: 0.35rem !important;
   }
 
   .page-header {

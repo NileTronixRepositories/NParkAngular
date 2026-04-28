@@ -9,6 +9,8 @@ import { ReportTicketsResponse } from '../../Domain/Reports/reports.model';
 import { ReportsTourService } from '../../Services/Reports/reports-tour.service';
 import { ToastServices } from '../../Services/Toster/toast-services';
 import * as XLSX from 'xlsx';
+import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 
 @Component({
   selector: 'app-reports-component',
@@ -30,7 +32,7 @@ import * as XLSX from 'xlsx';
           vehicleNumber: 'رقم المركبة',
           collectorName: 'المحصل',
           isSubscribed: 'مشترك؟',
-          filters: 'الفلاتر',
+          filters: 'البحث',
           dateFrom: 'من تاريخ',
           dateTo: 'إلى تاريخ',
           search: 'بحث',
@@ -53,7 +55,7 @@ import * as XLSX from 'xlsx';
           vehicleNumber: 'Vehicle Number',
           collectorName: 'Collector',
           isSubscribed: 'Is Subscribed?',
-          filters: 'Filters',
+          filters: 'Search',
           dateFrom: 'Date From',
           dateTo: 'Date To',
           search: 'Search',
@@ -108,16 +110,16 @@ export class ReportsComponent implements OnInit {
       next: (data) => {
         this.reports.set(data);
         this.loading.set(false);
-        
+
         if (data.length > 0) {
           this.toastService.success(
-            this.lang.isRTL() 
-              ? `تم العثور على ${data.length} تذكرة` 
-              : `Found ${data.length} tickets`
+            this.lang.isRTL()
+              ? `تم العثور على ${data.length} تذكرة`
+              : `Found ${data.length} tickets`,
           );
         } else {
           this.toastService.warn(
-            this.lang.isRTL() ? 'لا توجد نتائج مطابقة' : 'No matching results found'
+            this.lang.isRTL() ? 'لا توجد نتائج مطابقة' : 'No matching results found',
           );
         }
       },
@@ -154,7 +156,7 @@ export class ReportsComponent implements OnInit {
 
     const worksheet = XLSX.utils.json_to_sheet(exportData);
 
-     if (isAr) {
+    if (isAr) {
       worksheet['!dir'] = 'rtl';
     }
 
@@ -164,99 +166,234 @@ export class ReportsComponent implements OnInit {
     XLSX.writeFile(workbook, `Reports_${new Date().getTime()}.xlsx`);
   }
 
-  exportPdf(): void {
+  async previewPdf(): Promise<void> {
     const data = this.reports();
     if (data.length === 0) return;
 
     const t = (k: string) => (this.dict as any)[this.lang.current]?.[k] ?? k;
     const isAr = this.lang.current === 'ar';
-    const dir = isAr ? 'rtl' : 'ltr';
+    const locale = isAr ? 'ar-EG' : 'en-US';
+    const fileName = `Reports_${new Date().getTime()}.pdf`;
 
-    const printWindow = window.open('', '_blank');
-    if (!printWindow) {
+    const viewer = window.open('', '_blank');
+    if (!viewer) {
       this.toastService.error(
-        this.lang.isRTL() 
-          ? 'يرجى السماح بالنوافذ المنبثقة للطباعة.' 
-          : 'Please allow popups to print.'
+        this.lang.isRTL()
+          ? 'يرجى السماح بالنوافذ المنبثقة لعرض ملف PDF.'
+          : 'Please allow popups to preview the PDF.',
       );
       return;
     }
 
+    viewer.document.write(
+      `<html><head><title>${fileName}</title></head><body style="font-family: Arial, sans-serif; padding: 24px;">Loading PDF...</body></html>`,
+    );
+    viewer.document.close();
+
+    const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
+    const container = this.createPdfContainer(data, t, isAr, locale);
+
+    try {
+      doc.setProperties({ title: fileName });
+      document.body.appendChild(container);
+      await document.fonts?.ready;
+      await new Promise((resolve) => requestAnimationFrame(resolve));
+
+      const canvas = await html2canvas(container, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        useCORS: true,
+        width: 1120,
+        height: container.scrollHeight,
+        windowWidth: 1120,
+        windowHeight: container.scrollHeight,
+      });
+
+      this.addCanvasToPdf(doc, canvas);
+      const url = URL.createObjectURL(doc.output('blob'));
+      viewer.location.href = url;
+      setTimeout(() => URL.revokeObjectURL(url), 60_000);
+    } catch (error) {
+      viewer.close();
+      this.toastService.error(this.lang.isRTL() ? 'تعذر إنشاء ملف PDF.' : 'Failed to create the PDF.');
+    } finally {
+      container.remove();
+    }
+  }
+
+  exportPdf(): void {
+    void this.previewPdf();
+  }
+
+  private createPdfContainer(
+    data: ReportTicketsResponse[],
+    t: (key: string) => string,
+    isAr: boolean,
+    locale: string,
+  ): HTMLElement {
+    const dir = isAr ? 'rtl' : 'ltr';
+    const align = isAr ? 'right' : 'left';
     const rows = data
       .map(
         (r) => `
-      <tr>
-        <td style="font-family: monospace;">${r.ticketNumber || r.ticketId}</td>
-        <td>${r.vehicleNumber || '---'}</td>
-        <td dir="ltr">${new Date(r.enterDate).toLocaleString(isAr ? 'ar-EG' : 'en-US')}</td>
-        <td dir="ltr">${new Date(r.exitDate).toLocaleString(isAr ? 'ar-EG' : 'en-US')}</td>
-        <td>${r.isSubscribed ? t('subscriber') : t('visitor')}</td>
-        <td>${r.collectorName || '---'}</td>
-        <td><strong>${r.price}</strong> <span style="font-size: 10px;">${t('egp')}</span></td>
-      </tr>
-    `,
+          <tr>
+            <td class="mono">${this.escapeHtml(r.ticketNumber || r.ticketId || '---')}</td>
+            <td>${this.escapeHtml(r.vehicleNumber || '---')}</td>
+            <td class="date">${this.escapeHtml(this.formatReportDate(r.enterDate, locale))}</td>
+            <td class="date">${this.escapeHtml(this.formatReportDate(r.exitDate, locale))}</td>
+            <td>${this.escapeHtml(r.isSubscribed ? t('subscriber') : t('visitor'))}</td>
+            <td>${this.escapeHtml(r.collectorName || '---')}</td>
+            <td class="money">${this.escapeHtml(`${Number(r.price || 0).toFixed(2)} ${t('egp')}`)}</td>
+          </tr>
+        `,
       )
       .join('');
 
-    const htmlContent = `
-      <!DOCTYPE html>
-      <html dir="${dir}" lang="${this.lang.current}">
-      <head>
-        <title>${t('reports')} - PDF</title>
-        <style>
-          body { 
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            padding: 20px; 
-            color: #333;
-          }
-          h2 { text-align: center; margin-bottom: 20px; color: #1a1a1a; }
-          table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px; }
-          th { background-color: #f8f9fa; color: #000; font-weight: bold; border-bottom: 2px solid #dee2e6; padding: 12px; text-align: ${
-            isAr ? 'right' : 'left'
-          }; }
-          td { border-bottom: 1px solid #dee2e6; padding: 12px; text-align: ${
-            isAr ? 'right' : 'left'
-          }; }
-          tr:nth-child(even) { background-color: #fdfdfd; }
-          
-          @media print {
-            body { padding: 0; }
-            button { display: none; }
-          }
-        </style>
-      </head>
-      <body>
-        <h2>${t('reports')} - ${new Date().toLocaleDateString(isAr ? 'ar-EG' : 'en-US')}</h2>
-        <table>
+    const container = document.createElement('div');
+    container.setAttribute('dir', dir);
+    container.style.position = 'fixed';
+    container.style.left = '0';
+    container.style.top = '0';
+    container.style.zIndex = '-1';
+    container.style.pointerEvents = 'none';
+    container.style.width = '1120px';
+    container.style.background = '#ffffff';
+    container.style.color = '#172033';
+    container.style.fontFamily = "'Cairo', 'Arial', 'Tahoma', sans-serif";
+    container.innerHTML = `
+      <style>
+        .pdf-report {
+          box-sizing: border-box;
+          width: 1120px;
+          padding: 20px 24px;
+          background: #fff;
+          direction: ${dir};
+          font-family: 'Cairo', 'Arial', 'Tahoma', sans-serif;
+        }
+        .pdf-report * { box-sizing: border-box; }
+        .pdf-title {
+          margin: 0 0 18px;
+          text-align: center;
+          font-size: 22px;
+          font-weight: 800;
+          line-height: 1.4;
+          color: #111827;
+        }
+        .pdf-table {
+          width: 100%;
+          border-collapse: collapse;
+          table-layout: fixed;
+          font-size: 13px;
+          direction: ${dir};
+        }
+        .pdf-table th,
+        .pdf-table td {
+          border-bottom: 1px solid #dfe4ea;
+          padding: 10px 9px;
+          text-align: ${align};
+          vertical-align: middle;
+          overflow-wrap: anywhere;
+        }
+        .pdf-table th {
+          background: #f3f6fa;
+          color: #111827;
+          font-weight: 800;
+        }
+        .pdf-table tr:nth-child(even) td { background: #fbfcfe; }
+        .pdf-table .date,
+        .pdf-table .mono {
+          direction: ltr;
+          unicode-bidi: plaintext;
+          font-family: 'Cairo', 'Arial', 'Tahoma', sans-serif;
+        }
+        .pdf-table .money {
+          direction: ltr;
+          unicode-bidi: plaintext;
+          font-weight: 800;
+        }
+      </style>
+      <section class="pdf-report">
+        <h1 class="pdf-title">${this.escapeHtml(t('reports'))} - ${this.escapeHtml(
+          new Date().toLocaleDateString(locale),
+        )}</h1>
+        <table class="pdf-table">
           <thead>
             <tr>
-              <th>${t('ticketNumber')}</th>
-              <th>${t('vehicleNumber')}</th>
-              <th>${t('enterDate')}</th>
-              <th>${t('exitDate')}</th>
-              <th>${t('isSubscribed')}</th>
-              <th>${t('collectorName')}</th>
-              <th>${t('price')}</th>
+              <th>${this.escapeHtml(t('ticketNumber'))}</th>
+              <th>${this.escapeHtml(t('vehicleNumber'))}</th>
+              <th>${this.escapeHtml(t('enterDate'))}</th>
+              <th>${this.escapeHtml(t('exitDate'))}</th>
+              <th>${this.escapeHtml(t('isSubscribed'))}</th>
+              <th>${this.escapeHtml(t('collectorName'))}</th>
+              <th>${this.escapeHtml(t('price'))}</th>
             </tr>
           </thead>
-          <tbody>
-            ${rows}
-          </tbody>
+          <tbody>${rows}</tbody>
         </table>
-        <script>
-          window.onload = function() {
-            setTimeout(() => {
-              window.print();
-              window.close();
-            }, 300);
-          }
-        </script>
-      </body>
-      </html>
+      </section>
     `;
 
-    printWindow.document.open();
-    printWindow.document.write(htmlContent);
-    printWindow.document.close();
+    return container;
+  }
+
+  private addCanvasToPdf(doc: jsPDF, canvas: HTMLCanvasElement): void {
+    const margin = 20;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const targetWidth = pageWidth - margin * 2;
+    const targetHeight = pageHeight - margin * 2;
+    const pixelsPerPage = Math.floor((targetHeight * canvas.width) / targetWidth);
+
+    let sourceY = 0;
+    let pageIndex = 0;
+
+    while (sourceY < canvas.height) {
+      const sliceHeight = Math.min(pixelsPerPage, canvas.height - sourceY);
+      const pageCanvas = document.createElement('canvas');
+      pageCanvas.width = canvas.width;
+      pageCanvas.height = sliceHeight;
+
+      const ctx = pageCanvas.getContext('2d');
+      if (!ctx) return;
+
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, pageCanvas.width, pageCanvas.height);
+      ctx.drawImage(canvas, 0, sourceY, canvas.width, sliceHeight, 0, 0, canvas.width, sliceHeight);
+
+      if (pageIndex > 0) {
+        doc.addPage();
+      }
+
+      const slicePdfHeight = (sliceHeight * targetWidth) / canvas.width;
+      doc.addImage(
+        pageCanvas.toDataURL('image/jpeg', 0.95),
+        'JPEG',
+        margin,
+        margin,
+        targetWidth,
+        slicePdfHeight,
+      );
+
+      sourceY += sliceHeight;
+      pageIndex += 1;
+    }
+  }
+
+  private formatReportDate(value: string | Date | null | undefined, locale: string): string {
+    if (!value) return '---';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '---';
+
+    return date.toLocaleString(locale);
+  }
+
+  private escapeHtml(value: unknown): string {
+    return String(value)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
   }
 }

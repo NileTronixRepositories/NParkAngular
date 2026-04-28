@@ -89,6 +89,7 @@
               info.hasQrPrinterName ? info.qrPrinterName || '--' : '--'
             }}</strong>
           </div>
+
           <div
             class="gate-info-item printer-info-item"
             [class.printer-on]="info.hasReceiptPrinterName"
@@ -115,12 +116,14 @@
           </button>
         </div>
       </div>
-
     </div>
   </div>
 
   <!-- Entry workspace grid -->
-  <div class="row g-2 g-lg-3 mb-3" [class.supervisor-entry-workspace]="isSupervisor">
+  <div
+    class="row g-2 g-lg-3 mb-3 entry-workspace"
+    [class.supervisor-entry-workspace]="isSupervisor"
+  >
     <!-- Block 1: Gate Devices -->
     <div class="col-12 col-lg-3" *ngIf="!isSupervisor">
       <app-gate-devices-block-component
@@ -176,7 +179,11 @@
     </div>
 
     <!-- Block 3: Tickets Table + Collect Summary -->
-    <div class="col-12" [class.col-lg-3]="!isSupervisor" [class.supervisor-ticket-panel]="isSupervisor">
+    <div
+      class="col-12"
+      [class.col-lg-3]="!isSupervisor"
+      [class.supervisor-ticket-panel]="isSupervisor"
+    >
       <app-tickets-table-block-component
         [t]="t"
         [isRTL]="i18n.isRTL()"
@@ -213,10 +220,14 @@
               <div class="min-w-0">
                 <h6 class="mb-0 fw-bold text-truncate">{{ t('collect_summary') }}</h6>
                 <div class="collect-receipt-meta text-truncate">
-                  <span *ngIf="collectSummary.gateName">{{ t('gate') }}: {{ collectSummary.gateName }}</span>
+                  <span *ngIf="collectSummary.gateName"
+                    >{{ t('gate') }}: {{ collectSummary.gateName }}</span
+                  >
                   <span>{{ t('gate_number') }}: {{ getCollectionGateNumber() }}</span>
                   <span>{{ t('gate_type') }}: {{ getCollectionGateTypeLabel() }}</span>
-                  <span *ngIf="collectSummary.date">{{ collectSummary.date | date: 'mediumDate' }}</span>
+                  <span *ngIf="collectSummary.date">{{
+                    collectSummary.date | date: 'mediumDate'
+                  }}</span>
                 </div>
               </div>
             </div>
@@ -297,7 +308,7 @@
     [(password)]="supervisorPassword"
     (submit)="submitSupervisorCollect()"
     (collect)="confirmSupervisorCollection()"
-    (close)="closeSupervisorCollectModal()"
+    (close)="finishSupervisorCollect()"
   ></app-supervisor-modal-block-component>
 
   <!-- Ticket Details Modal (Fixed positioning) -->

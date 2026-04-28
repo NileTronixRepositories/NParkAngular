@@ -122,6 +122,32 @@
   color: #9ca3af;
 }
 
+.dashboard-date-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #e5e7eb;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.dashboard-date-input {
+  min-width: 132px;
+  border: 0;
+  outline: none;
+  border-radius: 999px;
+  padding: 0.32rem 0.55rem;
+  background: #ffffff;
+  color: #0f172a;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
 /* search results */
 .header-search-results {
   position: absolute;
@@ -418,6 +444,48 @@
   color: #6b7280;
 }
 
+.revenue-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.revenue-summary-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 0.85rem 1rem;
+  border-radius: 14px;
+  background: #ffffff;
+  border: 1px solid #dbeafe;
+  box-shadow: var(--card-shadow);
+}
+
+.revenue-summary-card span {
+  font-size: 0.78rem;
+  color: #64748b;
+  font-weight: 700;
+}
+
+.revenue-summary-card strong {
+  font-size: 1.05rem;
+  color: #0f172a;
+}
+
+.revenue-summary-card small {
+  color: #64748b;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.revenue-summary-card--exceed {
+  border-color: #fed7aa;
+}
+
+.revenue-summary-card--pending {
+  border-color: #fde68a;
+}
+
 /* ==========================
    Legend + Dots
    ========================== */
@@ -628,6 +696,28 @@
 
 .table tbody tr:hover {
   background: rgba(248, 250, 252, 0.8);
+}
+
+.nested-party {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  padding: 0.25rem 0;
+  min-width: 150px;
+}
+
+.nested-party + .nested-party {
+  border-top: 1px solid #eef2f7;
+}
+
+.nested-party strong {
+  font-size: 0.78rem;
+  color: #0f172a;
+}
+
+.nested-party span {
+  font-size: 0.72rem;
+  color: #64748b;
 }
 
 /* Badges */
@@ -1298,6 +1388,10 @@
   .page-header .header-search {
     max-width: 100%;
   }
+
+  .revenue-summary-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 576px) {
@@ -1456,6 +1550,15 @@
   .btn-help-tour {
     order: 3;
     width: 100%;
+  }
+
+  .dashboard-date-control {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .dashboard-date-input {
+    flex: 1;
   }
 }
 

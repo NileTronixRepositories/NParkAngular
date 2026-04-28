@@ -20,7 +20,7 @@ export const routes: Routes = [
       {
         path: 'overview',
         canActivate: [authGuard],
-        data: { roles: ['Admin', 'Supervisor'] },
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/overview-component/overview-component').then(
             (m) => m.OverviewComponent,
@@ -74,7 +74,7 @@ export const routes: Routes = [
       {
         path: 'Altaeriffa',
         canActivate: [authGuard],
-        data: { roles: ['Admin', 'Supervisor'] },
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/Altaeriffa-component/Altaeriffa-component').then(
             (m) => m.AltaeriffaComponent,
@@ -107,7 +107,7 @@ export const routes: Routes = [
       {
         path: 'registration',
         canActivate: [authGuard],
-        data: { roles: ['Admin', 'Supervisor'] },
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/Registration-component/registration-component').then(
             (m) => m.RegistrationComponent,
@@ -118,7 +118,7 @@ export const routes: Routes = [
       {
         path: 'visitor',
         canActivate: [authGuard],
-        data: { roles: ['Admin', 'Supervisor'] },
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/visitor-component/visitor-component').then((m) => m.VisitorComponent),
       },
@@ -127,7 +127,7 @@ export const routes: Routes = [
       {
         path: 'sanction',
         canActivate: [authGuard],
-        data: { roles: ['Admin', 'Supervisor'] },
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/sanction-component/sanction-component').then(
             (m) => m.SanctionComponent,
@@ -146,7 +146,7 @@ export const routes: Routes = [
       {
         path: 'reports',
         canActivate: [authGuard],
-        data: { roles: ['Admin', 'Supervisor'] },
+        data: { roles: ['Admin'] },
         loadComponent: () =>
           import('./Feature/reports-component/reports-component').then((m) => m.ReportsComponent),
       },

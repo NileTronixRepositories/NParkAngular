@@ -8,6 +8,11 @@ export interface LprVehicleDetectedEvent {
   vehicleNumber: string;
 }
 
+export interface MqttCaptureDetectedEvent {
+  deviceId: string;
+  captureId: boolean;
+}
+
 @Injectable({ providedIn: 'root' })
 export class LprSignalRService {
   private conn?: signalR.HubConnection;
@@ -16,6 +21,10 @@ export class LprSignalRService {
   private readonly vehicleDetectedSubject = new Subject<LprVehicleDetectedEvent>();
   readonly vehicleDetected$: Observable<LprVehicleDetectedEvent> =
     this.vehicleDetectedSubject.asObservable();
+
+  private readonly mqttCaptureDetectedSubject = new Subject<MqttCaptureDetectedEvent>();
+  readonly mqttCaptureDetected$: Observable<MqttCaptureDetectedEvent> =
+    this.mqttCaptureDetectedSubject.asObservable();
 
   async start(): Promise<void> {
     if (this.conn?.state === signalR.HubConnectionState.Connected) return;
@@ -74,5 +83,25 @@ export class LprSignalRService {
       if (!event.gateId || !event.vehicleNumber) return;
       this.vehicleDetectedSubject.next(event);
     });
+
+    this.conn.off('mqttCaptureDetected');
+    this.conn.on('mqttCaptureDetected', (payload: MqttCaptureDetectedEvent | any) => {
+      console.log('[RAW MQTT Capture SignalR Payload]', payload);
+
+      const event: MqttCaptureDetectedEvent = {
+        deviceId: String(payload?.deviceId ?? payload?.DeviceId ?? '').trim(),
+        captureId: this.toBoolean(payload?.captureId ?? payload?.CaptureId),
+      };
+
+      if (!event.deviceId || !event.captureId) return;
+      this.mqttCaptureDetectedSubject.next(event);
+    });
+  }
+
+  private toBoolean(value: unknown): boolean {
+    if (typeof value === 'boolean') return value;
+    if (typeof value === 'number') return value === 1;
+    if (typeof value === 'string') return value.trim().toLowerCase() === 'true';
+    return false;
   }
 }

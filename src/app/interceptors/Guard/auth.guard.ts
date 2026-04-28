@@ -25,7 +25,7 @@ export const authGuard: CanActivateFn = (route, state) => {
   }
 
   // Fallback: Redirect based on role
-  const defaultRoute = getRoleDefaultRoute(userRole);
+  const defaultRoute = getRoleDefaultRoute(auth, userRole);
   router.navigate([defaultRoute]);
   return false;
 };
@@ -33,11 +33,16 @@ export const authGuard: CanActivateFn = (route, state) => {
 /**
  * Returns the default home route for a given user role.
  */
-function getRoleDefaultRoute(role: string | null): string {
+function getRoleDefaultRoute(auth: AuthService, role: string | null): string {
   switch (role) {
     case 'Admin':
-    case 'Supervisor':
       return '/overview';
+    case 'Supervisor': {
+      const gateType = Number(auth.getGateData()?.gateType ?? 0);
+      if (gateType === 1) return '/tickets/entry';
+      if (gateType === 2) return '/tickets/exit';
+      return '/gate-selection';
+    }
     case 'EntranceCashier':
       return '/tickets/entry';
     case 'ExitCashier':

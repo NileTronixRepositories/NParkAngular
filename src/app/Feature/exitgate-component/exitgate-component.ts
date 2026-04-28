@@ -51,7 +51,7 @@ import {
   CollectExceedTransactionsResponse,
   CreateTicketExceedTransactionResponse,
 } from '../../Domain/TicketExceedTransaction/ticket-exceed-transaction.models';
-import { Subscription, timer } from 'rxjs';
+import { of, Subscription, timer } from 'rxjs';
 import { map, switchMap } from 'rxjs/operators';
 import { SupervisorModalBlockComponent } from '../Shared/supervisor-modal-block-component/supervisor-modal-block-component';
 import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal-block-component/ticket-details-modal-block-component';
@@ -121,31 +121,32 @@ type ExitFeedbackTarget = 'validation' | 'openGate' | 'supervisor';
           collectAllToday: 'تحصيل إيرادات اليوم للبوابة',
           sanctions: 'الغرامات',
           select_sanction_placeholder: 'اختر غرامة للتحصيل...',
-          selected_sanctions: 'Selected Sanctions',
-          total_exceed_amount: 'Total Exceed Amount',
-          register_exceed: 'Register Exceed',
-          exceed_registered_success: 'Exceed amount registered successfully.',
-          please_select_ticket: 'Please select a ticket.',
-          please_select_sanction: 'Please select at least one sanction.',
-          duplicate_sanctions: 'Duplicate sanctions are not allowed.',
-          exceed_already_exists: 'Exceed transaction already exists for this ticket.',
-          ticket_refresh_required: 'Ticket does not exist. Please refresh or search again.',
-          sanction_refresh_required: 'One selected sanction does not exist. Refreshing sanctions list.',
-          gate_session_invalid: 'Current session is not linked to a valid gate.',
-          user_not_found: 'User was not found for the current session.',
-          failed_register_exceed: 'Failed to register exceed amount.',
-          ticket_lookup_sanctions: 'Search Tickets / Sanctions',
-          ticket_search_placeholder: 'Search by vehicle number, card number, national ID, or ticket code',
-          from_date: 'From Date',
-          sort: 'Sort',
-          newest: 'Newest',
-          oldest: 'Oldest',
-          page: 'Page',
-          selected_ticket: 'Selected Ticket',
-          no_tickets_found: 'No tickets found.',
-          printing_sent: 'Print job was sent successfully.',
-          printing_failed: 'Failed to send receipt to the local printer service.',
-          receipt_printer_missing: 'Receipt printer is not configured for this gate.',
+          selected_sanctions: 'الغرامات المختارة',
+          total_exceed_amount: 'إجمالي الغرامة',
+          register_exceed: 'تحصيل الغرامة',
+          exceed_registered_success: 'تم تحصيل الغرامة بنجاح.',
+          please_select_ticket: 'يرجى اختيار تذكرة.',
+          please_select_sanction: 'يرجى اختيار غرامة واحدة على الأقل.',
+          duplicate_sanctions: 'لا يمكن تكرار نفس الغرامة.',
+          exceed_already_exists: 'توجد غرامة مسجلة بالفعل لهذه التذكرة.',
+          ticket_refresh_required: 'التذكرة غير موجودة. يرجى التحديث أو البحث مرة أخرى.',
+          sanction_refresh_required:
+            'إحدى الغرامات المختارة غير موجودة. سيتم تحديث قائمة الغرامات.',
+          gate_session_invalid: 'الجلسة الحالية غير مرتبطة ببوابة صحيحة.',
+          user_not_found: 'لم يتم العثور على المستخدم الحالي.',
+          failed_register_exceed: 'فشل تحصيل مبلغ الغرامة.',
+          ticket_lookup_sanctions: 'التذاكر / الغرامات',
+          ticket_search_placeholder: 'ابحث برقم السيارة أو الكارت أو الرقم القومي أو كود التذكرة',
+          from_date: 'من تاريخ',
+          sort: 'الترتيب',
+          newest: 'الأحدث',
+          oldest: 'الأقدم',
+          page: 'صفحة',
+          selected_ticket: 'التذكرة المختارة',
+          no_tickets_found: 'لا توجد تذاكر.',
+          printing_sent: 'تم إرسال أمر الطباعة بنجاح.',
+          printing_failed: 'فشل إرسال الإيصال إلى خدمة الطباعة المحلية.',
+          receipt_printer_missing: 'طابعة الإيصال غير مفعلة لهذه البوابة.',
           summary: 'الملخص',
           ticket_price: 'سعر التذكرة',
           total_after_exceed: 'الإجمالي بعد العقوبات',
@@ -334,19 +335,21 @@ type ExitFeedbackTarget = 'validation' | 'openGate' | 'supervisor';
           select_sanction_placeholder: 'Select fine to apply...',
           selected_sanctions: 'Selected Sanctions',
           total_exceed_amount: 'Total Exceed Amount',
-          register_exceed: 'Register Exceed',
-          exceed_registered_success: 'Exceed amount registered successfully.',
+          register_exceed: 'Collection Exceed',
+          exceed_registered_success: 'Exceed amount Collection successfully.',
           please_select_ticket: 'Please select a ticket.',
           please_select_sanction: 'Please select at least one sanction.',
           duplicate_sanctions: 'Duplicate sanctions are not allowed.',
           exceed_already_exists: 'Exceed transaction already exists for this ticket.',
           ticket_refresh_required: 'Ticket does not exist. Please refresh or search again.',
-          sanction_refresh_required: 'One selected sanction does not exist. Refreshing sanctions list.',
+          sanction_refresh_required:
+            'One selected sanction does not exist. Refreshing sanctions list.',
           gate_session_invalid: 'Current session is not linked to a valid gate.',
           user_not_found: 'User was not found for the current session.',
-          failed_register_exceed: 'Failed to register exceed amount.',
+          failed_register_exceed: 'Failed to Collection exceed amount.',
           ticket_lookup_sanctions: 'Search Tickets / Sanctions',
-          ticket_search_placeholder: 'Search by vehicle number, card number, national ID, or ticket code',
+          ticket_search_placeholder:
+            'Search by vehicle number, card number, national ID, or ticket code',
           from_date: 'From Date',
           sort: 'Sort',
           newest: 'Newest',
@@ -426,7 +429,8 @@ type ExitFeedbackTarget = 'validation' | 'openGate' | 'supervisor';
           supervisor_credentials_required: 'Please enter supervisor username and password.',
           no_ticket_for_exit: 'No ticket is linked to this code to complete exit.',
           collect_ticket_missing: 'Cannot collect: no ticket number is available.',
-          nfc_read_failed: 'Could not read the card. Check that the NFC reader is connected and running.',
+          nfc_read_failed:
+            'Could not read the card. Check that the NFC reader is connected and running.',
           select_gate_first: 'Please select a gate first.',
 
           // Collect summary (daily)
@@ -553,7 +557,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       supervisor_credentials_required: 'Please enter supervisor username and password.',
       no_ticket_for_exit: 'No ticket is linked to this code to complete exit.',
       collect_ticket_missing: 'Cannot collect: no ticket number is available.',
-      nfc_read_failed: 'Could not read the card. Check that the NFC reader is connected and running.',
+      nfc_read_failed:
+        'Could not read the card. Check that the NFC reader is connected and running.',
       select_gate_first: 'Please select a gate first.',
     };
     let text = this.dict[this.lang.current]?.[key] ?? fallback[key] ?? key;
@@ -635,6 +640,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // ====== Real-time Search ======
   searchingTickets = false;
   searchResults: TicketDto[] = [];
+  headerTicketSearchText = '';
 
   searchingTicketNumber = false;
 
@@ -662,6 +668,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   supervisorCollectLoading = false;
   showSupervisorCollectModal = false;
   supervisorCollectError: string | null = null;
+  supervisorExceedCollectToken: string | null = null;
 
   // Ticket Details Modal
   showTicketDetailsModal = false;
@@ -1595,6 +1602,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // Real-time search (SearchBlockComponent)
   // =======================
   onSearchTickets(query: string): void {
+    this.headerTicketSearchText = query ?? '';
+
     if (!query?.trim()) {
       this.searchResults = [];
       return;
@@ -1667,7 +1676,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
         this.createMembershipExitTicketAndOpenGate(
           normalized,
-          membership.cardNumber ?? (membership.summary as any)?.cardNumber ?? (membership.summary as any)?.CardNumber ?? undefined,
+          membership.cardNumber ??
+            (membership.summary as any)?.cardNumber ??
+            (membership.summary as any)?.CardNumber ??
+            undefined,
           controllerId,
         );
       },
@@ -1815,7 +1827,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.vehicleValidationResult = null;
     this.lastValidationOpenGateResponse = null;
 
-    this.svc.validateExitByText({ text: trimmed }).subscribe({
+    this.validateExitByTextWithFallback(trimmed).subscribe({
       next: (res) => {
         this.textValidationLoading = false;
         if (res.isValidForExit) {
@@ -1842,6 +1854,26 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         this.processPendingExitValidation();
       },
     });
+  }
+
+  private validateExitByTextWithFallback(text: string) {
+    return this.svc.validateExitByText({ text }).pipe(
+      switchMap((res) => {
+        const fallback = this.getQrCaseFallbackText(text, res);
+        return fallback ? this.svc.validateExitByText({ text: fallback }) : of(res);
+      }),
+    );
+  }
+
+  private getQrCaseFallbackText(text: string, res: ValidateExitByTextResponse): string | null {
+    if (res.isValidForExit || res.ticketId) return null;
+    if (!/^[A-Za-z0-9+/=_-]+$/.test(text) || !/[A-Za-z]/.test(text)) return null;
+
+    const fallback = text.replace(/[A-Za-z]/g, (ch) =>
+      ch === ch.toUpperCase() ? ch.toLowerCase() : ch.toUpperCase(),
+    );
+
+    return fallback !== text ? fallback : null;
   }
 
   private clearExitValidationInput(source: 'validationText' | 'universal'): void {
@@ -1900,7 +1932,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
         this.upsertExitTicketRow(
           result.ticketId!,
-          result.vehicleNumber || result.cardNumber || (result as ValidateExitByTextResponse).inputText || '',
+          result.vehicleNumber ||
+            result.cardNumber ||
+            (result as ValidateExitByTextResponse).inputText ||
+            '',
           result.ticketNumber || result.ticketId!,
           0,
           false,
@@ -1998,7 +2033,9 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   private normalizeExitScanText(value: string): string {
-    let text = String(value ?? '').replace(/[\r\n]+/g, '').trim();
+    let text = String(value ?? '')
+      .replace(/[\r\n]+/g, '')
+      .trim();
 
     const lastExcelQuoteStart = text.lastIndexOf('="');
     if (lastExcelQuoteStart > 0 && lastExcelQuoteStart < text.length - 2) {
@@ -2016,7 +2053,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     text = text.replace(/["'\u201c\u201d\u00ab\u00bb]/g, '').trim();
 
-    text = text.replace(/^[\s"'“”«»]+/, '').replace(/[\s"'“”«»]+$/, '').trim();
+    text = text
+      .replace(/^[\s"'“”«»]+/, '')
+      .replace(/[\s"'“”«»]+$/, '')
+      .trim();
 
     let changed = true;
     while (changed && text.length >= 2) {
@@ -2038,7 +2078,9 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   private normalizeRawSignalRVehicleNumber(value: string | null | undefined): string {
-    return String(value ?? '').replace(/[\r\n]+/g, '').trim();
+    return String(value ?? '')
+      .replace(/[\r\n]+/g, '')
+      .trim();
   }
 
   onConfirmValidationExit(ticketId: string): void {
@@ -2136,7 +2178,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.searchingManual = false;
           this.handleError('scanTicket', err);
         } else {
-           this.fetchSalaryForCard(code);
+          this.fetchSalaryForCard(code);
         }
       },
     });
@@ -2438,11 +2480,17 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   submitSupervisorCollect(): void {
     const user = this.supervisorUsername.trim();
     const pwd = this.supervisorPassword;
-    const gateNumber = this.auth.getGateData()?.gateNumber ?? null;
-    const gateType = this.auth.getGateData()?.gateType ?? null;
+    const gateData = this.gatePeripheral ?? this.auth.getGateData();
+    const gateNumber = gateData?.gateNumber ?? null;
+    const gateType = GateType.Exit;
 
     if (!user || !pwd) {
       this.setFeedback('supervisor', 'supervisor_credentials_required', 'warn');
+      return;
+    }
+
+    if (gateNumber == null) {
+      this.setFeedback('supervisor', 'select_gate_first', 'warn');
       return;
     }
 
@@ -2451,34 +2499,17 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.collectSummary = null;
     this.exceedCollectSummary = null;
 
-    this.svc
-      .collectDailyTicketsAsSupervisor({
+    this.ticketExceedTransactionSvc
+      .startExceedCollectAsSupervisor({
         userName: user,
         password: pwd,
         gateType,
         gateNumber,
       })
-      .pipe(
-        switchMap((ticketSummary: CollectDailyTicketsResponse) =>
-          this.ticketExceedTransactionSvc.collectExceedTransactions().pipe(
-            map((exceedSummary) => ({
-              ticketSummary,
-              exceedSummary,
-            })),
-          ),
-        ),
-      )
       .subscribe({
-        next: ({ ticketSummary, exceedSummary }) => {
-          this.collectSummary = ticketSummary;
-          this.exceedCollectSummary = exceedSummary;
-          this.notify('success', 'admit_done');
-          if (exceedSummary.totalTransactionsCollected > 0) {
-            this.notify('success', 'collectExceedOk');
-          }
-          this.exitTicketAdded = true;
-          this.scannedFile = null; // Clear scan after success
-          this.reloadList();
+        next: (token) => {
+          this.supervisorExceedCollectToken = token;
+          this.auth.updateToken(token);
         },
         error: (err) => {
           if (err?.status === 403) {
@@ -2486,12 +2517,43 @@ export class ExitgateComponent implements OnInit, OnDestroy {
             this.supervisorCollectError = msg;
             this.showToast('error', msg);
           } else {
-            this.handleError('collectDailyTicketsAsSupervisor', err);
+            this.handleError('collectExceedTransactionsAsSupervisor', err);
             this.supervisorCollectError = this.errorExtractor.extractErrorMessage(
               err,
               'فشل الدخول كـ Supervisor. تأكد من البيانات أو الصلاحيات.',
             );
           }
+          this.supervisorCollectLoading = false;
+        },
+        complete: () => {
+          this.supervisorCollectLoading = false;
+        },
+      });
+  }
+
+  confirmSupervisorExceedCollection(): void {
+    if (!this.supervisorExceedCollectToken || this.supervisorCollectLoading) return;
+
+    this.supervisorCollectError = null;
+    this.supervisorCollectLoading = true;
+
+    this.ticketExceedTransactionSvc
+      .collectExceedTransactionsWithToken(this.supervisorExceedCollectToken)
+      .subscribe({
+        next: (exceedSummary) => {
+          this.exceedCollectSummary = exceedSummary;
+          this.notify('success', 'collectExceedOk');
+          this.exitTicketAdded = true;
+          this.scannedFile = null;
+          this.reloadList();
+          this.supervisorCollectLoading = false;
+        },
+        error: (err) => {
+          this.handleError('collectExceedTransactionsWithToken', err);
+          this.supervisorCollectError = this.errorExtractor.extractErrorMessage(
+            err,
+            this.t('printing_failed'),
+          );
           this.supervisorCollectLoading = false;
         },
         complete: () => {
@@ -2514,6 +2576,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.supervisorCollectError = null;
     this.collectSummary = null;
     this.exceedCollectSummary = null;
+    this.supervisorExceedCollectToken = null;
     this.showSupervisorCollectModal = true;
   }
 
@@ -2526,11 +2589,13 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.supervisorCollectError = null;
     this.collectSummary = null;
     this.exceedCollectSummary = null;
+    this.supervisorExceedCollectToken = null;
   }
 
   clearCollectSummaries(): void {
     this.collectSummary = null;
     this.exceedCollectSummary = null;
+    this.supervisorExceedCollectToken = null;
   }
 
   finishSupervisorCollect(): void {

@@ -139,6 +139,46 @@ export class AuthService {
     if (!token) return;
     const store = this.detectStorage();
     store.setItem(TOKEN_KEY, token);
+
+    const payload = this.decodeJwtPayload(token);
+    if (!payload) return;
+
+    const current = this.getStoredUser();
+    const role =
+      payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] ??
+      payload.role ??
+      payload.Role ??
+      current?.role ??
+      '';
+    const rawPermissions = payload.permission ?? payload.permissions ?? current?.permissions ?? [];
+    const permissions = Array.isArray(rawPermissions)
+      ? rawPermissions
+      : rawPermissions
+        ? [String(rawPermissions)]
+        : [];
+    const gateId = payload.gateId ?? payload.GateId ?? current?.gateId ?? null;
+
+    const updated: StoredUser = {
+      role: String(role),
+      permissions,
+      gateDevicePeripheral: current?.gateDevicePeripheral ?? this.gateData ?? null,
+      gateId,
+    };
+
+    store.setItem(USER_KEY, JSON.stringify(updated));
+  }
+
+  private decodeJwtPayload(token: string): any | null {
+    try {
+      const payload = token.split('.')[1];
+      if (!payload) return null;
+
+      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=');
+      return JSON.parse(atob(padded));
+    } catch {
+      return null;
+    }
   }
 
   getStoredUser(): StoredUser | null {

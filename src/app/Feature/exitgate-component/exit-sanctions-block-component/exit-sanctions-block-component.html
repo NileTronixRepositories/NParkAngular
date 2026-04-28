@@ -8,48 +8,7 @@
 
   <div class="card-body">
     <div class="ticket-search">
-      <label class="form-label x-small fw-bold text-primary mb-1">
-        {{ 'search_tickets' | t }}
-      </label>
-      <div class="input-group input-group-sm">
-        <span class="input-group-text"><i class="bi bi-search"></i></span>
-        <input
-          type="text"
-          class="form-control"
-          [ngModel]="searchText"
-          (ngModelChange)="onSearchTextChange($event)"
-          [placeholder]="'ticket_search_placeholder' | t"
-        />
-      </div>
-
-      <div class="row g-2 mt-2">
-        <div class="col-7">
-          <label class="form-label x-small mb-1">{{ 'from_date' | t }}</label>
-          <input
-            type="date"
-            class="form-control form-control-sm"
-            [ngModel]="startDate"
-            (ngModelChange)="onStartDateChange($event)"
-          />
-        </div>
-        <div class="col-5">
-          <label class="form-label x-small mb-1">{{ 'sort' | t }}</label>
-          <select
-            class="form-select form-select-sm"
-            [ngModel]="orderSort"
-            (ngModelChange)="onSortChange($event)"
-          >
-            <option value="Newest">{{ 'newest' | t }}</option>
-            <option value="Oldest">{{ 'oldest' | t }}</option>
-          </select>
-        </div>
-      </div>
-
-      <div class="x-small text-muted mt-2" *ngIf="showingDateLabel">
-        {{ showingDateLabel }}
-      </div>
-
-      <div class="search-results mt-3">
+      <div class="search-results">
         <div *ngIf="isLoading" class="loading-state small text-muted text-center py-3">
           <span class="spinner-border spinner-border-sm me-2"></span>{{ 'searching' | t }}
         </div>
@@ -62,19 +21,19 @@
             [class.selected]="isSelectedTicket(ticket)"
             (click)="selectTicket(ticket)"
           >
-            <div class="d-flex justify-content-between gap-2">
-              <span class="mono fw-bold text-truncate">{{ ticket.uniqueCode }}</span>
-              <span class="badge" [class.bg-info]="ticket.isSubscribe" [class.bg-secondary]="!ticket.isSubscribe">
-                {{ getTicketType(ticket) }}
+            <div class="ticket-result-line">
+              <span class="mono fw-bold ticket-code">{{ ticket.uniqueCode }}</span>
+              <span
+                class="badge ticket-type"
+                [class.bg-info]="ticket.isSubscribe"
+                [class.bg-secondary]="!ticket.isSubscribe"
+              >
+                {{ getTicketType(ticket) | t }}
               </span>
-            </div>
-            <div class="x-small text-muted mt-1">
-              {{ ticket.startDate | date: 'short' }}
-            </div>
-            <div class="ticket-meta x-small mt-1">
-              <span>{{ ticket.vehicleNumber || '-' }}</span>
-              <span>{{ ticket.cardNumber || '-' }}</span>
-              <span>{{ ticket.price | number: '1.2-2' }} {{ 'egp' | t }}</span>
+              <span class="ticket-date">{{ ticket.startDate | date: 'short' }}</span>
+              <span class="ticket-vehicle">{{ ticket.vehicleNumber || '-' }}</span>
+              <span class="ticket-card">{{ ticket.cardNumber || '-' }}</span>
+              <span class="ticket-price">{{ ticket.price | number: '1.2-2' }} {{ 'egp' | t }}</span>
             </div>
           </button>
 
