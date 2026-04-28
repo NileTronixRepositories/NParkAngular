@@ -404,6 +404,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       vehicle_images_attached: 'تم إرفاق صور المركبة',
       printing_failed: 'تعذر إرسال أوامر الطباعة إلى خدمة الطابعة المحلية.',
       printing_sent: 'تم إرسال أوامر الطباعة بنجاح.',
+      collect_receipt_printer_missing: 'طابعة الإيصال غير مفعلة لهذه البوابة.',
       print_options: 'خيارات الطباعة',
       print_qr: 'QR',
       print_receipt: 'الإيصال',
@@ -541,6 +542,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       vehicle_images_attached: 'Vehicle images attached',
       printing_failed: 'Failed to send print jobs to the local printer service.',
       printing_sent: 'Print jobs were sent successfully.',
+      collect_receipt_printer_missing: 'Receipt printer is not configured for this gate.',
       print_options: 'Print options',
       print_qr: 'QR',
       print_receipt: 'Receipt',
@@ -2239,6 +2241,250 @@ export class TicketComponent implements OnInit, OnDestroy {
     </html>`;
   }
 
+  private printCollectSummaryReceipt(summary: CollectDailyTicketsResponse): void {
+    const receiptPrinterName = this.gateConnectionInfo?.receiptPrinterName?.trim();
+
+    if (!receiptPrinterName || !this.printReceiptEnabled) {
+      this.toast.warn(this.t('collect_receipt_printer_missing'));
+      return;
+    }
+
+    this.localPrint
+      .printHtml({
+        printerName: receiptPrinterName,
+        htmlContent: this.buildCollectSummaryReceiptHtml(summary),
+        jobName: `Daily-Collect-${summary.gateId || 'gate'}-${summary.date || Date.now()}`,
+      })
+      .subscribe({
+        next: () => this.toast.success(this.t('printing_sent')),
+        error: (err) => {
+          console.error('[printCollectSummaryReceipt] Print failed', err);
+          this.toast.error(this.t('printing_failed'));
+        },
+      });
+  }
+
+  private buildCollectSummaryReceiptHtml(summary: CollectDailyTicketsResponse): string {
+    const gateName = this.escapePrintHtml(summary.gateName || `${this.t('gate')} ${summary.gateId || '---'}`);
+    const receiptDate = this.formatReceiptDate(summary.date);
+    const totalAmount = Number(summary.totalPriceCollected ?? summary.totalAmount ?? 0);
+    const ticketsCount = Number(summary.totalTicketsCollected ?? summary.ticketCollectDetails?.length ?? 0);
+    const details = summary.ticketCollectDetails || [];
+    const detailRows = details.length
+      ? details
+          .map(
+            (detail) => `
+              <tr>
+                <td style="direction:ltr;text-align:right;">${this.escapePrintHtml(detail.ticketNumber || '---')}</td>
+                <td style="direction:ltr;text-align:center;">${this.formatReceiptDate(detail.collectedAt)}</td>
+                <td style="direction:ltr;text-align:left;">${this.formatReceiptMoney(detail.price)}</td>
+              </tr>
+            `,
+          )
+          .join('')
+      : `
+          <tr>
+            <td colspan="3" style="text-align:center;">لا توجد تفاصيل تذاكر</td>
+          </tr>
+        `;
+
+    return `
+    <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="utf-8" />
+        <title>NPark Daily Collection Receipt</title>
+        <style>
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+          }
+
+          @page {
+            margin: 0;
+            size: 80mm auto;
+          }
+
+          body {
+            width: 80mm;
+            margin: 0;
+            padding: 1.5mm;
+            color: #000;
+            background: #fff;
+            direction: rtl;
+            font-family: Arial, sans-serif;
+            font-weight: 900;
+          }
+
+          .receipt {
+            width: 100%;
+            border: 0.8mm solid #000;
+            border-radius: 1.5mm;
+            padding: 2mm;
+          }
+
+          .header {
+            text-align: center;
+            border-bottom: 0.5mm solid #000;
+            padding-bottom: 1.5mm;
+            margin-bottom: 1.5mm;
+          }
+
+          .title {
+            font-size: 18px;
+            line-height: 1.25;
+          }
+
+          .subtitle {
+            margin-top: 0.5mm;
+            font-size: 11px;
+          }
+
+          .row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 2mm;
+            padding: 1mm 0;
+            border-bottom: 0.2mm solid #000;
+            font-size: 12px;
+          }
+
+          .row span:last-child {
+            direction: ltr;
+            text-align: left;
+          }
+
+          .total {
+            margin: 1.5mm 0;
+            padding: 1.5mm;
+            border: 0.6mm solid #000;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 15px;
+          }
+
+          table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1.5mm;
+            font-size: 10px;
+          }
+
+          th,
+          td {
+            border-bottom: 0.2mm solid #000;
+            padding: 1mm 0.5mm;
+          }
+
+          th {
+            font-size: 10px;
+            text-align: right;
+          }
+
+          .footer {
+            text-align: center;
+            font-size: 10px;
+            margin-top: 1.5mm;
+            padding-top: 1mm;
+            border-top: 0.3mm dashed #000;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt">
+          <div class="header">
+            <div class="title">إيصال تحصيل اليوم</div>
+            <div class="subtitle">NPark Management System</div>
+          </div>
+
+          <div class="row">
+            <span>البوابة:</span>
+            <span>${gateName}</span>
+          </div>
+          <div class="row">
+            <span>تاريخ التحصيل:</span>
+            <span>${receiptDate}</span>
+          </div>
+          <div class="row">
+            <span>عدد التذاكر:</span>
+            <span>${ticketsCount}</span>
+          </div>
+
+          <div class="total">
+            <span>الإجمالي:</span>
+            <span style="direction:ltr;">${this.formatReceiptMoney(totalAmount)}</span>
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>التذكرة</th>
+                <th style="text-align:center;">الوقت</th>
+                <th style="text-align:left;">المبلغ</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${detailRows}
+            </tbody>
+          </table>
+
+          <div class="footer">
+            www.niletronix.com
+          </div>
+        </div>
+      </body>
+    </html>`;
+  }
+
+  private formatReceiptDate(value: string | null | undefined): string {
+    if (!value) {
+      return new Date().toLocaleString('ar-EG', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    }
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return this.escapePrintHtml(value);
+
+    return date.toLocaleString('ar-EG', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
+  private formatReceiptMoney(value: number | null | undefined): string {
+    return `${Number(value || 0).toFixed(2)} ج.م`;
+  }
+
+  private escapePrintHtml(value: string): string {
+    return value.replace(/[&<>"']/g, (char) => {
+      switch (char) {
+        case '&':
+          return '&amp;';
+        case '<':
+          return '&lt;';
+        case '>':
+          return '&gt;';
+        case '"':
+          return '&quot;';
+        case "'":
+          return '&#39;';
+        default:
+          return char;
+      }
+    });
+  }
+
   private resetIssuedTicketOutput(): void {
     this.currentIssuedQr = null;
     this.currentIssuedQrType = null;
@@ -2268,6 +2514,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       next: (res) => {
         this.collectSummary = res;
         this.toast.success(this.t('admit_done'));
+        this.printCollectSummaryReceipt(res);
         this.loadTicketsForEntry();
       },
       error: (err) => {
@@ -2307,6 +2554,7 @@ export class TicketComponent implements OnInit, OnDestroy {
         next: (res) => {
           this.collectSummary = res;
           this.toast.success(this.t('admit_done'));
+          this.printCollectSummaryReceipt(res);
           this.loadTicketsForEntry();
         },
         error: (err) => {

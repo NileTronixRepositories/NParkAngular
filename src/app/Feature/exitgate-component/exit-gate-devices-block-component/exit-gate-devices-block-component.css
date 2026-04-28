@@ -28,12 +28,189 @@
   font-family: 'SF Mono', 'Segoe UI Mono', 'Roboto Mono', monospace;
 }
 
-.devices-empty-space {
-  min-height: 140px;
+.header-vehicle {
+  max-width: 180px;
+  line-height: 1.1;
+}
+
+.header-vehicle-label {
+  color: #2563eb;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.header-vehicle-value {
+  color: #0f172a;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.camera-snapshot-btn {
+  min-width: 28px;
+  min-height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .x-small {
   font-size: 9.5px !important;
+}
+
+.btn-xs {
+  padding: 0.1rem 0.32rem;
+  font-size: 9.5px;
+}
+
+.scanned-card-premium {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s ease;
+}
+
+.preview-box {
+  background: #fcfcfc;
+  position: relative;
+  transition: height 0.3s ease;
+}
+
+.preview-box-button {
+  cursor: zoom-in;
+  padding: 0;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.preview-box-button:hover {
+  border-color: #2563eb !important;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.2);
+}
+
+.scanned-preview-box {
+  height: clamp(190px, 30vh, 360px);
+}
+
+.preview-media {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.scan-preview-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 12000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(0.75rem, 3vw, 2rem);
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.scan-preview-dialog {
+  width: min(820px, calc(100vw - 2rem));
+  max-height: min(92vh, 820px);
+  border: 1px solid rgba(226, 232, 240, 0.95);
+  border-radius: 10px;
+  background: #ffffff;
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.34);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.scan-preview-header {
+  min-height: 42px;
+  padding: 0.45rem 0.65rem;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  background: #ffffff;
+  flex: 0 0 auto;
+}
+
+.scan-preview-title {
+  min-width: 0;
+  flex: 1 1 auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: #0f172a;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.2;
+  overflow: hidden;
+}
+
+.scan-preview-title span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.scan-preview-close {
+  width: 28px;
+  height: 28px;
+  flex: 0 0 auto;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #ffffff;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.scan-preview-body {
+  min-height: 220px;
+  height: min(74vh, 700px);
+  padding: 0.75rem;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.scan-preview-body img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  background: #000000;
+}
+
+.uploaded-images-card {
+  border-color: #dbeafe !important;
+  background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
+}
+
+.uploaded-image-row {
+  padding: 0.3rem 0.45rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  cursor: pointer;
+  transition:
+    border-color 0.2s ease,
+    background-color 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.uploaded-image-row:hover {
+  border-color: #93c5fd;
+  background: #f8fbff;
+}
+
+.uploaded-image-row.preview-selected {
+  border-color: #2563eb;
+  background: #eff6ff;
+  box-shadow: inset 0 0 0 1px rgba(37, 99, 235, 0.12);
 }
 
 .theme-green {
@@ -74,7 +251,29 @@
   line-height: 1.1;
 }
 
+:host textarea.form-control {
+  resize: none;
+  line-height: 1.4;
+  overflow: hidden;
+}
+
 @media (max-width: 575.98px) {
+  .scan-preview-modal {
+    padding: 0.6rem;
+  }
+
+  .scan-preview-dialog {
+    width: calc(100vw - 1.2rem);
+    max-height: 84vh;
+    border-radius: 9px;
+  }
+
+  .scan-preview-body {
+    min-height: 180px;
+    height: 56vh;
+    padding: 0.45rem;
+  }
+
   :host .card-header {
     padding: 0.32rem 0.45rem !important;
   }
@@ -85,10 +284,6 @@
 
   :host .card-body {
     padding: 0.38rem !important;
-  }
-
-  :host .device-row {
-    margin-bottom: 0.35rem !important;
   }
 
   .x-small {

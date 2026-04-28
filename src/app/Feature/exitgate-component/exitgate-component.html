@@ -29,7 +29,7 @@
       </div>
 
       <!-- Quick Search in Header -->
-      <div class="ms-md-auto me-md-3 search-header-container">
+      <div class="ms-md-auto me-md-3 search-header-container" data-scanner-focus-stop="true">
         <app-search-block-component
           [isCompact]="true"
           [placeholder]="t('search_tickets_placeholder')"
@@ -53,22 +53,80 @@
     </div>
   </div>
 
-  <!-- 4-block grid: xs=1col | md=2col | xl=3col -->
-  <div class="row g-2 g-lg-3">
+  <div class="gate-flow-panel mb-2">
+    <div class="gate-quick-strip shadow-soft">
+      <div class="gate-strip-section gate-strip-info">
+        <div class="gate-connection-line">
+          <h6 class="mb-0 fw-bold d-flex align-items-center gap-2 gate-connection-title">
+            <i class="bi bi-router text-primary"></i> {{ t('gate_info') }}
+          </h6>
+          <span class="spinner-border spinner-border-sm" *ngIf="gateConnectionLoading"></span>
+        </div>
+
+        <div class="alert alert-danger py-1 px-2 x-small mb-0" *ngIf="gateConnectionError">
+          {{ gateConnectionError }}
+        </div>
+
+        <div class="gate-info-grid" *ngIf="gateConnectionInfo as info">
+          <div class="gate-info-item">
+            <span>{{ t('pc_device') }}</span>
+            <strong class="mono">{{ info.pcIp || '--' }}</strong>
+          </div>
+
+          <div class="gate-info-item">
+            <span>{{ t('lpr_device') }}</span>
+            <strong class="mono">{{ info.lprIp || '--' }}</strong>
+          </div>
+
+          <div
+            class="gate-info-item printer-info-item"
+            [class.printer-on]="info.hasQrPrinterName"
+            [class.printer-off]="!info.hasQrPrinterName"
+          >
+            <span>{{ t('print_qr') }}</span>
+            <strong class="text-truncate">{{
+              info.hasQrPrinterName ? info.qrPrinterName || '--' : '--'
+            }}</strong>
+          </div>
+
+          <div
+            class="gate-info-item printer-info-item"
+            [class.printer-on]="info.hasReceiptPrinterName"
+            [class.printer-off]="!info.hasReceiptPrinterName"
+          >
+            <span>{{ t('print_receipt') }}</span>
+            <strong class="text-truncate">{{
+              info.hasReceiptPrinterName ? info.receiptPrinterName || '--' : '--'
+            }}</strong>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Responsive workspace grid -->
+  <div class="exit-workspace-grid">
     <!-- Block 1: Gate Devices -->
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="exit-workspace-panel">
       <app-exit-gate-devices-block-component
         [gatePeripheral]="gatePeripheral"
         [scannedFile]="scannedFile"
+        [cameraSnapshotLoading]="snapshotLoading"
+        [cameraSnapshotDisabled]="!gateConnectionInfo?.onvifCameraSetting?.url"
+        [cameraSnapshotTitle]="snapshotError || t('take_snapshot')"
         (searchTicketNumber)="onSearchTicketNumber($event)"
         (vehicleDetected)="onDetectedVehicleNumber($event)"
+        (cameraSnapshotClick)="retrySnapshot()"
+        (scannedFileCleared)="clearScannedFile()"
       ></app-exit-gate-devices-block-component>
     </div>
 
     <!-- Block 2: Exit Validation -->
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="exit-workspace-panel">
       <app-exit-validation-block-component
         [detectedVehicleNumber]="detectedVehicleNumber"
+        [lprListening]="lprSignalRConnected"
+        [lprError]="lprSignalRError"
         [vehicleValidationLoading]="vehicleValidationLoading"
         [textValidationLoading]="textValidationLoading || lprMembershipLoading"
         [openGateLoading]="validationOpenGateLoading || addingExitTicket"
@@ -87,15 +145,17 @@
     </div>
 
     <!-- Block 3: Sanctions -->
-    <div class="col-12 col-md-6 col-xl-3">
+    <div class="exit-workspace-panel">
       <app-exit-sanctions-block-component
         [allSanctions]="allSanctions"
         [selectedSanctionIds]="selectedSanctionIds"
         [selectedTicket]="selectedTicketForExceed"
         [registeringExceed]="registeringExceed"
         [isExceedRegistered]="isExceedRegistered"
+        [isExceedAlreadyExists]="isExceedAlreadyExists"
         [exceedAmount]="exceedAmount"
         [totalPriceAfterExceed]="totalPriceAfterExceed"
+        [summary]="ticketExceedTransaction"
         [exitLoading]="exitSelectedTicketLoading"
         (ticketSelected)="onExceedTicketSelected($event)"
         (toggleSanction)="onToggleSanction($event)"
@@ -105,7 +165,7 @@
     </div>
 
     <!-- Block 4: Tickets Table -->
-    <div class="col-12 col-xl-3">
+    <div class="exit-workspace-panel">
       <app-exit-tickets-table-block-component
         [tickets]="filtered"
         [page]="page"
@@ -113,6 +173,7 @@
         [loading]="loading"
         [totalPriceToday]="totalPriceToday"
         [collectSummary]="collectSummary"
+        [exceedCollectSummary]="exceedCollectSummary"
         [collectLoading]="collectLoading"
         [supervisorCollectLoading]="supervisorCollectLoading"
         [supervisorCollectError]="supervisorCollectError"
@@ -121,7 +182,7 @@
         [supervisorPassword]="supervisorPassword"
         (pageChange)="page = $event"
         (collectClick)="onCollectClick()"
-        (collectSummaryClose)="collectSummary = null"
+        (collectSummaryClose)="clearCollectSummaries()"
         (supervisorUsernameChange)="supervisorUsername = $event"
         (supervisorPasswordChange)="supervisorPassword = $event"
         (submitSupervisorCollect)="submitSupervisorCollect()"
@@ -134,7 +195,7 @@
 
   <!-- Supervisor Login Modal (Global Context Shared) -->
   <app-supervisor-modal-block-component
-    [show]="showSupervisorCollectModal && !collectSummary"
+    [show]="showSupervisorCollectModal && !collectSummary && !exceedCollectSummary"
     [loading]="supervisorCollectLoading"
     [error]="supervisorCollectError"
     [(username)]="supervisorUsername"

@@ -1,36 +1,77 @@
-<div class="card h-100 shadow-soft gate-devices-card">
-  <div class="card-header bg-transparent border-bottom py-2 px-3">
+<div class="card h-100 shadow-soft border-0 gate-devices-card">
+  <div class="card-header bg-transparent border-bottom p-2 px-3">
     <div class="d-flex justify-content-between align-items-center gap-2">
-    <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
-      <i class="bi bi-hdd-network"></i> {{ 'gate_devices' | t }}
-    </h6>
-    <div class="x-small text-muted">{{ 'devices_status' | t }}</div>
+      <div class="min-w-0 d-flex flex-column gap-1">
+        <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
+          <i class="bi bi-hdd-network text-primary"></i> {{ 'gate_devices' | t }}
+        </h6>
+        <div
+          class="header-vehicle d-inline-flex align-items-center gap-1 min-w-0"
+          *ngIf="headerVehicleNumber"
+        >
+          <span class="header-vehicle-label">{{ 'vehicle_number' | t }}</span>
+          <span class="header-vehicle-value mono text-truncate">{{ headerVehicleNumber }}</span>
+        </div>
+      </div>
+      <div class="x-small text-muted flex-shrink-0">{{ 'devices_status' | t }}</div>
+    </div>
+  </div>
+
+  <div class="d-flex align-items-center justify-content-between gap-2 mb-1 px-1 mt-3">
+    <label class="form-label x-small fw-bold text-muted text-uppercase mb-0">
+      {{ t('vehicle_images') }}
+    </label>
+    <button
+      type="button"
+      class="btn btn-outline-primary btn-xs camera-snapshot-btn"
+      (click)="onCameraSnapshotClick()"
+      [disabled]="cameraSnapshotLoading || cameraSnapshotDisabled"
+      [title]="cameraSnapshotTitle || t('take_snapshot')"
+    >
+      <i class="bi bi-camera" *ngIf="!cameraSnapshotLoading"></i>
+      <span class="spinner-border spinner-border-sm" *ngIf="cameraSnapshotLoading"></span>
+    </button>
+  </div>
+
+  <div class="scanned-card-premium mt-2 rounded-3 border overflow-hidden mx-2" *ngIf="scannedFile">
+    <div class="bg-dark text-white p-1 px-2 x-small d-flex align-items-center gap-2">
+      <i class="bi bi-file-earmark-check"></i>
+      <span>{{ t('scanner_ready') }}</span>
+    </div>
+    <div class="p-1">
+      <button
+        *ngIf="scannedFile.type.startsWith('image/'); else scannedDocumentPreview"
+        type="button"
+        class="preview-box preview-box-button scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
+        (click)="openScannedPreview()"
+        [attr.aria-label]="scannedFile.name"
+      >
+        <img [src]="scannedFile.safeUrl" class="preview-media" alt="Preview" />
+      </button>
+
+      <ng-template #scannedDocumentPreview>
+        <div
+          class="preview-box scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden"
+        >
+          <iframe
+            *ngIf="scannedFile.type === 'application/pdf'"
+            [src]="scannedFile.safeUrl"
+            class="w-100 h-100 border-0"
+          ></iframe>
+          <div
+            *ngIf="!scannedFile.type.startsWith('image/') && scannedFile.type !== 'application/pdf'"
+            class="text-danger text-center py-2"
+          >
+            <i class="bi bi-file-earmark-pdf fs-2"></i>
+            <div class="x-small fw-bold text-uppercase">{{ scannedFile.type.split('/')[1] }}</div>
+          </div>
+        </div>
+      </ng-template>
     </div>
   </div>
 
   <div class="card-body p-2">
     <ng-container *ngIf="gatePeripheral as gp; else noGateDevices">
-      <!-- PC Device -->
-      <div class="device-row p-1 mb-1 rounded-2 border">
-        <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
-          <div class="d-flex align-items-center gap-2">
-            <i class="bi bi-pc-display text-secondary x-small"></i>
-            <span class="device-name x-small fw-bold">{{ 'pc_device' | t }}</span>
-          </div>
-          <span
-            class="badge pill x-small"
-            [class.theme-green]="gp.hasPc"
-            [class.theme-red]="!gp.hasPc"
-          >
-            {{ gp.hasPc ? ('device_connected' | t) : ('device_not_connected' | t) }}
-          </span>
-        </div>
-        <div class="mt-0" *ngIf="gp.pcIp">
-          <span class="device-ip mono x-small text-muted py-0 px-1">{{ gp.pcIp }}</span>
-        </div>
-      </div>
-
-      <!-- LPR Device -->
       <div class="device-row p-1 mb-2 rounded-2 border">
         <div class="d-flex justify-content-between align-items-center flex-wrap gap-1">
           <div class="d-flex align-items-center gap-2">
@@ -45,12 +86,68 @@
             {{ gp.hasLpr ? ('device_connected' | t) : ('device_not_connected' | t) }}
           </span>
         </div>
-        <div class="mt-0" *ngIf="gp.lprIp">
-          <span class="device-ip mono x-small text-muted py-0 px-1">{{ gp.lprIp }}</span>
+
+        <div class="d-flex align-items-center gap-1 mt-1">
+          <div class="input-group input-group-sm">
+            <textarea
+              rows="1"
+              class="form-control form-control-sm mono text-center x-small py-0"
+              [ngModel]="manualPlate"
+              (ngModelChange)="onManualPlateChange($event)"
+              (keydown)="onManualPlateKeydown($event)"
+              [placeholder]="t('plate')"
+            ></textarea>
+            <button
+              class="btn btn-primary btn-xs px-2"
+              type="button"
+              (click)="submitManualPlate()"
+              [disabled]="!canSubmitManualPlate"
+            >
+              <i class="bi bi-send-fill" *ngIf="!manualPlateSubmitting"></i>
+              <span *ngIf="manualPlateSubmitting" class="spinner-border spinner-border-sm"></span>
+            </button>
+          </div>
         </div>
       </div>
 
-      <div class="devices-empty-space border-top mt-2"></div>
+      <div
+        class="uploaded-images-card mt-2 rounded-3 border p-2 bg-white"
+        *ngIf="attachedVehicleImages.length"
+      >
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+          <div class="x-small fw-bold text-primary">
+            {{ t('vehicle_images_attached') }}
+          </div>
+          <span class="badge pill theme-green">{{ attachedVehicleImages.length }}</span>
+        </div>
+
+        <div class="d-flex flex-column gap-1">
+          <div
+            class="uploaded-image-row d-flex align-items-center justify-content-between gap-2"
+            *ngFor="let file of attachedVehicleImages"
+            [class.preview-selected]="isPreviewSelected(file.url)"
+            (click)="selectScannedPreview()"
+          >
+            <div class="min-w-0 d-flex align-items-center gap-2">
+              <i
+                class="bi"
+                [class.bi-eye-fill]="isPreviewSelected(file.url)"
+                [class.bi-paperclip]="!isPreviewSelected(file.url)"
+                [class.text-primary]="isPreviewSelected(file.url)"
+                [class.text-muted]="!isPreviewSelected(file.url)"
+              ></i>
+              <span class="x-small text-truncate">{{ file.name }}</span>
+            </div>
+            <button
+              type="button"
+              class="btn btn-outline-danger btn-xs"
+              (click)="clearScannedFile($event)"
+            >
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+      </div>
     </ng-container>
 
     <ng-template #noGateDevices>
@@ -59,5 +156,31 @@
         <div class="x-small text-muted">{{ 'no_gate_devices' | t }}</div>
       </div>
     </ng-template>
+  </div>
+</div>
+
+<div
+  class="scan-preview-modal"
+  *ngIf="scannedPreviewOpen && scannedFile?.type?.startsWith('image/')"
+  (click)="closeScannedPreview()"
+>
+  <div class="scan-preview-dialog" (click)="$event.stopPropagation()">
+    <div class="scan-preview-header">
+      <div class="scan-preview-title text-truncate">
+        <i class="bi bi-image text-primary"></i>
+        <span dir="ltr">{{ scannedFile?.name }}</span>
+      </div>
+      <button
+        type="button"
+        class="scan-preview-close"
+        (click)="closeScannedPreview()"
+        aria-label="Close preview"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </div>
+    <div class="scan-preview-body">
+      <img [src]="scannedFile?.safeUrl" alt="Preview" />
+    </div>
   </div>
 </div>

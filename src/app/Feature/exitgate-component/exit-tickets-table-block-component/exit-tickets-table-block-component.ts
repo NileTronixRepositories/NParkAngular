@@ -1,5 +1,6 @@
 import { Component, EventEmitter, Input, Output, ChangeDetectionStrategy } from '@angular/core';
 import { TicketDto, CollectDailyTicketsResponse } from '../../../Domain/tickets/tickets.model';
+import { CollectExceedTransactionsResponse } from '../../../Domain/TicketExceedTransaction/ticket-exceed-transaction.models';
 import { TranslatePipePipe } from '../../../Services/i18n/translate-pipe-pipe';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -22,6 +23,7 @@ export class ExitTicketsTableBlockComponent {
   @Input() totalPriceToday = 0;
 
   @Input() collectSummary: CollectDailyTicketsResponse | null = null;
+  @Input() exceedCollectSummary: CollectExceedTransactionsResponse | null = null;
   @Input() collectLoading = false;
   @Input() supervisorCollectLoading = false;
   @Input() supervisorCollectError: string | null = null;
@@ -62,6 +64,10 @@ export class ExitTicketsTableBlockComponent {
   get pagesCount(): number {
     const total = this.tickets?.length ?? 0;
     return Math.max(1, Math.ceil(total / this.pageSize || 1));
+  }
+
+  get hasCollectSummary(): boolean {
+    return !!this.collectSummary || !!this.exceedCollectSummary;
   }
 
   get canGoPrev(): boolean {

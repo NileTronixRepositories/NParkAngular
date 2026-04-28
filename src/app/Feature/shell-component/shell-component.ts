@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnDestroy, computed, inject, signal } from '@angular/core';
+import { Component, HostListener, OnDestroy, computed, inject, signal } from '@angular/core';
 import { NavigationEnd, Router, RouterModule, RouterOutlet } from '@angular/router';
 
 import { Subscription } from 'rxjs';
@@ -73,10 +73,16 @@ export class ShellComponent implements OnDestroy {
   isRTL = computed(() => this.i18n.isRTL());
 
   // Sidebar collapse state
-  sidebarCollapsed = signal(typeof window !== 'undefined' ? window.innerWidth <= 768 : false);
+  private viewportWidth = signal(typeof window !== 'undefined' ? window.innerWidth : 1440);
+  sidebarCollapsed = signal(this.viewportWidth() <= 1199);
   currentUrl = signal(this.router.url);
   effectiveSidebarCollapsed = computed(
-    () => this.sidebarCollapsed() || (this.isEntryRoute() && !this.isAdmin),
+    () =>
+      !this.isAdmin ||
+      this.sidebarCollapsed() ||
+      this.viewportWidth() <= 1199 ||
+      this.isExitRoute() ||
+      (this.isEntryRoute() && !this.isAdmin),
   );
 
   gateOpen = false;
@@ -89,6 +95,12 @@ export class ShellComponent implements OnDestroy {
         this.gateOpen = false;
       }
     });
+  }
+
+  @HostListener('window:resize')
+  onWindowResize(): void {
+    if (typeof window === 'undefined') return;
+    this.viewportWidth.set(window.innerWidth);
   }
 
   // ===== Roles helpers =====
@@ -116,12 +128,16 @@ export class ShellComponent implements OnDestroy {
     return this.currentUrl().startsWith('/tickets/entry');
   }
 
+  isExitRoute(): boolean {
+    return this.currentUrl().startsWith('/tickets/exit');
+  }
+
   toggleGate() {
     this.gateOpen = !this.gateOpen;
   }
 
   toggleSidebar() {
-    if (this.isEntryRoute() && !this.isAdmin) return;
+    if (!this.isAdmin) return;
     this.sidebarCollapsed.update((v) => !v);
   }
 

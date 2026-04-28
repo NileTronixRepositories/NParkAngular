@@ -59,11 +59,20 @@ export class LprSignalRService {
     if (!this.conn) return;
 
     this.conn.off('lprVehicleDetected');
-    this.conn.on('lprVehicleDetected', (payload: LprVehicleDetectedEvent) => {
+    this.conn.on('lprVehicleDetected', (payload: LprVehicleDetectedEvent | any) => {
       console.log('[RAW LPR SignalR Payload]', payload);
-      console.log('[RAW LPR SignalR VehicleNumber]', payload?.vehicleNumber);
-      if (!payload?.gateId || !payload?.vehicleNumber) return;
-      this.vehicleDetectedSubject.next(payload);
+      console.log(
+        '[RAW LPR SignalR VehicleNumber]',
+        payload?.vehicleNumber ?? payload?.VehicleNumber,
+      );
+
+      const event: LprVehicleDetectedEvent = {
+        gateId: payload?.gateId ?? payload?.GateId ?? '',
+        vehicleNumber: payload?.vehicleNumber ?? payload?.VehicleNumber ?? '',
+      };
+
+      if (!event.gateId || !event.vehicleNumber) return;
+      this.vehicleDetectedSubject.next(event);
     });
   }
 }

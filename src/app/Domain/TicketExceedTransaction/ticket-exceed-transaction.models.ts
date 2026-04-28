@@ -15,3 +15,24 @@ export interface CreateTicketExceedTransactionResponse {
   sanctionIds: string[];
   createdAt: string;
 }
+
+export interface CollectExceedTransactionDetail {
+  transactionId: string;
+  ticketIdSnapshot: string;
+  ticketUniqueCode: string;
+  transactionCreatedAt: string;
+  supervisorCollectedAt: string;
+  ticketPrice: number;
+  ticketOldExceedPrice: number;
+  exceedAmount: number;
+  totalPriceAfterExceed: number;
+  vehicleNumber: string | null;
+  cardNumber: string | null;
+  isSubscriber: boolean;
+}
+
+export interface CollectExceedTransactionsResponse {
+  totalExceedAmountCollected: number;
+  totalTransactionsCollected: number;
+  ticketExceedCollectDetails: CollectExceedTransactionDetail[];
+}

@@ -52,7 +52,7 @@
         type="button"
         (click)="onCollectClick()"
         [disabled]="collectLoading || supervisorCollectLoading"
-        *ngIf="!collectSummary"
+        *ngIf="!hasCollectSummary"
       >
         <span
           *ngIf="!collectLoading && !supervisorCollectLoading"
@@ -69,7 +69,7 @@
 
       <!-- Inline Collection Summary After Login -->
       <div
-        *ngIf="collectSummary"
+        *ngIf="hasCollectSummary"
         class="summary-container-inline animate__animated animate__fadeIn"
       >
         <div class="d-flex justify-content-between align-items-center mb-2">
@@ -85,7 +85,7 @@
           </button>
         </div>
 
-        <div class="summary-stats-inline p-2 mb-2">
+        <div class="summary-stats-inline p-2 mb-2" *ngIf="collectSummary">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <span class="text-muted small">{{ 'total_collected_amount' | t }}</span>
             <span class="fw-bold text-primary mono">
@@ -101,9 +101,29 @@
           </div>
         </div>
 
+        <div class="summary-stats-inline p-2 mb-2" *ngIf="exceedCollectSummary">
+          <div class="x-small fw-bold text-success mb-2">
+            {{ 'exceed_collect_summary' | t }}
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center mb-2">
+            <span class="text-muted small">{{ 'total_exceed_collected_amount' | t }}</span>
+            <span class="fw-bold text-primary mono">
+              {{ exceedCollectSummary.totalExceedAmountCollected | number: '1.0-2' }}
+            </span>
+          </div>
+
+          <div class="d-flex justify-content-between align-items-center">
+            <span class="text-muted small">{{ 'total_exceed_collected_transactions' | t }}</span>
+            <span class="fw-bold mono">
+              {{ exceedCollectSummary.totalTransactionsCollected }}
+            </span>
+          </div>
+        </div>
+
         <div
           class="table-responsive collect-summary-table-inline mb-3"
-          *ngIf="collectSummary.ticketCollectDetails?.length"
+          *ngIf="collectSummary?.ticketCollectDetails?.length"
         >
           <table class="table table-sm mb-0">
             <thead>
@@ -113,7 +133,7 @@
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let d of collectSummary.ticketCollectDetails">
+              <tr *ngFor="let d of collectSummary?.ticketCollectDetails">
                 <td class="mono x-small">
                   <div class="d-flex flex-column">
                     <span>{{ d.ticketNumber }}</span>
@@ -123,6 +143,35 @@
                   </div>
                 </td>
                 <td class="mono text-end align-middle x-small">{{ d.price | number: '1.0-2' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div
+          class="table-responsive collect-summary-table-inline mb-3"
+          *ngIf="exceedCollectSummary?.ticketExceedCollectDetails?.length"
+        >
+          <table class="table table-sm mb-0">
+            <thead>
+              <tr class="x-small text-muted text-uppercase">
+                <th>{{ 'tickets' | t }}</th>
+                <th class="text-end">{{ 'fees' | t }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let d of exceedCollectSummary?.ticketExceedCollectDetails">
+                <td class="mono x-small">
+                  <div class="d-flex flex-column">
+                    <span>{{ d.ticketUniqueCode || d.ticketIdSnapshot }}</span>
+                    <span class="text-muted" style="font-size: 8px">{{
+                      d.supervisorCollectedAt | date: 'shortTime'
+                    }}</span>
+                  </div>
+                </td>
+                <td class="mono text-end align-middle x-small">
+                  {{ d.exceedAmount | number: '1.0-2' }}
+                </td>
               </tr>
             </tbody>
           </table>

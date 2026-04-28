@@ -8,7 +8,7 @@
   <div class="card-body">
     <div class="validation-section mb-4">
       <h6 class="section-title small text-primary fw-bold mb-2">
-        <i class="bi bi-keyboard"></i> {{ 'manual_validation' | t }}
+        <!-- <i class="bi bi-keyboard"></i> {{ 'manual_validation' | t }} -->
       </h6>
       <div class="mb-2">
         <textarea
@@ -31,6 +31,40 @@
         <i class="bi bi-lightning-charge text-primary"></i>
         <span>{{ 'auto_validation_hint' | t }}</span>
       </div>
+      <!-- <div
+        class="lpr-detection-card mt-2"
+        [class.lpr-error]="!!lprError"
+        [class.lpr-ready]="lprListening && !lprError"
+      >
+        <div class="d-flex align-items-center justify-content-between gap-2">
+          <div class="d-flex align-items-center gap-2 min-w-0">
+            <i
+              class="bi"
+              [class.bi-camera-video]="!lprError"
+              [class.bi-exclamation-triangle]="!!lprError"
+              [class.text-primary]="!lprError"
+              [class.text-danger]="!!lprError"
+            ></i>
+            <span class="x-small fw-bold">{{ 'lpr_detection' | t }}</span>
+          </div>
+          <span class="spinner-border spinner-border-sm text-primary" *ngIf="vehicleValidationLoading"></span>
+          <span class="lpr-status-pill" *ngIf="!vehicleValidationLoading && lprListening && !lprError">
+            {{ 'listening' | t }}
+          </span>
+        </div>
+        <div class="x-small mt-1" *ngIf="lprError; else lprStatus">
+          {{ lprError }}
+        </div>
+        <ng-template #lprStatus>
+          <div class="x-small text-muted mt-1" *ngIf="!detectedVehicleNumber">
+            {{ 'waiting_lpr_vehicle' | t }}
+          </div>
+        </ng-template>
+        <div class="d-flex align-items-center justify-content-between gap-2 mt-1" *ngIf="detectedVehicleNumber">
+          <span class="x-small text-muted">{{ 'detected_vehicle_number' | t }}</span>
+          <span class="mono fw-bold text-truncate">{{ detectedVehicleNumber }}</span>
+        </div>
+      </div> -->
       <div
         class="last-submitted-text x-small d-flex align-items-center justify-content-between gap-2 mt-1"
         *ngIf="submittedText"

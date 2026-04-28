@@ -2,6 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnDestroy, OnInit, Output, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { SanctionDto } from '../../../Domain/Sanction/sanction.models';
+import { CreateTicketExceedTransactionResponse } from '../../../Domain/TicketExceedTransaction/ticket-exceed-transaction.models';
 import {
   OrderSort,
   SearchTicketRequest,
@@ -32,8 +33,10 @@ export class ExitSanctionsBlockComponent implements OnInit, OnDestroy {
   @Input() selectedTicket: SearchTicketResponse | null = null;
   @Input() registeringExceed = false;
   @Input() isExceedRegistered = false;
+  @Input() isExceedAlreadyExists = false;
   @Input() exceedAmount = 0;
   @Input() totalPriceAfterExceed = 0;
+  @Input() summary: CreateTicketExceedTransactionResponse | null = null;
   @Input() exitLoading = false;
 
   @Output() ticketSelected = new EventEmitter<SearchTicketResponse>();
@@ -62,6 +65,7 @@ export class ExitSanctionsBlockComponent implements OnInit, OnDestroy {
     return (
       this.registeringExceed ||
       this.isExceedRegistered ||
+      this.isExceedAlreadyExists ||
       !this.selectedTicket ||
       this.selectedSanctionIds.length === 0
     );
@@ -73,6 +77,10 @@ export class ExitSanctionsBlockComponent implements OnInit, OnDestroy {
 
   get canExit(): boolean {
     return !!this.selectedTicket && this.isExceedRegistered && !this.exitLoading;
+  }
+
+  get summaryCreatedAt(): string | null {
+    return this.summary?.createdAt ?? null;
   }
 
   ngOnInit(): void {
@@ -143,7 +151,10 @@ export class ExitSanctionsBlockComponent implements OnInit, OnDestroy {
   }
 
   onToggleSanction(id: string): void {
-    if (!id || this.registeringExceed || this.isExceedRegistered) return;
+    if (!id || this.registeringExceed || this.isExceedRegistered || this.isExceedAlreadyExists) {
+      return;
+    }
+
     this.toggleSanction.emit(id);
   }
 

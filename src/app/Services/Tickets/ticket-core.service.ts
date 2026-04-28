@@ -150,12 +150,40 @@ export class TicketCoreService {
     const body = { ticketId };
 
     return this.http.post<any>(this.endpoint('ExitTicket'), body).pipe(
-      map(() => true),
+      map((res) => this.isSuccessResponse(res)),
       catchError((err) => {
         this.logError('POST /Ticket/ExitTicket', err);
         return throwError(() => err);
       }),
     );
+  }
+
+  private isSuccessResponse(res: any): boolean {
+    if (res == null || res === '') return true;
+    if (res === true) return true;
+
+    if (typeof res === 'string') {
+      return res.trim().toLowerCase() === 'success';
+    }
+
+    const raw =
+      res.success ??
+      res.Success ??
+      res.isSuccess ??
+      res.IsSuccess ??
+      res.succeeded ??
+      res.Succeeded ??
+      res.status ??
+      res.Status ??
+      res.result ??
+      res.Result ??
+      res.message ??
+      res.Message;
+
+    if (typeof raw === 'boolean') return raw;
+    if (typeof raw === 'string') return raw.trim().toLowerCase() === 'success';
+
+    return false;
   }
 
   // ========= Entry / Exit lists =========

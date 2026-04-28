@@ -40,6 +40,11 @@ export class ExitGateDevicesBlockComponent {
   @Output() ticketSelected = new EventEmitter<TicketDto>();
   @Output() searchTicketNumber = new EventEmitter<string>();
   @Output() vehicleDetected = new EventEmitter<string>();
+  @Output() scannedFileCleared = new EventEmitter<void>();
+  @Input() cameraSnapshotLoading = false;
+  @Input() cameraSnapshotDisabled = false;
+  @Input() cameraSnapshotTitle = '';
+  @Output() cameraSnapshotClick = new EventEmitter<void>();
 
   // Manual plate capture
   manualPlate = '';
@@ -53,6 +58,13 @@ export class ExitGateDevicesBlockComponent {
   scannedPreviewOpen = false;
 
   private searchSubject = new Subject<string>();
+  private readonly fallbackDict: Record<string, string> = {
+    vehicle_images: 'Vehicle images',
+    vehicle_images_attached: 'Vehicle images attached',
+    scanner_ready: 'Front View Cam',
+    take_snapshot: 'Take snapshot',
+    plate: 'Plate',
+  };
 
   constructor(
     public lang: LanguageService,
@@ -68,7 +80,21 @@ export class ExitGateDevicesBlockComponent {
   }
 
   t(key: string): string {
-    return this.dict[this.lang.current]?.[key] ?? key;
+    return this.dict[this.lang.current]?.[key] ?? this.fallbackDict[key] ?? key;
+  }
+
+  get headerVehicleNumber(): string {
+    return this.manualPlate?.trim() ?? '';
+  }
+
+  get attachedVehicleImages(): {
+    name: string;
+    url: string;
+    safeUrl?: any;
+    type: string;
+    bytes: any;
+  }[] {
+    return this.scannedFile ? [this.scannedFile] : [];
   }
 
   get canSubmitManualPlate(): boolean {
@@ -93,6 +119,13 @@ export class ExitGateDevicesBlockComponent {
     this.manualPlate = '';
     this.manualPlateSubmitting = false;
     this.cdr.markForCheck();
+  }
+
+  onManualPlateKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter') return;
+    event.preventDefault();
+    event.stopPropagation();
+    this.submitManualPlate();
   }
 
   onSearchInput(value: string): void {
@@ -166,6 +199,24 @@ export class ExitGateDevicesBlockComponent {
   closeScannedPreview(): void {
     this.scannedPreviewOpen = false;
     this.cdr.markForCheck();
+  }
+
+  isPreviewSelected(fileUrl: string): boolean {
+    return this.scannedFile?.url === fileUrl;
+  }
+
+  selectScannedPreview(): void {
+    this.openScannedPreview();
+  }
+
+  clearScannedFile(event?: Event): void {
+    event?.stopPropagation();
+    this.scannedFileCleared.emit();
+  }
+
+  onCameraSnapshotClick(): void {
+    if (this.cameraSnapshotLoading || this.cameraSnapshotDisabled) return;
+    this.cameraSnapshotClick.emit();
   }
 
   @HostListener('document:keydown', ['$event'])

@@ -1,4 +1,4 @@
-<div class="card h-100 shadow-soft glass sanctions-card">
+<div class="card h-100 shadow-soft glass sanctions-card" data-scanner-focus-stop="true">
   <div class="card-header py-2 px-3">
     <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
       <i class="bi bi-exclamation-triangle-fill text-danger"></i>
@@ -117,7 +117,7 @@
 
       <select
         class="form-select form-select-sm select-sanction"
-        [disabled]="registeringExceed || isExceedRegistered"
+        [disabled]="registeringExceed || isExceedRegistered || isExceedAlreadyExists"
         (change)="onToggleSanction($any($event.target).value); $any($event.target).value = ''"
       >
         <option value="" selected disabled>{{ 'select_sanction_placeholder' | t }}</option>
@@ -137,7 +137,7 @@
           class="sanction-tag active d-inline-flex align-items-center gap-1 me-1 mb-1"
           *ngFor="let sanction of selectedSanctions"
           (click)="onToggleSanction(sanction.id)"
-          [disabled]="registeringExceed || isExceedRegistered"
+          [disabled]="registeringExceed || isExceedRegistered || isExceedAlreadyExists"
         >
           <span class="tag-name">{{ sanction.name }}</span>
           <span class="tag-price">({{ sanction.amount | number: '1.2-2' }})</span>
@@ -173,6 +173,31 @@
         <span class="mono">
           {{ exceedAmount | number: '1.2-2' }} / {{ totalPriceAfterExceed | number: '1.2-2' }}
         </span>
+      </div>
+
+      <div class="exceed-warning mt-2 x-small text-warning-emphasis fw-bold" *ngIf="isExceedAlreadyExists">
+        <i class="bi bi-exclamation-circle-fill me-1"></i>
+        {{ 'exceed_already_exists' | t }}
+      </div>
+
+      <div class="summary-panel mt-3" *ngIf="summary">
+        <div class="summary-title d-flex align-items-center gap-2">
+          <i class="bi bi-card-checklist"></i>
+          <span>{{ 'summary' | t }}</span>
+        </div>
+        <div class="summary-grid x-small mt-2">
+          <span>{{ 'ticket_price' | t }}</span>
+          <strong class="mono">{{ summary.ticketPrice | number: '1.2-2' }} {{ 'egp' | t }}</strong>
+
+          <span>{{ 'total_exceed_amount' | t }}</span>
+          <strong class="mono">{{ summary.exceedAmount | number: '1.2-2' }} {{ 'egp' | t }}</strong>
+
+          <span>{{ 'total_after_exceed' | t }}</span>
+          <strong class="mono">{{ summary.totalPriceAfterExceed | number: '1.2-2' }} {{ 'egp' | t }}</strong>
+
+          <span *ngIf="summaryCreatedAt">{{ 'created_at' | t }}</span>
+          <strong *ngIf="summaryCreatedAt" class="mono">{{ summaryCreatedAt | date: 'short' }}</strong>
+        </div>
       </div>
 
       <button

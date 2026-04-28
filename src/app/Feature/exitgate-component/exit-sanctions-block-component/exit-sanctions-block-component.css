@@ -99,6 +99,35 @@
   background: #ffffff;
 }
 
+.summary-panel {
+  padding: 0.6rem;
+  border: 1px solid rgba(25, 135, 84, 0.24);
+  border-radius: 8px;
+  background: #f6fbf8;
+}
+
+.summary-title {
+  color: #146c43;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.summary-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem 0.6rem;
+  align-items: center;
+}
+
+.summary-grid span {
+  min-width: 0;
+  color: #6b7280;
+}
+
+.summary-grid strong {
+  text-align: end;
+}
+
 .mono {
   font-family: 'Courier New', Courier, monospace;
 }

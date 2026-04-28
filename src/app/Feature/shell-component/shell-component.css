@@ -20,4 +20,25 @@
   flex: 1;
   padding: 1rem;
   padding-bottom: 2rem;
+  min-width: 0;
+}
+
+@media (min-width: 1600px) {
+  .page-content {
+    padding: 1.25rem 1.5rem 2rem;
+  }
+}
+
+@media (max-width: 1199.98px) {
+  .page-content {
+    padding: 0.75rem;
+    padding-bottom: 1.5rem;
+  }
+}
+
+@media (max-width: 575.98px) {
+  .page-content {
+    padding: 0.5rem;
+    padding-bottom: 1rem;
+  }
 }

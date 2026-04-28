@@ -31,6 +31,8 @@ import { LanguageService } from '../../../Services/i18n/language-service';
 })
 export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input() detectedVehicleNumber: string = '';
+  @Input() lprListening: boolean = false;
+  @Input() lprError: string | null = null;
   @Input() vehicleValidationLoading: boolean = false;
   @Input() textValidationLoading: boolean = false;
   @Input() openGateLoading: boolean = false;
@@ -55,11 +57,16 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
   private lastSubmittedText = '';
   private autoSubmitTimer?: ReturnType<typeof setTimeout>;
   private suppressScannerFocusUntil = 0;
+  private readonly scannerFocusStopSelector = '[data-scanner-focus-stop="true"]';
   private readonly lang = inject(LanguageService);
   private readonly dict = inject(I18N_DICT);
+  private readonly localFallback: Record<string, string> = {
+    listening: 'Listening',
+    waiting_lpr_vehicle: 'Waiting for LPR vehicle...',
+  };
 
   t(key: string): string {
-    return this.dict[this.lang.current]?.[key] ?? key;
+    return this.dict[this.lang.current]?.[key] ?? this.localFallback[key] ?? key;
   }
 
   onValidateText(): void {
@@ -174,10 +181,36 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
     const target = event.target as HTMLElement | null;
     const textArea = this.manualTextArea?.nativeElement;
 
+    if (this.isScannerFocusStopTarget(target)) {
+      this.suppressScannerFocusUntil = Date.now() + 4000;
+      this.clearAutoSubmitTimer();
+      return;
+    }
+
+    this.suppressScannerFocusUntil = 0;
+
     if (target && textArea && target !== textArea && this.isEditableTarget(target)) {
       this.suppressScannerFocusUntil = Date.now() + 600;
       this.clearAutoSubmitTimer();
+      return;
     }
+
+    if (target && textArea && target !== textArea) {
+      this.focusTextArea(false, true);
+    }
+  }
+
+  @HostListener('document:focusout', ['$event'])
+  onDocumentFocusOut(event: FocusEvent): void {
+    const target = event.target as HTMLElement | null;
+    if (!this.isScannerFocusStopTarget(target)) return;
+
+    setTimeout(() => {
+      if (this.isTextDisabled || this.isScannerFocusStopTarget(document.activeElement)) return;
+
+      this.suppressScannerFocusUntil = 0;
+      this.focusTextArea(false, true);
+    }, 0);
   }
 
   @HostListener('document:keydown', ['$event'])
@@ -238,6 +271,10 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
     return Date.now() < this.suppressScannerFocusUntil || this.isEditableTarget(target);
   }
 
+  private isScannerFocusStopTarget(target: EventTarget | Element | null): boolean {
+    return target instanceof HTMLElement && !!target.closest(this.scannerFocusStopSelector);
+  }
+
   private isEditableTarget(target: EventTarget | Element | null): boolean {
     if (!(target instanceof HTMLElement)) return false;
 
@@ -265,6 +302,8 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
     if (text.startsWith('=')) {
       text = text.slice(1).trim();
     }
+
+    text = text.replace(/["'\u201c\u201d\u00ab\u00bb]/g, '').trim();
 
     text = text.replace(/^[\s"'“”«»]+/, '').replace(/[\s"'“”«»]+$/, '').trim();
 

@@ -47,15 +47,21 @@ import {
 import { SanctionService } from '../../Services/Sanction/sanction.service';
 import { SanctionDto } from '../../Domain/Sanction/sanction.models';
 import { TicketExceedTransactionService } from '../../Services/TicketExceedTransaction/ticket-exceed-transaction.service';
-import { CreateTicketExceedTransactionResponse } from '../../Domain/TicketExceedTransaction/ticket-exceed-transaction.models';
+import {
+  CollectExceedTransactionsResponse,
+  CreateTicketExceedTransactionResponse,
+} from '../../Domain/TicketExceedTransaction/ticket-exceed-transaction.models';
 import { Subscription, timer } from 'rxjs';
-import { switchMap } from 'rxjs/operators';
+import { map, switchMap } from 'rxjs/operators';
 import { SupervisorModalBlockComponent } from '../Shared/supervisor-modal-block-component/supervisor-modal-block-component';
 import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal-block-component/ticket-details-modal-block-component';
 import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { LocalPrintService } from '../../Services/Print/local-print.service';
 import { environment } from '../../Shared/environment/environment';
+
+type ExitToastLevel = 'success' | 'warn' | 'error';
+type ExitFeedbackTarget = 'validation' | 'openGate' | 'supervisor';
 
 @Component({
   selector: 'app-exitgate-component',
@@ -140,6 +146,10 @@ import { environment } from '../../Shared/environment/environment';
           printing_sent: 'Print job was sent successfully.',
           printing_failed: 'Failed to send receipt to the local printer service.',
           receipt_printer_missing: 'Receipt printer is not configured for this gate.',
+          summary: 'الملخص',
+          ticket_price: 'سعر التذكرة',
+          total_after_exceed: 'الإجمالي بعد العقوبات',
+          created_at: 'وقت التسجيل',
 
           // Gate devices
           gate_devices: 'أجهزة البوابة',
@@ -201,11 +211,21 @@ import { environment } from '../../Shared/environment/environment';
           // Errors
           exit_not_valid_msg: 'الخروج غير صالح لهذه التذكرة',
           already_collected_msg: 'تم تحصيل هذه التذكرة من قبل بالفعل',
+          scan_render_failed: 'تعذر عرض الملف الممسوح.',
+          supervisor_credentials_required: 'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر',
+          no_ticket_for_exit: 'لا توجد تذكرة مرتبطة بهذا الكود لإتمام الخروج.',
+          collect_ticket_missing: 'لا يمكن تحصيل المبلغ: لا يوجد رقم تذكرة متاح.',
+          nfc_read_failed: 'تعذر قراءة الكارت. تأكد من توصيل وتشغيل قارئ الـ NFC.',
+          select_gate_first: 'يرجى اختيار بوابة أولاً',
 
           // Collect summary (daily)
           collect_summary: 'ملخص تحصيل اليوم',
           total_collected_amount: 'إجمالي المبلغ المحصَّل',
           total_collected_tickets: 'عدد التذاكر المحصَّلة',
+          exceed_collect_summary: 'ملخص تحصيل العقوبات',
+          total_exceed_collected_amount: 'إجمالي العقوبات المحصَّلة',
+          total_exceed_collected_transactions: 'عدد معاملات العقوبات',
+          collectExceedOk: 'تم تحصيل معاملات العقوبات بنجاح',
           collected_at: 'وقت التحصيل',
           last_collection_time: 'وقت آخر تحصيل',
           collectDailyOk: 'تم تحصيل إيرادات اليوم بنجاح',
@@ -337,6 +357,10 @@ import { environment } from '../../Shared/environment/environment';
           printing_sent: 'Print job was sent successfully.',
           printing_failed: 'Failed to send receipt to the local printer service.',
           receipt_printer_missing: 'Receipt printer is not configured for this gate.',
+          summary: 'Summary',
+          ticket_price: 'Ticket Price',
+          total_after_exceed: 'Total After Exceed',
+          created_at: 'Created At',
 
           // Gate devices
           gate_devices: 'Gate Devices',
@@ -398,11 +422,21 @@ import { environment } from '../../Shared/environment/environment';
           // Errors
           exit_not_valid_msg: 'Exit is not valid for this ticket',
           already_collected_msg: 'This ticket has already been collected',
+          scan_render_failed: 'Error rendering scan.',
+          supervisor_credentials_required: 'Please enter supervisor username and password.',
+          no_ticket_for_exit: 'No ticket is linked to this code to complete exit.',
+          collect_ticket_missing: 'Cannot collect: no ticket number is available.',
+          nfc_read_failed: 'Could not read the card. Check that the NFC reader is connected and running.',
+          select_gate_first: 'Please select a gate first.',
 
           // Collect summary (daily)
           collect_summary: 'Daily collection summary',
           total_collected_amount: 'Total collected amount',
           total_collected_tickets: 'Total collected tickets',
+          exceed_collect_summary: 'Exceed collection summary',
+          total_exceed_collected_amount: 'Total exceed amount collected',
+          total_exceed_collected_transactions: 'Total exceed transactions',
+          collectExceedOk: 'Exceed transactions have been collected successfully',
           collected_at: 'Collected at',
           last_collection_time: 'Last collection time',
           collectDailyOk: "Today's revenue has been collected successfully",
@@ -469,6 +503,8 @@ import { environment } from '../../Shared/environment/environment';
           lpr_detection: 'LPR Detection',
           lpr_vehicle_received: 'LPR vehicle received',
           lpr_gate_mismatch: 'Ignored LPR detection for a different gate',
+          listening: 'Listening',
+          waiting_lpr_vehicle: 'Waiting for LPR vehicle...',
           manual_validation: 'Manual Validation',
           validation_result: 'Validation Result',
           match_type: 'Match Type',
@@ -507,13 +543,74 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   ) {}
 
   t(key: string, params?: any[]): string {
-    let text = this.dict[this.lang.current]?.[key] ?? key;
+    const fallback: Record<string, string> = {
+      gate_info: 'Gate connection info',
+      print_qr: 'QR',
+      print_receipt: 'Receipt',
+      take_snapshot: 'Take snapshot',
+      snapshot_failed: 'Failed to load camera snapshot.',
+      scan_render_failed: 'Error rendering scan.',
+      supervisor_credentials_required: 'Please enter supervisor username and password.',
+      no_ticket_for_exit: 'No ticket is linked to this code to complete exit.',
+      collect_ticket_missing: 'Cannot collect: no ticket number is available.',
+      nfc_read_failed: 'Could not read the card. Check that the NFC reader is connected and running.',
+      select_gate_first: 'Please select a gate first.',
+    };
+    let text = this.dict[this.lang.current]?.[key] ?? fallback[key] ?? key;
     if (params && params.length > 0) {
       params.forEach((p, i) => {
         text = text.replace(`{${i}}`, p);
       });
     }
     return text;
+  }
+
+  private notify(level: ExitToastLevel, key: string, params?: any[]): string {
+    const message = this.t(key, params);
+    this.showToast(level, message);
+    return message;
+  }
+
+  private showToast(level: ExitToastLevel, message: string): void {
+    if (!message) return;
+    if (level === 'success') {
+      this.toast.success(message);
+      return;
+    }
+    if (level === 'warn') {
+      this.toast.warn(message);
+      return;
+    }
+    this.toast.error(message);
+  }
+
+  private setFeedback(
+    target: ExitFeedbackTarget,
+    key: string,
+    level: ExitToastLevel,
+    params?: any[],
+  ): string {
+    const message = this.notify(level, key, params);
+    if (target === 'validation') {
+      this.validationMessage = level === 'error' ? null : message;
+      this.validationError = level === 'error' ? message : null;
+      return message;
+    }
+    if (target === 'openGate') {
+      this.validationOpenGateError = level === 'success' ? null : message;
+      if (level === 'success') {
+        this.validationMessage = message;
+      }
+      return message;
+    }
+    this.supervisorCollectError = level === 'success' ? null : message;
+    return message;
+  }
+
+  private clearValidationFeedback(): void {
+    this.validationError = null;
+    this.validationOpenGateError = null;
+    this.validationMessage = null;
   }
 
   // ====== Gate devices / state ======
@@ -529,6 +626,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // ====== Dashboard KPI ======
   totalPriceToday = 0;
   scannedFile: { name: string; url: string; safeUrl?: any; type: string; bytes: any } | null = null;
+  snapshotLoading = false;
+  snapshotError: string | null = null;
   private readonly sanitizer = inject(DomSanitizer);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly errorExtractor = inject(ErrorExtractorService);
@@ -556,6 +655,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // ====== Daily collect / supervisor ======
   collectLoading = false;
   collectSummary: CollectDailyTicketsResponse | null = null;
+  exceedCollectSummary: CollectExceedTransactionsResponse | null = null;
 
   supervisorUsername = '';
   supervisorPassword = '';
@@ -592,6 +692,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   selectedSanctionIds: string[] = [];
   registeringExceed = false;
   isExceedRegistered = false;
+  isExceedAlreadyExists = false;
   exceedAmount = 0;
   totalPriceAfterExceed = 0;
   ticketExceedTransaction: CreateTicketExceedTransactionResponse | null = null;
@@ -613,6 +714,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   validationOpenGateError: string | null = null;
   lastValidationOpenGateResponse: OpenGateResponse | null = null;
   lprMembershipLoading = false;
+  lprSignalRConnected = false;
+  lprSignalRError: string | null = null;
   clearValidationTextNonce = 0;
   focusValidationTextNonce = 0;
   setValidationTextNonce = 0;
@@ -675,7 +778,17 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     this.lprSignalR
       .start()
-      .catch((err) => console.error('LPR SignalR (Exitgate) connection error', err));
+      .then(() => {
+        this.lprSignalRConnected = true;
+        this.lprSignalRError = null;
+        this.cdr.markForCheck();
+      })
+      .catch((err) => {
+        console.error('LPR SignalR (Exitgate) connection error', err);
+        this.lprSignalRConnected = false;
+        this.lprSignalRError = 'LPR SignalR connection failed';
+        this.cdr.markForCheck();
+      });
 
     this.hubSubscriptions.add(
       this.scanHub.scan$.subscribe((msg) => {
@@ -713,7 +826,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       stationId: msg.stationId,
       bytesLength: (msg.bytes as any)?.length || 'N/A',
     });
-    this.toast.success(this.t('scanner_ready') + ': ' + msg.fileName);
+    this.showToast('success', `${this.t('scanner_ready')}: ${msg.fileName}`);
 
     if (this.scannedFile?.url) {
       URL.revokeObjectURL(this.scannedFile.url);
@@ -749,8 +862,62 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.cdr.markForCheck();
     } catch (err) {
       console.error('ExitgateComponent: Error rendering scan', err);
-      this.toast.error('Error rendering scan');
+      this.notify('error', 'scan_render_failed');
     }
+  }
+
+  clearScannedFile(): void {
+    if (this.scannedFile?.url) {
+      URL.revokeObjectURL(this.scannedFile.url);
+    }
+
+    this.scannedFile = null;
+    this.cdr.markForCheck();
+  }
+
+  retrySnapshot(): void {
+    const cameraUrl = this.gateConnectionInfo?.onvifCameraSetting?.url?.trim();
+    if (!cameraUrl) return;
+    this.loadCameraSnapshot(cameraUrl);
+  }
+
+  private loadCameraSnapshot(cameraUrl: string): void {
+    this.snapshotLoading = true;
+    this.snapshotError = null;
+    this.cdr.markForCheck();
+
+    this.gateSvc.getSnapshot(cameraUrl).subscribe({
+      next: (blob) => {
+        this.attachSnapshotBlob(blob);
+      },
+      error: (err) => {
+        console.error('Exit camera snapshot error', err);
+        this.snapshotError = this.t('snapshot_failed');
+        this.notify('warn', 'snapshot_failed');
+        this.cdr.markForCheck();
+      },
+      complete: () => {
+        this.snapshotLoading = false;
+        this.cdr.markForCheck();
+      },
+    });
+  }
+
+  private attachSnapshotBlob(blob: Blob): void {
+    if (this.scannedFile?.url) {
+      URL.revokeObjectURL(this.scannedFile.url);
+    }
+
+    const rawUrl = URL.createObjectURL(blob);
+    this.scannedFile = {
+      name: `gate-snapshot-${Date.now()}.jpg`,
+      url: rawUrl,
+      safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
+      type: blob.type || 'image/jpeg',
+      bytes: blob,
+    };
+
+    this.cdr.markForCheck();
   }
 
   ngOnDestroy(): void {
@@ -774,7 +941,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     if (!gateMatch) {
       const message = `${this.t('lpr_gate_mismatch')}: ${event.gateId}`;
       this.validationError = message;
-      this.toast.warn(message);
+      this.showToast('warn', message);
       this.cdr.markForCheck();
       return;
     }
@@ -788,7 +955,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       gateId: event.gateId,
     });
 
-    this.toast.success(`${this.t('lpr_vehicle_received')}: ${vehicleNumber}`);
+    this.showToast('success', `${this.t('lpr_vehicle_received')}: ${vehicleNumber}`);
     this.onDetectedVehicleNumber(vehicleNumber);
     this.cdr.markForCheck();
   }
@@ -818,9 +985,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     if (!this.auth.isLoggedIn()) return;
 
     if (!this.gatePeripheral) {
-      this.toast.warn(
-        this.lang.current === 'ar' ? 'يرجى اختيار بوابة أولاً' : 'Please select a gate first',
-      );
+      this.notify('warn', 'select_gate_first');
       this.router.navigate(['/gate-selection']);
       return;
     }
@@ -836,12 +1001,19 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     this.gateConnectionLoading = true;
     this.gateConnectionError = null;
+    this.snapshotError = null;
 
     this.gateSvc.getGateConnectionInfo(gateId).subscribe({
       next: (info) => {
         this.gateConnectionInfo = info;
+        this.mergeGateConnectionIntoPeripheral(info);
         if (!info?.controlIp?.trim()) {
           this.gateConnectionError = this.t('gate_connection_required');
+        }
+
+        const cameraUrl = info.onvifCameraSetting?.url?.trim();
+        if (cameraUrl) {
+          this.loadCameraSnapshot(cameraUrl);
         }
       },
       error: (err) => {
@@ -856,6 +1028,19 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     });
   }
 
+  private mergeGateConnectionIntoPeripheral(info: GateConnectionInfo): void {
+    const current = this.gatePeripheral;
+    if (!current) return;
+
+    this.gatePeripheral = {
+      ...current,
+      pcIp: info.pcIp ?? current.pcIp,
+      lprIp: info.lprIp ?? current.lprIp,
+      hasPc: !!info.pcIp || current.hasPc,
+      hasLpr: !!info.lprIp || current.hasLpr,
+    };
+  }
+
   private handleError(operation: string, err: any): void {
     console.error(`${operation} error`, err);
     this.toast.fromProblem(err);
@@ -865,49 +1050,53 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     const code = this.extractProblemCode(err);
 
     if (err?.status === 409 || code === 'TicketExceedTransaction.AlreadyExists') {
-      this.isExceedRegistered = true;
-      this.toast.warn(this.t('exceed_already_exists'));
+      this.isExceedRegistered = false;
+      this.isExceedAlreadyExists = true;
+      this.ticketExceedTransaction = null;
+      this.exceedAmount = 0;
+      this.totalPriceAfterExceed = 0;
+      this.notify('warn', 'exceed_already_exists');
       return;
     }
 
     if (code === 'Ticket.NotFound') {
-      this.toast.warn(this.t('ticket_refresh_required'));
+      this.notify('warn', 'ticket_refresh_required');
       return;
     }
 
     if (code === 'Sanction.NotFound') {
-      this.toast.warn(this.t('sanction_refresh_required'));
+      this.notify('warn', 'sanction_refresh_required');
       this.loadSanctions();
       return;
     }
 
     if (code === 'Token.GateOrUser.NotFound' || code === 'Gate.NotFound') {
-      this.toast.warn(this.t('gate_session_invalid'));
+      this.notify('warn', 'gate_session_invalid');
       return;
     }
 
     if (code === 'User.NotFound') {
-      this.toast.warn(this.t('user_not_found'));
+      this.notify('warn', 'user_not_found');
       return;
     }
 
     if (code === 'TicketId.Required') {
-      this.toast.warn(this.t('please_select_ticket'));
+      this.notify('warn', 'please_select_ticket');
       return;
     }
 
     if (code === 'SanctionIds.Required') {
-      this.toast.warn(this.t('please_select_sanction'));
+      this.notify('warn', 'please_select_sanction');
       return;
     }
 
     if (code === 'SanctionIds.Duplicated') {
-      this.toast.warn(this.t('duplicate_sanctions'));
+      this.notify('warn', 'duplicate_sanctions');
       return;
     }
 
     const message = this.errorExtractor.extractErrorMessage(err, this.t('failed_register_exceed'));
-    this.toast.error(message);
+    this.showToast('error', message);
   }
 
   private extractProblemCode(err: any): string | null {
@@ -933,7 +1122,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.dashboardHub.ticketExited$.subscribe((n: TicketExitedNotification) => {
         this.reloadList();
         const msg = this.buildExitNotificationMessage(n);
-        this.toast.success(msg);
+        this.showToast('success', msg);
       }),
     );
   }
@@ -979,7 +1168,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.gatePeripheral = this.auth.getGateData();
         }
 
-        this.toast.success(this.t('outOnlyTitle'));
+        this.notify('success', 'outOnlyTitle');
         this.loadGateConnectionInfo(this.selectedGateId);
 
         if (this.selectedGateId) {
@@ -1003,7 +1192,9 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   onToggleSanction(id: string): void {
-    if (!id || this.registeringExceed || this.isExceedRegistered) return;
+    if (!id || this.registeringExceed || this.isExceedRegistered || this.isExceedAlreadyExists) {
+      return;
+    }
 
     const idx = this.selectedSanctionIds.indexOf(id);
     if (idx >= 0) {
@@ -1035,25 +1226,30 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     const controllerId = this.gateConnectionInfo?.controlIp?.trim();
 
     if (!ticket?.id) {
-      this.toast.warn(this.t('please_select_ticket'));
+      this.notify('warn', 'please_select_ticket');
       return;
     }
 
     if (!this.isExceedRegistered) {
-      this.toast.warn(this.t('register_exceed'));
+      this.notify('warn', 'register_exceed');
       return;
     }
 
     if (!controllerId) {
-      this.validationOpenGateError = this.t('gate_connection_required');
-      this.toast.warn(this.validationOpenGateError);
+      this.setFeedback('openGate', 'gate_connection_required', 'warn');
       return;
     }
 
     this.exitSelectedTicketLoading = true;
 
     this.svc.addExitTicket(ticket.id).subscribe({
-      next: () => {
+      next: (ok) => {
+        if (!ok) {
+          this.setFeedback('openGate', 'exitTicketAddFailed', 'error');
+          this.exitSelectedTicketLoading = false;
+          return;
+        }
+
         this.upsertExitTicketRow(
           ticket.id,
           ticket.vehicleNumber || ticket.cardNumber || '',
@@ -1075,18 +1271,18 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     continueExitAfterSuccess: boolean,
   ): void {
     if (!ticketId) {
-      this.toast.warn(this.t('please_select_ticket'));
+      this.notify('warn', 'please_select_ticket');
       return;
     }
 
     if (!this.selectedSanctionIds || this.selectedSanctionIds.length === 0) {
-      this.toast.warn(this.t('please_select_sanction'));
+      this.notify('warn', 'please_select_sanction');
       return;
     }
 
     const uniqueSanctionIds = Array.from(new Set(this.selectedSanctionIds));
     if (uniqueSanctionIds.length !== this.selectedSanctionIds.length) {
-      this.toast.warn(this.t('duplicate_sanctions'));
+      this.notify('warn', 'duplicate_sanctions');
       return;
     }
 
@@ -1103,7 +1299,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.exceedAmount = Number(response.exceedAmount ?? 0);
           this.totalPriceAfterExceed = Number(response.totalPriceAfterExceed ?? 0);
           this.isExceedRegistered = true;
-          this.toast.success(this.t('exceed_registered_success'));
+          this.notify('success', 'exceed_registered_success');
           this.printExceedReceipt(response);
 
           if (continueExitAfterSuccess) {
@@ -1124,7 +1320,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.gateConnectionInfo?.receiptPrinterName?.trim() || environment.receiptPrinterName?.trim();
 
     if (!printerName) {
-      this.toast.warn(this.t('receipt_printer_missing'));
+      this.notify('warn', 'receipt_printer_missing');
       return;
     }
 
@@ -1137,10 +1333,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         jobName: `Exceed-Receipt-${response.ticketId}`,
       })
       .subscribe({
-        next: () => this.toast.success(this.t('printing_sent')),
+        next: () => this.notify('success', 'printing_sent'),
         error: (err) => {
           console.error('[printExceedReceipt] Print failed', err);
-          this.toast.error(this.t('printing_failed'));
+          this.notify('error', 'printing_failed');
         },
       });
   }
@@ -1425,7 +1621,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     const summaryText = ticket.info ? ` - ${ticket.info}` : '';
 
     if (ticket.isCollectedByCashier) {
-      this.toast.warn(this.t('ticket_already_collected', [identifier, summaryText]));
+      this.notify('warn', 'ticket_already_collected', [identifier, summaryText]);
     }
 
     this.searchResults = [];
@@ -1452,22 +1648,19 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     const controllerId = this.gateConnectionInfo?.controlIp?.trim();
     if (!controllerId) {
-      this.validationOpenGateError = this.t('gate_connection_required');
-      this.toast.warn(this.validationOpenGateError);
+      this.setFeedback('openGate', 'gate_connection_required', 'warn');
       this.focusValidationTextNonce++;
       return;
     }
 
     this.lprMembershipLoading = true;
-    this.validationError = null;
-    this.validationOpenGateError = null;
+    this.clearValidationFeedback();
     this.validationMessage = this.t('searching');
 
     this.svc.isMembership(normalized).subscribe({
       next: (membership) => {
         if (!membership?.isExist) {
-          this.validationMessage = this.t('not_valid_for_exit');
-          this.toast.warn(this.t('not_valid_for_exit'));
+          this.setFeedback('validation', 'not_valid_for_exit', 'warn');
           this.focusValidationTextNonce++;
           return;
         }
@@ -1508,8 +1701,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (res) => {
           if (!this.isAddTicketSuccess(res)) {
-            this.validationOpenGateError = this.t('exitTicketAddFailed');
-            this.toast.error(this.validationOpenGateError);
+            this.setFeedback('openGate', 'exitTicketAddFailed', 'error');
             this.focusValidationTextNonce++;
             return;
           }
@@ -1554,8 +1746,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   onValidateExitByVehicleNumber(vehicleNumber: string): void {
     if (!vehicleNumber?.trim()) return;
     this.detectedVehicleNumber = vehicleNumber.trim();
-    this.validationError = null;
-    this.validationMessage = null;
+    this.clearValidationFeedback();
     this.resetExceedState(false);
     this.vehicleValidationLoading = true;
     this.vehicleValidationResult = null;
@@ -1563,17 +1754,16 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     this.svc.validateExitByVehicleNumber(this.detectedVehicleNumber).subscribe({
       next: (res) => {
-        this.vehicleValidationResult = res;
         this.vehicleValidationLoading = false;
         if (res.isValidForExit) {
-          this.validationMessage = this.t('valid_for_exit');
-          this.toast.success(this.t('valid_for_exit'));
-        } else if (res.ticketId) {
-          this.validationMessage = this.t('not_valid_for_exit');
-          this.toast.warn(this.t('not_valid_for_exit'));
+          this.vehicleValidationResult = res;
+          this.setFeedback('validation', 'valid_for_exit', 'success');
         } else {
-          this.validationMessage = this.t('no_matching_ticket');
-          this.toast.warn(this.t('no_matching_ticket'));
+          this.vehicleValidationResult = null;
+          this.validationMessage = null;
+          this.validationError = null;
+          this.notify('warn', 'not_valid_for_exit');
+          this.focusValidationTextNonce++;
         }
       },
       error: (err) => {
@@ -1599,29 +1789,24 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     }
 
     if (!trimmed) {
-      this.validationError = this.t('text_required');
-      this.toast.warn(this.t('text_required'));
+      this.setFeedback('validation', 'text_required', 'error');
       this.focusValidationTextNonce++;
       return;
     }
 
     if (trimmed.length > 200) {
-      this.validationError = this.t('text_required');
-      this.toast.warn(this.validationError);
+      this.setFeedback('validation', 'text_required', 'error');
       this.focusValidationTextNonce++;
       return;
     }
 
     if (!this.isExitGateConnectionReady) {
-      this.validationError = this.t('gate_connection_required');
-      this.toast.warn(this.validationError);
+      this.setFeedback('validation', 'gate_connection_required', 'error');
       this.focusValidationTextNonce++;
       return;
     }
 
-    this.validationError = null;
-    this.validationOpenGateError = null;
-    this.validationMessage = null;
+    this.clearValidationFeedback();
     this.resetExceedState(false);
     this.pendingValidationSource = source;
     this.clearExitValidationInput(source);
@@ -1632,20 +1817,16 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     this.svc.validateExitByText({ text: trimmed }).subscribe({
       next: (res) => {
-        this.textValidationResult = res;
         this.textValidationLoading = false;
         if (res.isValidForExit) {
-          this.validationMessage = this.t('allowed_for_exit');
-          this.toast.success(this.t('allowed_for_exit'));
-          if (this.selectedSanctionIds.length > 0 && !this.isExceedRegistered) {
-            this.validationMessage = this.t('register_exceed');
-            this.focusValidationTextNonce++;
-          } else {
-            this.registerValidatedExitAndOpenGate();
-          }
+          this.textValidationResult = res;
+          this.setFeedback('validation', 'allowed_for_exit', 'success');
+          this.registerValidatedExitAndOpenGate();
         } else {
-          this.validationMessage = this.getExitValidationBusinessMessage(res);
-          this.toast.warn(this.validationMessage);
+          this.textValidationResult = null;
+          this.validationMessage = null;
+          this.validationError = null;
+          this.notify('warn', 'not_valid_for_exit');
           this.focusValidationTextNonce++;
           this.processPendingExitValidation();
         }
@@ -1689,11 +1870,6 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     const result = this.textValidationResult || this.vehicleValidationResult;
     const controllerId = this.gateConnectionInfo?.controlIp?.trim();
 
-    if (this.selectedSanctionIds.length > 0 && !this.isExceedRegistered) {
-      this.validationMessage = this.t('register_exceed');
-      return;
-    }
-
     if (
       !result?.isValidForExit ||
       !result.ticketId ||
@@ -1702,12 +1878,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.validationOpenGateLoading
     ) {
       if (!result?.ticketId) {
-        this.validationOpenGateError = this.t('no_matching_ticket');
-        this.toast.warn(this.validationOpenGateError);
+        this.setFeedback('openGate', 'no_matching_ticket', 'warn');
       }
       if (!controllerId) {
-        this.validationOpenGateError = this.t('gate_connection_required');
-        this.toast.warn(this.validationOpenGateError);
+        this.setFeedback('openGate', 'gate_connection_required', 'warn');
       }
       return;
     }
@@ -1717,7 +1891,13 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.validationMessage = this.t('exitTicketAdded');
 
     this.svc.addExitTicket(result.ticketId).subscribe({
-      next: () => {
+      next: (ok) => {
+        if (!ok) {
+          this.setFeedback('openGate', 'exitTicketAddFailed', 'error');
+          this.focusValidationTextNonce++;
+          return;
+        }
+
         this.upsertExitTicketRow(
           result.ticketId!,
           result.vehicleNumber || result.cardNumber || (result as ValidateExitByTextResponse).inputText || '',
@@ -1749,8 +1929,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.gateSvc.openGate(controllerId).subscribe({
       next: (res) => {
         this.lastValidationOpenGateResponse = res;
-        this.validationMessage = this.t('gate_opened_successfully');
-        this.toast.success(this.t('gate_opened_successfully'));
+        this.setFeedback('openGate', 'gate_opened_successfully', 'success');
         if (this.pendingValidationSource === 'universal') {
           this.universalInput = '';
           this.lastSubmittedUniversalInput = '';
@@ -1762,8 +1941,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('OpenGate error', err);
         this.validationOpenGateLoading = false;
-        this.validationOpenGateError = this.t('open_gate_failed');
-        this.toast.error(this.validationOpenGateError);
+        this.setFeedback('openGate', 'open_gate_failed', 'error');
         this.focusValidationTextNonce++;
         this.processPendingExitValidation();
       },
@@ -1782,16 +1960,14 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.gateSvc.openGate(controllerId).subscribe({
       next: (res) => {
         this.lastValidationOpenGateResponse = res;
-        this.validationMessage = this.t('gate_opened_successfully');
-        this.toast.success(this.t('gate_opened_successfully'));
+        this.setFeedback('openGate', 'gate_opened_successfully', 'success');
         this.reloadList();
         this.selectedTicketForExceed = null;
         this.resetExceedState(true);
       },
       error: (err) => {
         console.error('OpenGate error', err);
-        this.validationOpenGateError = this.t('open_gate_failed');
-        this.toast.error(this.validationOpenGateError);
+        this.setFeedback('openGate', 'open_gate_failed', 'error');
       },
       complete: () => {
         this.validationOpenGateLoading = false;
@@ -1838,6 +2014,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       text = text.slice(1).trim();
     }
 
+    text = text.replace(/["'\u201c\u201d\u00ab\u00bb]/g, '').trim();
+
     text = text.replace(/^[\s"'“”«»]+/, '').replace(/[\s"'“”«»]+$/, '').trim();
 
     let changed = true;
@@ -1866,7 +2044,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   onConfirmValidationExit(ticketId: string): void {
     const res = this.vehicleValidationResult || this.textValidationResult;
     if (!res || res.ticketId !== ticketId || !res.isValidForExit) {
-      this.toast.warn(this.t('not_valid_for_exit'));
+      this.notify('warn', 'not_valid_for_exit');
       return;
     }
 
@@ -1894,7 +2072,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.svc.searchTickets(trimmed).subscribe({
       next: (results) => {
         if (!results || results.length === 0) {
-          this.toast.error(this.t('no_search_results'));
+          this.notify('error', 'no_search_results');
           return;
         }
 
@@ -1943,11 +2121,11 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.searchingManual = false;
 
           const identifier = res.ticketNumber || String(res.id);
-          this.toast.success(this.t('ticket_selected_success', [identifier]));
+          this.notify('success', 'ticket_selected_success', [identifier]);
         } else {
           if (isForcedTicket) {
             this.searchingManual = false;
-            this.toast.error(this.t('ticket_not_found', [code]));
+            this.notify('error', 'ticket_not_found', [code]);
           } else {
             this.fetchSalaryForCard(code);
           }
@@ -2019,7 +2197,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       next: (summary) => {
         this.salarySummary = summary;
         if (summary) {
-          this.toast.success(this.t('subscriber_card_found', [cardNumber]));
+          this.notify('success', 'subscriber_card_found', [cardNumber]);
         }
       },
       error: (err) => {
@@ -2061,12 +2239,12 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     if (!this.salarySummary) return;
 
     if (!this.salarySummary.isExitValid) {
-      this.toast.error(this.t('exit_not_valid_msg'));
+      this.notify('error', 'exit_not_valid_msg');
       return;
     }
 
     if (!this.scannedTicket) {
-      this.toast.error('لا توجد تذكرة مرتبطة بهذا الكود لإتمام الخروج.');
+      this.notify('error', 'no_ticket_for_exit');
       return;
     }
 
@@ -2081,7 +2259,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       next: (ok) => {
         if (ok) {
           this.exitTicketAdded = true;
-          this.toast.success(this.t('exitTicketAdded'));
+          this.notify('success', 'exitTicketAdded');
 
           const price = this.currentTotalWithSanctions || this.scannedTicket!.price;
           this.upsertExitTicketRow(
@@ -2092,7 +2270,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
             false,
           );
         } else {
-          this.toast.error(this.t('exitTicketAddFailed'));
+          this.notify('error', 'exitTicketAddFailed');
         }
       },
       error: (err) => {
@@ -2169,7 +2347,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.svc.collect(t.id).subscribe({
       next: () => {
         this.upsertExitTicketRow(t.id, t.plate, t.id.toString(), t.totalPrice, false);
-        this.toast.success(this.t('collectCashierOk'));
+        this.notify('success', 'collectCashierOk');
         this.resetScanState();
       },
       error: (err) => {
@@ -2189,7 +2367,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.scannedTicket?.id != null ? String(this.scannedTicket.id) : this.salarySummary.ticketId;
 
     if (!ticketId) {
-      this.toast.error('لا يمكن تحصيل المبلغ: لا يوجد رقم تذكرة متاح.');
+      this.notify('error', 'collect_ticket_missing');
       return;
     }
 
@@ -2202,7 +2380,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
             ...this.salarySummary!,
             isCollectByCashier: true,
           };
-          this.toast.success(this.t('collectCashierOk'));
+          this.notify('success', 'collectCashierOk');
         }
       },
       error: (err) => {
@@ -2221,22 +2399,40 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     this.collectLoading = true;
     this.collectSummary = null;
+    this.exceedCollectSummary = null;
 
-    this.svc.collectDailyTickets().subscribe({
-      next: (res: CollectDailyTicketsResponse) => {
-        this.collectSummary = res;
-        this.toast.success(this.t('collectDailyOk'));
-        this.reloadList();
-      },
-      error: (err) => {
-        this.handleError('collectDailyForGate', err);
-        this.collectLoading = false;
-        this.collectSummary = null;
-      },
-      complete: () => {
-        this.collectLoading = false;
-      },
-    });
+    this.svc
+      .collectDailyTickets()
+      .pipe(
+        switchMap((ticketSummary: CollectDailyTicketsResponse) =>
+          this.ticketExceedTransactionSvc.collectExceedTransactions().pipe(
+            map((exceedSummary) => ({
+              ticketSummary,
+              exceedSummary,
+            })),
+          ),
+        ),
+      )
+      .subscribe({
+        next: ({ ticketSummary, exceedSummary }) => {
+          this.collectSummary = ticketSummary;
+          this.exceedCollectSummary = exceedSummary;
+          this.notify('success', 'collectDailyOk');
+          if (exceedSummary.totalTransactionsCollected > 0) {
+            this.notify('success', 'collectExceedOk');
+          }
+          this.reloadList();
+        },
+        error: (err) => {
+          this.handleError('collectDailyForGate', err);
+          this.collectLoading = false;
+          this.collectSummary = null;
+          this.exceedCollectSummary = null;
+        },
+        complete: () => {
+          this.collectLoading = false;
+        },
+      });
   }
 
   submitSupervisorCollect(): void {
@@ -2246,13 +2442,14 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     const gateType = this.auth.getGateData()?.gateType ?? null;
 
     if (!user || !pwd) {
-      this.supervisorCollectError = 'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر';
+      this.setFeedback('supervisor', 'supervisor_credentials_required', 'warn');
       return;
     }
 
     this.supervisorCollectError = null;
     this.supervisorCollectLoading = true;
     this.collectSummary = null;
+    this.exceedCollectSummary = null;
 
     this.svc
       .collectDailyTicketsAsSupervisor({
@@ -2261,10 +2458,24 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         gateType,
         gateNumber,
       })
+      .pipe(
+        switchMap((ticketSummary: CollectDailyTicketsResponse) =>
+          this.ticketExceedTransactionSvc.collectExceedTransactions().pipe(
+            map((exceedSummary) => ({
+              ticketSummary,
+              exceedSummary,
+            })),
+          ),
+        ),
+      )
       .subscribe({
-        next: (res: CollectDailyTicketsResponse) => {
-          this.collectSummary = res;
-          this.toast.success(this.t('admit_done'));
+        next: ({ ticketSummary, exceedSummary }) => {
+          this.collectSummary = ticketSummary;
+          this.exceedCollectSummary = exceedSummary;
+          this.notify('success', 'admit_done');
+          if (exceedSummary.totalTransactionsCollected > 0) {
+            this.notify('success', 'collectExceedOk');
+          }
           this.exitTicketAdded = true;
           this.scannedFile = null; // Clear scan after success
           this.reloadList();
@@ -2273,7 +2484,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           if (err?.status === 403) {
             const msg = this.t('incorrect_credentials');
             this.supervisorCollectError = msg;
-            this.toast.error(msg);
+            this.showToast('error', msg);
           } else {
             this.handleError('collectDailyTicketsAsSupervisor', err);
             this.supervisorCollectError = this.errorExtractor.extractErrorMessage(
@@ -2302,6 +2513,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.supervisorPassword = '';
     this.supervisorCollectError = null;
     this.collectSummary = null;
+    this.exceedCollectSummary = null;
     this.showSupervisorCollectModal = true;
   }
 
@@ -2313,6 +2525,12 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.supervisorPassword = '';
     this.supervisorCollectError = null;
     this.collectSummary = null;
+    this.exceedCollectSummary = null;
+  }
+
+  clearCollectSummaries(): void {
+    this.collectSummary = null;
+    this.exceedCollectSummary = null;
   }
 
   finishSupervisorCollect(): void {
@@ -2334,7 +2552,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.lastQrCode = null;
     } catch (err: any) {
       console.error(err);
-      this.toast.error(err?.message || 'تعذر قراءة الكارت. تأكد من توصيل وتشغيل قارئ الـ NFC.');
+      this.showToast('error', err?.message || this.t('nfc_read_failed'));
     } finally {
       this.readingCard = false;
     }
@@ -2428,6 +2646,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   private resetExceedState(clearSanctions: boolean = false): void {
     this.registeringExceed = false;
     this.isExceedRegistered = false;
+    this.isExceedAlreadyExists = false;
     this.exceedAmount = 0;
     this.totalPriceAfterExceed = 0;
     this.ticketExceedTransaction = null;

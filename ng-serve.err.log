@@ -1,3 +1,239 @@
 [1m[33m[baseline-browser-mapping] The data in this module is over two months old.  To ensure accurate Baseline data, please update: `npm i baseline-browser-mapping@latest -D`[39m[22m
-[1m[31mAn unhandled exception occurred: Port 4200 is already in use. Use '--port' to specify a different port.
-See "C:\Users\win10\AppData\Local\Temp\ng-rAAwla\angular-errors.log" for further details.[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'lprSignalRConnected' does not exist on type 'ExitgateComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:72:24:
+[37m      72 │         [lprListening]="[32mlprSignalRConnected[37m"
+         ╵                         [32m~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:75:15:
+[37m      75 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'lprSignalRError' does not exist on type 'ExitgateComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:73:20:
+[37m      73 │         [lprError]="[32mlprSignalRError[37m"
+         ╵                     [32m~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:75:15:
+[37m      75 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG2008: Could not find template file './exit-gate-devices-block-component.html'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exit-gate-devices-block-component/exit-gate-devices-block-component.ts:27:15:
+[37m      27 │   templateUrl: [32m'./exit-gate-devices-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG2008: Could not find template file './exit-gate-devices-block-component.html'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exit-gate-devices-block-component/exit-gate-devices-block-component.ts:27:15:
+[37m      27 │   templateUrl: [32m'./exit-gate-devices-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'clearScannedFile' does not exist on type 'ExitgateComponent'. Did you mean 'scannedFile'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:65:30:
+[37m      65 │         (scannedFileCleared)="[32mclearScannedFile[37m()"
+         ╵                               [32m~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:75:15:
+[37m      75 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'snapshotLoading' does not exist on type 'ExitgateComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:63:33:
+[37m      63 │         [cameraSnapshotLoading]="[32msnapshotLoading[37m"
+         ╵                                  [32m~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:75:15:
+[37m      75 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'snapshotError' does not exist on type 'ExitgateComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:65:31:
+[37m      65 │         [cameraSnapshotTitle]="[32msnapshotError[37m || t('take_snapshot')"
+         ╵                                [32m~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:75:15:
+[37m      75 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'retrySnapshot' does not exist on type 'ExitgateComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:68:31:
+[37m      68 │         (cameraSnapshotClick)="[32mretrySnapshot[37m()"
+         ╵                                [32m~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:75:15:
+[37m      75 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'snapshotLoading' does not exist on type 'ExitgateComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:63:33:
+[37m      63 │         [cameraSnapshotLoading]="[32msnapshotLoading[37m"
+         ╵                                  [32m~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:75:15:
+[37m      75 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'snapshotError' does not exist on type 'ExitgateComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:65:31:
+[37m      65 │         [cameraSnapshotTitle]="[32msnapshotError[37m || t('take_snapshot')"
+         ╵                                [32m~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:75:15:
+[37m      75 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'retrySnapshot' does not exist on type 'ExitgateComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:68:31:
+[37m      68 │         (cameraSnapshotClick)="[32mretrySnapshot[37m()"
+         ╵                                [32m~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:75:15:
+[37m      75 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'retrySnapshot' does not exist on type 'ExitgateComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:68:31:
+[37m      68 │         (cameraSnapshotClick)="[32mretrySnapshot[37m()"
+         ╵                                [32m~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:75:15:
+[37m      75 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8002: Can't bind to 'exceedCollectSummary' since it isn't a known property of 'app-exit-tickets-table-block-component'.
+1. If 'app-exit-tickets-table-block-component' is an Angular component and it has 'exceedCollectSummary' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-exit-tickets-table-block-component' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:176:8:
+[37m      176 │         [32m[exceedCollectSummary]="exceedCollectSummary"[37m
+          ╵         [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:78:15:
+[37m      78 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'clearCollectSummaries' does not exist on type 'ExitgateComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:185:31:
+[37m      185 │         (collectSummaryClose)="[32mclearCollectSummaries[37m()"
+          ╵                                [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:78:15:
+[37m      78 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'clearCollectSummaries' does not exist on type 'ExitgateComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:185:31:
+[37m      185 │         (collectSummaryClose)="[32mclearCollectSummaries[37m()"
+          ╵                                [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:78:15:
+[37m      78 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2531: Object is possibly 'null'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exit-tickets-table-block-component/exit-tickets-table-block-component.html:136:50:
+[37m      136 │ ...       <tr *ngFor="let d of collectSummary.[32mticketCollectDetails[37m">
+          ╵                                               [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitTicketsTableBlockComponent.
+
+    src/app/Feature/exitgate-component/exit-tickets-table-block-component/exit-tickets-table-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./exit-tickets-table-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'clearCollectSummaries' does not exist on type 'ExitgateComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.html:185:31:
+[37m      185 │         (collectSummaryClose)="[32mclearCollectSummaries[37m()"
+          ╵                                [32m~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitgateComponent.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:78:15:
+[37m      78 │   templateUrl: [32m'./exitgate-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2531: Object is possibly 'null'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exit-tickets-table-block-component/exit-tickets-table-block-component.html:136:50:
+[37m      136 │ ...       <tr *ngFor="let d of collectSummary.[32mticketCollectDetails[37m">
+          ╵                                               [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitTicketsTableBlockComponent.
+
+    src/app/Feature/exitgate-component/exit-tickets-table-block-component/exit-tickets-table-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./exit-tickets-table-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2531: Object is possibly 'null'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exit-tickets-table-block-component/exit-tickets-table-block-component.html:136:50:
+[37m      136 │ ...       <tr *ngFor="let d of collectSummary.[32mticketCollectDetails[37m">
+          ╵                                               [32m~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component ExitTicketsTableBlockComponent.
+
+    src/app/Feature/exitgate-component/exit-tickets-table-block-component/exit-tickets-table-block-component.ts:12:15:
+[37m      12 │   templateUrl: [32m'./exit-tickets-table-block-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
