@@ -371,6 +371,10 @@ export class TicketComponent implements OnInit, OnDestroy {
       total_collected_tickets: 'عدد التذاكر المحصَّلة',
       collected_at: 'وقت التحصيل',
       last_collection_time: 'وقت آخر تحصيل',
+      gate_number: 'رقم البوابة',
+      gate_type: 'نوع البوابة',
+      gate_type_entry: 'دخول',
+      gate_type_exit: 'خروج',
       collect: 'تحصيل',
       collected: 'تم التحصيل',
       actions: 'الإجراءات',
@@ -508,6 +512,10 @@ export class TicketComponent implements OnInit, OnDestroy {
       total_collected_tickets: 'Total collected tickets',
       collected_at: 'Collected at',
       last_collection_time: 'Last collection time',
+      gate_number: 'Gate number',
+      gate_type: 'Gate type',
+      gate_type_entry: 'Entry',
+      gate_type_exit: 'Exit',
       collect: 'Collect',
       collected: 'Collected',
       actions: 'Actions',
@@ -2266,6 +2274,8 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   private buildCollectSummaryReceiptHtml(summary: CollectDailyTicketsResponse): string {
     const gateName = this.escapePrintHtml(summary.gateName || `${this.t('gate')} ${summary.gateId || '---'}`);
+    const gateNumber = this.escapePrintHtml(String(this.getCollectionGateNumber()));
+    const gateTypeLabel = this.escapePrintHtml(this.getCollectionGateTypeLabel());
     const receiptDate = this.formatReceiptDate(summary.date);
     const totalAmount = Number(summary.totalPriceCollected ?? summary.totalAmount ?? 0);
     const ticketsCount = Number(summary.totalTicketsCollected ?? summary.ticketCollectDetails?.length ?? 0);
@@ -2405,6 +2415,14 @@ export class TicketComponent implements OnInit, OnDestroy {
             <span>${gateName}</span>
           </div>
           <div class="row">
+            <span>رقم البوابة:</span>
+            <span>${gateNumber}</span>
+          </div>
+          <div class="row">
+            <span>نوع البوابة:</span>
+            <span>${gateTypeLabel}</span>
+          </div>
+          <div class="row">
             <span>تاريخ التحصيل:</span>
             <span>${receiptDate}</span>
           </div>
@@ -2464,6 +2482,20 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   private formatReceiptMoney(value: number | null | undefined): string {
     return `${Number(value || 0).toFixed(2)} ج.م`;
+  }
+
+  getCollectionGateNumber(): string | number {
+    return this.gatePeripheral?.gateNumber ?? this.auth.getGateData()?.gateNumber ?? '---';
+  }
+
+  getCollectionGateTypeLabel(): string {
+    const gateType = this.gatePeripheral?.gateType ?? this.auth.getGateData()?.gateType ?? null;
+    const numericGateType = Number(gateType);
+
+    if (numericGateType === GateType.Exit) return this.t('gate_type_exit');
+    if (numericGateType === GateType.Entrance) return this.t('gate_type_entry');
+
+    return '---';
   }
 
   private escapePrintHtml(value: string): string {

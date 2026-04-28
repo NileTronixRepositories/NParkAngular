@@ -453,3 +453,35 @@
 [2026-04-28T09:58:30.150Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
 [2026-04-28T09:58:31.809Z] [Print] Sending to printer: XP-80C
 [2026-04-28T09:58:32.123Z] [PrintSuccess] Job: Daily-Collect-gate-1777370310138
+[2026-04-28T10:00:12.308Z] [PrintRequest] Job: QR-Ticket-b6af49c2-407f-41d2-b888-a8d819325d32, Printer: RONGTA 80mm Series Printer(1)
+[2026-04-28T10:00:12.309Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-28T10:00:12.311Z] [PrintRequest] Job: Receipt-Ticket-b6af49c2-407f-41d2-b888-a8d819325d32, Printer: XP-80C
+[2026-04-28T10:00:12.312Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-28T10:00:13.970Z] [Print] Sending to printer: RONGTA 80mm Series Printer(1)
+[2026-04-28T10:00:14.298Z] [PrintSuccess] Job: QR-Ticket-b6af49c2-407f-41d2-b888-a8d819325d32
+[2026-04-28T10:00:14.595Z] [Print] Sending to printer: XP-80C
+[2026-04-28T10:00:14.878Z] [PrintSuccess] Job: Receipt-Ticket-b6af49c2-407f-41d2-b888-a8d819325d32
+[2026-04-28T10:00:17.586Z] [PrintRequest] Job: QR-Ticket-36e226ac-cbcc-4fc0-af9c-73b529a113fd, Printer: RONGTA 80mm Series Printer(1)
+[2026-04-28T10:00:17.588Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-28T10:00:17.590Z] [PrintRequest] Job: Receipt-Ticket-36e226ac-cbcc-4fc0-af9c-73b529a113fd, Printer: XP-80C
+[2026-04-28T10:00:17.591Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-28T10:00:19.266Z] [Print] Sending to printer: RONGTA 80mm Series Printer(1)
+[2026-04-28T10:00:19.400Z] [PrintRequest] Job: QR-Ticket-6f58b844-640e-4ba3-a0ce-b2757dabd937, Printer: RONGTA 80mm Series Printer(1)
+[2026-04-28T10:00:19.401Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-28T10:00:19.404Z] [PrintRequest] Job: Receipt-Ticket-6f58b844-640e-4ba3-a0ce-b2757dabd937, Printer: XP-80C
+[2026-04-28T10:00:19.405Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-28T10:00:19.613Z] [PrintSuccess] Job: QR-Ticket-36e226ac-cbcc-4fc0-af9c-73b529a113fd
+[2026-04-28T10:00:20.308Z] [Print] Sending to printer: XP-80C
+[2026-04-28T10:00:20.640Z] [PrintSuccess] Job: Receipt-Ticket-36e226ac-cbcc-4fc0-af9c-73b529a113fd
+[2026-04-28T10:00:21.138Z] [Print] Sending to printer: RONGTA 80mm Series Printer(1)
+[2026-04-28T10:00:21.288Z] [PrintRequest] Job: QR-Ticket-24f4075f-2cb0-4230-9fa1-9ba51de840a7, Printer: RONGTA 80mm Series Printer(1)
+[2026-04-28T10:00:21.289Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-28T10:00:21.292Z] [PrintRequest] Job: Receipt-Ticket-24f4075f-2cb0-4230-9fa1-9ba51de840a7, Printer: XP-80C
+[2026-04-28T10:00:21.293Z] [Browser] Using executable: C:\Program Files\Google\Chrome\Application\chrome.exe
+[2026-04-28T10:00:21.336Z] [Print] Sending to printer: XP-80C
+[2026-04-28T10:00:21.497Z] [PrintSuccess] Job: QR-Ticket-6f58b844-640e-4ba3-a0ce-b2757dabd937
+[2026-04-28T10:00:21.710Z] [PrintSuccess] Job: Receipt-Ticket-6f58b844-640e-4ba3-a0ce-b2757dabd937
+[2026-04-28T10:00:23.547Z] [Print] Sending to printer: RONGTA 80mm Series Printer(1)
+[2026-04-28T10:00:23.636Z] [Print] Sending to printer: XP-80C
+[2026-04-28T10:00:23.861Z] [PrintSuccess] Job: QR-Ticket-24f4075f-2cb0-4230-9fa1-9ba51de840a7
+[2026-04-28T10:00:23.911Z] [PrintSuccess] Job: Receipt-Ticket-24f4075f-2cb0-4230-9fa1-9ba51de840a7

@@ -237,3 +237,29 @@
          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
 [39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getCollectionGateNumber' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.html:217:51:
+[37m      217 │ ...an>{{ t('gate_number') }}: {{ [32mgetCollectionGateNumber[37m() }}</span>
+          ╵                                  [32m~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component TicketComponent.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:89:15:
+[37m      89 │   templateUrl: [32m'./ticket-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'getCollectionGateTypeLabel' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.html:218:49:
+[37m      218 │ ...n>{{ t('gate_type') }}: {{ [32mgetCollectionGateTypeLabel[37m() }}</span>
+          ╵                               [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component TicketComponent.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:89:15:
+[37m      89 │   templateUrl: [32m'./ticket-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m

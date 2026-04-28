@@ -214,6 +214,8 @@
                 <h6 class="mb-0 fw-bold text-truncate">{{ t('collect_summary') }}</h6>
                 <div class="collect-receipt-meta text-truncate">
                   <span *ngIf="collectSummary.gateName">{{ t('gate') }}: {{ collectSummary.gateName }}</span>
+                  <span>{{ t('gate_number') }}: {{ getCollectionGateNumber() }}</span>
+                  <span>{{ t('gate_type') }}: {{ getCollectionGateTypeLabel() }}</span>
                   <span *ngIf="collectSummary.date">{{ collectSummary.date | date: 'mediumDate' }}</span>
                 </div>
               </div>
