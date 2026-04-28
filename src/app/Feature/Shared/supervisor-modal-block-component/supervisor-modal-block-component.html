@@ -1,22 +1,25 @@
-<!-- Supervisor Login Modal (Shared) -->
 <div class="modal d-block modal-backdrop-custom" tabindex="-1" *ngIf="show">
-  <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
+  <div
+    class="modal-dialog modal-sm modal-dialog-centered"
+    [class.summary-dialog]="summary"
+    role="document"
+  >
     <div class="modal-content supervisor-modal-content glass">
       <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
         <h5 class="modal-title d-flex align-items-center gap-2 mb-0">
           <i class="bi bi-shield-lock-fill text-primary"></i>
-          <span>{{ t('supervisor_login') }}</span>
+          <span>{{ summary ? t('collection_summary') : t('supervisor_login') }}</span>
         </h5>
         <button
           type="button"
           class="btn-close m-0"
-          aria-label="Close"
+          [attr.aria-label]="summary ? t('logout') : t('cancel')"
           (click)="onClose()"
           [disabled]="loading"
         ></button>
       </div>
 
-      <div class="modal-body pt-4">
+      <div class="modal-body pt-4" *ngIf="!summary">
         <form (ngSubmit)="onSubmit()" class="supervisor-form">
           <div class="mb-4 text-center">
             <p class="text-muted x-small mb-4">
@@ -53,10 +56,7 @@
             </div>
           </div>
 
-          <div
-            *ngIf="error"
-            class="alert alert-danger-custom d-flex align-items-center gap-2 mb-4 animate__animated animate__shakeX"
-          >
+          <div *ngIf="error" class="alert alert-danger-custom d-flex align-items-center gap-2 mb-4">
             <i class="bi bi-exclamation-triangle-fill"></i>
             <span class="x-small">{{ error }}</span>
           </div>
@@ -79,6 +79,93 @@
             </button>
           </div>
         </form>
+      </div>
+
+      <div class="modal-body pt-3" *ngIf="summary">
+        <div class="supervisor-summary" dir="auto">
+          <div class="summary-stats-grid">
+            <div class="summary-stat summary-stat-main">
+              <span>{{ t('total_amount') }}</span>
+              <strong>{{ summary.totalPriceCollected | number: '1.0-2' }} {{ t('currency') }}</strong>
+            </div>
+
+            <div class="summary-stat">
+              <span>{{ t('total_tickets') }}</span>
+              <strong>{{ summary.totalTicketsCollected }}</strong>
+            </div>
+          </div>
+
+          <div class="summary-ticket-list" *ngIf="summary.ticketCollectDetails?.length">
+            <div class="summary-ticket-card" *ngFor="let ticket of summary.ticketCollectDetails">
+              <div class="ticket-card-head">
+                <div class="min-w-0">
+                  <div class="ticket-code mono">{{ ticket.ticketNumber }}</div>
+                  <div class="ticket-source">{{ ticket.source || '--' }}</div>
+                </div>
+                <div class="ticket-amount mono">
+                  {{ ticket.price | number: '1.0-2' }} {{ t('currency') }}
+                </div>
+              </div>
+
+              <div class="ticket-detail-grid">
+                <div class="ticket-detail ticket-detail-wide">
+                  <span>{{ t('ticket_id') }}</span>
+                  <strong class="mono">{{ ticket.ticketId || '--' }}</strong>
+                </div>
+                <div class="ticket-detail">
+                  <span>{{ t('start_date') }}</span>
+                  <strong class="mono">{{ ticket.startDate ? (ticket.startDate | date: 'short') : '--' }}</strong>
+                </div>
+                <div class="ticket-detail">
+                  <span>{{ t('end_date') }}</span>
+                  <strong class="mono">{{ ticket.endDate ? (ticket.endDate | date: 'short') : '--' }}</strong>
+                </div>
+                <div class="ticket-detail">
+                  <span>{{ t('vehicle_number') }}</span>
+                  <strong class="mono">{{ ticket.vehicleNumber || '--' }}</strong>
+                </div>
+                <div class="ticket-detail">
+                  <span>{{ t('card_number') }}</span>
+                  <strong class="mono">{{ ticket.cardNumber || '--' }}</strong>
+                </div>
+                <div class="ticket-detail">
+                  <span>{{ t('subscriber') }}</span>
+                  <strong>{{ ticket.isSubscriber ? t('yes') : t('no') }}</strong>
+                </div>
+                <div class="ticket-detail">
+                  <span>{{ t('exit_gate') }}</span>
+                  <strong class="mono">{{ ticket.exitGateId || '--' }}</strong>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div *ngIf="error" class="alert alert-danger-custom d-flex align-items-center gap-2 mt-3">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            <span class="x-small">{{ error }}</span>
+          </div>
+
+          <div class="d-grid gap-2 mt-3">
+            <button
+              type="button"
+              class="btn btn-success btn-confirm py-2"
+              (click)="onCollect()"
+              [disabled]="loading || !summary.totalTicketsCollected"
+            >
+              <span *ngIf="!loading" class="fw-bold">{{ t('collect_now') }}</span>
+              <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
+            </button>
+
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm"
+              (click)="onClose()"
+              [disabled]="loading"
+            >
+              {{ t('logout') }}
+            </button>
+          </div>
+        </div>
       </div>
     </div>
   </div>

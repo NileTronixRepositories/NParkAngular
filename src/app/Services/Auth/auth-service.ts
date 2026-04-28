@@ -112,7 +112,7 @@ export class AuthService {
 
   // ================== SELECT GATE ==================
   selectGate(gateId: string | number, gateType: GateType): Observable<AuthResponse> {
-    const body = { gateId, gateType };
+    const body = { gateId };
 
     return this.http.post<AuthResponse>(`${API_BASE}/CheckGate`, body).pipe(
       tap((res) => {
@@ -318,7 +318,7 @@ export class AuthService {
     // ✅ نحقن TicketsServices هنا بس → ما فيش Circular DI
     const ticketsService = inject(TicketsServices);
 
-    ticketsService.collectDailyTickets().subscribe({
+    ticketsService.collectEnterTickets().subscribe({
       next: (res: any) => {
         const total = res?.totalAmount ?? res?.total ?? res?.amount ?? null;
 

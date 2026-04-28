@@ -9,6 +9,8 @@ import {
   TicketAction,
   TicketTableResponseDto,
   CollectDailyTicketsResponse,
+  CollectEnterTicketsResponse,
+  UncollectedEnterTicketsResponse,
   ValidateExitByVehicleNumberResponse,
   ValidateExitByTextRequest,
   ValidateExitByTextResponse,
@@ -20,6 +22,11 @@ import { environment } from '../../Shared/environment/environment';
 export interface TicketsForGateResult {
   items: TicketDto[];
   totalPrice: number;
+}
+
+export interface UncollectedEnterTicketsResult extends TicketsForGateResult {
+  gateId: string;
+  totalTicketsCount: number;
 }
 
 @Injectable({
@@ -238,6 +245,49 @@ export class TicketCoreService {
     };
   }
 
+  private mapUncollectedEnterTicketToTicketDto(r: any): TicketDto {
+    const ticketId = r.ticketId ?? r.TicketId ?? '';
+    const ticketNumber = r.ticketUniqueCode ?? r.TicketUniqueCode ?? ticketId;
+    const vehicleNumber = r.vehicleNumber ?? r.VehicleNumber ?? '';
+    const cardNumber = r.cardNumber ?? r.CardNumber ?? null;
+    const source = r.source ?? r.Source ?? '';
+
+    const info = [vehicleNumber, cardNumber, source].filter(Boolean).join(' | ');
+
+    return {
+      id: ticketId,
+      ticketNumber,
+      plate: vehicleNumber,
+      action: 'IN',
+      time: r.startDate ?? r.StartDate ?? new Date().toISOString(),
+      gate: r.gateId ?? r.GateId ?? '',
+      price: Number(r.originalPrice ?? r.OriginalPrice ?? 0),
+      isCollectedByCashier: false,
+      info,
+      cardNumber,
+      plateNumber: vehicleNumber,
+    };
+  }
+
+  getUncollectedEnterTickets(): Observable<UncollectedEnterTicketsResult> {
+    return this.http.get<UncollectedEnterTicketsResponse>(this.endpoint('uncollected-enter-tickets')).pipe(
+      map((res: any): UncollectedEnterTicketsResult => {
+        const rows = res?.tickets ?? res?.Tickets ?? [];
+
+        return {
+          gateId: res?.gateId ?? res?.GateId ?? '',
+          totalTicketsCount: Number(res?.totalTicketsCount ?? res?.TotalTicketsCount ?? rows.length),
+          totalPrice: Number(res?.totalOriginalPrice ?? res?.TotalOriginalPrice ?? 0),
+          items: rows.map((row: any) => this.mapUncollectedEnterTicketToTicketDto(row)),
+        };
+      }),
+      catchError((err) => {
+        this.logError('GET /Ticket/uncollected-enter-tickets', err);
+        return throwError(() => err);
+      }),
+    );
+  }
+
   getTicketsForEntry(
     startDate: string,
     ticketNumber: string = '',
@@ -292,6 +342,121 @@ export class TicketCoreService {
 
   collectDailyTickets(body: any = {}): Observable<CollectDailyTicketsResponse> {
     return this.http.post<CollectDailyTicketsResponse>(this.endpoint('CollectDailyTickets'), body);
+  }
+
+  collectEnterTickets(): Observable<CollectDailyTicketsResponse> {
+    return this.http.post<CollectEnterTicketsResponse>(this.endpoint('collect-enter-tickets'), {}).pipe(
+      map((res) => this.mapCollectEnterResponseToSummary(res)),
+      catchError((err) => {
+        this.logError('POST /Ticket/collect-enter-tickets', err);
+        return throwError(() => err);
+      }),
+    );
+  }
+
+  mapCollectEnterResponseToSummary(res: CollectEnterTicketsResponse | any): CollectDailyTicketsResponse {
+    const tickets = res?.tickets ?? res?.Tickets ?? [];
+    const collectedAt = res?.collectedAt ?? res?.CollectedAt ?? new Date().toISOString();
+
+    return {
+      gateId: res?.gateId ?? res?.GateId ?? '',
+      gateName: null,
+      date: collectedAt,
+      totalAmount: Number(
+        res?.totalOriginalPriceCollected ?? res?.TotalOriginalPriceCollected ?? 0,
+      ),
+      totalPriceCollected: Number(
+        res?.totalOriginalPriceCollected ?? res?.TotalOriginalPriceCollected ?? 0,
+      ),
+      totalTicketsCollected: Number(
+        res?.totalTicketsCollected ?? res?.TotalTicketsCollected ?? tickets.length,
+      ),
+      ticketCollectDetails: tickets.map((ticket: any) => ({
+        ticketId: ticket?.ticketId ?? ticket?.TicketId ?? null,
+        collectedAt: ticket?.collectedAt ?? ticket?.CollectedAt ?? collectedAt,
+        ticketNumber:
+          ticket?.ticketUniqueCode ??
+          ticket?.TicketUniqueCode ??
+          ticket?.ticketId ??
+          ticket?.TicketId ??
+          '',
+        source: ticket?.source ?? ticket?.Source ?? null,
+        startDate: ticket?.startDate ?? ticket?.StartDate ?? null,
+        endDate: ticket?.endDate ?? ticket?.EndDate ?? null,
+        price: Number(ticket?.originalPrice ?? ticket?.OriginalPrice ?? 0),
+        vehicleNumber: ticket?.vehicleNumber ?? ticket?.VehicleNumber ?? null,
+        cardNumber: ticket?.cardNumber ?? ticket?.CardNumber ?? null,
+        isSubscriber: !!(ticket?.isSubscriber ?? ticket?.IsSubscriber),
+        exitGateId: ticket?.exitGateId ?? ticket?.ExitGateId ?? null,
+        extraFields: this.extractTicketExtraFields(ticket),
+      })),
+    };
+  }
+
+  mapUncollectedEnterResponseToSummary(res: UncollectedEnterTicketsResponse | any): CollectDailyTicketsResponse {
+    const tickets = res?.tickets ?? res?.Tickets ?? [];
+    const date = new Date().toISOString();
+
+    return {
+      gateId: res?.gateId ?? res?.GateId ?? '',
+      gateName: null,
+      date,
+      totalAmount: Number(res?.totalOriginalPrice ?? res?.TotalOriginalPrice ?? 0),
+      totalPriceCollected: Number(res?.totalOriginalPrice ?? res?.TotalOriginalPrice ?? 0),
+      totalTicketsCollected: Number(
+        res?.totalTicketsCount ?? res?.TotalTicketsCount ?? tickets.length,
+      ),
+      ticketCollectDetails: tickets.map((ticket: any) => ({
+        ticketId: ticket?.ticketId ?? ticket?.TicketId ?? null,
+        collectedAt: ticket?.startDate ?? ticket?.StartDate ?? date,
+        ticketNumber:
+          ticket?.ticketUniqueCode ??
+          ticket?.TicketUniqueCode ??
+          ticket?.ticketId ??
+          ticket?.TicketId ??
+          '',
+        source: ticket?.source ?? ticket?.Source ?? null,
+        startDate: ticket?.startDate ?? ticket?.StartDate ?? null,
+        endDate: ticket?.endDate ?? ticket?.EndDate ?? null,
+        price: Number(ticket?.originalPrice ?? ticket?.OriginalPrice ?? 0),
+        vehicleNumber: ticket?.vehicleNumber ?? ticket?.VehicleNumber ?? null,
+        cardNumber: ticket?.cardNumber ?? ticket?.CardNumber ?? null,
+        isSubscriber: !!(ticket?.isSubscriber ?? ticket?.IsSubscriber),
+        exitGateId: ticket?.exitGateId ?? ticket?.ExitGateId ?? null,
+        extraFields: this.extractTicketExtraFields(ticket),
+      })),
+    };
+  }
+
+  private extractTicketExtraFields(ticket: any): Record<string, unknown> {
+    if (!ticket || typeof ticket !== 'object') return {};
+
+    const known = new Set(
+      [
+        'ticketId',
+        'ticketUniqueCode',
+        'source',
+        'startDate',
+        'endDate',
+        'collectedAt',
+        'originalPrice',
+        'vehicleNumber',
+        'cardNumber',
+        'isSubscriber',
+        'gateId',
+        'exitGateId',
+      ].flatMap((key) => [key, key.charAt(0).toUpperCase() + key.slice(1)]),
+    );
+
+    return Object.entries(ticket).reduce(
+      (acc, [key, value]) => {
+        if (!known.has(key)) {
+          acc[key] = value;
+        }
+        return acc;
+      },
+      {} as Record<string, unknown>,
+    );
   }
 
   // ========= Manual LPR capture =========

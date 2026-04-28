@@ -2,6 +2,7 @@ import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { LanguageService } from '../../../Services/i18n/language-service';
+import { CollectDailyTicketsResponse } from '../../../Domain/tickets/tickets.model';
 
 @Component({
   selector: 'app-supervisor-modal-block-component',
@@ -18,21 +19,15 @@ export class SupervisorModalBlockComponent {
   @Input() error: string | null = null;
   @Input() username = '';
   @Input() password = '';
+  @Input() summary: CollectDailyTicketsResponse | null = null;
 
   @Output() usernameChange = new EventEmitter<string>();
   @Output() passwordChange = new EventEmitter<string>();
   @Output() submit = new EventEmitter<void>();
+  @Output() collect = new EventEmitter<void>();
   @Output() close = new EventEmitter<void>();
 
-  t(key: string): string {
-    // This assumes the parent passes a translation function or we use a shared one.
-    // For now, we'll use a simple fallback or the injected service if it has a t() method.
-    // Based on the project patterns, we'll try to use the dictionary or just return the key.
-    return (this as any).dict?.[this.i18n.current]?.[key] ?? key;
-  }
-
-  // Dictionary copied from parents for autonomy, or could be passed as input.
-  private readonly dict: any = {
+  private readonly dict: Record<string, Record<string, string>> = {
     ar: {
       supervisor_login: 'دخول المشرف',
       pleaseLoginToProceed: 'يرجى تسجيل الدخول كمشرف للمتابعة والتحصيل.',
@@ -40,6 +35,24 @@ export class SupervisorModalBlockComponent {
       supervisor_password: 'كلمة مرور المشرف',
       confirm: 'تأكيد',
       cancel: 'إلغاء',
+      logout: 'تسجيل خروج',
+      collection_summary: 'ملخص التحصيل',
+      total_amount: 'إجمالي المبلغ',
+      total_tickets: 'عدد التذاكر',
+      ticket: 'التذكرة',
+      ticket_id: 'معرف التذكرة',
+      source: 'المصدر',
+      start_date: 'وقت الدخول',
+      end_date: 'وقت الخروج',
+      vehicle_number: 'رقم المركبة',
+      card_number: 'رقم الكارت',
+      subscriber: 'مشترك',
+      exit_gate: 'بوابة الخروج',
+      yes: 'نعم',
+      no: 'لا',
+      amount: 'المبلغ',
+      collect_now: 'تحصيل',
+      currency: 'ج.م',
     },
     en: {
       supervisor_login: 'Supervisor Login',
@@ -48,11 +61,37 @@ export class SupervisorModalBlockComponent {
       supervisor_password: 'Supervisor Password',
       confirm: 'Confirm',
       cancel: 'Cancel',
+      logout: 'Logout',
+      collection_summary: 'Collection summary',
+      total_amount: 'Total amount',
+      total_tickets: 'Total tickets',
+      ticket: 'Ticket',
+      ticket_id: 'Ticket ID',
+      source: 'Source',
+      start_date: 'Start date',
+      end_date: 'End date',
+      vehicle_number: 'Vehicle number',
+      card_number: 'Card number',
+      subscriber: 'Subscriber',
+      exit_gate: 'Exit gate',
+      yes: 'Yes',
+      no: 'No',
+      amount: 'Amount',
+      collect_now: 'Collect',
+      currency: 'EGP',
     },
   };
 
+  t(key: string): string {
+    return this.dict[this.i18n.current]?.[key] ?? this.dict['en']?.[key] ?? key;
+  }
+
   onSubmit(): void {
     this.submit.emit();
+  }
+
+  onCollect(): void {
+    this.collect.emit();
   }
 
   onClose(): void {

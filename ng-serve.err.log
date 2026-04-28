@@ -263,3 +263,984 @@
          ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
 
 [39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:593:9:
+[37m      593 │     this.[32mloadEntryTicketsForCurrentMode[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:593:9:
+[37m      593 │     this.[32mloadEntryTicketsForCurrentMode[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2554:13:
+[37m      2554 │         this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:593:9:
+[37m      593 │     this.[32mloadEntryTicketsForCurrentMode[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:1753:9:
+[37m      1753 │     this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2554:13:
+[37m      2554 │         this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:593:9:
+[37m      593 │     this.[32mloadEntryTicketsForCurrentMode[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:955:13:
+[37m      955 │         this.[32mloadEntryTicketsForCurrentMode[37m();
+          ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:1753:9:
+[37m      1753 │     this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2554:13:
+[37m      2554 │         this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:593:9:
+[37m      593 │     this.[32mloadEntryTicketsForCurrentMode[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:955:13:
+[37m      955 │         this.[32mloadEntryTicketsForCurrentMode[37m();
+          ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:1753:9:
+[37m      1753 │     this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2554:13:
+[37m      2554 │         this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2594:15:
+[37m      2594 │           this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:593:9:
+[37m      593 │     this.[32mloadEntryTicketsForCurrentMode[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:955:13:
+[37m      955 │         this.[32mloadEntryTicketsForCurrentMode[37m();
+          ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:1753:9:
+[37m      1753 │     this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2554:13:
+[37m      2554 │         this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2594:15:
+[37m      2594 │           this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2682:13:
+[37m      2682 │         this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:593:9:
+[37m      593 │     this.[32mloadEntryTicketsForCurrentMode[37m();
+          ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:955:13:
+[37m      955 │         this.[32mloadEntryTicketsForCurrentMode[37m();
+          ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:1753:9:
+[37m      1753 │     this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2554:13:
+[37m      2554 │         this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2594:15:
+[37m      2594 │           this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadUncollectedEnterTicketsForCollect' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2620:11:
+[37m      2620 │       this.[32mloadUncollectedEnterTicketsForCollect[37m(() => this.coll...
+           ╵            [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadUncollectedEnterTicketsForCollect' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2624:9:
+[37m      2624 │     this.[32mloadUncollectedEnterTicketsForCollect[37m(() => this.openSu...
+           ╵          [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'loadEntryTicketsForCurrentMode' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2685:13:
+[37m      2685 │         this.[32mloadEntryTicketsForCurrentMode[37m();
+           ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectDailyTicketsAsSupervisor' does not exist on type 'TicketsServices'. Did you mean 'collectEnterTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2583:7:
+[37m      2583 │       .[32mcollectDailyTicketsAsSupervisor[37m({
+           ╵        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectEnterTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/tickets-services.ts:226:2:
+[37m      226 │   [32mcollectEnterTicketsAsSupervisor[37m(credentials: {
+          ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'res' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2590:15:
+[37m      2590 │         next: ([32mres[37m) => {
+           ╵                [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'err' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2596:16:
+[37m      2596 │         error: ([32merr[37m) => {
+           ╵                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectDailyTicketsAsSupervisor' does not exist on type 'TicketsServices'. Did you mean 'collectEnterTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2455:7:
+[37m      2455 │       .[32mcollectDailyTicketsAsSupervisor[37m({
+           ╵        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectEnterTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/tickets-services.ts:226:2:
+[37m      226 │   [32mcollectEnterTicketsAsSupervisor[37m(credentials: {
+          ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'ticketSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:17:
+[37m      2472 │         next: ({ [32mticketSummary[37m, exceedSummary }) => {
+           ╵                  [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'exceedSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:32:
+[37m      2472 │         next: ({ ticketSummary, [32mexceedSummary[37m }) => {
+           ╵                                 [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'err' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2483:16:
+[37m      2483 │         error: ([32merr[37m) => {
+           ╵                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectEnterTicketsAsSupervisor' does not exist on type 'TicketSupervisorService'. Did you mean 'collectDailyTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Services/Tickets/tickets-services.ts:231:27:
+[37m      231 │ ...urn this.supervisor.[32mcollectEnterTicketsAsSupervisor[37m(credentials);
+          ╵                        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectDailyTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/ticket-supervisor.service.ts:35:2:
+[37m      35 │   [32mcollectDailyTicketsAsSupervisor[37m(credentials: {
+         ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectDailyTicketsAsSupervisor' does not exist on type 'TicketsServices'. Did you mean 'collectEnterTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2583:7:
+[37m      2583 │       .[32mcollectDailyTicketsAsSupervisor[37m({
+           ╵        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectEnterTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/tickets-services.ts:226:2:
+[37m      226 │   [32mcollectEnterTicketsAsSupervisor[37m(credentials: {
+          ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'res' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2590:15:
+[37m      2590 │         next: ([32mres[37m) => {
+           ╵                [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'err' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2596:16:
+[37m      2596 │         error: ([32merr[37m) => {
+           ╵                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectDailyTicketsAsSupervisor' does not exist on type 'TicketsServices'. Did you mean 'collectEnterTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2455:7:
+[37m      2455 │       .[32mcollectDailyTicketsAsSupervisor[37m({
+           ╵        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectEnterTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/tickets-services.ts:226:2:
+[37m      226 │   [32mcollectEnterTicketsAsSupervisor[37m(credentials: {
+          ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'ticketSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:17:
+[37m      2472 │         next: ({ [32mticketSummary[37m, exceedSummary }) => {
+           ╵                  [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'exceedSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:32:
+[37m      2472 │         next: ({ ticketSummary, [32mexceedSummary[37m }) => {
+           ╵                                 [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'err' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2483:16:
+[37m      2483 │         error: ([32merr[37m) => {
+           ╵                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module './ticket-supervisor.service' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Services/Tickets/tickets-services.ts:28:40:
+[37m      28 │ ...rt { TicketSupervisorService } from [32m'./ticket-supervisor.service'[37m;
+         ╵                                        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2571: Object is of type 'unknown'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Services/Tickets/tickets-services.ts:231:11:
+[37m      231 │     return [32mthis.supervisor[37m.collectEnterTicketsAsSupervisor(creden...
+          ╵            [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "./ticket-supervisor.service"[0m
+
+    src/app/Services/Tickets/tickets-services.ts:6:40:
+[37m      6 │ import { TicketSupervisorService } from [32m'./ticket-supervisor.service'[37m;
+        ╵                                         [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectDailyTicketsAsSupervisor' does not exist on type 'TicketsServices'. Did you mean 'collectEnterTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2583:7:
+[37m      2583 │       .[32mcollectDailyTicketsAsSupervisor[37m({
+           ╵        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectEnterTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/tickets-services.ts:226:2:
+[37m      226 │   [32mcollectEnterTicketsAsSupervisor[37m(credentials: {
+          ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'res' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2590:15:
+[37m      2590 │         next: ([32mres[37m) => {
+           ╵                [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'err' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2596:16:
+[37m      2596 │         error: ([32merr[37m) => {
+           ╵                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectDailyTicketsAsSupervisor' does not exist on type 'TicketsServices'. Did you mean 'collectEnterTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2455:7:
+[37m      2455 │       .[32mcollectDailyTicketsAsSupervisor[37m({
+           ╵        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectEnterTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/tickets-services.ts:226:2:
+[37m      226 │   [32mcollectEnterTicketsAsSupervisor[37m(credentials: {
+          ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'ticketSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:17:
+[37m      2472 │         next: ({ [32mticketSummary[37m, exceedSummary }) => {
+           ╵                  [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'exceedSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:32:
+[37m      2472 │         next: ({ ticketSummary, [32mexceedSummary[37m }) => {
+           ╵                                 [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'err' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2483:16:
+[37m      2483 │         error: ([32merr[37m) => {
+           ╵                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module './ticket-supervisor.service' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Services/Tickets/tickets-services.ts:28:40:
+[37m      28 │ ...rt { TicketSupervisorService } from [32m'./ticket-supervisor.service'[37m;
+         ╵                                        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2571: Object is of type 'unknown'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Services/Tickets/tickets-services.ts:231:11:
+[37m      231 │     return [32mthis.supervisor[37m.collectEnterTicketsAsSupervisor(creden...
+          ╵            [32m~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "./ticket-supervisor.service"[0m
+
+    src/app/Services/Tickets/tickets-services.ts:6:40:
+[37m      6 │ import { TicketSupervisorService } from [32m'./ticket-supervisor.service'[37m;
+        ╵                                         [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectDailyTicketsAsSupervisor' does not exist on type 'TicketsServices'. Did you mean 'collectEnterTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2583:7:
+[37m      2583 │       .[32mcollectDailyTicketsAsSupervisor[37m({
+           ╵        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectEnterTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/tickets-services.ts:226:2:
+[37m      226 │   [32mcollectEnterTicketsAsSupervisor[37m(credentials: {
+          ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'res' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2590:15:
+[37m      2590 │         next: ([32mres[37m) => {
+           ╵                [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'err' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2596:16:
+[37m      2596 │         error: ([32merr[37m) => {
+           ╵                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectDailyTicketsAsSupervisor' does not exist on type 'TicketsServices'. Did you mean 'collectEnterTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2455:7:
+[37m      2455 │       .[32mcollectDailyTicketsAsSupervisor[37m({
+           ╵        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectEnterTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/tickets-services.ts:226:2:
+[37m      226 │   [32mcollectEnterTicketsAsSupervisor[37m(credentials: {
+          ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'ticketSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:17:
+[37m      2472 │         next: ({ [32mticketSummary[37m, exceedSummary }) => {
+           ╵                  [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'exceedSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:32:
+[37m      2472 │         next: ({ ticketSummary, [32mexceedSummary[37m }) => {
+           ╵                                 [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'err' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2483:16:
+[37m      2483 │         error: ([32merr[37m) => {
+           ╵                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'TotalTicketsCount' does not exist on type 'UncollectedEnterTicketsResponse'. Did you mean 'totalTicketsCount'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Services/Tickets/ticket-supervisor.service.ts:85:63:
+[37m      85 │ ...llected?.totalTicketsCount ?? uncollected?.[32mTotalTicketsCount[37m ?? 0,
+         ╵                                               [32m~~~~~~~~~~~~~~~~~[0m
+
+  'totalTicketsCount' is declared here.
+
+    src/app/Domain/tickets/tickets.model.ts:183:2:
+[37m      183 │   [32mtotalTicketsCount[37m: number;
+          ╵   [32m~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectDailyTicketsAsSupervisor' does not exist on type 'TicketsServices'. Did you mean 'collectEnterTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2455:7:
+[37m      2455 │       .[32mcollectDailyTicketsAsSupervisor[37m({
+           ╵        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectEnterTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/tickets-services.ts:226:2:
+[37m      226 │   [32mcollectEnterTicketsAsSupervisor[37m(credentials: {
+          ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'ticketSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:17:
+[37m      2472 │         next: ({ [32mticketSummary[37m, exceedSummary }) => {
+           ╵                  [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'exceedSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:32:
+[37m      2472 │         next: ({ ticketSummary, [32mexceedSummary[37m }) => {
+           ╵                                 [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'err' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2483:16:
+[37m      2483 │         error: ([32merr[37m) => {
+           ╵                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'TotalTicketsCount' does not exist on type 'UncollectedEnterTicketsResponse'. Did you mean 'totalTicketsCount'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Services/Tickets/ticket-supervisor.service.ts:85:63:
+[37m      85 │ ...llected?.totalTicketsCount ?? uncollected?.[32mTotalTicketsCount[37m ?? 0,
+         ╵                                               [32m~~~~~~~~~~~~~~~~~[0m
+
+  'totalTicketsCount' is declared here.
+
+    src/app/Domain/tickets/tickets.model.ts:183:2:
+[37m      183 │   [32mtotalTicketsCount[37m: number;
+          ╵   [32m~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectDailyTicketsAsSupervisor' does not exist on type 'TicketsServices'. Did you mean 'collectEnterTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2455:7:
+[37m      2455 │       .[32mcollectDailyTicketsAsSupervisor[37m({
+           ╵        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectEnterTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/tickets-services.ts:226:2:
+[37m      226 │   [32mcollectEnterTicketsAsSupervisor[37m(credentials: {
+          ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'ticketSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:17:
+[37m      2472 │         next: ({ [32mticketSummary[37m, exceedSummary }) => {
+           ╵                  [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'exceedSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:32:
+[37m      2472 │         next: ({ ticketSummary, [32mexceedSummary[37m }) => {
+           ╵                                 [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'err' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2483:16:
+[37m      2483 │         error: ([32merr[37m) => {
+           ╵                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'TotalTicketsCount' does not exist on type 'UncollectedEnterTicketsResponse'. Did you mean 'totalTicketsCount'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Services/Tickets/ticket-supervisor.service.ts:85:63:
+[37m      85 │ ...llected?.totalTicketsCount ?? uncollected?.[32mTotalTicketsCount[37m ?? 0,
+         ╵                                               [32m~~~~~~~~~~~~~~~~~[0m
+
+  'totalTicketsCount' is declared here.
+
+    src/app/Domain/tickets/tickets.model.ts:183:2:
+[37m      183 │   [32mtotalTicketsCount[37m: number;
+          ╵   [32m~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectDailyTicketsAsSupervisor' does not exist on type 'TicketsServices'. Did you mean 'collectEnterTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2455:7:
+[37m      2455 │       .[32mcollectDailyTicketsAsSupervisor[37m({
+           ╵        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectEnterTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/tickets-services.ts:226:2:
+[37m      226 │   [32mcollectEnterTicketsAsSupervisor[37m(credentials: {
+          ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'ticketSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:17:
+[37m      2472 │         next: ({ [32mticketSummary[37m, exceedSummary }) => {
+           ╵                  [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'exceedSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:32:
+[37m      2472 │         next: ({ ticketSummary, [32mexceedSummary[37m }) => {
+           ╵                                 [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'err' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2483:16:
+[37m      2483 │         error: ([32merr[37m) => {
+           ╵                 [32m~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'TotalTicketsCount' does not exist on type 'UncollectedEnterTicketsResponse'. Did you mean 'totalTicketsCount'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Services/Tickets/ticket-supervisor.service.ts:85:63:
+[37m      85 │ ...llected?.totalTicketsCount ?? uncollected?.[32mTotalTicketsCount[37m ?? 0,
+         ╵                                               [32m~~~~~~~~~~~~~~~~~[0m
+
+  'totalTicketsCount' is declared here.
+
+    src/app/Domain/tickets/tickets.model.ts:183:2:
+[37m      183 │   [32mtotalTicketsCount[37m: number;
+          ╵   [32m~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2551: Property 'collectDailyTicketsAsSupervisor' does not exist on type 'TicketsServices'. Did you mean 'collectEnterTicketsAsSupervisor'?[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2455:7:
+[37m      2455 │       .[32mcollectDailyTicketsAsSupervisor[37m({
+           ╵        [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  'collectEnterTicketsAsSupervisor' is declared here.
+
+    src/app/Services/Tickets/tickets-services.ts:225:2:
+[37m      225 │   [32mcollectEnterTicketsAsSupervisor[37m(credentials: {
+          ╵   [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'ticketSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:17:
+[37m      2472 │         next: ({ [32mticketSummary[37m, exceedSummary }) => {
+           ╵                  [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7031: Binding element 'exceedSummary' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2472:32:
+[37m      2472 │         next: ({ ticketSummary, [32mexceedSummary[37m }) => {
+           ╵                                 [32m~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'err' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:2483:16:
+[37m      2483 │         error: ([32merr[37m) => {
+           ╵                 [32m~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2345: Argument of type '{ userName: string; password: string; gateId: string | number | null; }' is not assignable to parameter of type '{ userName: string; password: string; gateId: string | number | null; gateType: GateType | null; gateNumber: number | null; }'.
+  Type '{ userName: string; password: string; gateId: string | number | null; }' is missing the following properties from type '{ userName: string; password: string; gateId: string | number | null; gateType: GateType | null; gateNumber: number | null; }': gateType, gateNumber[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Services/Tickets/tickets-services.ts:231:59:
+[37m      231 │ ...urn this.supervisor.collectEnterTicketsAsSupervisor([32mcredentials[37m);
+          ╵                                                        [32m~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2345: Argument of type '{ userName: string; password: string; gateId: string | number; }' is not assignable to parameter of type '{ userName: string; password: string; gateId: string | number | null; gateType: GateType | null; gateNumber: number | null; }'.
+  Type '{ userName: string; password: string; gateId: string | number; }' is missing the following properties from type '{ userName: string; password: string; gateId: string | number | null; gateType: GateType | null; gateNumber: number | null; }': gateType, gateNumber[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2586:39:
+[37m      2586 │       .collectEnterTicketsAsSupervisor([32m{[37m
+           ╵                                        [32m^[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG8002: Can't bind to 'summary' since it isn't a known property of 'app-supervisor-modal-block-component'.
+1. If 'app-supervisor-modal-block-component' is an Angular component and it has 'summary' input, then verify that it is included in the '@Component.imports' of this component.
+2. If 'app-supervisor-modal-block-component' is a Web Component then add 'CUSTOM_ELEMENTS_SCHEMA' to the '@Component.schemas' of this component to suppress this message.
+3. To allow any property add 'NO_ERRORS_SCHEMA' to the '@Component.schemas' of this component.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.html:295:4:
+[37m      295 │     [32m[summary]="collectSummary"[37m
+          ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Error occurs in the template of component TicketComponent.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:89:15:
+[37m      89 │   templateUrl: [32m'./ticket-component.html'[37m,
+         ╵                [32m~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module '../Shared/supervisor-modal-block-component/supervisor-modal-block-component' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:54:46:
+[37m      54 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG1010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value could not be determined statically.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:85:4:
+[37m      85 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Unknown reference.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:85:4:
+[37m      85 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module '../Shared/supervisor-modal-block-component/supervisor-modal-block-component' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:56:46:
+[37m      56 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG1010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value could not be determined statically.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:76:4:
+[37m      76 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Unknown reference.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:76:4:
+[37m      76 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "../Shared/supervisor-modal-block-component/supervisor-modal-block-component"[0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:24:46:
+[37m      24 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "../Shared/supervisor-modal-block-component/supervisor-modal-block-component"[0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:28:46:
+[37m      28 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module '../Shared/supervisor-modal-block-component/supervisor-modal-block-component' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:54:46:
+[37m      54 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG1010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value could not be determined statically.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:85:4:
+[37m      85 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Unknown reference.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:85:4:
+[37m      85 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module '../Shared/supervisor-modal-block-component/supervisor-modal-block-component' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:56:46:
+[37m      56 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG1010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value could not be determined statically.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:76:4:
+[37m      76 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Unknown reference.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:76:4:
+[37m      76 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "../Shared/supervisor-modal-block-component/supervisor-modal-block-component"[0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:24:46:
+[37m      24 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "../Shared/supervisor-modal-block-component/supervisor-modal-block-component"[0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:28:46:
+[37m      28 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module '../Shared/supervisor-modal-block-component/supervisor-modal-block-component' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:54:46:
+[37m      54 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG1010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value could not be determined statically.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:85:4:
+[37m      85 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Unknown reference.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:85:4:
+[37m      85 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module '../Shared/supervisor-modal-block-component/supervisor-modal-block-component' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:56:46:
+[37m      56 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG1010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value could not be determined statically.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:76:4:
+[37m      76 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Unknown reference.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:76:4:
+[37m      76 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "../Shared/supervisor-modal-block-component/supervisor-modal-block-component"[0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:24:46:
+[37m      24 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "../Shared/supervisor-modal-block-component/supervisor-modal-block-component"[0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:28:46:
+[37m      28 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module '../Shared/supervisor-modal-block-component/supervisor-modal-block-component' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:54:46:
+[37m      54 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG1010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value could not be determined statically.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:85:4:
+[37m      85 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Unknown reference.
+
+    src/app/Feature/Entry-Component/ticket-component.ts:85:4:
+[37m      85 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2307: Cannot find module '../Shared/supervisor-modal-block-component/supervisor-modal-block-component' or its corresponding type declarations.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:56:46:
+[37m      56 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mNG1010: 'imports' must be an array of components, directives, pipes, or NgModules.
+  Value could not be determined statically.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:76:4:
+[37m      76 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+  Unknown reference.
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:76:4:
+[37m      76 │     [32mSupervisorModalBlockComponent[37m,
+         ╵     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "../Shared/supervisor-modal-block-component/supervisor-modal-block-component"[0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:24:46:
+[37m      24 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mCould not resolve "../Shared/supervisor-modal-block-component/supervisor-modal-block-component"[0m
+
+    src/app/Feature/exitgate-component/exitgate-component.ts:28:46:
+[37m      28 │ ...nt } from [32m'../Shared/supervisor-modal-block-component/superviso[37m...
+         ╵              [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS4111: Property 'en' comes from an index signature, so it must be accessed with ['en'].[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Shared/supervisor-modal-block-component/supervisor-modal-block-component.ts:66:60:
+[37m      66 │ ...n this.dict[this.i18n.current]?.[key] ?? this.dict.[32men[37m[key] ?? key;
+         ╵                                                       [32m~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2339: Property 'buildReceiptExtraFieldsHtml' does not exist on type 'TicketComponent'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2322:23:
+[37m      2322 │ ...          ${this.[32mbuildReceiptExtraFieldsHtml[37m(detail.extraFiel...
+           ╵                     [32m~~~~~~~~~~~~~~~~~~~~~~~~~~~[0m
+
+[39m[22m
+[1m[31m[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'details'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2280:25:
+[37m      2280 │     const ticketBlocks = [32mdetails[37m.length
+           ╵                          [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS2304: Cannot find name 'details'.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2281:8:
+[37m      2281 │       ? [32mdetails[37m
+           ╵         [32m~~~~~~~[0m
+
+
+[31mX [41;31m[[41;97mERROR[41;31m][0m [1mTS7006: Parameter 'detail' implicitly has an 'any' type.[0m [1m[35m[plugin angular-compiler][0m
+
+    src/app/Feature/Entry-Component/ticket-component.ts:2283:13:
+[37m      2283 │             ([32mdetail[37m) => `
+           ╵              [32m~~~~~~[0m
+
+[39m[22m

@@ -193,13 +193,13 @@
           class="btn btn-sm btn-success collect-today-btn"
           type="button"
           (click)="onCollectClick()"
-          [disabled]="collectLoading || supervisorCollectLoading"
+          [disabled]="loading || collectLoading || supervisorCollectLoading"
         >
-          <span *ngIf="!collectLoading && !supervisorCollectLoading">
+          <span *ngIf="!loading && !collectLoading && !supervisorCollectLoading">
             {{ t('collectAllToday') }}
           </span>
           <span
-            *ngIf="collectLoading || supervisorCollectLoading"
+            *ngIf="loading || collectLoading || supervisorCollectLoading"
             class="spinner-border spinner-border-sm"
           ></span>
         </button>
@@ -289,12 +289,14 @@
 
   <!-- Supervisor Login Modal (Shared) -->
   <app-supervisor-modal-block-component
-    [show]="showSupervisorCollectModal && !collectSummary"
+    [show]="showSupervisorCollectModal"
     [loading]="supervisorCollectLoading"
     [error]="supervisorCollectError"
+    [summary]="collectSummary"
     [(username)]="supervisorUsername"
     [(password)]="supervisorPassword"
     (submit)="submitSupervisorCollect()"
+    (collect)="confirmSupervisorCollection()"
     (close)="closeSupervisorCollectModal()"
   ></app-supervisor-modal-block-component>
 

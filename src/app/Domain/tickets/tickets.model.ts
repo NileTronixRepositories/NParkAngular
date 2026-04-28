@@ -149,8 +149,8 @@ export interface AddTicketRequest {
 }
 
 export interface CollectDailyTicketsResponse {
-  gateId: number;
-  gateName: string;
+  gateId: number | string;
+  gateName?: string | null;
   date: string;
 
   totalAmount: number;
@@ -158,10 +158,53 @@ export interface CollectDailyTicketsResponse {
   totalTicketsCollected: number;
 
   ticketCollectDetails: {
+    ticketId?: string | null;
     collectedAt: string;
     ticketNumber: string;
+    source?: string | null;
+    startDate?: string | null;
+    endDate?: string | null;
     price: number;
+    vehicleNumber?: string | null;
+    cardNumber?: string | null;
+    isSubscriber?: boolean;
+    exitGateId?: string | null;
+    extraFields?: Record<string, unknown>;
   }[];
+}
+
+export interface UncollectedEnterTicketDto {
+  ticketId: string;
+  ticketUniqueCode: string;
+  source: string;
+  startDate: string;
+  endDate: string | null;
+  originalPrice: number;
+  vehicleNumber: string | null;
+  cardNumber: string | null;
+  isSubscriber: boolean;
+  gateId: string;
+  exitGateId: string | null;
+}
+
+export interface UncollectedEnterTicketsResponse {
+  gateId: string;
+  totalTicketsCount: number;
+  totalOriginalPrice: number;
+  tickets: UncollectedEnterTicketDto[];
+}
+
+export interface CollectedEnterTicketDto extends UncollectedEnterTicketDto {
+  collectedAt: string;
+}
+
+export interface CollectEnterTicketsResponse {
+  gateId: string;
+  collectedBy: string;
+  collectedAt: string;
+  totalTicketsCollected: number;
+  totalOriginalPriceCollected: number;
+  tickets: CollectedEnterTicketDto[];
 }
 
 export interface CalculateSalaryResponse {

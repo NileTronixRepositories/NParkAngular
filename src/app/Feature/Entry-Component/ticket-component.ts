@@ -200,6 +200,7 @@ export class TicketComponent implements OnInit, OnDestroy {
   supervisorPassword = '';
   supervisorCollectLoading = false;
   supervisorCollectError: string | null = null;
+  supervisorCollectToken: string | null = null;
 
   // Ticket Details Modal
   showTicketDetailsModal = false;
@@ -371,6 +372,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       total_collected_tickets: 'عدد التذاكر المحصَّلة',
       collected_at: 'وقت التحصيل',
       last_collection_time: 'وقت آخر تحصيل',
+      no_uncollected_tickets: 'لا توجد تذاكر غير محصلة لهذه البوابة.',
       gate_number: 'رقم البوابة',
       gate_type: 'نوع البوابة',
       gate_type_entry: 'دخول',
@@ -512,6 +514,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       total_collected_tickets: 'Total collected tickets',
       collected_at: 'Collected at',
       last_collection_time: 'Last collection time',
+      no_uncollected_tickets: 'There are no uncollected tickets for this gate.',
       gate_number: 'Gate number',
       gate_type: 'Gate type',
       gate_type_entry: 'Entry',
@@ -588,7 +591,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.loadGateConnectionInfo();
     this.loadGates();
     this.loadEntryGates();
-    this.loadTicketsForEntry();
+    this.loadEntryTicketsForCurrentMode();
     this.ensurePricingSchemasLoaded();
 
     this.scanHub.start().then(() => {
@@ -950,7 +953,7 @@ export class TicketComponent implements OnInit, OnDestroy {
         this.showGateSelectionModal = false;
         this.gatePeripheral = res?.gateDevicePeripheral ?? this.auth.getGateData();
         this.toast.success(this.t('select_gate'));
-        this.loadTicketsForEntry();
+        this.loadEntryTicketsForCurrentMode();
         this.loadGateConnectionInfo(this.selectedGateId);
 
         if (this.selectedGateId) {
@@ -1748,7 +1751,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       this.toast.error(this.t('qr_invalid_warning'));
     }
 
-    this.loadTicketsForEntry();
+    this.loadEntryTicketsForCurrentMode();
     this.adding = false;
   }
 
@@ -2273,41 +2276,67 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   private buildCollectSummaryReceiptHtml(summary: CollectDailyTicketsResponse): string {
-    const gateName = this.escapePrintHtml(summary.gateName || `${this.t('gate')} ${summary.gateId || '---'}`);
-    const gateNumber = this.escapePrintHtml(String(this.getCollectionGateNumber()));
-    const gateTypeLabel = this.escapePrintHtml(this.getCollectionGateTypeLabel());
-    const receiptDate = this.formatReceiptDate(summary.date);
-    const totalAmount = Number(summary.totalPriceCollected ?? summary.totalAmount ?? 0);
-    const ticketsCount = Number(summary.totalTicketsCollected ?? summary.ticketCollectDetails?.length ?? 0);
     const details = summary.ticketCollectDetails || [];
-    const detailRows = details.length
+    const ticketBlocks = details.length
       ? details
           .map(
             (detail) => `
-              <tr>
-                <td style="direction:ltr;text-align:right;">${this.escapePrintHtml(detail.ticketNumber || '---')}</td>
-                <td style="direction:ltr;text-align:center;">${this.formatReceiptDate(detail.collectedAt)}</td>
-                <td style="direction:ltr;text-align:left;">${this.formatReceiptMoney(detail.price)}</td>
-              </tr>
+              <div class="ticket-block">
+                <div class="ticket-title">${this.escapePrintHtml(detail.ticketNumber || '---')}</div>
+                // <div class="ticket-row">
+                //   <span>معرف التذكرة</span>
+                //   <strong>${this.escapePrintHtml(detail.ticketId || '---')}</strong>
+                // </div>
+                <div class="ticket-row">
+                  <span>المصدر</span>
+                  <strong>${this.escapePrintHtml(detail.source || '---')}</strong>
+                </div>
+                <div class="ticket-row">
+                  <span>وقت الدخول</span>
+                  <strong>${detail.startDate ? this.formatReceiptDate(detail.startDate) : '---'}</strong>
+                </div>
+                <div class="ticket-row">
+                  <span>وقت الخروج</span>
+                  <strong>${detail.endDate ? this.formatReceiptDate(detail.endDate) : '---'}</strong>
+                </div>
+                <div class="ticket-row">
+                  <span>المبلغ</span>
+                  <strong>${this.formatReceiptMoney(detail.price)}</strong>
+                </div>
+                <div class="ticket-row">
+                  <span>رقم المركبة</span>
+                  <strong>${this.escapePrintHtml(detail.vehicleNumber || '---')}</strong>
+                </div>
+                <div class="ticket-row">
+                  <span>رقم الكارت</span>
+                  <strong>${this.escapePrintHtml(detail.cardNumber || '---')}</strong>
+                </div>
+                <div class="ticket-row">
+                  <span>مشترك</span>
+                  <strong>${detail.isSubscriber ? 'نعم' : 'لا'}</strong>
+                </div>
+                <div class="ticket-row">
+                  <span>بوابة الخروج</span>
+                  <strong>${this.escapePrintHtml(detail.exitGateId || '---')}</strong>
+                </div>
+                ${this.buildReceiptExtraFieldsHtml(detail.extraFields)}
+              </div>
             `,
           )
           .join('')
-      : `
-          <tr>
-            <td colspan="3" style="text-align:center;">لا توجد تفاصيل تذاكر</td>
-          </tr>
-        `;
+      : '<div class="empty-line">لا توجد تفاصيل تذاكر</div>';
 
     return `
     <html dir="rtl" lang="ar">
       <head>
         <meta charset="utf-8" />
-        <title>NPark Daily Collection Receipt</title>
+        <title>NPark Receipt</title>
         <style>
           * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            font-weight: 900 !important;
           }
 
           @page {
@@ -2350,48 +2379,53 @@ export class TicketComponent implements OnInit, OnDestroy {
             font-size: 11px;
           }
 
-          .row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 2mm;
-            padding: 1mm 0;
-            border-bottom: 0.2mm solid #000;
-            font-size: 12px;
+          .ticket-block {
+            border: 0.5mm solid #000;
+            border-radius: 1mm;
+            margin-bottom: 1.5mm;
+            overflow: hidden;
           }
 
-          .row span:last-child {
+          .ticket-title {
+            direction: ltr;
+            text-align: center;
+            padding: 1.2mm;
+            border-bottom: 0.4mm solid #000;
+            background: #f0f0f0;
+            font-size: 13px;
+          }
+
+          .ticket-row {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1.5mm;
+            border-bottom: 0.2mm solid #000;
+            padding: 1mm;
+            font-size: 11px;
+          }
+
+          .ticket-row:last-child {
+            border-bottom: none;
+          }
+
+          .ticket-row span {
+            flex: 0 0 34%;
+            text-align: right;
+          }
+
+          .ticket-row strong {
+            flex: 1 1 auto;
             direction: ltr;
             text-align: left;
+            overflow-wrap: anywhere;
           }
 
-          .total {
-            margin: 1.5mm 0;
-            padding: 1.5mm;
-            border: 0.6mm solid #000;
-            background: #f0f0f0;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            font-size: 15px;
-          }
-
-          table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 1.5mm;
-            font-size: 10px;
-          }
-
-          th,
-          td {
-            border-bottom: 0.2mm solid #000;
-            padding: 1mm 0.5mm;
-          }
-
-          th {
-            font-size: 10px;
-            text-align: right;
+          .empty-line {
+            text-align: center;
+            padding: 2mm 1mm;
+            border: 0.4mm dashed #000;
+            font-size: 12px;
           }
 
           .footer {
@@ -2406,48 +2440,11 @@ export class TicketComponent implements OnInit, OnDestroy {
       <body>
         <div class="receipt">
           <div class="header">
-            <div class="title">إيصال تحصيل اليوم</div>
+            <div class="title">إيصال تحصيل</div>
             <div class="subtitle">NPark Management System</div>
           </div>
 
-          <div class="row">
-            <span>البوابة:</span>
-            <span>${gateName}</span>
-          </div>
-          <div class="row">
-            <span>رقم البوابة:</span>
-            <span>${gateNumber}</span>
-          </div>
-          <div class="row">
-            <span>نوع البوابة:</span>
-            <span>${gateTypeLabel}</span>
-          </div>
-          <div class="row">
-            <span>تاريخ التحصيل:</span>
-            <span>${receiptDate}</span>
-          </div>
-          <div class="row">
-            <span>عدد التذاكر:</span>
-            <span>${ticketsCount}</span>
-          </div>
-
-          <div class="total">
-            <span>الإجمالي:</span>
-            <span style="direction:ltr;">${this.formatReceiptMoney(totalAmount)}</span>
-          </div>
-
-          <table>
-            <thead>
-              <tr>
-                <th>التذكرة</th>
-                <th style="text-align:center;">الوقت</th>
-                <th style="text-align:left;">المبلغ</th>
-              </tr>
-            </thead>
-            <tbody>
-              ${detailRows}
-            </tbody>
-          </table>
+          ${ticketBlocks}
 
           <div class="footer">
             www.niletronix.com
@@ -2455,6 +2452,36 @@ export class TicketComponent implements OnInit, OnDestroy {
         </div>
       </body>
     </html>`;
+  }
+
+  private buildReceiptExtraFieldsHtml(extraFields: Record<string, unknown> | null | undefined): string {
+    const entries = Object.entries(extraFields ?? {}).filter(([, value]) => value !== null && value !== undefined);
+    if (!entries.length) return '';
+
+    return entries
+      .map(
+        ([key, value]) => `
+          <div class="ticket-row">
+            <span>${this.escapePrintHtml(key)}</span>
+            <strong>${this.escapePrintHtml(this.formatReceiptExtraValue(value))}</strong>
+          </div>
+        `,
+      )
+      .join('');
+  }
+
+  private formatReceiptExtraValue(value: unknown): string {
+    if (value === null || value === undefined) return '---';
+    if (value instanceof Date) return this.formatReceiptDate(value.toISOString());
+    if (typeof value === 'boolean') return value ? 'نعم' : 'لا';
+    if (typeof value === 'object') {
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return String(value);
+      }
+    }
+    return String(value);
   }
 
   private formatReceiptDate(value: string | null | undefined): string {
@@ -2542,12 +2569,12 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.collectLoading = true;
     this.collectSummary = null;
 
-    this.ticketsSvc.collectDailyTickets().subscribe({
+    this.ticketsSvc.collectEnterTickets().subscribe({
       next: (res) => {
         this.collectSummary = res;
         this.toast.success(this.t('admit_done'));
         this.printCollectSummaryReceipt(res);
-        this.loadTicketsForEntry();
+        this.loadEntryTicketsForCurrentMode();
       },
       error: (err) => {
         this.handleBackendError('collectDailyForGate error', err);
@@ -2562,32 +2589,46 @@ export class TicketComponent implements OnInit, OnDestroy {
   submitSupervisorCollect(): void {
     const user = this.supervisorUsername.trim();
     const pwd = this.supervisorPassword;
+    const gateId = this.auth.getGateId();
     const gateData = this.auth.getGateData();
+    const gateType = gateData?.gateType ?? GateType.Entrance;
     const gateNumber = gateData?.gateNumber ?? null;
-    const gateType = gateData?.gateType ?? null;
 
     if (!user || !pwd) {
       this.supervisorCollectError = this.t('enter_supervisor_creds');
       return;
     }
 
+    if (!gateId) {
+      this.supervisorCollectError = this.t('choose_gate');
+      return;
+    }
+
+    if (!gateNumber || Number(gateNumber) <= 0) {
+      this.supervisorCollectError = this.t('choose_gate');
+      return;
+    }
+
     this.supervisorCollectError = null;
     this.supervisorCollectLoading = true;
     this.collectSummary = null;
+    this.supervisorCollectToken = null;
 
     this.ticketsSvc
-      .collectDailyTicketsAsSupervisor({
+      .startEntryCollectAsSupervisor({
         userName: user,
         password: pwd,
+        gateId,
         gateType,
         gateNumber,
       })
       .subscribe({
-        next: (res) => {
-          this.collectSummary = res;
-          this.toast.success(this.t('admit_done'));
-          this.printCollectSummaryReceipt(res);
-          this.loadTicketsForEntry();
+        next: (session) => {
+          this.supervisorCollectToken = session.token;
+          this.collectSummary = session.summary;
+          if (!session.summary.totalTicketsCollected) {
+            this.toast.warn(this.t('no_uncollected_tickets'));
+          }
         },
         error: (err) => {
           if (err?.status === 403) {
@@ -2609,11 +2650,40 @@ export class TicketComponent implements OnInit, OnDestroy {
       });
   }
 
+  confirmSupervisorCollection(): void {
+    if (!this.supervisorCollectToken || this.supervisorCollectLoading) return;
+
+    this.supervisorCollectError = null;
+    this.supervisorCollectLoading = true;
+
+    this.ticketsSvc.collectEnterTicketsWithSupervisorToken(this.supervisorCollectToken).subscribe({
+      next: (res) => {
+        this.collectSummary = res;
+        this.toast.success(this.t('admit_done'));
+        this.printCollectSummaryReceipt(res);
+        this.loadEntryTicketsForCurrentMode();
+      },
+      error: (err) => {
+        this.handleBackendError('collectEnterTicketsWithSupervisorToken error', err);
+        this.supervisorCollectError = this.errorExtractor.extractErrorMessage(
+          err,
+          this.t('supervisor_login_failed'),
+        );
+      },
+      complete: () => {
+        this.supervisorCollectLoading = false;
+      },
+    });
+  }
+
   onCollectClick(): void {
+    if (this.loading || this.collectLoading || this.supervisorCollectLoading) return;
+
     if (this.isSupervisor) {
-      this.collectDailyForGate();
+      this.loadUncollectedEnterTicketsForCollect(() => this.collectDailyForGate());
       return;
     }
+
     this.openSupervisorCollectModal();
   }
 
@@ -2622,6 +2692,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.supervisorPassword = '';
     this.supervisorCollectError = null;
     this.collectSummary = null;
+    this.supervisorCollectToken = null;
     this.showSupervisorCollectModal = true;
   }
 
@@ -2633,6 +2704,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.supervisorPassword = '';
     this.supervisorCollectError = null;
     this.collectSummary = null;
+    this.supervisorCollectToken = null;
   }
 
   finishSupervisorCollect(): void {
@@ -2675,7 +2747,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.ticketsSvc.collect(t.id).subscribe({
       next: () => {
         this.toast.success(this.t('admit_done'));
-        this.loadTicketsForEntry();
+        this.loadEntryTicketsForCurrentMode();
       },
       error: (err) => {
         this.handleBackendError('collect error', err);
@@ -2930,6 +3002,52 @@ export class TicketComponent implements OnInit, OnDestroy {
     }
     const binary = String.fromCharCode(...bytes);
     return btoa(binary);
+  }
+
+  private loadEntryTicketsForCurrentMode(ticketNumber: string = ''): void {
+    if (this.isSupervisor) {
+      this.loadUncollectedEnterTickets();
+      return;
+    }
+
+    this.loadTicketsForEntry(ticketNumber);
+  }
+
+  private loadUncollectedEnterTicketsForCollect(afterLoad: () => void): void {
+    this.loadUncollectedEnterTickets((count) => {
+      if (count <= 0) {
+        this.toast.warn(this.t('no_uncollected_tickets'));
+        return;
+      }
+
+      afterLoad();
+    });
+  }
+
+  private loadUncollectedEnterTickets(afterLoad?: (count: number) => void): void {
+    this.loading = true;
+
+    this.ticketsSvc.getUncollectedEnterTickets().subscribe({
+      next: (res) => {
+        this.totalPriceToday = res.totalPrice ?? 0;
+
+        this.tickets = (res.items ?? []).sort(
+          (a: TicketDto, b: TicketDto) => new Date(b.time).getTime() - new Date(a.time).getTime(),
+        );
+
+        this.applyFilters();
+        afterLoad?.(res.totalTicketsCount ?? this.tickets.length);
+      },
+      error: (err) => {
+        this.handleBackendError('loadUncollectedEnterTickets error', err);
+        this.tickets = [];
+        this.totalPriceToday = 0;
+        this.applyFilters();
+      },
+      complete: () => {
+        this.loading = false;
+      },
+    });
   }
 
   private loadTicketsForEntry(ticketNumber: string = ''): void {

@@ -18,10 +18,17 @@ import {
   SearchTicketResponse,
 } from '../../Domain/tickets/tickets.model';
 
-import { TicketCoreService, TicketsForGateResult } from './ticket-core.service';
+import {
+  TicketCoreService,
+  TicketsForGateResult,
+  UncollectedEnterTicketsResult,
+} from './ticket-core.service';
 import { TicketSalaryService } from './ticket-salary.service';
 import { MembershipCardService } from './membership-card.service';
-import { TicketSupervisorService } from './ticket-supervisor.service';
+import {
+  SupervisorEntryCollectSession,
+  TicketSupervisorService,
+} from './ticket-supervisor.service';
 import { GateType } from '../../Domain/Auth/auth.models';
 
 @Injectable({
@@ -57,6 +64,10 @@ export class TicketsServices {
     ticketNumber: string = '',
   ): Observable<TicketsForGateResult> {
     return this.core.getTicketsForExit(startDate, ticketNumber);
+  }
+
+  getUncollectedEnterTickets(): Observable<UncollectedEnterTicketsResult> {
+    return this.core.getUncollectedEnterTickets();
   }
 
   // --- Add Ticket ---
@@ -205,10 +216,38 @@ export class TicketsServices {
     return this.core.collectDailyTickets();
   }
 
+  collectEnterTickets(): Observable<CollectDailyTicketsResponse> {
+    return this.core.collectEnterTickets();
+  }
+
   // --- Manual plate capture ---
 
   captureManualPlate(plate: string): Observable<boolean> {
     return this.core.captureManualPlate(plate);
+  }
+
+  collectEnterTicketsAsSupervisor(credentials: {
+    userName: string;
+    password: string;
+    gateId: string | number | null;
+    gateType: GateType | null;
+    gateNumber: number | null;
+  }): Observable<CollectDailyTicketsResponse> {
+    return this.supervisor.collectEnterTicketsAsSupervisor(credentials);
+  }
+
+  startEntryCollectAsSupervisor(credentials: {
+    userName: string;
+    password: string;
+    gateId: string | number | null;
+    gateType: GateType | null;
+    gateNumber: number | null;
+  }): Observable<SupervisorEntryCollectSession> {
+    return this.supervisor.startEntryCollectAsSupervisor(credentials);
+  }
+
+  collectEnterTicketsWithSupervisorToken(token: string): Observable<CollectDailyTicketsResponse> {
+    return this.supervisor.collectEnterTicketsWithSupervisorToken(token);
   }
 
   collectDailyTicketsAsSupervisor(credentials: {

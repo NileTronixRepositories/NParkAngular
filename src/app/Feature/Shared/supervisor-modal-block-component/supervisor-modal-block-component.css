@@ -27,6 +27,10 @@
   margin: 0 !important;
 }
 
+.summary-dialog .supervisor-modal-content {
+  max-width: min(760px, calc(100vw - 2rem));
+}
+
 .supervisor-modal-content .modal-header {
   background: transparent !important;
   border: none !important;
@@ -63,4 +67,153 @@
 .glass {
   backdrop-filter: blur(16px) !important;
   -webkit-backdrop-filter: blur(16px) !important;
+}
+
+.supervisor-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.summary-stats-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(120px, 0.6fr);
+  gap: 0.65rem;
+}
+
+.summary-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 0.75rem;
+  min-height: 72px;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+}
+
+.summary-stat span {
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.summary-stat strong {
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.summary-stat-main {
+  border-color: rgba(16, 185, 129, 0.28);
+  background: #ecfdf5;
+}
+
+.summary-stat-main strong {
+  color: #047857;
+}
+
+.summary-ticket-list {
+  max-height: min(46vh, 430px);
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  padding-inline-end: 0.1rem;
+}
+
+.summary-ticket-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.ticket-card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.7rem 0.8rem;
+  border-bottom: 1px solid #eef2f7;
+  background: #f8fafc;
+}
+
+.ticket-code {
+  color: #0f172a;
+  font-size: 0.92rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.ticket-source {
+  color: #64748b;
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.ticket-amount {
+  flex: 0 0 auto;
+  color: #047857;
+  font-size: 0.9rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.ticket-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+  padding: 0.75rem 0.8rem;
+}
+
+.ticket-detail {
+  min-width: 0;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid #eef2f7;
+  border-radius: 7px;
+  background: #fcfcfd;
+}
+
+.ticket-detail-wide {
+  grid-column: 1 / -1;
+}
+
+.ticket-detail span {
+  display: block;
+  margin-bottom: 0.22rem;
+  color: #64748b;
+  font-size: 0.64rem;
+  font-weight: 800;
+}
+
+.ticket-detail strong {
+  display: block;
+  min-width: 0;
+  color: #111827;
+  font-size: 0.74rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+}
+
+@media (max-width: 575.98px) {
+  .summary-stats-grid,
+  .ticket-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ticket-card-head {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .ticket-amount {
+    white-space: normal;
+  }
 }
