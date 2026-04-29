@@ -27,7 +27,7 @@
     <button
       type="button"
       class="btn btn-outline-primary btn-xs camera-snapshot-btn"
-      [class.capture-attention]="!uploadedVehicleImages.length && !cameraSnapshotDisabled"
+      [class.capture-attention]="!cameraSnapshotDisabled"
       (click)="onCameraSnapshotClick()"
       [disabled]="cameraSnapshotLoading || cameraSnapshotDisabled"
       [title]="cameraSnapshotTitle || t('take_snapshot')"

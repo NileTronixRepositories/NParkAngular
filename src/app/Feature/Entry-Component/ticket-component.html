@@ -159,6 +159,7 @@
         [lprMembershipStatus]="lprMembershipStatus"
         [lprCardNumber]="lprMembershipCardNumber"
         [selectedPricingSchemaId]="selectedPricingSchemaId"
+        [showMissingLprVehicleHint]="showMissingLprVehicleHint"
         [pricingSchemas]="pricingSchemas"
         [pricingSchemasLoading]="pricingSchemasLoading"
         [hasVehicleImages]="hasVehicleImages"
@@ -174,7 +175,7 @@
         (createTicketClicked)="createTicket()"
         (confirmCashierClicked)="confirmCashier()"
         (clearCardSummaryClicked)="clearCardSummary($event)"
-        (selectedPricingSchemaIdChange)="selectedPricingSchemaId = $event"
+        (selectedPricingSchemaIdChange)="onPricingSchemaSelected($event)"
       ></app-issue-ticket-block-component>
     </div>
 

@@ -99,12 +99,6 @@
       <div class="x-small text-muted mt-1">
         {{ hasVehicleImages ? t('vehicle_images_attached') : t('vehicle_images_optional') }}
       </div>
-      <div
-        class="fs-3 text-center py-2 mt-5 empty-entry-hint empty-entry-hint-warning"
-        *ngIf="shouldShowMissingLprVehicleHint"
-      >
-        {{ t('lpr_vehicle_number_missing_after_pricing') }}
-      </div>
     </div>
 
     <div class="w-100" *ngIf="cardSummary">
@@ -164,10 +158,24 @@
     <div
       class="x-small text-center py-2 empty-entry-hint"
       *ngIf="
-        !cardSummary && !lastIssuedTicketId && !lprVehicleNumber && lprMembershipStatus === 'idle'
+        !cardSummary &&
+        !lastIssuedTicketId &&
+        !lprVehicleNumber &&
+        lprMembershipStatus === 'idle' &&
+        !shouldShowMissingLprVehicleHint
       "
     >
       {{ t('no_card_summary') }}
+    </div>
+
+    <div
+      class="missing-vehicle-message-zone empty-entry-hint"
+      *ngIf="shouldShowMissingLprVehicleHint"
+    >
+      <div class="missing-vehicle-message">
+        <i class="bi bi-exclamation-triangle"></i>
+        <span>{{ t('enter_plate_first') }}</span>
+      </div>
     </div>
 
     <div class="mt-auto w-100 pt-2 border-top">

@@ -26,6 +26,7 @@ export class IssueTicketBlockComponent {
   @Input() pricingSchemas: { id: string; name: string; description?: string | null }[] = [];
   @Input() pricingSchemasLoading = false;
   @Input() hasVehicleImages = false;
+  @Input() showMissingLprVehicleHint = false;
 
   @Input() currentIssuedQr: string | null = null;
   @Input() currentIssuedQrType: 'image' | 'text' | null = null;
@@ -59,7 +60,7 @@ export class IssueTicketBlockComponent {
   }
 
   get shouldShowMissingLprVehicleHint(): boolean {
-    return false;
+    return this.showMissingLprVehicleHint && !this.cardSummary;
   }
 
   qrDataUrl(text: string): string {

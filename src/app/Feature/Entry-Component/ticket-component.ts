@@ -170,6 +170,7 @@ export class TicketComponent implements OnInit, OnDestroy {
   pricingSchemas: PricingSchemaDto[] = [];
   pricingSchemasLoading = false;
   selectedPricingSchemaId = '';
+  showMissingLprVehicleHint = false;
 
   // =======================
   // Card summary (subscriber)
@@ -1029,6 +1030,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     }
 
     this.currentLprVehicleNumber = vehicleNumber || null;
+    this.showMissingLprVehicleHint = !!this.selectedPricingSchemaId && !searchValue;
 
     if (searchValue.length < 3) {
       this.resetLprLookupState(vehicleNumber || null);
@@ -1093,6 +1095,15 @@ export class TicketComponent implements OnInit, OnDestroy {
   selectVehicleImagePreview(index: number): void {
     if (index < 0 || index >= this.uploadedVehicleImages.length) return;
     this.scannedFile = this.uploadedVehicleImages[index];
+  }
+
+  onPricingSchemaSelected(pricingSchemaId: string): void {
+    this.selectedPricingSchemaId = pricingSchemaId;
+
+    const vehicleNumber = this.normalizeMembershipSearchValue(
+      this.manualLprPlate || this.currentLprVehicleNumber,
+    );
+    this.showMissingLprVehicleHint = !vehicleNumber;
   }
 
   createTicket(vehicleNumber?: string): void {
@@ -1670,6 +1681,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.lprMembershipStatus = 'idle';
     this.lprMembershipCardNumber = null;
     this.selectedPricingSchemaId = '';
+    this.showMissingLprVehicleHint = false;
   }
 
   private resetCardLookupState(): void {
@@ -1706,6 +1718,7 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   private prepareNewTicketState(): void {
     this.adding = true;
+    this.showMissingLprVehicleHint = false;
     this.currentIssuedQr = null;
     this.currentIssuedQrType = null;
     this.lastIssuedTicketId = null;
@@ -1735,6 +1748,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.scannedFile = null;
     this.uploadedVehicleImages = [];
     this.selectedPricingSchemaId = '';
+    this.showMissingLprVehicleHint = false;
     this.lprMembershipStatus = 'idle';
     this.lprMembershipCardNumber = null;
     this.currentLprVehicleNumber = null;
