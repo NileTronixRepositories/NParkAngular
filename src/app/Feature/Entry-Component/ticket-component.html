@@ -125,7 +125,7 @@
     [class.supervisor-entry-workspace]="isSupervisor"
   >
     <!-- Block 1: Gate Devices -->
-    <div class="col-12 col-lg-3" *ngIf="!isSupervisor">
+    <div class="col-12 col-lg-3 entry-devices-panel" *ngIf="!isSupervisor">
       <app-gate-devices-block-component
         [t]="t"
         [gatePeripheral]="gatePeripheral"
@@ -141,20 +141,19 @@
         (manualLprPlateBlur)="onManualLprPlateBlur()"
         (createTicketWithPlate)="createTicket($event)"
         (vehicleImagesSelected)="onVehicleImagesSelected($event)"
-        (cameraSnapshotClick)="retrySnapshot()"
         (removeVehicleImage)="removeVehicleImage($event)"
         (vehicleImagePreviewSelected)="selectVehicleImagePreview($event)"
       ></app-gate-devices-block-component>
     </div>
 
     <!-- Block 2: Issue Ticket -->
-    <div class="col-12 col-lg-6" *ngIf="!isSupervisor">
+    <div class="col-12 col-lg-6 entry-issue-panel" *ngIf="!isSupervisor">
       <app-issue-ticket-block-component
         [t]="t"
         [isRTL]="i18n.isRTL()"
         [cardNumber]="cardNumber"
         [cardSummary]="cardSummary"
-        [adding]="adding"
+        [adding]="adding || snapshotLoading"
         [lprVehicleNumber]="currentLprVehicleNumber"
         [lprMembershipStatus]="lprMembershipStatus"
         [lprCardNumber]="lprMembershipCardNumber"
@@ -184,6 +183,7 @@
       class="col-12"
       [class.col-lg-3]="!isSupervisor"
       [class.supervisor-ticket-panel]="isSupervisor"
+      [class.entry-tickets-panel]="!isSupervisor"
     >
       <app-tickets-table-block-component
         [t]="t"

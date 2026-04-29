@@ -64,6 +64,7 @@ export class SupervisorModalBlockComponent {
       total_after_exceed: 'الإجمالي بعد الغرامة',
       ready_to_collect: 'جاهز للتحصيل',
       collect_now: 'تحصيل',
+      no_tickets_to_collect: 'لا توجد تذاكر للتحصيل',
       currency: 'ج.م',
     },
     en: {
@@ -99,6 +100,7 @@ export class SupervisorModalBlockComponent {
       total_after_exceed: 'Total after exceed',
       ready_to_collect: 'Ready to collect',
       collect_now: 'Collect',
+      no_tickets_to_collect: 'No tickets to collect',
       currency: 'EGP',
     },
   };

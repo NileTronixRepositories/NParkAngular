@@ -19,6 +19,7 @@
 .supervisor-modal-content {
   width: 100%;
   max-width: 360px;
+  max-height: calc(100vh - 2rem);
   border: 1px solid rgba(226, 232, 240, 0.95) !important;
   background: #ffffff !important;
   box-shadow: 0 24px 70px rgba(15, 23, 42, 0.34) !important;
@@ -27,8 +28,13 @@
   margin: 0 !important;
 }
 
+.summary-dialog {
+  width: min(900px, calc(100vw - 2rem)) !important;
+  max-width: min(900px, calc(100vw - 2rem)) !important;
+}
+
 .summary-dialog .supervisor-modal-content {
-  max-width: min(760px, calc(100vw - 2rem));
+  max-width: min(900px, calc(100vw - 2rem));
 }
 
 .supervisor-modal-content .modal-header {
@@ -73,6 +79,14 @@
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+  min-height: 0;
+}
+
+.modal-body-summary {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 .summary-stats-grid {
@@ -121,6 +135,81 @@
   flex-direction: column;
   gap: 0.65rem;
   padding-inline-end: 0.1rem;
+}
+
+.summary-table-wrap {
+  max-height: min(48vh, 460px);
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.summary-table {
+  width: 100%;
+  min-width: 720px;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin: 0;
+}
+
+.summary-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid #e5e7eb;
+  background: #f8fafc;
+  color: #475569;
+  font-size: 0.68rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.summary-table tbody td {
+  padding: 0.52rem 0.65rem;
+  border-bottom: 1px solid #eef2f7;
+  color: #0f172a;
+  font-size: 0.72rem;
+  font-weight: 800;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.summary-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.summary-table tbody tr:hover td {
+  background: #f8fbff;
+}
+
+.summary-empty {
+  min-height: 150px;
+  border: 1px dashed #cbd5e1;
+  border-radius: 8px;
+  background: #f8fafc;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 0.45rem;
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+
+.summary-empty i {
+  font-size: 1.35rem;
+}
+
+.summary-actions {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin-inline: -0.25rem;
+  padding: 0.65rem 0.25rem 0;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.86) 0%, #ffffff 30%);
 }
 
 .summary-ticket-card {
@@ -203,9 +292,21 @@
 }
 
 @media (max-width: 575.98px) {
+  .modal-backdrop-custom {
+    padding: 0.6rem !important;
+  }
+
+  .summary-dialog .supervisor-modal-content {
+    max-width: calc(100vw - 1.2rem);
+  }
+
   .summary-stats-grid,
   .ticket-detail-grid {
     grid-template-columns: 1fr;
+  }
+
+  .summary-table-wrap {
+    max-height: 46vh;
   }
 
   .ticket-card-head {

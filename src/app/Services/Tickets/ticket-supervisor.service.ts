@@ -7,7 +7,7 @@ import {
   CollectEnterTicketsResponse,
   UncollectedEnterTicketsResponse,
 } from '../../Domain/tickets/tickets.model';
-import { AuthResponse, AuthService } from '../Auth/auth-service';
+import { AuthResponse } from '../Auth/auth-service';
 import { TicketCoreService } from './ticket-core.service';
 import { LanguageService } from '../i18n/language-service';
 import { environment } from '../../Shared/environment/environment';
@@ -25,7 +25,6 @@ export class TicketSupervisorService {
   private readonly httpBackend = inject(HttpBackend);
   private readonly core = inject(TicketCoreService);
   private readonly i18n = inject(LanguageService);
-  private readonly auth = inject(AuthService);
 
   private readonly baseUrl = environment.baseUrl;
   private readonly authUrl = `${this.baseUrl}/auth`;
@@ -91,8 +90,6 @@ export class TicketSupervisorService {
             throw new Error('No token returned from supervisor login');
           }
 
-          this.auth.updateToken(loginRes.token);
-
           return this.loadUncollectedWithToken(loginRes.token).pipe(
             map((uncollected) => ({
               token: loginRes.token,
@@ -140,8 +137,6 @@ export class TicketSupervisorService {
       gateType: credentials.gateType,
       gateNumber: credentials.gateNumber,
     };
-    const gateId = this.auth.getGateId();
-
     return this.rawHttp
       .post<AuthResponse>(`${this.authUrl}/SuperVisorLogin`, loginBody, {
         headers: this.languageHeaders(),
@@ -152,8 +147,7 @@ export class TicketSupervisorService {
             throw new Error('No token returned from supervisor login');
           }
 
-          this.auth.updateToken(authRes.token);
-          return this.core.collectDailyTickets({ gateId });
+          return this.collectEnterTicketsWithToken(authRes.token);
         }),
         catchError((err) => {
           this.logError('collectDailyTicketsAsSupervisor', err);

@@ -25,73 +25,105 @@
 
   <!-- Body -->
   <div class="card-body p-0 d-flex flex-column">
-    <div class="table-responsive tickets-table-scroll-compact">
-      <table class="table table-sm table-hover align-middle mb-0">
-        <thead class="bg-light x-small fw-bold border-bottom">
-          <tr>
-            <th class="ps-2 ps-sm-3">{{ t('ticket_number') }}</th>
-            <th class="text-center">{{ t('time') }}</th>
-            <th class="text-end pe-2 pe-sm-3">{{ t('fees') }}</th>
-          </tr>
-        </thead>
-        <tbody class="x-small">
-          <tr
-            *ngFor="let ticket of pageItems; trackBy: trackByTicket"
-            class="clickable"
-            (click)="onTicketRowClick(ticket)"
+    <div class="tickets-list-head">
+      <span>{{ t('ticket_number') }}</span>
+      <span>{{ t('ticket_details') }}</span>
+      <span>{{ t('time') }}</span>
+      <span>{{ t('plate') }}</span>
+      <span>{{ t('cardNumber') }}</span>
+      <span>{{ t('cashier_status') }}</span>
+      <span>{{ t('fees') }}</span>
+    </div>
+
+    <div class="tickets-list tickets-table-scroll-compact">
+      <button
+        type="button"
+        *ngFor="let ticket of pageItems; trackBy: trackByTicket"
+        class="ticket-list-row"
+        (click)="onTicketRowClick(ticket)"
+      >
+        <div class="ticket-row-inline">
+          <div class="ticket-code-line min-w-0">
+            <i class="bi bi-ticket-perforated text-primary"></i>
+            <span class="ticket-code mono text-truncate">{{ ticket.ticketNumber || ticket.id }}</span>
+          </div>
+
+          <span class="ticket-info-line text-truncate">
+            {{ ticket.info || ticket.customerName || '--' }}
+          </span>
+
+          <span class="ticket-meta-pill">
+            <i class="bi bi-clock"></i>
+            {{ ticket.time | date: 'HH:mm' }}
+          </span>
+          <span class="ticket-meta-pill ticket-plate-cell">
+            <i class="bi bi-car-front"></i>
+            <span class="text-truncate">{{ ticket.plateNumber || ticket.plate || '--' }}</span>
+          </span>
+          <span class="ticket-meta-pill ticket-card-cell">
+            <i class="bi bi-credit-card"></i>
+            <span class="text-truncate">{{ ticket.cardNumber || '--' }}</span>
+          </span>
+          <span
+            class="ticket-meta-pill ticket-status-cell"
+            [class.ticket-meta-pill-success]="ticket.isCollectedByCashier"
           >
-            <td class="ps-2 ps-sm-3 py-1">
-              <span class="mono fw-bold text-primary">{{ ticket.ticketNumber || ticket.id }}</span>
-              <div
-                *ngIf="ticket.info"
-                class="text-muted text-truncate"
-                style="font-size: 9px !important"
-              >
-                {{ ticket.info }}
-              </div>
-              <div *ngIf="ticket.customerName" class="text-muted" style="font-size: 9px !important">
-                {{ ticket.customerName }}
-              </div>
-            </td>
-            <td class="text-center text-muted py-1">{{ ticket.time | date: 'HH:mm' }}</td>
-            <td class="text-end pe-2 pe-sm-3 py-1">
-              <span class="mono fw-bold">{{ ticket.price ?? 0 }}</span>
-              <i
-                class="bi bi-check-circle-fill text-success ms-1"
-                *ngIf="ticket.isCollectedByCashier"
-              ></i>
-            </td>
-          </tr>
-          <tr *ngIf="!pageItems.length && !loading">
-            <td colspan="3" class="text-center text-muted py-3 x-small">{{ t('no_tickets') }}</td>
-          </tr>
-        </tbody>
-      </table>
+            <i class="bi bi-check-circle-fill"></i>
+            {{
+              ticket.isCollectedByCashier
+                ? t('cashier_collected_short')
+                : t('cashier_collected_no')
+            }}
+          </span>
+
+          <span class="ticket-price-block">
+            <span class="ticket-price mono">{{ ticket.price ?? 0 }}</span>
+            <span class="ticket-currency">{{ t('currency') }}</span>
+          </span>
+        </div>
+      </button>
+
+      <div *ngIf="loading" class="tickets-empty-state">
+        <span class="spinner-border spinner-border-sm"></span>
+      </div>
+
+      <div *ngIf="!pageItems.length && !loading" class="tickets-empty-state">
+        <i class="bi bi-ticket-perforated"></i>
+        <span>{{ t('no_tickets') }}</span>
+      </div>
     </div>
 
     <!-- Footer -->
-    <div
-      class="p-2 border-top mt-auto bg-light-subtle d-flex justify-content-between align-items-center flex-wrap gap-2"
-    >
-      <div class="d-flex align-items-center gap-2">
-        <span class="x-small text-muted">{{ t('total_fees_today') }}:</span>
-        <span class="badge theme-green x-small fw-bold">
-          {{ totalPriceToday | number: '1.0-2' }} {{ t('currency') }}
+    <div class="tickets-card-footer">
+      <div class="footer-stat footer-stat-range">
+        <span class="footer-label">
+          {{ tickets.length ? (page - 1) * pageSize + 1 : 0 }}-{{
+            tickets.length ? Math.min(page * pageSize, tickets.length) : 0
+          }}
+          {{ t('of') }} {{ tickets.length }}
         </span>
       </div>
 
-      <div class="btn-group" dir="ltr">
+      <div class="footer-stat footer-stat-total">
+        <span class="footer-label">{{ t('total_fees_today') }}</span>
+        <strong class="mono">{{ totalPriceToday | number: '1.0-2' }} {{ t('currency') }}</strong>
+      </div>
+
+      <div class="footer-pager" dir="ltr">
         <button
-          class="btn btn-outline-secondary btn-xs rounded-0"
+          class="footer-page-btn"
           [disabled]="page <= 1"
           (click)="prevPage()"
+          type="button"
         >
           <i class="bi bi-chevron-left"></i>
         </button>
+        <span class="footer-page-count">{{ page }} / {{ pagesCount }}</span>
         <button
-          class="btn btn-outline-secondary btn-xs rounded-0"
+          class="footer-page-btn"
           [disabled]="page >= pagesCount"
           (click)="nextPage()"
+          type="button"
         >
           <i class="bi bi-chevron-right"></i>
         </button>

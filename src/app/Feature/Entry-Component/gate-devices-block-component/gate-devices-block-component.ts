@@ -17,6 +17,14 @@ import { SafePipe } from '../../../Pipes/safe.pipe';
 
 import { GateDevicePeripheral } from '../../../Domain/Auth/auth.models';
 
+type EntryPreviewFile = {
+  name: string;
+  url: string;
+  safeUrl?: any;
+  type: string;
+  file: File;
+};
+
 @Component({
   selector: 'app-gate-devices-block-component',
   standalone: true,
@@ -27,20 +35,8 @@ import { GateDevicePeripheral } from '../../../Domain/Auth/auth.models';
 export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDestroy {
   @Input({ required: true }) t!: (key: string) => string;
   @Input() gatePeripheral: GateDevicePeripheral | null = null;
-  @Input() scannedFile: {
-    name: string;
-    url: string;
-    safeUrl?: any;
-    type: string;
-    file: File;
-  } | null = null;
-  @Input() uploadedVehicleImages: {
-    name: string;
-    url: string;
-    safeUrl?: any;
-    type: string;
-    file: File;
-  }[] = [];
+  @Input() scannedFile: EntryPreviewFile | null = null;
+  @Input() uploadedVehicleImages: EntryPreviewFile[] = [];
   @Input() selectedPreviewUrl: string | null = null;
 
   @Input() manualLprPlate: string = '';
@@ -75,6 +71,21 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
 
   get headerVehicleNumber(): string {
     return this.manualLprPlate?.trim() ?? '';
+  }
+
+  get splitPreviewFiles(): EntryPreviewFile[] {
+    const snapshot = this.uploadedVehicleImages.find(
+      (file) => this.isSnapshotFile(file) && this.isImageFile(file),
+    );
+    const secondary = this.uploadedVehicleImages.find(
+      (file) => !this.isSnapshotFile(file) && this.isImageFile(file),
+    );
+
+    return [snapshot, secondary].filter((file): file is EntryPreviewFile => !!file);
+  }
+
+  get shouldShowSplitPreview(): boolean {
+    return this.splitPreviewFiles.length > 1;
   }
 
   onPlateChange(value: string): void {
@@ -156,8 +167,9 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
     this.vehicleImagePreviewSelected.emit(index);
   }
 
-  openScannedPreview(): void {
-    if (!this.scannedFile?.type?.startsWith('image/')) return;
+  openScannedPreview(file = this.scannedFile): void {
+    if (!file?.type?.startsWith('image/')) return;
+    this.scannedFile = file;
     this.scannedPreviewOpen = true;
   }
 
@@ -167,6 +179,14 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
 
   isPreviewSelected(fileUrl: string): boolean {
     return this.selectedPreviewUrl === fileUrl;
+  }
+
+  isImageFile(file: EntryPreviewFile | null | undefined): boolean {
+    return !!file?.type?.startsWith('image/');
+  }
+
+  isSnapshotFile(file: EntryPreviewFile | null | undefined): boolean {
+    return !!file?.name?.startsWith('gate-snapshot-');
   }
 
   ngAfterViewInit(): void {

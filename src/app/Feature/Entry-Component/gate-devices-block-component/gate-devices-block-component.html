@@ -19,22 +19,20 @@
   <!--  Premium Scanned Document Preview -->
   <div
     class="vehicle-images-capture-row d-flex align-items-center justify-content-between gap-2 mb-1 px-1 mt-3"
-    [class.capture-attention]="!cameraSnapshotDisabled"
   >
     <label class="form-label x-small fw-bold text-muted text-uppercase mb-0">
       {{ t('vehicle_images') }}
     </label>
-    <button
-      type="button"
-      class="btn btn-outline-primary btn-xs camera-snapshot-btn"
+    <span
+      class="btn btn-outline-primary btn-xs camera-snapshot-btn camera-snapshot-indicator"
       [class.capture-attention]="!cameraSnapshotDisabled"
-      (click)="onCameraSnapshotClick()"
-      [disabled]="cameraSnapshotLoading || cameraSnapshotDisabled"
+      [class.disabled]="cameraSnapshotDisabled"
       [title]="cameraSnapshotTitle || t('take_snapshot')"
+      aria-hidden="true"
     >
       <i class="bi bi-camera" *ngIf="!cameraSnapshotLoading"></i>
       <span class="spinner-border spinner-border-sm" *ngIf="cameraSnapshotLoading"></span>
-    </button>
+    </span>
   </div>
   <div class="scanned-card-premium mt-2 rounded-3 border overflow-hidden">
     <div class="bg-dark text-white p-1 px-2 x-small d-flex align-items-center gap-2">
@@ -42,15 +40,34 @@
       <span>{{ t('scanner_ready') }}</span>
     </div>
     <div class="p-1">
-      <button
-        *ngIf="scannedFile?.type?.startsWith('image/'); else scannedDocumentPreview"
-        type="button"
-        class="preview-box preview-box-button scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
-        (click)="openScannedPreview()"
-        [attr.aria-label]="scannedFile?.name"
-      >
-        <img [src]="scannedFile?.safeUrl" class="preview-media" alt="Preview" />
-      </button>
+      <ng-container *ngIf="shouldShowSplitPreview; else singleScannedPreview">
+        <div class="split-preview-stack scanned-preview-box scanned-preview-box-split">
+          <button
+            type="button"
+            class="preview-box preview-box-button split-preview-item border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
+            *ngFor="let file of splitPreviewFiles"
+            (click)="openScannedPreview(file)"
+            [attr.aria-label]="file.name"
+          >
+            <span class="split-preview-label x-small">
+              {{ isSnapshotFile(file) ? t('camera_snapshot') : file.name }}
+            </span>
+            <img [src]="file.safeUrl" class="preview-media" alt="Preview" />
+          </button>
+        </div>
+      </ng-container>
+
+      <ng-template #singleScannedPreview>
+        <button
+          *ngIf="scannedFile?.type?.startsWith('image/'); else scannedDocumentPreview"
+          type="button"
+          class="preview-box preview-box-button scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
+          (click)="openScannedPreview()"
+          [attr.aria-label]="scannedFile?.name"
+        >
+          <img [src]="scannedFile?.safeUrl" class="preview-media" alt="Preview" />
+        </button>
+      </ng-template>
 
       <ng-template #scannedDocumentPreview>
         <div

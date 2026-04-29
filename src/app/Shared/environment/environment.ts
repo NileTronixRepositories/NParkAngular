@@ -8,3 +8,4 @@ export const environment = {
   qrPrinterName: 'RONGTA 80mm Series Printer(1)',
   receiptPrinterName: 'XP-80C',
 };
+  

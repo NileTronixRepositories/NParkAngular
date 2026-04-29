@@ -12,7 +12,7 @@ import {
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subscription, forkJoin, timer } from 'rxjs';
+import { Subscription, firstValueFrom, forkJoin, timer } from 'rxjs';
 import { switchMap } from 'rxjs/operators';
 import { Router } from '@angular/router';
 
@@ -334,6 +334,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       chip_entry: 'دخول',
       focus_to_scan: 'ضع المؤشر هنا ثم امسح...',
       ticket_number: 'التذاكر',
+      ticket_details: 'تفاصيل',
       select_gate: 'اختيار البوابة',
       choose_gate: 'اختر البوابة',
       cancel: 'إلغاء',
@@ -475,6 +476,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       chip_entry: 'ENTRY',
       focus_to_scan: 'Focus here then scan...',
       ticket_number: 'Tickets',
+      ticket_details: 'Details',
       select_gate: 'Select Gate',
       choose_gate: 'Choose Gate',
       cancel: 'Cancel',
@@ -917,6 +919,31 @@ export class TicketComponent implements OnInit, OnDestroy {
     });
   }
 
+  private async captureSnapshotForPricingTicket(): Promise<boolean> {
+    const cameraUrl = this.gateConnectionInfo?.onvifCameraSetting?.url?.trim();
+    if (!cameraUrl) return false;
+
+    this.snapshotLoading = true;
+    this.snapshotError = null;
+
+    try {
+      const blob = await firstValueFrom(this.gateSvc.getSnapshot(cameraUrl));
+      const file = new File([blob], `gate-snapshot-${Date.now()}.jpg`, {
+        type: blob.type || 'image/jpeg',
+      });
+      this.attachSnapshotFile(file);
+      return true;
+    } catch (err) {
+      console.error('Camera snapshot error', err);
+      this.snapshotError = this.t('snapshot_failed');
+      this.toast.warn(this.t('snapshot_failed'));
+      return false;
+    } finally {
+      this.snapshotLoading = false;
+      this.cdr.markForCheck();
+    }
+  }
+
   private attachSnapshotFile(file: File): void {
     const rawUrl = URL.createObjectURL(file);
     const snapshotAttachment: EntryVehicleImage = {
@@ -1097,13 +1124,27 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.scannedFile = this.uploadedVehicleImages[index];
   }
 
-  onPricingSchemaSelected(pricingSchemaId: string): void {
-    this.selectedPricingSchemaId = pricingSchemaId;
+  async onPricingSchemaSelected(pricingSchemaId: string): Promise<void> {
+    if (this.adding || this.snapshotLoading) return;
+
+    const selectedId = pricingSchemaId?.trim();
+    if (!selectedId) return;
+
+    this.selectedPricingSchemaId = selectedId;
 
     const vehicleNumber = this.normalizeMembershipSearchValue(
       this.manualLprPlate || this.currentLprVehicleNumber,
     );
     this.showMissingLprVehicleHint = !vehicleNumber;
+
+    if (!this.ensureGateConnectionReady()) return;
+
+    const captured = await this.captureSnapshotForPricingTicket();
+    if (!captured && this.gateConnectionInfo?.onvifCameraSetting?.url?.trim()) {
+      return;
+    }
+
+    this.createTicket();
   }
 
   createTicket(vehicleNumber?: string): void {
@@ -1148,7 +1189,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     const pricingSchemaId = this.selectedPricingSchemaId?.trim();
     if (!pricingSchemaId) {
       this.ensurePricingSchemasLoaded();
-      this.toast.warn(this.t('select_pricing_schema_first'));
+      // this.toast.warn(this.t('select_pricing_schema_first'));
       return;
     }
 
@@ -1438,7 +1479,7 @@ export class TicketComponent implements OnInit, OnDestroy {
         return;
       }
 
-      this.toast.warn(this.t('select_pricing_schema_first'));
+      // this.toast.warn(this.t('select_pricing_schema_first'));
     }
   }
 
@@ -1477,7 +1518,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     const pricingSchemaId = this.selectedPricingSchemaId?.trim();
     if (!pricingSchemaId) {
       this.ensurePricingSchemasLoaded();
-      this.toast.warn(this.t('select_pricing_schema_first'));
+      // this.toast.warn(this.t('select_pricing_schema_first'));
       this.lprMembershipStatus = 'non-subscriber';
       return;
     }
@@ -2316,7 +2357,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.localPrint
       .printHtml({
         printerName: receiptPrinterName,
-        htmlContent: this.buildCollectSummaryReceiptHtml(summary),
+        htmlContent: this.buildCompactCollectSummaryReceiptHtml(summary),
         jobName: `Daily-Collect-${summary.gateId || 'gate'}-${summary.date || Date.now()}`,
       })
       .subscribe({
@@ -2326,6 +2367,190 @@ export class TicketComponent implements OnInit, OnDestroy {
           this.toast.error(this.t('printing_failed'));
         },
       });
+  }
+
+  private buildCompactCollectSummaryReceiptHtml(summary: CollectDailyTicketsResponse): string {
+    const details = summary.ticketCollectDetails || [];
+    const ticketLines = details.length
+      ? `<div class="ticket-lines">
+          ${details
+            .map((detail, index) => {
+              const ticketNumber = this.escapePrintHtml(
+                detail.ticketNumber || detail.ticketId || '---',
+              );
+              const vehicleInfo = this.escapePrintHtml(
+                detail.vehicleNumber || detail.cardNumber || detail.source || '---',
+              );
+              const startTime = this.formatReceiptTime(detail.startDate);
+              const endTime = this.formatReceiptTime(detail.endDate);
+
+              return `
+                <div class="ticket-line">
+                  <span class="ticket-index">${index + 1}</span>
+                  <span class="ticket-code">${ticketNumber}</span>
+                  <span class="ticket-vehicle">${vehicleInfo}</span>
+                  <span class="ticket-time">${startTime}-${endTime}</span>
+                  <span class="ticket-amount">${this.formatReceiptMoney(detail.price)}</span>
+                </div>
+              `;
+            })
+            .join('')}
+        </div>`
+      : '<div class="empty-line">&#1604;&#1575; &#1578;&#1608;&#1580;&#1583; &#1578;&#1601;&#1575;&#1589;&#1610;&#1604; &#1578;&#1584;&#1575;&#1603;&#1585;</div>';
+
+    return `
+    <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="utf-8" />
+        <title>NPark Receipt</title>
+        <style>
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-weight: 900 !important;
+          }
+
+          @page {
+            margin: 0;
+            size: 80mm auto;
+          }
+
+          body {
+            width: 80mm;
+            margin: 0;
+            padding: 1.5mm;
+            color: #000;
+            background: #fff;
+            direction: rtl;
+            font-family: Arial, sans-serif;
+            font-weight: 900;
+          }
+
+          .receipt {
+            width: 100%;
+            border: 0.6mm solid #000;
+            border-radius: 1.2mm;
+            padding: 1.5mm;
+          }
+
+          .header {
+            text-align: center;
+            border-bottom: 0.35mm solid #000;
+            padding-bottom: 1mm;
+            margin-bottom: 1mm;
+          }
+
+          .title {
+            font-size: 15px;
+            line-height: 1.15;
+          }
+
+          .subtitle {
+            margin-top: 0.5mm;
+            font-size: 9px;
+          }
+
+          .summary-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 1mm;
+            border-bottom: 0.25mm dashed #000;
+            padding-bottom: 1mm;
+            margin-bottom: 1mm;
+            font-size: 10px;
+          }
+
+          .summary-row strong {
+            direction: ltr;
+          }
+
+          .ticket-lines {
+            border: 0.35mm solid #000;
+            border-radius: 0.8mm;
+            overflow: hidden;
+          }
+
+          .ticket-line {
+            display: grid;
+            grid-template-columns: 4mm minmax(13mm, 1.1fr) minmax(10mm, 0.85fr) minmax(16mm, 1fr) minmax(13mm, 0.8fr);
+            align-items: center;
+            gap: 0.7mm;
+            min-height: 5mm;
+            border-bottom: 0.2mm solid #000;
+            padding: 0.7mm 0.6mm;
+            font-size: 8px;
+            line-height: 1.05;
+            white-space: nowrap;
+          }
+
+          .ticket-line:last-child {
+            border-bottom: none;
+          }
+
+          .ticket-index,
+          .ticket-code,
+          .ticket-vehicle,
+          .ticket-time,
+          .ticket-amount {
+            min-width: 0;
+            overflow: hidden;
+            text-overflow: ellipsis;
+          }
+
+          .ticket-index {
+            text-align: center;
+          }
+
+          .ticket-code,
+          .ticket-vehicle,
+          .ticket-time,
+          .ticket-amount {
+            direction: ltr;
+            text-align: left;
+          }
+
+          .ticket-code,
+          .ticket-amount {
+            font-size: 7.5px;
+          }
+
+          .empty-line {
+            text-align: center;
+            padding: 2mm 1mm;
+            border: 0.4mm dashed #000;
+            font-size: 12px;
+          }
+
+          .footer {
+            text-align: center;
+            font-size: 9px;
+            margin-top: 1mm;
+            padding-top: 0.8mm;
+            border-top: 0.25mm dashed #000;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="receipt">
+          <div class="header">
+            <div class="title">&#1573;&#1610;&#1589;&#1575;&#1604; &#1578;&#1581;&#1589;&#1610;&#1604;</div>
+            <div class="subtitle">NPark Management System</div>
+          </div>
+
+          <div class="summary-row">
+            <span>&#1593;&#1583;&#1583; &#1575;&#1604;&#1578;&#1584;&#1575;&#1603;&#1585;: <strong>${details.length}</strong></span>
+            <span>&#1575;&#1604;&#1573;&#1580;&#1605;&#1575;&#1604;&#1610;: <strong>${this.formatReceiptMoney(summary.totalAmount)}</strong></span>
+          </div>
+
+          ${ticketLines}
+
+          <div class="footer">
+            www.niletronix.com
+          </div>
+        </div>
+      </body>
+    </html>`;
   }
 
   private buildCollectSummaryReceiptHtml(summary: CollectDailyTicketsResponse): string {
@@ -2541,6 +2766,18 @@ export class TicketComponent implements OnInit, OnDestroy {
     return String(value);
   }
 
+  private formatReceiptTime(value: string | null | undefined): string {
+    if (!value) return '--:--';
+
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return this.escapePrintHtml(value);
+
+    return date.toLocaleTimeString('ar-EG', {
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
   private formatReceiptDate(value: string | null | undefined): string {
     if (!value) {
       return new Date().toLocaleString('ar-EG', {
@@ -2682,7 +2919,6 @@ export class TicketComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (session) => {
           this.supervisorCollectToken = session.token;
-          this.auth.updateToken(session.token);
           this.collectSummary = session.summary;
           if (!session.summary.totalTicketsCollected) {
             this.toast.warn(this.t('no_uncollected_tickets'));
@@ -2768,21 +3004,7 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   finishSupervisorCollect(): void {
     if (this.supervisorCollectLoading) return;
-
-    if (!this.supervisorCollectToken && !this.collectSummary) {
-      this.closeSupervisorCollectModal();
-      return;
-    }
-
-    this.auth.logout().subscribe({
-      next: () => this.finishSupervisorLogout(),
-      error: () => this.finishSupervisorLogout(),
-    });
-  }
-
-  private finishSupervisorLogout(): void {
-    this.auth.clearUserData();
-    this.router.navigate(['/login']);
+    this.closeSupervisorCollectModal();
   }
 
   // =======================

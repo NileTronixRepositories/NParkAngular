@@ -1,7 +1,7 @@
 <div class="modal d-block modal-backdrop-custom" tabindex="-1" *ngIf="show">
   <div
     class="modal-dialog modal-sm modal-dialog-centered"
-    [class.summary-dialog]="summary"
+    [class.summary-dialog]="summary || exceedSummary || readyToCollect"
     role="document"
   >
     <div class="modal-content supervisor-modal-content glass">
@@ -84,7 +84,7 @@
         </form>
       </div>
 
-      <div class="modal-body pt-3" *ngIf="summary || exceedSummary || readyToCollect">
+      <div class="modal-body modal-body-summary pt-3" *ngIf="summary || exceedSummary || readyToCollect">
         <div class="supervisor-summary" dir="auto">
           <div class="summary-stats-grid" *ngIf="readyToCollect && !summary && !exceedSummary">
             <div class="summary-stat summary-stat-main">
@@ -105,49 +105,37 @@
             </div>
           </div>
 
-          <div class="summary-ticket-list" *ngIf="summary?.ticketCollectDetails?.length">
-            <div class="summary-ticket-card" *ngFor="let ticket of summary?.ticketCollectDetails">
-              <div class="ticket-card-head">
-                <div class="min-w-0">
-                  <div class="ticket-code mono">{{ ticket.ticketNumber }}</div>
-                  <div class="ticket-source">{{ ticket.source || '--' }}</div>
-                </div>
-                <div class="ticket-amount mono">
-                  {{ ticket.price | number: '1.0-2' }} {{ t('currency') }}
-                </div>
-              </div>
+          <div class="summary-table-wrap" *ngIf="summary?.ticketCollectDetails?.length">
+            <table class="summary-table">
+              <thead>
+                <tr>
+                  <th>{{ t('ticket') }}</th>
+                  <th>{{ t('vehicle_number') }}</th>
+                  <th>{{ t('card_number') }}</th>
+                  <th>{{ t('start_date') }}</th>
+                  <th>{{ t('amount') }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let ticket of summary?.ticketCollectDetails">
+                  <td>
+                    <div class="ticket-code mono">{{ ticket.ticketNumber }}</div>
+                    <div class="ticket-source text-truncate">{{ ticket.source || ticket.ticketId || '--' }}</div>
+                  </td>
+                  <td class="mono">{{ ticket.vehicleNumber || '--' }}</td>
+                  <td class="mono">{{ ticket.cardNumber || '--' }}</td>
+                  <td class="mono">{{ ticket.startDate ? (ticket.startDate | date: 'short') : '--' }}</td>
+                  <td class="ticket-amount mono">
+                    {{ ticket.price | number: '1.0-2' }} {{ t('currency') }}
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
 
-              <div class="ticket-detail-grid">
-                <div class="ticket-detail ticket-detail-wide">
-                  <span>{{ t('ticket_id') }}</span>
-                  <strong class="mono">{{ ticket.ticketId || '--' }}</strong>
-                </div>
-                <div class="ticket-detail">
-                  <span>{{ t('start_date') }}</span>
-                  <strong class="mono">{{ ticket.startDate ? (ticket.startDate | date: 'short') : '--' }}</strong>
-                </div>
-                <div class="ticket-detail">
-                  <span>{{ t('end_date') }}</span>
-                  <strong class="mono">{{ ticket.endDate ? (ticket.endDate | date: 'short') : '--' }}</strong>
-                </div>
-                <div class="ticket-detail">
-                  <span>{{ t('vehicle_number') }}</span>
-                  <strong class="mono">{{ ticket.vehicleNumber || '--' }}</strong>
-                </div>
-                <div class="ticket-detail">
-                  <span>{{ t('card_number') }}</span>
-                  <strong class="mono">{{ ticket.cardNumber || '--' }}</strong>
-                </div>
-                <div class="ticket-detail">
-                  <span>{{ t('subscriber') }}</span>
-                  <strong>{{ ticket.isSubscriber ? t('yes') : t('no') }}</strong>
-                </div>
-                <div class="ticket-detail">
-                  <span>{{ t('exit_gate') }}</span>
-                  <strong class="mono">{{ ticket.exitGateId || '--' }}</strong>
-                </div>
-              </div>
-            </div>
+          <div class="summary-empty" *ngIf="summary && !summary.ticketCollectDetails?.length">
+            <i class="bi bi-inbox"></i>
+            <span>{{ t('no_tickets_to_collect') }}</span>
           </div>
 
           <div class="summary-stats-grid" *ngIf="exceedSummary">
@@ -238,7 +226,7 @@
             <span class="x-small">{{ error }}</span>
           </div>
 
-          <div class="d-grid gap-2 mt-3">
+          <div class="summary-actions d-grid gap-2 mt-3">
             <button
               type="button"
               class="btn btn-success btn-confirm py-2"

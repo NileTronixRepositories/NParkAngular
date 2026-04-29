@@ -15,8 +15,17 @@
     ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
   font-size: 0.82rem;
   container-type: inline-size;
+  width: 100%;
+  min-width: 0;
+  overflow-x: hidden;
   max-width: 1920px;
   margin-inline: auto;
+}
+
+.exit-theme *,
+.exit-theme *::before,
+.exit-theme *::after {
+  min-width: 0;
 }
 
 /* ================== CARDS / GENERAL ================== */
@@ -335,7 +344,7 @@
 /* ================== RESPONSIVE ================== */
 
 /* Cards: full height only when the page has enough actual content width. */
-@container (min-width: 1320px) {
+@container (min-width: 1500px) {
   .exit-workspace-grid {
     grid-template-columns: repeat(4, minmax(0, 1fr));
   }
@@ -345,9 +354,51 @@
   }
 }
 
-@container (min-width: 820px) and (max-width: 1319px) {
+@container (min-width: 820px) and (max-width: 1499px) {
   .exit-workspace-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@container (max-width: 720px) {
+  .page-header > .d-flex {
+    align-items: stretch !important;
+  }
+
+  .search-header-container {
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+    order: 3;
+    margin: 0 !important;
+  }
+
+  .btn-help-tour {
+    order: 2;
+  }
+
+  .gate-quick-strip,
+  .gate-strip-section,
+  .gate-strip-info {
+    width: 100%;
+  }
+
+  .gate-info-grid {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gate-info-item {
+    width: 100%;
+    justify-content: flex-start;
+    border-radius: 8px;
+  }
+}
+
+@container (max-width: 520px) {
+  .gate-info-grid {
+    grid-template-columns: 1fr;
   }
 }
 

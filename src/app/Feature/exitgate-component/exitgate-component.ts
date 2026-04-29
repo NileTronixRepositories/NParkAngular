@@ -2509,7 +2509,6 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (token) => {
           this.supervisorExceedCollectToken = token;
-          this.auth.updateToken(token);
         },
         error: (err) => {
           if (err?.status === 403) {
@@ -2599,7 +2598,6 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   finishSupervisorCollect(): void {
-    this.auth.updateToken(this.cashierToken ?? '');
     this.closeSupervisorCollectModal();
   }
 

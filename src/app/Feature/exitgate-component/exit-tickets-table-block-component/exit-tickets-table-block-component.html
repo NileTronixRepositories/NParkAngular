@@ -189,31 +189,36 @@
     </div>
 
     <!-- Pagination -->
-    <div class="d-flex justify-content-between align-items-center p-2 border-top flex-wrap gap-2">
-      <div class="small text-muted">
+    <div class="exit-table-footer">
+      <div class="footer-stat footer-stat-range">
+        <span class="footer-label">
         {{ 'showing' | t }}
         {{ rangeStart }}–{{ rangeEnd }} {{ 'of' | t }} {{ tickets.length }}
+        </span>
       </div>
 
-      <div class="small text-muted">
-        {{ 'total_fees_today' | t }}:
-        <span class="mono">{{ totalPriceToday | number: '1.0-2' }}</span>
+      <div class="footer-stat footer-stat-total">
+        <span class="footer-label">{{ 'total_fees_today' | t }}</span>
+        <strong class="mono">{{ totalPriceToday | number: '1.0-2' }}</strong>
       </div>
 
-      <div class="btn-group ms-auto">
+      <div class="footer-pager" dir="ltr">
         <button
-          class="btn btn-sm btn-outline-secondary rounded-0"
+          class="footer-page-btn"
           [disabled]="!canGoPrev"
           (click)="onPrev()"
+          type="button"
         >
-          {{ 'prev' | t }}
+          <i class="bi bi-chevron-left"></i>
         </button>
+        <span class="footer-page-count">{{ page }} / {{ pagesCount }}</span>
         <button
-          class="btn btn-sm btn-outline-secondary rounded-0"
+          class="footer-page-btn"
           [disabled]="!canGoNext"
           (click)="onNext()"
+          type="button"
         >
-          {{ 'next' | t }}
+          <i class="bi bi-chevron-right"></i>
         </button>
       </div>
     </div>

@@ -1,3 +1,8 @@
+:host {
+  display: block;
+  container-type: inline-size;
+}
+
 :host .device-row {
   transition: all 0.2s ease;
   background-color: #fff;
@@ -50,15 +55,9 @@
   justify-content: center;
 }
 
-.vehicle-images-capture-row.capture-attention {
-  border-radius: 8px;
-  border: 1px solid rgba(220, 38, 38, 0.35);
-  background: #fff7f7;
-  animation: captureRowBlink 1.15s ease-in-out infinite;
-}
-
-.vehicle-images-capture-row.capture-attention label {
-  color: #b91c1c !important;
+.camera-snapshot-indicator {
+  cursor: default;
+  pointer-events: none;
 }
 
 .camera-snapshot-btn.capture-attention:not(:disabled) {
@@ -66,27 +65,16 @@
   background: #ffffff !important;
   color: #dc2626 !important;
   animation: captureBlink 1.15s ease-in-out infinite;
-}
-
-@keyframes captureRowBlink {
-  0%,
-  100% {
-    border-color: rgba(220, 38, 38, 0.32);
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
-  }
-  50% {
-    border-color: rgba(220, 38, 38, 0.9);
-    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.12);
-  }
+  box-shadow: 0 0 8px rgba(220, 38, 38, 0.24);
 }
 
 @keyframes captureBlink {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(220, 38, 38, 0);
+    box-shadow: 0 0 8px rgba(220, 38, 38, 0.24);
   }
   50% {
-    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.18);
+    box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.14), 0 0 10px rgba(220, 38, 38, 0.28);
   }
 }
 
@@ -132,7 +120,37 @@
 }
 
 .scanned-preview-box {
-  height: clamp(190px, 26vw, 420px);
+  height: clamp(320px, 34vw, 560px);
+}
+
+.scanned-preview-box-split {
+  height: clamp(460px, 50vw, 720px);
+}
+
+.split-preview-stack {
+  display: grid;
+  grid-template-rows: 1fr 1fr;
+  gap: 0.45rem;
+}
+
+.split-preview-item {
+  min-height: 0;
+}
+
+.split-preview-label {
+  position: absolute;
+  top: 0.35rem;
+  inset-inline-start: 0.35rem;
+  z-index: 1;
+  max-width: calc(100% - 0.7rem);
+  padding: 0.12rem 0.4rem;
+  border-radius: 999px;
+  background: rgba(15, 23, 42, 0.78);
+  color: #ffffff;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .preview-media {
@@ -352,7 +370,11 @@
 
 @media (max-width: 575.98px) {
   .scanned-preview-box {
-    height: clamp(180px, 58vw, 280px);
+    height: clamp(280px, 88vw, 420px);
+  }
+
+  .scanned-preview-box-split {
+    height: clamp(380px, 118vw, 560px);
   }
 
   .scan-preview-modal {
@@ -393,5 +415,19 @@
 
   .x-small {
     font-size: 9px !important;
+  }
+}
+
+@container (max-width: 460px) {
+  .gate-devices-card {
+    min-height: auto !important;
+  }
+
+  .scanned-preview-box {
+    height: clamp(260px, 72cqw, 380px);
+  }
+
+  .scanned-preview-box-split {
+    height: clamp(360px, 105cqw, 520px);
   }
 }
