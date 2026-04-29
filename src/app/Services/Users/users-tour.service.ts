@@ -86,6 +86,20 @@ export class UsersTourService {
         classes: stepClasses,
         popperOptions: {
           strategy: 'fixed',
+          modifiers: [
+            {
+              name: 'computeStyles',
+              options: { gpuAcceleration: false },
+            },
+            {
+              name: 'preventOverflow',
+              options: { boundary: 'viewport', padding: 8 },
+            },
+            {
+              name: 'flip',
+              options: { padding: 8 },
+            },
+          ],
         },
       },
     } as any);
@@ -98,7 +112,7 @@ export class UsersTourService {
       textAr:
         'من هذه الشاشة يمكنك استعراض المستخدمين الحاليين، وتعديل بيانات أي مستخدم، أو إضافة مستخدم جديد.',
       textEn: 'On this screen you can view existing users, edit their data, and add new users.',
-      attachTo: '.users-header',
+      attachTo: '.btn-help-tour-users',
       position: 'bottom',
       hasBack: false,
     });
@@ -110,7 +124,7 @@ export class UsersTourService {
       titleEn: 'Help tour button',
       textAr: 'يمكنك تشغيل هذا الشرح التفاعلي للشاشة في أي وقت من هذا الزر.',
       textEn: 'You can launch this interactive tour any time from this button.',
-      attachTo: '.btn-help-tour-users',
+      attachTo: '.users-header',
       position: 'bottom',
       hasBack: false,
     });
@@ -201,12 +215,13 @@ export class UsersTourService {
     beforeShow?: () => void;
     waitForSelector?: string;
   }) {
-    const buttons: { text: string; action: () => void }[] = [];
+    const buttons: any[] = [];
 
     if (config.hasBack !== false) {
       buttons.push({
         text: this.t('السابق', 'Previous'),
         action: () => this.tour?.back(),
+        classes: 'shepherd-button-secondary',
       });
     }
 

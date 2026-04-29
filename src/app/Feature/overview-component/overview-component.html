@@ -59,7 +59,7 @@
   <div *ngIf="!loading() && !errorMessage()" class="page-content">
     <!-- Header -->
     <header
-      class="page-header mb-2 mb-lg-3 fade-in-down p-3 rounded-4 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3"
+      class="page-header overview-header mb-2 mb-lg-3 fade-in-down p-3 rounded-4 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3"
     >
       <div
         class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 w-100"
@@ -139,7 +139,7 @@
 
           <button
             type="button"
-            class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour flex-grow-1 flex-md-grow-0"
+            class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour btn-help-tour-overview flex-grow-1 flex-md-grow-0"
             (click)="startAdminTour()"
           >
             <i class="bi bi-question-circle"></i>
@@ -336,7 +336,7 @@
       </div>
     </section>
 
-    <section class="mb-2 mb-lg-3">
+    <section class="mb-2 mb-lg-3 overview-revenue-summary-section">
       <div class="revenue-summary-grid">
         <div class="revenue-summary-card">
           <span>{{ 'ticketBaseRevenue' | t }}</span>
@@ -571,7 +571,7 @@
           </div>
 
           <!-- Duration stats -->
-          <div class="card stats-card">
+          <div class="card stats-card overview-duration-card">
             <div class="card-header d-flex align-items-center justify-content-between">
               <h6 class="card-title mb-0">
                 {{ 'durationStats' | t }}
@@ -614,7 +614,7 @@
     </section>
 
     <!-- ================ Bottom Section - Tables & Top Performers ================ -->
-    <section class="mb-2 mb-lg-3">
+    <section class="mb-2 mb-lg-3 overview-gates-section">
       <div class="row g-2 g-lg-3 align-items-stretch">
         <!-- Gates tables -->
         <div class="col-12 col-lg-7">
@@ -675,7 +675,7 @@
 
             <!-- Exit Gates -->
             <div class="col-12">
-              <div class="card table-card card-compact h-100">
+              <div class="card table-card card-compact h-100 overview-exit-gates-card">
                 <div class="card-header d-flex align-items-center justify-content-between">
                   <h6 class="card-title mb-0">
                     {{ 'exitGates' | t }}
@@ -749,7 +749,7 @@
         <div class="col-12 col-lg-5">
           <div class="d-flex flex-column gap-2 h-100">
             <!-- Top performers -->
-            <div class="card stats-card card-compact flex-grow-1">
+            <div class="card stats-card card-compact flex-grow-1 overview-top-performers-card">
               <div class="card-header d-flex align-items-center justify-content-between">
                 <h6 class="card-title mb-0">
                   {{ 'topPerformers' | t }}
@@ -819,7 +819,7 @@
             </div>
 
             <!-- Exceed Analytics -->
-            <div class="card stats-card card-compact">
+            <div class="card stats-card card-compact overview-exceed-analytics-card">
               <div class="card-header d-flex align-items-center justify-content-between">
                 <h6 class="card-title mb-0">
                   {{ 'exceedAnalytics' | t }}

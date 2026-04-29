@@ -59,12 +59,7 @@ export class IssueTicketBlockComponent {
   }
 
   get shouldShowMissingLprVehicleHint(): boolean {
-    return (
-      !!this.selectedPricingSchemaId?.trim() &&
-      !this.lprVehicleNumber?.trim() &&
-      !this.cardSummary &&
-      this.lprMembershipStatus === 'idle'
-    );
+    return false;
   }
 
   qrDataUrl(text: string): string {

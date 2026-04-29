@@ -52,10 +52,16 @@ export class EntryTourService {
           strategy: 'fixed',
           modifiers: [
             {
+              name: 'computeStyles',
+              options: { gpuAcceleration: false },
+            },
+            {
+              name: 'preventOverflow',
+              options: { boundary: 'viewport', padding: 8 },
+            },
+            {
               name: 'flip',
-              options: {
-                fallbackPlacements: [],
-              },
+              options: { padding: 8 },
             },
           ],
         },
@@ -199,6 +205,29 @@ export class EntryTourService {
         on: this.pos(config.position),
       },
       buttons,
+      beforeShowPromise: () => this.waitForElement(config.attachTo).catch(() => undefined),
+    });
+  }
+
+  private waitForElement(selector: string, timeoutMs = 2500): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const start = performance.now();
+
+      const tick = () => {
+        if (document.querySelector(selector)) {
+          resolve();
+          return;
+        }
+
+        if (performance.now() - start > timeoutMs) {
+          reject(new Error(`Shepherd target not found: ${selector}`));
+          return;
+        }
+
+        requestAnimationFrame(tick);
+      };
+
+      tick();
     });
   }
 }

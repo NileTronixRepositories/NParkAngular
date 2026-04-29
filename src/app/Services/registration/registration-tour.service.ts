@@ -87,10 +87,16 @@ export class RegistrationTourService {
           strategy: 'fixed',
           modifiers: [
             {
+              name: 'computeStyles',
+              options: { gpuAcceleration: false },
+            },
+            {
+              name: 'preventOverflow',
+              options: { boundary: 'viewport', padding: 8 },
+            },
+            {
               name: 'flip',
-              options: {
-                fallbackPlacements: [],
-              },
+              options: { padding: 8 },
             },
           ],
         },
@@ -105,7 +111,7 @@ export class RegistrationTourService {
         'هذه الشاشة مخصصة لإضافة اشتراك جديد أو تعديل اشتراك قائم، بالإضافة إلى استعراض جميع الاشتراكات المسجلة.',
       textEn:
         'This screen is dedicated to creating new memberships, editing existing ones, and reviewing the full memberships list.',
-      attachTo: '.registration-header',
+      attachTo: '.btn-help-tour-registration',
       position: 'bottom',
       hasBack: false,
     });
@@ -118,7 +124,7 @@ export class RegistrationTourService {
         'من هذا الزر يمكنك تشغيل شرح تفاعلي للشاشة في أي وقت لشرح خطوات التسجيل واستعراض البيانات.',
       textEn:
         'From this help button you can start an interactive guided tour explaining how to register and manage memberships.',
-      attachTo: '.btn-help-tour-registration',
+      attachTo: '.registration-header',
       position: 'bottom',
       hasBack: false,
     });
@@ -274,6 +280,29 @@ export class RegistrationTourService {
         on: this.pos(config.position),
       },
       buttons,
+      beforeShowPromise: () => this.waitForElement(config.attachTo).catch(() => undefined),
+    });
+  }
+
+  private waitForElement(selector: string, timeoutMs = 2500): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const start = performance.now();
+
+      const tick = () => {
+        if (document.querySelector(selector)) {
+          resolve();
+          return;
+        }
+
+        if (performance.now() - start > timeoutMs) {
+          reject(new Error(`Shepherd target not found: ${selector}`));
+          return;
+        }
+
+        requestAnimationFrame(tick);
+      };
+
+      tick();
     });
   }
 }

@@ -126,7 +126,7 @@ export class OverviewTourService {
         textAr: 'من هنا تقدر تشغّل شرح تفاعلي سريع لواجهة لوحة المعلومات في أي وقت.',
         textEn:
           'You can start an interactive guided tour of this dashboard from this Help button at any time.',
-        attachTo: '.btn-help-tour',
+        attachTo: '.btn-help-tour-overview',
         position: 'bottom',
         hasBack: false,
       },
@@ -136,7 +136,7 @@ export class OverviewTourService {
         titleEn: 'Dashboard header',
         textAr: 'هنا عنوان لوحة المعلومات مع وصف سريع لكونها ملخص لإحصائيات اليوم.',
         textEn: "Here you see the dashboard title and a short description of today's statistics.",
-        attachTo: '.page-header',
+        attachTo: '.overview-header',
         position: 'bottom',
       },
       {
@@ -160,6 +160,17 @@ export class OverviewTourService {
         position: 'top',
       },
       {
+        id: 'overview-revenue-summary',
+        titleAr: 'ملخص الإيرادات',
+        titleEn: 'Revenue summary',
+        textAr:
+          'هذا القسم يفصل إيرادات التذاكر، إيرادات التجاوزات، والمبالغ المعلقة مع توضيح المحصل وغير المحصل.',
+        textEn:
+          'This section separates ticket revenue, exceed revenue, and pending amounts with collected versus uncollected totals.',
+        attachTo: '.overview-revenue-summary-section',
+        position: 'top',
+      },
+      {
         id: 'overview-revenue',
         titleAr: 'أنواع العملاء والإيرادات',
         titleEn: 'Revenue breakdown',
@@ -179,6 +190,17 @@ export class OverviewTourService {
         position: 'top',
       },
       {
+        id: 'overview-duration',
+        titleAr: 'إحصائيات المدة',
+        titleEn: 'Duration statistics',
+        textAr:
+          'هنا تظهر متوسط مدة بقاء المركبات وأطول مدة مسجلة لتقييم نمط استخدام الموقف.',
+        textEn:
+          'This card shows average parking duration and the longest recorded stay to help evaluate parking usage patterns.',
+        attachTo: '.overview-duration-card',
+        position: 'top',
+      },
+      {
         id: 'overview-gates',
         titleAr: 'أداء البوابات',
         titleEn: 'Gate performance',
@@ -187,6 +209,39 @@ export class OverviewTourService {
         textEn:
           'These tables show how each gate is performing plus analytics about exceeded tickets.',
         attachTo: '.overview-entry-gates-card',
+        position: 'top',
+      },
+      {
+        id: 'overview-exit-gates',
+        titleAr: 'أداء بوابات الخروج',
+        titleEn: 'Exit gate performance',
+        textAr:
+          'هذا الجدول يوضح تذاكر الخروج، معاملات التجاوز، وإيرادات الغرامات لكل بوابة خروج.',
+        textEn:
+          'This table tracks exited tickets, exceed transactions, and fine revenue for every exit gate.',
+        attachTo: '.overview-exit-gates-card',
+        position: 'top',
+      },
+      {
+        id: 'overview-top-performers',
+        titleAr: 'أفضل الأداء',
+        titleEn: 'Top performers',
+        textAr:
+          'هنا تعرف أكثر بوابة نشاطا، أفضل محصل، وأفضل مشرف في تحصيل التجاوزات.',
+        textEn:
+          'This card highlights the busiest gate, top collector, and top exceed collector for quick performance review.',
+        attachTo: '.overview-top-performers-card',
+        position: 'top',
+      },
+      {
+        id: 'overview-exceed-analytics',
+        titleAr: 'تحليلات التجاوزات',
+        titleEn: 'Exceed analytics',
+        textAr:
+          'هذا القسم يلخص عدد التذاكر المتجاوزة، إجمالي الغرامات، المحصل، المعلق، ومتوسط التجاوز.',
+        textEn:
+          'This section summarizes exceeded tickets, total fines, collected and pending exceed amounts, and average exceed values.',
+        attachTo: '.overview-exceed-analytics-card',
         position: 'top',
       },
     ];

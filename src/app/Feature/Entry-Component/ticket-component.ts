@@ -1141,7 +1141,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.toast.warn(this.t('lpr_vehicle_number_missing_after_pricing'));
+    this.createNormalTicket(undefined, false, pricingSchemaId);
   }
 
   createSubscriberTicket(): void {

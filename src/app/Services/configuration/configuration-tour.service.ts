@@ -100,6 +100,20 @@ export class ConfigurationTourService {
         classes: stepClasses,
         popperOptions: {
           strategy: 'fixed',
+          modifiers: [
+            {
+              name: 'computeStyles',
+              options: { gpuAcceleration: false },
+            },
+            {
+              name: 'preventOverflow',
+              options: { boundary: 'viewport', padding: 8 },
+            },
+            {
+              name: 'flip',
+              options: { padding: 8 },
+            },
+          ],
         },
       },
     } as any);
@@ -239,12 +253,13 @@ export class ConfigurationTourService {
     beforeShow?: () => void;
     waitForSelector?: string;
   }) {
-    const buttons: { text: string; action: () => void }[] = [];
+    const buttons: any[] = [];
 
     if (config.hasBack !== false) {
       buttons.push({
         text: this.t('السابق', 'Previous'),
         action: () => this.tour?.back(),
+        classes: 'shepherd-button-secondary',
       });
     }
 

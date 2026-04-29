@@ -45,7 +45,20 @@ export class SanctionTourService {
         classes: stepClass,
         popperOptions: {
           strategy: 'fixed',
-          modifiers: [{ name: 'flip', options: { fallbackPlacements: [] } }],
+          modifiers: [
+            {
+              name: 'computeStyles',
+              options: { gpuAcceleration: false },
+            },
+            {
+              name: 'preventOverflow',
+              options: { boundary: 'viewport', padding: 8 },
+            },
+            {
+              name: 'flip',
+              options: { padding: 8 },
+            },
+          ],
         },
       },
     } as any);
@@ -163,6 +176,29 @@ export class SanctionTourService {
       text: config.text,
       attachTo: { element: config.attachTo, on: this.pos(config.position) },
       buttons,
+      beforeShowPromise: () => this.waitForElement(config.attachTo).catch(() => undefined),
+    });
+  }
+
+  private waitForElement(selector: string, timeoutMs = 2500): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const start = performance.now();
+
+      const tick = () => {
+        if (document.querySelector(selector)) {
+          resolve();
+          return;
+        }
+
+        if (performance.now() - start > timeoutMs) {
+          reject(new Error(`Shepherd target not found: ${selector}`));
+          return;
+        }
+
+        requestAnimationFrame(tick);
+      };
+
+      tick();
     });
   }
 }
