@@ -1,4 +1,9 @@
 .glass {
+  min-width: 0;
+  height: 100%;
+}
+
+.glass {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(10px);
 }
@@ -100,4 +105,17 @@ textarea[dir='ltr'] {
 
 .input-group-text {
   font-size: 0.75rem;
+}
+
+@container (max-width: 520px) {
+  .lpr-detection-card,
+  .last-submitted-text {
+    align-items: flex-start !important;
+    flex-direction: column;
+  }
+
+  .lpr-detection-card .mono,
+  .last-submitted-text .mono {
+    max-width: 100%;
+  }
 }

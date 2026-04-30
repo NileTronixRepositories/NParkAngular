@@ -146,6 +146,7 @@ export interface AddTicketRequest {
   scannerPhoto?: File | null;
   pricingSchemaId?: string;
   scannedFile?: File;
+  ticketsImages?: File[];
   vehicleImages?: File[];
 }
 

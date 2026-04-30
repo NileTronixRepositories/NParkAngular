@@ -28,7 +28,8 @@
   font-family: var(--ticket-font-mono);
 }
 .gate-devices-card {
-  min-height: 40vh !important;
+  height: 100%;
+  min-height: 0 !important;
 }
 .header-vehicle {
   max-width: 180px;
@@ -93,6 +94,10 @@
   transition: all 0.3s ease;
 }
 
+.vehicle-images-capture-row {
+  margin-top: 0.35rem !important;
+}
+
 .preview-box {
   background: #fcfcfc;
   position: relative;
@@ -115,25 +120,24 @@
 .preview-box img {
   max-width: 100%;
   max-height: 100%;
-  object-fit: contain;
+  object-fit: cover;
 }
 
 .scanned-preview-box {
-  height: clamp(320px, 34vw, 560px);
+  height: auto;
+  aspect-ratio: 4 / 3;
+  max-height: min(54vh, 520px);
 }
 
-.scanned-preview-box-split {
-  height: clamp(460px, 50vw, 720px);
+.composite-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  padding: 0;
 }
 
-.split-preview-stack {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  gap: 0.45rem;
-}
-
-.split-preview-item {
-  min-height: 0;
+.composite-main.scanned-preview-box {
+  aspect-ratio: 4 / 3;
 }
 
 .split-preview-label {
@@ -155,7 +159,89 @@
 .preview-media {
   width: 100%;
   height: 100%;
-  object-fit: contain;
+  object-fit: cover;
+  display: block;
+}
+
+.preview-document {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  background: #ffffff;
+}
+
+.preview-document-placeholder {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  color: #475569;
+}
+
+.composite-main {
+  border: 0;
+}
+
+.scanner-mini-preview {
+  position: static;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 58px;
+  height: 58px;
+  min-width: 58px;
+  min-height: 58px;
+  padding: 0.2rem;
+  border: 1px solid rgba(37, 99, 235, 0.45);
+  border-radius: 8px;
+  background: #ffffff;
+  color: #0f172a;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  cursor: zoom-in;
+}
+
+.scanner-mini-preview:hover {
+  border-color: #2563eb;
+  box-shadow: 0 10px 22px rgba(37, 99, 235, 0.22);
+}
+
+.scanner-mini-title {
+  display: none;
+}
+
+.scanner-mini-media,
+.scanner-mini-document,
+.scanner-mini-file {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 1 / 1;
+  border-radius: 6px;
+}
+
+.scanner-mini-media {
+  object-fit: cover;
+  background: #f8fafc;
+}
+
+.scanner-mini-document {
+  border: 0;
+  background: #ffffff;
+  pointer-events: none;
+  transform-origin: top left;
+}
+
+.scanner-mini-file {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eff6ff;
+  color: #2563eb;
+  font-size: 1.25rem;
 }
 
 .camera-placeholder {
@@ -270,6 +356,35 @@
   background: #000000;
 }
 
+.scan-preview-body iframe {
+  width: 100%;
+  height: 100%;
+  border: 0;
+  border-radius: 8px;
+  background: #ffffff;
+}
+
+.scan-file-empty {
+  min-width: min(320px, 100%);
+  min-height: 160px;
+  padding: 1rem;
+  border: 1px dashed #cbd5e1;
+  border-radius: 10px;
+  background: #ffffff;
+  color: #475569;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  text-align: center;
+}
+
+.scan-file-empty i {
+  font-size: 2rem;
+  color: #2563eb;
+}
+
 .uploaded-images-card {
   border-color: #dbeafe !important;
   background: linear-gradient(180deg, #f8fbff 0%, #ffffff 100%);
@@ -369,11 +484,16 @@
 
 @media (max-width: 575.98px) {
   .scanned-preview-box {
-    height: clamp(280px, 88vw, 420px);
+    height: auto;
+    aspect-ratio: 4 / 3;
+    max-height: 52vh;
   }
 
-  .scanned-preview-box-split {
-    height: clamp(380px, 118vw, 560px);
+  .scanner-mini-preview {
+    width: 54px;
+    height: 54px;
+    min-width: 54px;
+    min-height: 54px;
   }
 
   .scan-preview-modal {
@@ -423,10 +543,15 @@
   }
 
   .scanned-preview-box {
-    height: clamp(260px, 72cqw, 380px);
+    height: auto;
+    aspect-ratio: 4 / 3;
+    max-height: 52vh;
   }
 
-  .scanned-preview-box-split {
-    height: clamp(360px, 105cqw, 520px);
+  .scanner-mini-preview {
+    width: 52px;
+    height: 52px;
+    min-width: 52px;
+    min-height: 52px;
   }
 }

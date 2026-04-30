@@ -1,37 +1,42 @@
-import { Component, inject } from '@angular/core';
-import { AuthService } from '../../Services/Auth/auth-service';
-import { Router } from '@angular/router';
-import { SwitchlanguageComponent } from '../switchlanguage-component/switchlanguage-component';
-import { LanguageService } from '../../Services/i18n/language-service';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { Component, inject } from '@angular/core';
+import { Router, RouterLink } from '@angular/router';
+
+import { AuthService } from '../../Services/Auth/auth-service';
+import { LanguageService } from '../../Services/i18n/language-service';
 
 @Component({
   selector: 'app-header-component',
   standalone: true,
-  imports: [SwitchlanguageComponent, CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink],
   templateUrl: './header-component.html',
   styleUrl: './header-component.css',
 })
 export class HeaderComponent {
-  private auth = inject(AuthService);
-  private router = inject(Router);
   public lang = inject(LanguageService);
+  private readonly auth = inject(AuthService);
+  private readonly router = inject(Router);
 
-  t = (ar: string, en: string) => (this.lang.isRTL() ? ar : en);
+  get langLabel(): string {
+    return this.lang.current === 'ar' ? 'AR' : 'EN';
+  }
 
-  logout() {
+  get logoutLabel(): string {
+    return this.lang.current === 'ar' ? 'تسجيل الخروج' : 'Logout';
+  }
+
+  switchLang(): void {
+    this.lang.toggle();
+  }
+
+  logout(): void {
     this.auth.logout().subscribe({
-      next: () => {
-        this.finishLogout();
-      },
-      error: () => {
-        this.finishLogout();
-      },
+      next: () => this.finishLogout(),
+      error: () => this.finishLogout(),
     });
   }
 
-  private finishLogout() {
+  private finishLogout(): void {
     this.auth.clearUserData();
     this.router.navigate(['/login']);
   }

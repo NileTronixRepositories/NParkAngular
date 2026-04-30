@@ -74,9 +74,11 @@ export class TicketsServices {
 
   addTicket(req: AddTicketRequest): Observable<IssuedTicketResponse | null> {
     const formData = new FormData();
-    const imageFiles = [req.scannedFile ?? null, ...(req.vehicleImages ?? [])].filter(
-      (file): file is File => !!file,
-    );
+    const imageFiles = [
+      req.scannedFile ?? null,
+      ...(req.ticketsImages ?? []),
+      ...(req.vehicleImages ?? []),
+    ].filter((file): file is File => !!file);
 
     formData.append('IsSubscriber', String(req.isSubscriber));
 
@@ -99,7 +101,7 @@ export class TicketsServices {
       formData.append('ScannerPhoto', req.scannerPhoto, req.scannerPhoto.name);
     }
 
-    imageFiles.forEach((file) => {
+    Array.from(new Set(imageFiles)).forEach((file) => {
       formData.append('TicketsImages', file, file.name);
     });
 

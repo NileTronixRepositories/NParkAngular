@@ -46,6 +46,44 @@
   min-width: 0;
 }
 
+.entry-workspace {
+  display: grid;
+  grid-template-columns:
+    minmax(285px, 0.92fr)
+    minmax(420px, 1.36fr)
+    minmax(285px, 0.92fr);
+  align-items: stretch;
+  gap: 0.75rem;
+  margin-inline: 0;
+}
+
+.entry-workspace > * {
+  width: 100%;
+  max-width: none !important;
+  flex: none !important;
+  padding-inline: 0 !important;
+}
+
+.entry-devices-panel,
+.entry-issue-panel,
+.entry-tickets-panel,
+.supervisor-ticket-panel {
+  display: flex;
+  min-height: 0;
+}
+
+.entry-devices-panel > *,
+.entry-issue-panel > *,
+.entry-tickets-panel > *,
+.supervisor-ticket-panel > * {
+  width: 100%;
+  min-width: 0;
+}
+
+.supervisor-entry-workspace {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .tickets-theme .card {
   border-radius: 10px;
 }
@@ -274,9 +312,9 @@
 }
 
 @media (max-width: 1199.98px) {
-  .entry-workspace > [class*='col-lg-'] {
-    flex: 0 0 100%;
-    max-width: 100%;
+  .entry-workspace {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.65rem;
   }
 
   .gate-quick-strip {
@@ -295,38 +333,25 @@
 }
 
 @media (min-width: 1200px) {
-  .entry-workspace > .col-lg-3 {
-    flex: 0 0 34%;
-    max-width: 34%;
-  }
-
-  .entry-workspace > .col-lg-6 {
-    flex: 0 0 66%;
-    max-width: 66%;
-  }
-
-  .entry-workspace > .entry-tickets-panel {
-    order: 3;
-    flex: 0 0 100%;
-    max-width: 100%;
-  }
-}
-
-@media (min-width: 1600px) {
-  .entry-workspace > .col-lg-3 {
-    flex: 0 0 28%;
-    max-width: 28%;
-  }
-
-  .entry-workspace > .col-lg-6 {
-    flex: 0 0 44%;
-    max-width: 44%;
+  .entry-workspace {
+    grid-template-columns:
+      minmax(300px, 0.9fr)
+      minmax(460px, 1.35fr)
+      minmax(300px, 0.9fr);
   }
 
   .entry-workspace > .entry-tickets-panel {
     order: 0;
-    flex: 0 0 28%;
-    max-width: 28%;
+  }
+}
+
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+  .entry-workspace {
+    grid-template-columns: minmax(310px, 0.72fr) minmax(0, 1.28fr);
+  }
+
+  .entry-workspace > .entry-tickets-panel {
+    grid-column: 1 / -1;
   }
 }
 
@@ -680,6 +705,10 @@
 }
 
 @media (max-width: 575.98px) {
+  .entry-workspace {
+    gap: 0.5rem;
+  }
+
   .gate-info-grid {
     grid-template-columns: 1fr;
   }

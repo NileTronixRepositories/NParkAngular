@@ -6,8 +6,8 @@
   ></app-sidebar-component>
 
   <!-- Main Content -->
-  <main class="app-content">
-    <app-header-component></app-header-component>
+  <main class="app-content" [class.headerless]="!shouldShowHeader">
+    <app-header-component *ngIf="shouldShowHeader"></app-header-component>
     <div class="page-content">
       <router-outlet></router-outlet>
     </div>

@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
-import { Observable, of, tap, catchError } from 'rxjs';
+import { Observable, catchError, of, tap } from 'rxjs';
 import {
   GateDevicePeripheral,
   GateType,
@@ -34,10 +34,13 @@ export class AuthService {
   private http = inject(HttpClient);
   private toast = inject(ToastServices);
   // private ticketsService = inject(TicketsServices);
-
   private gateData: GateDevicePeripheral | null = null;
   private collectLoading = false;
   private unloadLogoutStarted = false;
+
+  private get logoutEndpoint(): string {
+    return `${API_BASE}/Logout`;
+  }
 
   // ================== STORAGE HELPERS ==================
   private storage(remember: boolean): Storage {
@@ -174,7 +177,10 @@ export class AuthService {
       if (!payload) return null;
 
       const normalized = payload.replace(/-/g, '+').replace(/_/g, '/');
-      const padded = normalized.padEnd(normalized.length + ((4 - (normalized.length % 4)) % 4), '=');
+      const padded = normalized.padEnd(
+        normalized.length + ((4 - (normalized.length % 4)) % 4),
+        '=',
+      );
       return JSON.parse(atob(padded));
     } catch {
       return null;
@@ -261,25 +267,15 @@ export class AuthService {
     const token = this.token;
 
     if (!token) {
-      console.warn('Logout: no token in storage, treating as already logged out');
+      this.clearUserData();
       return of(void 0);
     }
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
 
-    return this.http.post<void>(`${API_BASE}/logout`, {}, { headers }).pipe(
-      tap(() => {
-        console.log('Logout API success');
-      }),
-      catchError((err) => {
-        if (err?.status === 404 && err?.error?.detail === 'Token not found') {
-          console.warn('Logout: token not found on server, treating as already logged out');
-          return of(void 0);
-        }
-
-        console.error('Logout API failed', err);
-        return of(void 0);
-      }),
+    return this.http.post<void>(this.logoutEndpoint, {}, { headers }).pipe(
+      catchError(() => of(void 0)),
+      tap(() => this.clearUserData()),
     );
   }
 
@@ -292,7 +288,7 @@ export class AuthService {
 
     if (!token || typeof fetch !== 'function') return;
 
-    void fetch(`${API_BASE}/logout`, {
+    void fetch(this.logoutEndpoint, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,

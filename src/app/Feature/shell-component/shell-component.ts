@@ -132,6 +132,10 @@ export class ShellComponent implements OnDestroy {
     return this.currentUrl().startsWith('/tickets/exit');
   }
 
+  get shouldShowHeader(): boolean {
+    return this.isAdmin || (!this.isEntryRoute() && !this.isExitRoute());
+  }
+
   toggleGate() {
     this.gateOpen = !this.gateOpen;
   }

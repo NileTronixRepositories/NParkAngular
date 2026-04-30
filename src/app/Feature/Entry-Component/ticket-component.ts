@@ -25,6 +25,7 @@ import {
   CollectDailyTicketsResponse,
   MembershipCheckResponse,
   CardMembershipCheckResponse,
+  AddTicketRequest,
 } from '../../Domain/tickets/tickets.model';
 
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
@@ -411,7 +412,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       select_pricing_schema_first: 'يرجى اختيار التعريفة أولا',
       lpr_vehicle_number_missing_after_pricing: 'لم يتم إدخال رقم سيارة من LPR',
       create_lpr_ticket: 'إنشاء تذكرة LPR',
-      vehicle_images: 'صور المركبة',
+      vehicle_images: 'ماسح الصور',
       vehicle_images_optional: 'صور المركبة اختيارية.',
       vehicle_images_attached: 'تم إرفاق صور المركبة',
       printing_failed: 'تعذر إرسال أوامر الطباعة إلى خدمة الطابعة المحلية.',
@@ -794,7 +795,9 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   private normalizeDeviceId(value: string | number | null | undefined): string {
-    return String(value ?? '').trim().toLowerCase();
+    return String(value ?? '')
+      .trim()
+      .toLowerCase();
   }
 
   // =======================
@@ -1132,7 +1135,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     const selected = this.uploadedVehicleImages[index];
     this.scannedFile = this.isImageAttachment(selected)
       ? selected
-      : this.findPreferredPreviewAttachment() ?? selected;
+      : (this.findPreferredPreviewAttachment() ?? selected);
   }
 
   async onPricingSchemaSelected(pricingSchemaId: string): Promise<void> {
@@ -1554,8 +1557,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     statePrepared = false,
     pricingSchemaId?: string,
   ): void {
-    const scannerPhoto =
-      this.gateConnectionInfo?.hasScanner === true ? this.getScannerPhotoPayload() : null;
+    const scannerPhoto = this.getScannerPhotoPayload();
     if (!this.ensureRequiredScannerPhoto(scannerPhoto)) return;
 
     if (!statePrepared) {
@@ -1568,14 +1570,14 @@ export class TicketComponent implements OnInit, OnDestroy {
       : undefined;
 
     this.lastIssuedVehicleNumber = normalizedVehicleNumber ?? null;
-    const vehicleImages = this.getVehicleImagePayloads();
+    const ticketsImages = this.getVehicleImagePayloads();
 
-    const payload = {
+    const payload: AddTicketRequest = {
       isSubscriber: false,
       vehicleNumber: normalizedVehicleNumber,
       pricingSchemaId,
       scannerPhoto,
-      vehicleImages,
+      ticketsImages,
     };
     console.log('CREATING TICKET PAYLOAD:', payload);
 
@@ -1662,8 +1664,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     data: { cardNumber?: string; vehicleNumber?: string },
     statePrepared = false,
   ): void {
-    const scannerPhoto =
-      this.gateConnectionInfo?.hasScanner === true ? this.getScannerPhotoPayload() : null;
+    const scannerPhoto = this.getScannerPhotoPayload();
     if (!this.ensureRequiredScannerPhoto(scannerPhoto)) return;
 
     if (!statePrepared) {
@@ -1676,14 +1677,14 @@ export class TicketComponent implements OnInit, OnDestroy {
       : undefined;
 
     this.lastIssuedVehicleNumber = normalizedVehicleNumber ?? null;
-    const vehicleImages = this.getVehicleImagePayloads();
+    const ticketsImages = this.getVehicleImagePayloads();
 
-    const payload = {
+    const payload: AddTicketRequest = {
       isSubscriber: true,
       vehicleNumber: normalizedVehicleNumber,
       cardNumber: data.cardNumber,
       scannerPhoto,
-      vehicleImages,
+      ticketsImages,
     };
     console.log('CREATING SUBSCRIBER TICKET PAYLOAD:', payload);
 
@@ -1771,9 +1772,11 @@ export class TicketComponent implements OnInit, OnDestroy {
         .filter((file): file is File => !!file);
     }
 
-    return [this.scannedFile && !this.isScannerAttachment(this.scannedFile) ? this.scannedFile.file : null].filter(
-      (file): file is File => !!file,
-    );
+    return [
+      this.scannedFile && !this.isScannerAttachment(this.scannedFile)
+        ? this.scannedFile.file
+        : null,
+    ].filter((file): file is File => !!file);
   }
 
   private getScannerPhotoPayload(): File | null {
@@ -2159,7 +2162,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     const vehicleRow = opts.vehicleNumber
       ? `
                 <div class="info-item">
-                  <span class="label">رقم العربية:</span>
+                  <span class="label">رقم المركبة:</span>
                   <span class="value">${this.escapePrintHtml(opts.vehicleNumber)}</span>
                 </div>
       `

@@ -42,18 +42,46 @@
     </div>
     <div class="p-1">
       <ng-container *ngIf="shouldShowSplitPreview; else singleScannedPreview">
-        <div class="split-preview-stack scanned-preview-box scanned-preview-box-split">
-          <button
-            type="button"
-            class="preview-box preview-box-button split-preview-item border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
-            *ngFor="let file of splitPreviewFiles"
-            (click)="openScannedPreview(file)"
-            [attr.aria-label]="file.name"
+        <div class="composite-preview">
+          <div
+            class="preview-box composite-main scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
+            [class.preview-box-button]="isImageFile(mainPreviewFile)"
+            (click)="openScannedPreview(mainPreviewFile)"
+            [attr.aria-label]="mainPreviewFile?.name"
           >
             <span class="split-preview-label x-small">
-              {{ isSnapshotFile(file) ? t('camera_snapshot') : file.name }}
+              {{ t('camera_snapshot') }}
             </span>
-            <img [src]="file.safeUrl" class="preview-media" alt="Preview" />
+            <img [src]="mainPreviewFile?.safeUrl" class="preview-media" alt="Preview" />
+          </div>
+
+          <button
+            *ngIf="secondaryPreviewFile as secondary"
+            type="button"
+            class="scanner-mini-preview"
+            (click)="openScannedPreview(secondary)"
+            [attr.aria-label]="secondary.name"
+          >
+            <span class="scanner-mini-title text-truncate">{{ secondary.name }}</span>
+            <img
+              *ngIf="isImageFile(secondary)"
+              [src]="secondary.safeUrl"
+              class="scanner-mini-media"
+              alt="Scanner preview"
+            />
+            <iframe
+              *ngIf="isPdfFile(secondary)"
+              [src]="secondary.safeUrl"
+              class="scanner-mini-document"
+              title="Scanner preview"
+              tabindex="-1"
+            ></iframe>
+            <span
+              *ngIf="!isImageFile(secondary) && !isPdfFile(secondary)"
+              class="scanner-mini-file"
+            >
+              <i class="bi bi-paperclip"></i>
+            </span>
           </button>
         </div>
       </ng-container>
@@ -190,7 +218,7 @@
         </div> -->
       </div>
 
-      <div
+      <!-- <div
         class="uploaded-images-card mt-2 rounded-3 border p-2 bg-white"
         *ngIf="uploadedVehicleImages.length"
       >
@@ -227,7 +255,7 @@
             </button>
           </div>
         </div>
-      </div>
+      </div> -->
     </ng-container>
 
     <ng-template #noGateDevices>
@@ -241,14 +269,14 @@
 
 <div
   class="scan-preview-modal"
-  *ngIf="scannedPreviewOpen && scannedFile?.type?.startsWith('image/')"
+  *ngIf="scannedPreviewOpen && scannedFile"
   (click)="closeScannedPreview()"
 >
   <div class="scan-preview-dialog" (click)="$event.stopPropagation()">
     <div class="scan-preview-header">
       <div class="scan-preview-title text-truncate">
         <i class="bi bi-image text-primary"></i>
-        <span dir="ltr">{{ scannedFile?.name }}</span>
+        <span dir="ltr">{{ scannedFile.name }}</span>
       </div>
       <button
         type="button"
@@ -260,7 +288,16 @@
       </button>
     </div>
     <div class="scan-preview-body">
-      <img [src]="scannedFile?.safeUrl" alt="Preview" />
+      <img *ngIf="isImageFile(scannedFile)" [src]="scannedFile.safeUrl" alt="Preview" />
+      <iframe
+        *ngIf="isPdfFile(scannedFile)"
+        [src]="scannedFile.safeUrl"
+        title="Scanned document preview"
+      ></iframe>
+      <div *ngIf="!isImageFile(scannedFile) && !isPdfFile(scannedFile)" class="scan-file-empty">
+        <i class="bi bi-paperclip"></i>
+        <span>{{ scannedFile.name }}</span>
+      </div>
     </div>
   </div>
 </div>

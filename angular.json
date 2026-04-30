@@ -53,9 +53,9 @@
           },
           "defaultConfiguration": "production"
         },
-        "serve": {
-          "builder": "@angular/build:dev-server",
-          "configurations": {
+          "serve": {
+            "builder": "@angular/build:dev-server",
+            "configurations": {
             "production": {
               "buildTarget": "NPark:build:production"
             },

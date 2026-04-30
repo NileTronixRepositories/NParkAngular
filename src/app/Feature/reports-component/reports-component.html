@@ -151,7 +151,13 @@
             </tr>
           } @else {
             @for (r of reports(); track r.ticketId) {
-              <tr class="fade-in">
+              <tr
+                class="fade-in report-row"
+                role="button"
+                tabindex="0"
+                (click)="openTicketDetails(r)"
+                (keydown)="onTicketRowKeydown($event, r)"
+              >
                 <td class="ps-4">
                   <span class="fw-bold text-dark mono">#{{ r.ticketNumber }}</span>
                 </td>
@@ -218,3 +224,92 @@
     </div>
   </div>
 </div>
+
+@if (selectedTicket(); as ticket) {
+  <div class="report-details-backdrop" (click)="closeTicketDetails()">
+    <section class="report-details-modal" (click)="$event.stopPropagation()">
+      <header class="report-details-header">
+        <div class="min-w-0">
+          <div class="report-details-title">{{ 'ticketDetails' | t }}</div>
+          <div class="report-details-ticket mono">#{{ ticket.ticketNumber || ticket.ticketId }}</div>
+        </div>
+        <button
+          type="button"
+          class="report-details-close"
+          [attr.aria-label]="'close' | t"
+          (click)="closeTicketDetails()"
+        >
+          <i class="bi bi-x-lg"></i>
+        </button>
+      </header>
+
+      <div class="report-details-body">
+        <div class="report-summary-grid">
+          <div class="summary-item">
+            <span>{{ 'vehicleNumber' | t }}</span>
+            <strong>{{ ticket.vehicleNumber || '---' }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>{{ 'enterDate' | t }}</span>
+            <strong>{{ ticket.enterDate | date: 'short' }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>{{ 'exitDate' | t }}</span>
+            <strong>{{ ticket.exitDate | date: 'short' }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>{{ 'isSubscribed' | t }}</span>
+            <strong>{{ (ticket.isSubscribed ? 'subscriber' : 'visitor') | t }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>{{ 'collectorName' | t }}</span>
+            <strong>{{ ticket.collectorName || '---' }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>{{ 'price' | t }}</span>
+            <strong>{{ ticket.price | number: '1.2-2' }} {{ 'egp' | t }}</strong>
+          </div>
+        </div>
+
+        <div class="attachments-header">
+          <span>{{ 'attachments' | t }}</span>
+          <span class="attachments-count">{{ ticket.attachments?.length || 0 }}</span>
+        </div>
+
+        @if (ticket.attachments?.length) {
+          <div class="attachments-grid">
+            @for (attachment of ticket.attachments; track attachment.imagePath) {
+              <a
+                class="attachment-card"
+                [href]="attachmentUrl(attachment.imagePath)"
+                target="_blank"
+                rel="noopener"
+              >
+                @if (isPdfAttachment(attachment.imagePath)) {
+                  <iframe
+                    class="attachment-pdf"
+                    [src]="attachmentSafeUrl(attachment.imagePath)"
+                    title="Ticket attachment"
+                    tabindex="-1"
+                  ></iframe>
+                } @else {
+                  <img
+                    class="attachment-image"
+                    [src]="attachmentUrl(attachment.imagePath)"
+                    alt="Ticket attachment"
+                    loading="lazy"
+                  />
+                }
+              </a>
+            }
+          </div>
+        } @else {
+          <div class="no-attachments">
+            <i class="bi bi-paperclip"></i>
+            <span>{{ 'noAttachments' | t }}</span>
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+}

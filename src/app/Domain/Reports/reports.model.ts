@@ -1,3 +1,7 @@
+export interface ReportTicketAttachment {
+  imagePath: string;
+}
+
 export interface ReportTicketsResponse {
   ticketId: string;
   enterDate: string;
@@ -7,4 +11,5 @@ export interface ReportTicketsResponse {
   price: number;
   collectorName: string;
   ticketNumber: string;
+  attachments?: ReportTicketAttachment[];
 }

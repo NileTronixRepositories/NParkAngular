@@ -76,18 +76,27 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
   }
 
   get splitPreviewFiles(): EntryPreviewFile[] {
-    const snapshot = this.uploadedVehicleImages.find(
+    const files = this.uploadedVehicleImages.filter(Boolean);
+    const snapshot = files.find(
       (file) => this.isSnapshotFile(file) && this.isImageFile(file),
     );
-    const secondary = this.uploadedVehicleImages.find(
-      (file) => !this.isSnapshotFile(file) && this.isImageFile(file),
-    );
+    const secondary = [...files]
+      .reverse()
+      .find((file) => file.url !== snapshot?.url && !this.isSnapshotFile(file));
 
     return [snapshot, secondary].filter((file): file is EntryPreviewFile => !!file);
   }
 
   get shouldShowSplitPreview(): boolean {
     return this.splitPreviewFiles.length > 1;
+  }
+
+  get mainPreviewFile(): EntryPreviewFile | null {
+    return this.splitPreviewFiles[0] ?? null;
+  }
+
+  get secondaryPreviewFile(): EntryPreviewFile | null {
+    return this.splitPreviewFiles[1] ?? null;
   }
 
   onPlateChange(value: string): void {
@@ -170,7 +179,7 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
   }
 
   openScannedPreview(file = this.scannedFile): void {
-    if (!file?.type?.startsWith('image/')) return;
+    if (!file) return;
     this.scannedFile = file;
     this.scannedPreviewOpen = true;
   }
@@ -187,8 +196,12 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
     return !!file?.type?.startsWith('image/');
   }
 
+  isPdfFile(file: EntryPreviewFile | null | undefined): boolean {
+    return file?.type === 'application/pdf';
+  }
+
   isSnapshotFile(file: EntryPreviewFile | null | undefined): boolean {
-    return !!file?.name?.startsWith('gate-snapshot-');
+    return file?.source === 'snapshot' || !!file?.name?.startsWith('gate-snapshot-');
   }
 
   ngAfterViewInit(): void {

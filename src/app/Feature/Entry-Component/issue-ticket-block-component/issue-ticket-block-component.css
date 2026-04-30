@@ -99,7 +99,7 @@
   justify-content: flex-start;
   gap: 0.5rem;
   color: #0f172a;
-  font-size: 1.25rem;
+  font-size: clamp(0.88rem, 1.3vw, 1.18rem);
   font-weight: 900;
   text-align: start;
   box-shadow: 0 4px 10px rgba(15, 23, 42, 0.06);
@@ -267,6 +267,7 @@
 :host .card-body {
   padding: 0.45rem !important;
   min-width: 0;
+  min-height: 0;
 }
 
 :host .form-label {
@@ -291,7 +292,7 @@
   .pricing-schema-btn {
     min-height: 40px;
     padding: 0.4rem 0.5rem;
-    font-size: 0.68rem;
+    font-size: 0.74rem;
   }
 
   :host .qr-preview {
@@ -314,5 +315,16 @@
 
   .x-small {
     font-size: 9px !important;
+  }
+}
+
+@container (max-width: 520px) {
+  .pricing-schema-grid {
+    grid-template-columns: repeat(auto-fit, minmax(min(140px, 100%), 1fr));
+  }
+
+  .pricing-schema-btn {
+    min-height: 46px;
+    font-size: 0.78rem;
   }
 }

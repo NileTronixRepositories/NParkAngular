@@ -23,6 +23,10 @@
   min-width: 0;
 }
 
+.app-content.headerless .page-content {
+  padding-top: 0.75rem;
+}
+
 @media (min-width: 1600px) {
   .page-content {
     padding: 1.25rem 1.5rem 2rem;

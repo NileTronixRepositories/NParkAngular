@@ -205,8 +205,25 @@
     </a>
   </nav>
 
-  <!-- Sidebar Footer REMOVED and Moved to Main Footer -->
-  <!-- <div class="sidebar-footer" *ngIf="!collapsed">
-    <div class="version-text">{{ t('version') }} 1.0</div>
-  </div> -->
+  <div class="sidebar-actions" *ngIf="showGateSessionActions">
+    <button
+      type="button"
+      class="sidebar-action sidebar-lang"
+      (click)="switchLang()"
+      [attr.title]="collapsed ? t('langButton') : null"
+    >
+      <i class="bi bi-translate"></i>
+      <span class="nav-text" *ngIf="!collapsed">{{ i18n.current === 'ar' ? 'AR' : 'EN' }}</span>
+    </button>
+
+    <button
+      type="button"
+      class="sidebar-action sidebar-logout"
+      (click)="logout()"
+      [attr.title]="collapsed ? t('logout') : null"
+    >
+      <i class="bi" [ngClass]="i18n.isRTL() ? 'bi-box-arrow-left' : 'bi-box-arrow-right'"></i>
+      <span class="nav-text" *ngIf="!collapsed">{{ t('logout') }}</span>
+    </button>
+  </div>
 </aside>

@@ -58,6 +58,7 @@ export class SidebarComponent implements OnDestroy {
       toggleSubmenu: 'تبديل القائمة الفرعية',
       brand: 'إن بارك',
       langButton: 'English',
+      logout: 'تسجيل الخروج',
       gateSelection: 'اختيار البوابة',
     },
     en: {
@@ -81,6 +82,7 @@ export class SidebarComponent implements OnDestroy {
       toggleSubmenu: 'Toggle submenu',
       brand: 'NPark',
       langButton: 'العربية',
+      logout: 'Logout',
       gateSelection: 'Gate Selection',
     },
   };
@@ -119,12 +121,32 @@ export class SidebarComponent implements OnDestroy {
     return this.role === 'Supervisor';
   }
 
+  get showGateSessionActions(): boolean {
+    return !this.isAdmin && (this.isEntryRoute || this.isExitRoute);
+  }
+
   toggleGate() {
     this.gateOpen = !this.gateOpen;
   }
 
   onToggle() {
     this.toggle.emit();
+  }
+
+  switchLang(): void {
+    this.i18n.toggle();
+  }
+
+  logout(): void {
+    this.auth.logout().subscribe({
+      next: () => this.finishLogout(),
+      error: () => this.finishLogout(),
+    });
+  }
+
+  private finishLogout(): void {
+    this.auth.clearUserData();
+    this.router.navigate(['/login']);
   }
 
   @HostListener('document:click', ['$event'])

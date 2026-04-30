@@ -1,6 +1,7 @@
 :host {
   display: block;
   container-type: inline-size;
+  min-width: 0;
 }
 
 /* ============= CARD & HEADER ============= */
@@ -12,6 +13,7 @@
   backdrop-filter: blur(8px);
   box-shadow: 0 14px 35px rgba(15, 23, 42, 0.12);
   overflow: hidden;
+  min-width: 0;
 }
 
 :host .card-body,
@@ -58,8 +60,8 @@
 
 :host .table-responsive {
   overflow: auto;
-  min-height: 260px;
-  max-height: min(620px, 64vh);
+  min-height: 240px;
+  max-height: min(520px, 58vh);
 }
 
 :host .table-head {
@@ -501,6 +503,7 @@
 
   :host .table {
     font-size: 0.64rem;
+    min-width: 300px;
   }
 
   :host .table-head {

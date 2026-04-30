@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
@@ -8,6 +9,7 @@ import { ReportsService } from '../../Services/Reports/reports.service';
 import { ReportTicketsResponse } from '../../Domain/Reports/reports.model';
 import { ReportsTourService } from '../../Services/Reports/reports-tour.service';
 import { ToastServices } from '../../Services/Toster/toast-services';
+import { environment } from '../../Shared/environment/environment';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -44,6 +46,10 @@ import html2canvas from 'html2canvas';
           exportPdf: 'تصدير كـ PDF',
           exportExcel: 'تصدير كـ Excel',
           helpTour: 'دليل الاستخدام',
+          ticketDetails: 'تفاصيل التذكرة',
+          attachments: 'المرفقات',
+          noAttachments: 'لا توجد مرفقات',
+          close: 'إغلاق',
         },
         en: {
           reports: 'Reports',
@@ -67,6 +73,10 @@ import html2canvas from 'html2canvas';
           exportPdf: 'Export PDF',
           exportExcel: 'Export Excel',
           helpTour: 'Help Tour',
+          ticketDetails: 'Ticket Details',
+          attachments: 'Attachments',
+          noAttachments: 'No attachments',
+          close: 'Close',
         },
       }),
     },
@@ -78,9 +88,12 @@ export class ReportsComponent implements OnInit {
   private readonly dict = inject(I18N_DICT);
   private readonly tourService = inject(ReportsTourService);
   private readonly toastService = inject(ToastServices);
+  private readonly sanitizer = inject(DomSanitizer);
+  private readonly attachmentSafeUrlCache = new Map<string, SafeResourceUrl>();
 
   reports = signal<ReportTicketsResponse[]>([]);
   loading = signal<boolean>(false);
+  selectedTicket = signal<ReportTicketsResponse | null>(null);
 
   // Filters
   dateFrom = '';
@@ -123,7 +136,7 @@ export class ReportsComponent implements OnInit {
           );
         }
       },
-      error: (err) => {
+      error: () => {
         // Global interceptor handles the toast message
         this.loading.set(false);
       },
@@ -135,6 +148,44 @@ export class ReportsComponent implements OnInit {
     this.dateTo = '';
     this.filterSearchTerm = '';
     this.reports.set([]);
+    this.closeTicketDetails();
+  }
+
+  openTicketDetails(ticket: ReportTicketsResponse): void {
+    this.selectedTicket.set(ticket);
+  }
+
+  closeTicketDetails(): void {
+    this.selectedTicket.set(null);
+  }
+
+  onTicketRowKeydown(event: KeyboardEvent, ticket: ReportTicketsResponse): void {
+    if (event.key !== 'Enter' && event.key !== ' ') return;
+    event.preventDefault();
+    this.openTicketDetails(ticket);
+  }
+
+  attachmentUrl(path: string | null | undefined): string {
+    const value = String(path ?? '').trim();
+    if (!value) return '';
+    if (/^https?:\/\//i.test(value)) return value;
+
+    const origin = environment.baseUrl.replace(/\/api\/?$/i, '').replace(/\/$/, '');
+    return `${origin}/${value.replace(/^\/+/, '')}`;
+  }
+
+  attachmentSafeUrl(path: string | null | undefined): SafeResourceUrl {
+    const url = this.attachmentUrl(path);
+    const cached = this.attachmentSafeUrlCache.get(url);
+    if (cached) return cached;
+
+    const safeUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    this.attachmentSafeUrlCache.set(url, safeUrl);
+    return safeUrl;
+  }
+
+  isPdfAttachment(path: string | null | undefined): boolean {
+    return String(path ?? '').toLowerCase().split('?')[0].endsWith('.pdf');
   }
 
   exportExcel(): void {
@@ -213,7 +264,7 @@ export class ReportsComponent implements OnInit {
       const url = URL.createObjectURL(doc.output('blob'));
       viewer.location.href = url;
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
-    } catch (error) {
+    } catch {
       viewer.close();
       this.toastService.error(this.lang.isRTL() ? 'تعذر إنشاء ملف PDF.' : 'Failed to create the PDF.');
     } finally {

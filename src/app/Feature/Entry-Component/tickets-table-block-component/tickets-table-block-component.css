@@ -2,6 +2,7 @@
 :host {
   display: block;
   container-type: inline-size;
+  min-width: 0;
 }
 
 :host-context(.tickets-theme) .tickets-card {
@@ -10,6 +11,7 @@
   background: #ffffff;
   box-shadow: var(--ticket-shadow-soft);
   overflow: hidden;
+  min-width: 0;
 }
 
 /* الهيدر */
@@ -321,10 +323,14 @@
 
 :host .tickets-table-scroll-compact {
   flex: 1 1 auto;
-  min-height: 360px;
-  max-height: min(620px, 64vh);
+  min-height: 260px;
+  max-height: min(520px, 58vh);
   overflow: auto;
   padding: 0.45rem;
+}
+
+:host-context(.entry-tickets-panel) .tickets-card {
+  height: 100%;
 }
 
 :host-context(.supervisor-entry-workspace) .tickets-table-scroll-compact {
@@ -540,7 +546,7 @@
   }
 
   :host .tickets-table-scroll-compact {
-    min-height: 280px;
+    min-height: 220px;
     max-height: 58vh;
     padding: 0.35rem;
   }
