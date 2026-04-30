@@ -426,7 +426,7 @@ export class ConfigurationComponent implements OnInit {
       qrPrinterName: [{ value: '', disabled: true }, [Validators.maxLength(100)]],
       hasReceiptPrinterName: [false],
       receiptPrinterName: [{ value: '', disabled: true }, [Validators.maxLength(100)]],
-      hasScanner: [null],
+      hasScanner: [false],
     });
 
     group.get('isAssigned')?.valueChanges.subscribe((val) => {
@@ -527,7 +527,7 @@ export class ConfigurationComponent implements OnInit {
         qrPrinterName: src?.qrPrinterName ?? '',
         hasReceiptPrinterName: src?.hasReceiptPrinterName ?? !!src?.receiptPrinterName,
         receiptPrinterName: src?.receiptPrinterName ?? '',
-        hasScanner: src?.hasScanner ?? null,
+        hasScanner: src?.hasScanner ?? false,
       });
       this.applyPrinterNameToggle(fg, 'hasQrPrinterName', 'qrPrinterName', true);
       this.applyPrinterNameToggle(fg, 'hasReceiptPrinterName', 'receiptPrinterName', true);
@@ -601,7 +601,7 @@ export class ConfigurationComponent implements OnInit {
         receiptPrinterName: hasReceiptPrinterName
           ? this.toNullableTrimmedString(g['receiptPrinterName'])
           : null,
-        hasScanner: g['hasScanner'] ?? null,
+        hasScanner: g['hasScanner'] ?? false,
       };
     };
 

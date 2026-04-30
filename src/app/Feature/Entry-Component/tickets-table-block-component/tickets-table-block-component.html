@@ -45,7 +45,9 @@
         <div class="ticket-row-inline">
           <div class="ticket-code-line min-w-0">
             <i class="bi bi-ticket-perforated text-primary"></i>
-            <span class="ticket-code mono text-truncate">{{ ticket.ticketNumber || ticket.id }}</span>
+            <span class="ticket-code mono text-truncate">{{
+              ticket.ticketNumber || ticket.id
+            }}</span>
           </div>
 
           <span class="ticket-info-line text-truncate">
@@ -70,9 +72,7 @@
           >
             <i class="bi bi-check-circle-fill"></i>
             {{
-              ticket.isCollectedByCashier
-                ? t('cashier_collected_short')
-                : t('cashier_collected_no')
+              ticket.isCollectedByCashier ? t('cashier_collected_short') : t('cashier_collected_no')
             }}
           </span>
 
@@ -110,12 +110,7 @@
       </div>
 
       <div class="footer-pager" dir="ltr">
-        <button
-          class="footer-page-btn"
-          [disabled]="page <= 1"
-          (click)="prevPage()"
-          type="button"
-        >
+        <button class="footer-page-btn" [disabled]="page <= 1" (click)="prevPage()" type="button">
           <i class="bi bi-chevron-left"></i>
         </button>
         <span class="footer-page-count">{{ page }} / {{ pagesCount }}</span>

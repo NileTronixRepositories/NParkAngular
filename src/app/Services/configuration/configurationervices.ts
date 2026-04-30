@@ -47,7 +47,7 @@ export class Configurationervices {
       const onvif = gate?.onvifCameraSetting ?? gate?.ONVIFCameraSetting ?? null;
 
       return {
-        hasScanner: gate?.hasScanner ?? gate?.HasScanner ?? null,
+        hasScanner: gate?.hasScanner ?? gate?.HasScanner ?? false,
         gateId: gate?.gateId ?? gate?.GateId ?? null,
         gateNumber: gate?.gateNumber ?? gate?.GateNumber ?? 0,
         lprIp: gate?.lprIp ?? gate?.LprIp ?? null,

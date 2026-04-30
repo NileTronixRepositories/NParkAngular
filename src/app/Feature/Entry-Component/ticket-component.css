@@ -72,6 +72,11 @@
   min-height: 0;
 }
 
+.entry-tickets-panel,
+.supervisor-ticket-panel {
+  flex-direction: column;
+}
+
 .entry-devices-panel > *,
 .entry-issue-panel > *,
 .entry-tickets-panel > *,
