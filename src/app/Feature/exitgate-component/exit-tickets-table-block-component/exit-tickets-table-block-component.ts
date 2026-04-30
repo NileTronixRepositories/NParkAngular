@@ -24,6 +24,8 @@ export class ExitTicketsTableBlockComponent {
 
   @Input() collectSummary: CollectDailyTicketsResponse | null = null;
   @Input() exceedCollectSummary: CollectExceedTransactionsResponse | null = null;
+  @Input() gateNumber: string | number | null = null;
+  @Input() gateType: string | number | null = null;
   @Input() collectLoading = false;
   @Input() supervisorCollectLoading = false;
   @Input() supervisorCollectError: string | null = null;
@@ -68,6 +70,19 @@ export class ExitTicketsTableBlockComponent {
 
   get hasCollectSummary(): boolean {
     return !!this.collectSummary || !!this.exceedCollectSummary;
+  }
+
+  get showGateContext(): boolean {
+    return this.gateNumber !== null && this.gateNumber !== undefined && this.gateNumber !== '';
+  }
+
+  get gateTypeLabelKey(): string {
+    const numericGateType = Number(this.gateType);
+
+    if (numericGateType === 1) return 'gate_type_entry';
+    if (numericGateType === 2) return 'gate_type_exit';
+
+    return '';
   }
 
   get canGoPrev(): boolean {

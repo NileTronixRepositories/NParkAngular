@@ -387,6 +387,11 @@ export class TicketCoreService {
         vehicleNumber: ticket?.vehicleNumber ?? ticket?.VehicleNumber ?? null,
         cardNumber: ticket?.cardNumber ?? ticket?.CardNumber ?? null,
         isSubscriber: !!(ticket?.isSubscriber ?? ticket?.IsSubscriber),
+        gateNumber:
+          ticket?.gateNumber != null || ticket?.GateNumber != null
+            ? Number(ticket?.gateNumber ?? ticket?.GateNumber)
+            : null,
+        gateType: ticket?.gateType ?? ticket?.GateType ?? null,
         exitGateId: ticket?.exitGateId ?? ticket?.ExitGateId ?? null,
         extraFields: this.extractTicketExtraFields(ticket),
       })),
@@ -422,6 +427,11 @@ export class TicketCoreService {
         vehicleNumber: ticket?.vehicleNumber ?? ticket?.VehicleNumber ?? null,
         cardNumber: ticket?.cardNumber ?? ticket?.CardNumber ?? null,
         isSubscriber: !!(ticket?.isSubscriber ?? ticket?.IsSubscriber),
+        gateNumber:
+          ticket?.gateNumber != null || ticket?.GateNumber != null
+            ? Number(ticket?.gateNumber ?? ticket?.GateNumber)
+            : null,
+        gateType: ticket?.gateType ?? ticket?.GateType ?? null,
         exitGateId: ticket?.exitGateId ?? ticket?.ExitGateId ?? null,
         extraFields: this.extractTicketExtraFields(ticket),
       })),
@@ -443,6 +453,8 @@ export class TicketCoreService {
         'vehicleNumber',
         'cardNumber',
         'isSubscriber',
+        'gateNumber',
+        'gateType',
         'gateId',
         'exitGateId',
       ].flatMap((key) => [key, key.charAt(0).toUpperCase() + key.slice(1)]),

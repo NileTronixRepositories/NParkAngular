@@ -137,6 +137,7 @@ function completeOnvifValidator(control: AbstractControl): ValidationErrors | nu
           qrPrinterName: 'طابعة QR',
           hasReceiptPrinterName: 'طباعة الإيصال مفعلة',
           receiptPrinterName: 'طابعة الإيصال',
+          hasScanner: 'يوجد Scanner',
           onvifCameraSettings: 'بيانات كاميرا المراقبة (ONVIF)',
           onvifUrlRequest: 'رابط الكاميرا',
           onvifUsername: 'اسم المستخدم',
@@ -195,6 +196,7 @@ function completeOnvifValidator(control: AbstractControl): ValidationErrors | nu
           qrPrinterName: 'QR printer',
           hasReceiptPrinterName: 'Receipt printing enabled',
           receiptPrinterName: 'Receipt printer',
+          hasScanner: 'Scanner enabled',
           onvifCameraSettings: 'Surveillance camera details (ONVIF)',
           onvifUrlRequest: 'Camera URL',
           onvifUsername: 'Username',
@@ -424,6 +426,7 @@ export class ConfigurationComponent implements OnInit {
       qrPrinterName: [{ value: '', disabled: true }, [Validators.maxLength(100)]],
       hasReceiptPrinterName: [false],
       receiptPrinterName: [{ value: '', disabled: true }, [Validators.maxLength(100)]],
+      hasScanner: [null],
     });
 
     group.get('isAssigned')?.valueChanges.subscribe((val) => {
@@ -524,6 +527,7 @@ export class ConfigurationComponent implements OnInit {
         qrPrinterName: src?.qrPrinterName ?? '',
         hasReceiptPrinterName: src?.hasReceiptPrinterName ?? !!src?.receiptPrinterName,
         receiptPrinterName: src?.receiptPrinterName ?? '',
+        hasScanner: src?.hasScanner ?? null,
       });
       this.applyPrinterNameToggle(fg, 'hasQrPrinterName', 'qrPrinterName', true);
       this.applyPrinterNameToggle(fg, 'hasReceiptPrinterName', 'receiptPrinterName', true);
@@ -597,6 +601,7 @@ export class ConfigurationComponent implements OnInit {
         receiptPrinterName: hasReceiptPrinterName
           ? this.toNullableTrimmedString(g['receiptPrinterName'])
           : null,
+        hasScanner: g['hasScanner'] ?? null,
       };
     };
 

@@ -56,8 +56,7 @@
 }
 
 .camera-snapshot-indicator {
-  cursor: default;
-  pointer-events: none;
+  cursor: pointer;
 }
 
 .camera-snapshot-btn.capture-attention:not(:disabled) {

@@ -85,6 +85,20 @@ type ExitFeedbackTarget = 'validation' | 'openGate' | 'supervisor';
       provide: I18N_DICT,
       useValue: <I18nDict>{
         ar: {
+          helpTour: 'شرح الواجهة',
+          gate_info: 'بيانات اتصال البوابة',
+          print_qr: 'QR',
+          print_receipt: 'الإيصال',
+          take_snapshot: 'التقاط صورة',
+          snapshot_failed: 'تعذر تحميل لقطة الكاميرا.',
+          scanner_ready: 'كاميرا الرؤية الأمامية',
+          vehicle_images: 'صور المركبة',
+          vehicle_images_attached: 'تم إرفاق صور المركبة',
+          vehicle_images_optional: 'صور المركبة اختيارية.',
+          ready_to_scan: 'جاهز للمسح',
+          scan_instruction: 'امسح QR أو الكارت أو أدخل رقم السيارة للتحقق والخروج.',
+          ticketNumber: 'رقم التذكرة',
+          startDate: 'تاريخ البداية',
           exitTicket: 'بوابة الخروج',
           EXIT: 'خروج',
           readyToCollect: 'جاهز للتحصيل',
@@ -221,6 +235,10 @@ type ExitFeedbackTarget = 'validation' | 'openGate' | 'supervisor';
 
           // Collect summary (daily)
           collect_summary: 'ملخص تحصيل اليوم',
+          gate_number: 'رقم البوابة',
+          gate_type: 'نوع البوابة',
+          gate_type_entry: 'دخول',
+          gate_type_exit: 'خروج',
           total_collected_amount: 'إجمالي المبلغ المحصَّل',
           total_collected_tickets: 'عدد التذاكر المحصَّلة',
           exceed_collect_summary: 'ملخص تحصيل العقوبات',
@@ -297,6 +315,20 @@ type ExitFeedbackTarget = 'validation' | 'openGate' | 'supervisor';
           match_type: 'نوع التطابق',
         },
         en: {
+          helpTour: 'Help Tour',
+          gate_info: 'Gate connection info',
+          print_qr: 'QR',
+          print_receipt: 'Receipt',
+          take_snapshot: 'Take snapshot',
+          snapshot_failed: 'Failed to load camera snapshot.',
+          scanner_ready: 'Front View Cam',
+          vehicle_images: 'Vehicle images',
+          vehicle_images_attached: 'Vehicle images attached',
+          vehicle_images_optional: 'Vehicle images are optional.',
+          ready_to_scan: 'Ready to scan',
+          scan_instruction: 'Scan QR, card, or enter the vehicle number to validate exit.',
+          ticketNumber: 'Ticket Number',
+          startDate: 'Start Date',
           exitTicket: 'Exit Gate',
           EXIT: 'EXIT',
           readyToCollect: 'Ready to collect',
@@ -435,6 +467,10 @@ type ExitFeedbackTarget = 'validation' | 'openGate' | 'supervisor';
 
           // Collect summary (daily)
           collect_summary: 'Daily collection summary',
+          gate_number: 'Gate number',
+          gate_type: 'Gate type',
+          gate_type_entry: 'Entry',
+          gate_type_exit: 'Exit',
           total_collected_amount: 'Total collected amount',
           total_collected_tickets: 'Total collected tickets',
           exceed_collect_summary: 'Exceed collection summary',
@@ -547,21 +583,60 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   ) {}
 
   t(key: string, params?: any[]): string {
-    const fallback: Record<string, string> = {
-      gate_info: 'Gate connection info',
-      print_qr: 'QR',
-      print_receipt: 'Receipt',
-      take_snapshot: 'Take snapshot',
-      snapshot_failed: 'Failed to load camera snapshot.',
-      scan_render_failed: 'Error rendering scan.',
-      supervisor_credentials_required: 'Please enter supervisor username and password.',
-      no_ticket_for_exit: 'No ticket is linked to this code to complete exit.',
-      collect_ticket_missing: 'Cannot collect: no ticket number is available.',
-      nfc_read_failed:
-        'Could not read the card. Check that the NFC reader is connected and running.',
-      select_gate_first: 'Please select a gate first.',
+    const fallback: Record<'ar' | 'en', Record<string, string>> = {
+      ar: {
+        helpTour: 'شرح الواجهة',
+        gate_info: 'بيانات اتصال البوابة',
+        print_qr: 'QR',
+        print_receipt: 'الإيصال',
+        take_snapshot: 'التقاط صورة',
+        snapshot_failed: 'تعذر تحميل لقطة الكاميرا.',
+        scanner_ready: 'كاميرا الرؤية الأمامية',
+        vehicle_images: 'صور المركبة',
+        vehicle_images_attached: 'تم إرفاق صور المركبة',
+        vehicle_images_optional: 'صور المركبة اختيارية.',
+        ready_to_scan: 'جاهز للمسح',
+        scan_instruction: 'امسح QR أو الكارت أو أدخل رقم السيارة للتحقق والخروج.',
+        ticketNumber: 'رقم التذكرة',
+        startDate: 'تاريخ البداية',
+        scan_render_failed: 'تعذر عرض الملف الممسوح.',
+        supervisor_credentials_required:
+          'يرجى إدخال اسم المستخدم وكلمة المرور للسوبرفايزر',
+        no_ticket_for_exit: 'لا توجد تذكرة مرتبطة بهذا الكود لإتمام الخروج.',
+        collect_ticket_missing: 'لا يمكن تحصيل المبلغ: لا يوجد رقم تذكرة متاح.',
+        nfc_read_failed:
+          'تعذر قراءة الكارت. تأكد من توصيل وتشغيل قارئ الـ NFC.',
+        select_gate_first: 'يرجى اختيار بوابة أولاً',
+      },
+      en: {
+        helpTour: 'Help Tour',
+        gate_info: 'Gate connection info',
+        print_qr: 'QR',
+        print_receipt: 'Receipt',
+        take_snapshot: 'Take snapshot',
+        snapshot_failed: 'Failed to load camera snapshot.',
+        scanner_ready: 'Front View Cam',
+        vehicle_images: 'Vehicle images',
+        vehicle_images_attached: 'Vehicle images attached',
+        vehicle_images_optional: 'Vehicle images are optional.',
+        ready_to_scan: 'Ready to scan',
+        scan_instruction: 'Scan QR, card, or enter the vehicle number to validate exit.',
+        ticketNumber: 'Ticket Number',
+        startDate: 'Start Date',
+        scan_render_failed: 'Error rendering scan.',
+        supervisor_credentials_required: 'Please enter supervisor username and password.',
+        no_ticket_for_exit: 'No ticket is linked to this code to complete exit.',
+        collect_ticket_missing: 'Cannot collect: no ticket number is available.',
+        nfc_read_failed:
+          'Could not read the card. Check that the NFC reader is connected and running.',
+        select_gate_first: 'Please select a gate first.',
+      },
     };
-    let text = this.dict[this.lang.current]?.[key] ?? fallback[key] ?? key;
+    let text =
+      this.dict[this.lang.current]?.[key] ??
+      fallback[this.lang.current]?.[key] ??
+      fallback.en[key] ??
+      key;
     if (params && params.length > 0) {
       params.forEach((p, i) => {
         text = text.replace(`{${i}}`, p);
@@ -1043,6 +1118,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       ...current,
       pcIp: info.pcIp ?? current.pcIp,
       lprIp: info.lprIp ?? current.lprIp,
+      hasScanner: info.hasScanner ?? current.hasScanner ?? null,
       hasPc: !!info.pcIp || current.hasPc,
       hasLpr: !!info.lprIp || current.hasLpr,
     };
@@ -1351,6 +1427,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   private buildExceedReceiptHtml(response: CreateTicketExceedTransactionResponse): string {
     const ticket = this.selectedTicketForExceed;
     const gateNumber = this.gatePeripheral?.gateNumber ?? '---';
+    const gateTypeLabel = 'خروج';
     const createdAt = response.createdAt
       ? new Date(response.createdAt).toLocaleString('ar-EG', {
           year: 'numeric',
@@ -1387,12 +1464,23 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         <meta charset="utf-8" />
         <title>NPark Exceed Receipt</title>
         <style>
-          * { box-sizing: border-box; margin: 0; padding: 0; }
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            color: #000 !important;
+            font-family: Tahoma, Arial, sans-serif !important;
+            font-weight: 900 !important;
+            line-height: 1.3;
+            text-rendering: geometricPrecision;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
           @page { margin: 0; size: 80mm auto; }
           body {
             margin: 0;
             padding: 1mm;
-            font-family: Arial, sans-serif;
+            font-family: Tahoma, Arial, sans-serif;
             direction: rtl;
             width: 80mm;
             font-weight: 900;
@@ -1412,14 +1500,15 @@ export class ExitgateComponent implements OnInit, OnDestroy {
             border-bottom: 2px solid #000;
             padding-bottom: 1.5mm;
           }
-          .receipt-title { font-size: 19px; font-weight: 900; }
-          .receipt-subtitle { font-size: 12px; margin-top: 0.5mm; }
+          .receipt-title { font-size: 22px; font-weight: 900; }
+          .receipt-subtitle { font-size: 14px; margin-top: 0.5mm; }
           .receipt-row {
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 2mm;
-            font-size: 13px;
+            font-size: 16px;
+            font-weight: 900;
             padding: 1mm 0;
             border-bottom: 0.2mm solid #000;
           }
@@ -1434,12 +1523,12 @@ export class ExitgateComponent implements OnInit, OnDestroy {
             justify-content: space-between;
             align-items: center;
           }
-          .total-label { font-size: 15px; font-weight: 900; }
-          .total-value { font-size: 19px; font-weight: 900; direction: ltr; }
+          .total-label { font-size: 18px; font-weight: 900; }
+          .total-value { font-size: 22px; font-weight: 900; direction: ltr; }
           .receipt-footer {
             text-align: center;
-            font-size: 11px;
-            font-weight: bold;
+            font-size: 12px;
+            font-weight: 900;
             margin-top: 1mm;
           }
         </style>
@@ -1466,6 +1555,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           <div class="receipt-row">
             <span class="receipt-label">رقم البوابة:</span>
             <span class="receipt-value">${this.escapeHtml(String(gateNumber))}</span>
+          </div>
+          <div class="receipt-row">
+            <span class="receipt-label">نوع البوابة:</span>
+            <span class="receipt-value">${this.escapeHtml(gateTypeLabel)}</span>
           </div>
           <div class="receipt-row">
             <span class="receipt-label">وقت العملية:</span>
@@ -2637,11 +2730,12 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         <head>
           <title>Exit Ticket</title>
           <style>
-            body{margin:0;padding:16px;font-family:Arial, sans-serif;}
+            *{box-sizing:border-box;color:#000!important;font-family:Tahoma,Arial,sans-serif!important;font-weight:900!important;line-height:1.35;text-rendering:geometricPrecision;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
+            body{margin:0;padding:16px;font-family:Tahoma,Arial,sans-serif;color:#000;}
             .wrap{display:flex;flex-direction:column;gap:8px;}
-            .row{display:flex;justify-content:space-between;font-size:14px;}
-            .title{font-size:18px;font-weight:bold;margin-bottom:8px;}
-            .mono{font-family:monospace;}
+            .row{display:flex;justify-content:space-between;font-size:17px;}
+            .title{font-size:22px;font-weight:900;margin-bottom:8px;}
+            .mono{font-family:Consolas,'Courier New',monospace!important;font-weight:900;}
           </style>
         </head>
         <body onload="window.print(); window.close();">

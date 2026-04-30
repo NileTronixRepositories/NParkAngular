@@ -341,6 +341,27 @@
   border-radius: 8px;
 }
 
+:host .summary-gate-context-inline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  color: #475569;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+:host .summary-gate-context-inline span {
+  min-width: 0;
+}
+
+:host .summary-gate-context-inline strong {
+  color: #0f172a;
+}
+
 :host .collect-summary-table-inline {
   max-height: 150px;
   overflow-y: auto;

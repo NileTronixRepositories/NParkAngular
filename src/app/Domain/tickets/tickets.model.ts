@@ -143,6 +143,7 @@ export interface AddTicketRequest {
   vehicleNumber?: string;
   isSubscriber: boolean;
   cardNumber?: string;
+  scannerPhoto?: File | null;
   pricingSchemaId?: string;
   scannedFile?: File;
   vehicleImages?: File[];
@@ -168,6 +169,8 @@ export interface CollectDailyTicketsResponse {
     vehicleNumber?: string | null;
     cardNumber?: string | null;
     isSubscriber?: boolean;
+    gateNumber?: number | null;
+    gateType?: number | string | null;
     exitGateId?: string | null;
     extraFields?: Record<string, unknown>;
   }[];

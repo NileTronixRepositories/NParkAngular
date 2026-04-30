@@ -95,6 +95,10 @@ export class TicketsServices {
       formData.append('PricingSchemaId', req.pricingSchemaId.trim());
     }
 
+    if (req.scannerPhoto) {
+      formData.append('ScannerPhoto', req.scannerPhoto, req.scannerPhoto.name);
+    }
+
     imageFiles.forEach((file) => {
       formData.append('TicketsImages', file, file.name);
     });

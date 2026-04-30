@@ -71,6 +71,7 @@ interface EntryVehicleImage {
   safeUrl?: SafeResourceUrl;
   type: string;
   file: File;
+  source?: 'scanner' | 'snapshot' | 'upload';
 }
 
 @Component({
@@ -171,6 +172,7 @@ export class TicketComponent implements OnInit, OnDestroy {
   pricingSchemasLoading = false;
   selectedPricingSchemaId = '';
   showMissingLprVehicleHint = false;
+  lprFocusRequest = 0;
 
   // =======================
   // Card summary (subscriber)
@@ -429,6 +431,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       gate_connection_failed: 'تعذر تحميل بيانات اتصال البوابة.',
       gate_connection_loading: 'جاري تحميل بيانات اتصال البوابة.',
       snapshot_failed: 'تعذر تحميل لقطة الكاميرا.',
+      scanner_photo_required: 'صورة الـ Scanner مطلوبة لهذه البوابة.',
       card_not_member: 'هذا الكارت غير مسجل كعضوية.',
       card_membership_failed: 'تعذر التحقق من عضوية الكارت.',
       open_gate_success: 'تم فتح البوابة بنجاح.',
@@ -574,6 +577,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       gate_connection_failed: 'Cannot load gate connection information.',
       gate_connection_loading: 'Loading gate connection information.',
       snapshot_failed: 'Failed to load camera snapshot.',
+      scanner_photo_required: 'Scanner photo is required for this gate.',
       card_not_member: 'This card is not registered as a membership.',
       card_membership_failed: 'Failed to check card membership.',
       open_gate_success: 'Gate opened successfully.',
@@ -689,9 +693,10 @@ export class TicketComponent implements OnInit, OnDestroy {
         safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
         type: msg.contentType,
         file,
+        source: 'scanner',
       };
 
-      this.scannedFile = scannedAttachment;
+      this.scannedFile = this.resolveActivePreviewAfterAdd(scannedAttachment);
       this.uploadedVehicleImages = [...this.uploadedVehicleImages, scannedAttachment];
 
       console.log('TicketComponent: Successfully processed file', {
@@ -864,6 +869,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       ...current,
       pcIp: info.pcIp ?? current.pcIp,
       lprIp: info.lprIp ?? current.lprIp,
+      hasScanner: info.hasScanner ?? current.hasScanner ?? null,
       hasPc: !!info.pcIp || current.hasPc,
       hasLpr: !!info.lprIp || current.hasLpr,
     };
@@ -952,6 +958,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
       type: file.type || 'image/jpeg',
       file,
+      source: 'snapshot',
     };
 
     this.uploadedVehicleImages
@@ -1099,11 +1106,12 @@ export class TicketComponent implements OnInit, OnDestroy {
         safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
         type: file.type || 'application/octet-stream',
         file,
+        source: 'upload',
       });
     }
 
     this.uploadedVehicleImages = [...this.uploadedVehicleImages, ...uploaded];
-    this.scannedFile = uploaded[uploaded.length - 1] ?? this.scannedFile;
+    this.scannedFile = this.findPreferredPreviewAttachment(uploaded) ?? this.scannedFile;
   }
 
   removeVehicleImage(index: number): void {
@@ -1113,7 +1121,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.uploadedVehicleImages = this.uploadedVehicleImages.filter((_, i) => i !== index);
 
     if (this.scannedFile?.url === removed?.url) {
-      this.scannedFile = this.findLastScannedAttachment();
+      this.scannedFile = this.findPreferredPreviewAttachment();
     }
 
     this.revokeImageUrl(removed);
@@ -1121,7 +1129,10 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   selectVehicleImagePreview(index: number): void {
     if (index < 0 || index >= this.uploadedVehicleImages.length) return;
-    this.scannedFile = this.uploadedVehicleImages[index];
+    const selected = this.uploadedVehicleImages[index];
+    this.scannedFile = this.isImageAttachment(selected)
+      ? selected
+      : this.findPreferredPreviewAttachment() ?? selected;
   }
 
   async onPricingSchemaSelected(pricingSchemaId: string): Promise<void> {
@@ -1136,6 +1147,11 @@ export class TicketComponent implements OnInit, OnDestroy {
       this.manualLprPlate || this.currentLprVehicleNumber,
     );
     this.showMissingLprVehicleHint = !vehicleNumber;
+    if (!vehicleNumber) {
+      this.toast.warn(this.t('enter_plate_first'));
+      this.requestLprPlateFocus();
+      return;
+    }
 
     if (!this.ensureGateConnectionReady()) return;
 
@@ -1158,6 +1174,8 @@ export class TicketComponent implements OnInit, OnDestroy {
 
     if (vehicleNumber !== undefined && !normalizedVehicleNumber) {
       this.toast.warn(this.t('enter_plate_first'));
+      this.showMissingLprVehicleHint = true;
+      this.requestLprPlateFocus();
       return;
     }
 
@@ -1193,7 +1211,10 @@ export class TicketComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.createNormalTicket(undefined, false, pricingSchemaId);
+    this.showMissingLprVehicleHint = true;
+    this.toast.warn(this.t('enter_plate_first'));
+    this.requestLprPlateFocus();
+    return;
   }
 
   createSubscriberTicket(): void {
@@ -1512,6 +1533,8 @@ export class TicketComponent implements OnInit, OnDestroy {
 
     if (!normalizedVehicleNumber) {
       this.toast.warn(this.t('enter_plate_first'));
+      this.showMissingLprVehicleHint = true;
+      this.requestLprPlateFocus();
       return;
     }
 
@@ -1531,6 +1554,10 @@ export class TicketComponent implements OnInit, OnDestroy {
     statePrepared = false,
     pricingSchemaId?: string,
   ): void {
+    const scannerPhoto =
+      this.gateConnectionInfo?.hasScanner === true ? this.getScannerPhotoPayload() : null;
+    if (!this.ensureRequiredScannerPhoto(scannerPhoto)) return;
+
     if (!statePrepared) {
       if (this.adding) return;
       this.prepareNewTicketState();
@@ -1547,6 +1574,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       isSubscriber: false,
       vehicleNumber: normalizedVehicleNumber,
       pricingSchemaId,
+      scannerPhoto,
       vehicleImages,
     };
     console.log('CREATING TICKET PAYLOAD:', payload);
@@ -1634,6 +1662,10 @@ export class TicketComponent implements OnInit, OnDestroy {
     data: { cardNumber?: string; vehicleNumber?: string },
     statePrepared = false,
   ): void {
+    const scannerPhoto =
+      this.gateConnectionInfo?.hasScanner === true ? this.getScannerPhotoPayload() : null;
+    if (!this.ensureRequiredScannerPhoto(scannerPhoto)) return;
+
     if (!statePrepared) {
       if (this.adding) return;
       this.prepareNewTicketState();
@@ -1650,6 +1682,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       isSubscriber: true,
       vehicleNumber: normalizedVehicleNumber,
       cardNumber: data.cardNumber,
+      scannerPhoto,
       vehicleImages,
     };
     console.log('CREATING SUBSCRIBER TICKET PAYLOAD:', payload);
@@ -1733,11 +1766,37 @@ export class TicketComponent implements OnInit, OnDestroy {
   private getVehicleImagePayloads(): File[] {
     if (this.uploadedVehicleImages.length) {
       return this.uploadedVehicleImages
+        .filter((file) => !this.isScannerAttachment(file))
         .map((file) => file.file)
         .filter((file): file is File => !!file);
     }
 
-    return [this.scannedFile?.file ?? null].filter((file): file is File => !!file);
+    return [this.scannedFile && !this.isScannerAttachment(this.scannedFile) ? this.scannedFile.file : null].filter(
+      (file): file is File => !!file,
+    );
+  }
+
+  private getScannerPhotoPayload(): File | null {
+    for (let i = this.uploadedVehicleImages.length - 1; i >= 0; i--) {
+      const attachment = this.uploadedVehicleImages[i];
+      if (this.isScannerAttachment(attachment)) {
+        return attachment.file;
+      }
+    }
+
+    const currentPreview = this.scannedFile;
+    if (!currentPreview || !this.isScannerAttachment(currentPreview)) return null;
+    return currentPreview.file;
+  }
+
+  private ensureRequiredScannerPhoto(scannerPhoto: File | null): boolean {
+    if (this.gateConnectionInfo?.hasScanner !== true) return true;
+    if (scannerPhoto) return true;
+
+    this.toast.warn(this.t('scanner_photo_required'));
+    this.adding = false;
+    this.cdr.markForCheck();
+    return false;
   }
 
   private revokeImageUrl(file: EntryVehicleImage | null | undefined): void {
@@ -1746,15 +1805,55 @@ export class TicketComponent implements OnInit, OnDestroy {
     }
   }
 
-  private findLastScannedAttachment(): EntryVehicleImage | null {
-    for (let i = this.uploadedVehicleImages.length - 1; i >= 0; i--) {
-      const file = this.uploadedVehicleImages[i];
-      if (file?.url?.startsWith('blob:')) {
+  private requestLprPlateFocus(): void {
+    this.lprFocusRequest += 1;
+    this.cdr.markForCheck();
+  }
+
+  private resolveActivePreviewAfterAdd(attachment: EntryVehicleImage): EntryVehicleImage {
+    if (this.isImageAttachment(attachment)) {
+      return attachment;
+    }
+
+    if (this.isImageAttachment(this.scannedFile)) {
+      return this.scannedFile;
+    }
+
+    return this.findPreferredPreviewAttachment() ?? attachment;
+  }
+
+  private findPreferredPreviewAttachment(
+    candidates: EntryVehicleImage[] = this.uploadedVehicleImages,
+  ): EntryVehicleImage | null {
+    const pool = [...candidates, ...this.uploadedVehicleImages];
+
+    for (let i = pool.length - 1; i >= 0; i--) {
+      const file = pool[i];
+      if (this.isSnapshotAttachment(file) && this.isImageAttachment(file)) {
+        return file;
+      }
+    }
+
+    for (let i = pool.length - 1; i >= 0; i--) {
+      const file = pool[i];
+      if (this.isImageAttachment(file)) {
         return file;
       }
     }
 
     return null;
+  }
+
+  private isImageAttachment(file: EntryVehicleImage | null | undefined): file is EntryVehicleImage {
+    return !!file?.type?.startsWith('image/');
+  }
+
+  private isSnapshotAttachment(file: EntryVehicleImage | null | undefined): boolean {
+    return file?.source === 'snapshot' || !!file?.name?.startsWith('gate-snapshot-');
+  }
+
+  private isScannerAttachment(file: EntryVehicleImage | null | undefined): boolean {
+    return file?.source === 'scanner';
   }
 
   private prepareNewTicketState(): void {
@@ -1901,7 +2000,23 @@ export class TicketComponent implements OnInit, OnDestroy {
       this.cardMembershipStatus = 'error';
     }
 
+    if (this.isMissingVehicleNumberError(message)) {
+      this.showMissingLprVehicleHint = true;
+      this.requestLprPlateFocus();
+    }
+
     this.toast.error(message);
+  }
+
+  private isMissingVehicleNumberError(message: string): boolean {
+    const normalized = String(message ?? '').toLowerCase();
+    return (
+      normalized.includes('vehicle number') ||
+      normalized.includes('vehicle is required') ||
+      normalized.includes('plate') ||
+      normalized.includes('رقم المركبة') ||
+      normalized.includes('رقم السيارة')
+    );
   }
 
   retryOpenGate(): void {
@@ -1948,6 +2063,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     const createdAtText = this.buildCreatedAtText();
     const gateNumber = this.gatePeripheral?.gateNumber ?? '—';
     const isExit = this.gatePeripheral?.gateType === GateType.Exit;
+    const gateTypeLabel = isExit ? 'خروج' : 'دخول';
     const dateTimeLabel = isExit ? 'تاريخ الخروج:' : 'تاريخ الدخول:';
 
     const qrTicketHtml =
@@ -1956,7 +2072,9 @@ export class TicketComponent implements OnInit, OnDestroy {
             imgSrc: this.currentIssuedQr,
             createdAt: createdAtText,
             gateNumber,
+            gateTypeLabel,
             ticketInfo: this.lastIssuedTicketInfo,
+            vehicleNumber: this.lastIssuedVehicleNumber,
             dateTimeLabel: dateTimeLabel,
           })
         : null;
@@ -1965,6 +2083,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       ? this.buildFeesTicketPrintHtml({
           createdAt: createdAtText,
           gateNumber,
+          gateTypeLabel,
           ticketInfo: this.lastIssuedTicketInfo,
           vehicleNumber: this.lastIssuedVehicleNumber,
           price: this.lastIssuedPrice,
@@ -2032,9 +2151,20 @@ export class TicketComponent implements OnInit, OnDestroy {
     imgSrc: string;
     createdAt: string;
     gateNumber: string | number;
+    gateTypeLabel: string;
     ticketInfo: string | null;
+    vehicleNumber: string | null;
     dateTimeLabel: string;
   }): string {
+    const vehicleRow = opts.vehicleNumber
+      ? `
+                <div class="info-item">
+                  <span class="label">رقم العربية:</span>
+                  <span class="value">${this.escapePrintHtml(opts.vehicleNumber)}</span>
+                </div>
+      `
+      : '';
+
     return `
     <html dir="rtl" lang="ar">
       <head>
@@ -2045,6 +2175,13 @@ export class TicketComponent implements OnInit, OnDestroy {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            color: #000 !important;
+            font-family: Tahoma, Arial, sans-serif !important;
+            font-weight: 900 !important;
+            line-height: 1.25;
+            text-rendering: geometricPrecision;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
 
           @page {
@@ -2055,7 +2192,7 @@ export class TicketComponent implements OnInit, OnDestroy {
           body {
             margin: 0;
             padding: 0;
-            font-family: 'Arial', sans-serif;
+            font-family: Tahoma, Arial, sans-serif;
             direction: rtl;
             width: 80mm;
             color: #000;
@@ -2080,7 +2217,7 @@ export class TicketComponent implements OnInit, OnDestroy {
 
           .ticket-wrapper {
             width: 76mm; 
-            border: 0.6mm solid #000;
+            border: 0.8mm solid #000;
             padding: 2mm;
             display: flex;
             flex-direction: column;
@@ -2091,7 +2228,8 @@ export class TicketComponent implements OnInit, OnDestroy {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 14px;
+            font-size: 16px;
+            font-weight: 900;
             border-bottom: 0.3mm dashed #000;
             padding-bottom: 1.5mm;
             margin-bottom: 1mm;
@@ -2116,7 +2254,9 @@ export class TicketComponent implements OnInit, OnDestroy {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 13px;
+            font-size: 15px;
+            font-weight: 900;
+            line-height: 1.3;
           }
 
           .label {
@@ -2126,7 +2266,8 @@ export class TicketComponent implements OnInit, OnDestroy {
           .value {
             text-align: left;
             direction: ltr;
-            font-size: 13px;
+            font-size: 15px;
+            font-weight: 900;
           }
 
           .qr-side {
@@ -2145,7 +2286,8 @@ export class TicketComponent implements OnInit, OnDestroy {
 
           .footer-line {
             text-align: center;
-            font-size: 10px;
+            font-size: 12px;
+            font-weight: 900;
             border-top: 0.3mm dashed #000;
             padding-top: 1mm;
             margin-top: 1mm;
@@ -2170,6 +2312,11 @@ export class TicketComponent implements OnInit, OnDestroy {
                   <span class="label">رقم البوابة:</span>
                   <span class="value">${opts.gateNumber}</span>
                 </div>
+                <div class="info-item">
+                  <span class="label">نوع البوابة:</span>
+                  <span class="value">${opts.gateTypeLabel}</span>
+                </div>
+                ${vehicleRow}
               </div>
 
               <div class="qr-side">
@@ -2189,6 +2336,7 @@ export class TicketComponent implements OnInit, OnDestroy {
   private buildFeesTicketPrintHtml(opts: {
     createdAt: string;
     gateNumber: string | number;
+    gateTypeLabel: string;
     ticketInfo: string | null;
     vehicleNumber: string | null;
     price: number | null;
@@ -2206,6 +2354,13 @@ export class TicketComponent implements OnInit, OnDestroy {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            color: #000 !important;
+            font-family: Tahoma, Arial, sans-serif !important;
+            font-weight: 900 !important;
+            line-height: 1.28;
+            text-rendering: geometricPrecision;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
 
           @page {
@@ -2216,10 +2371,11 @@ export class TicketComponent implements OnInit, OnDestroy {
           body {
             margin: 0;
             padding: 1mm;
-            font-family: 'Arial', sans-serif;
+            font-family: Tahoma, Arial, sans-serif;
             direction: rtl;
             width: 80mm;
             font-weight: 900;
+            color: #000;
           }
 
           .receipt-wrap {
@@ -2239,13 +2395,13 @@ export class TicketComponent implements OnInit, OnDestroy {
           }
 
           .receipt-title {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 900;
             color: #000;
           }
 
           .receipt-subtitle {
-            font-size: 13px;
+            font-size: 14px;
             font-weight: 900;
             margin-top: 0.5mm;
           }
@@ -2260,7 +2416,8 @@ export class TicketComponent implements OnInit, OnDestroy {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 14px;
+            font-size: 16px;
+            font-weight: 900;
             padding: 1mm 0;
             border-bottom: 0.2mm solid #000;
           }
@@ -2270,7 +2427,7 @@ export class TicketComponent implements OnInit, OnDestroy {
           }
 
           .receipt-label {
-            font-weight: bold;
+            font-weight: 900;
           }
 
           .receipt-value {
@@ -2289,19 +2446,19 @@ export class TicketComponent implements OnInit, OnDestroy {
           }
 
           .total-label {
-            font-size: 16px;
+            font-size: 18px;
             font-weight: 900;
           }
 
           .total-value {
-            font-size: 20px;
+            font-size: 22px;
             font-weight: 900;
           }
 
           .receipt-footer {
             text-align: center;
-            font-size: 11px;
-            font-weight: bold;
+            font-size: 12px;
+            font-weight: 900;
             margin-top: 1mm;
           }
         </style>
@@ -2325,6 +2482,10 @@ export class TicketComponent implements OnInit, OnDestroy {
             <div class="receipt-row">
               <span class="receipt-label">رقم البوابة:</span>
               <span class="receipt-value">${opts.gateNumber}</span>
+            </div>
+            <div class="receipt-row">
+              <span class="receipt-label">نوع البوابة:</span>
+              <span class="receipt-value">${opts.gateTypeLabel}</span>
             </div>
             <div class="receipt-row">
               <span class="receipt-label">${opts.dateTimeLabel}</span>
@@ -2371,6 +2532,8 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   private buildCompactCollectSummaryReceiptHtml(summary: CollectDailyTicketsResponse): string {
     const details = summary.ticketCollectDetails || [];
+    const gateNumber = this.escapePrintHtml(String(this.getCollectionGateNumber()));
+    const gateTypeLabel = this.escapePrintHtml(this.getCollectionGateTypeLabel());
     const ticketLines = details.length
       ? `<div class="ticket-lines">
           ${details
@@ -2408,7 +2571,13 @@ export class TicketComponent implements OnInit, OnDestroy {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            color: #000 !important;
+            font-family: Tahoma, Arial, sans-serif !important;
             font-weight: 900 !important;
+            line-height: 1.25;
+            text-rendering: geometricPrecision;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
 
           @page {
@@ -2423,7 +2592,7 @@ export class TicketComponent implements OnInit, OnDestroy {
             color: #000;
             background: #fff;
             direction: rtl;
-            font-family: Arial, sans-serif;
+            font-family: Tahoma, Arial, sans-serif;
             font-weight: 900;
           }
 
@@ -2442,13 +2611,13 @@ export class TicketComponent implements OnInit, OnDestroy {
           }
 
           .title {
-            font-size: 15px;
-            line-height: 1.15;
+            font-size: 17px;
+            line-height: 1.25;
           }
 
           .subtitle {
             margin-top: 0.5mm;
-            font-size: 9px;
+            font-size: 11px;
           }
 
           .summary-row {
@@ -2458,7 +2627,8 @@ export class TicketComponent implements OnInit, OnDestroy {
             border-bottom: 0.25mm dashed #000;
             padding-bottom: 1mm;
             margin-bottom: 1mm;
-            font-size: 10px;
+            font-size: 12px;
+            line-height: 1.25;
           }
 
           .summary-row strong {
@@ -2473,14 +2643,14 @@ export class TicketComponent implements OnInit, OnDestroy {
 
           .ticket-line {
             display: grid;
-            grid-template-columns: 4mm minmax(13mm, 1.1fr) minmax(10mm, 0.85fr) minmax(16mm, 1fr) minmax(13mm, 0.8fr);
+            grid-template-columns: 4.5mm minmax(14mm, 1.1fr) minmax(11mm, 0.85fr) minmax(16mm, 1fr) minmax(13mm, 0.8fr);
             align-items: center;
             gap: 0.7mm;
-            min-height: 5mm;
+            min-height: 6.2mm;
             border-bottom: 0.2mm solid #000;
             padding: 0.7mm 0.6mm;
-            font-size: 8px;
-            line-height: 1.05;
+            font-size: 10px;
+            line-height: 1.22;
             white-space: nowrap;
           }
 
@@ -2512,19 +2682,19 @@ export class TicketComponent implements OnInit, OnDestroy {
 
           .ticket-code,
           .ticket-amount {
-            font-size: 7.5px;
+            font-size: 9.5px;
           }
 
           .empty-line {
             text-align: center;
             padding: 2mm 1mm;
             border: 0.4mm dashed #000;
-            font-size: 12px;
+            font-size: 13px;
           }
 
           .footer {
             text-align: center;
-            font-size: 9px;
+            font-size: 11px;
             margin-top: 1mm;
             padding-top: 0.8mm;
             border-top: 0.25mm dashed #000;
@@ -2536,6 +2706,11 @@ export class TicketComponent implements OnInit, OnDestroy {
           <div class="header">
             <div class="title">&#1573;&#1610;&#1589;&#1575;&#1604; &#1578;&#1581;&#1589;&#1610;&#1604;</div>
             <div class="subtitle">NPark Management System</div>
+          </div>
+
+          <div class="summary-row">
+            <span>&#1585;&#1602;&#1605; &#1575;&#1604;&#1576;&#1608;&#1575;&#1576;&#1577;: <strong>${gateNumber}</strong></span>
+            <span>&#1606;&#1608;&#1593; &#1575;&#1604;&#1576;&#1608;&#1575;&#1576;&#1577;: <strong>${gateTypeLabel}</strong></span>
           </div>
 
           <div class="summary-row">
@@ -2555,6 +2730,8 @@ export class TicketComponent implements OnInit, OnDestroy {
 
   private buildCollectSummaryReceiptHtml(summary: CollectDailyTicketsResponse): string {
     const details = summary.ticketCollectDetails || [];
+    const gateNumber = this.escapePrintHtml(String(this.getCollectionGateNumber()));
+    const gateTypeLabel = this.escapePrintHtml(this.getCollectionGateTypeLabel());
     const ticketBlocks = details.length
       ? details
           .map(
@@ -2614,7 +2791,13 @@ export class TicketComponent implements OnInit, OnDestroy {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
+            color: #000 !important;
+            font-family: Tahoma, Arial, sans-serif !important;
             font-weight: 900 !important;
+            line-height: 1.28;
+            text-rendering: geometricPrecision;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
           }
 
           @page {
@@ -2629,7 +2812,7 @@ export class TicketComponent implements OnInit, OnDestroy {
             color: #000;
             background: #fff;
             direction: rtl;
-            font-family: Arial, sans-serif;
+            font-family: Tahoma, Arial, sans-serif;
             font-weight: 900;
           }
 
@@ -2648,13 +2831,13 @@ export class TicketComponent implements OnInit, OnDestroy {
           }
 
           .title {
-            font-size: 18px;
-            line-height: 1.25;
+            font-size: 20px;
+            line-height: 1.3;
           }
 
           .subtitle {
             margin-top: 0.5mm;
-            font-size: 11px;
+            font-size: 12px;
           }
 
           .ticket-block {
@@ -2670,7 +2853,7 @@ export class TicketComponent implements OnInit, OnDestroy {
             padding: 1.2mm;
             border-bottom: 0.4mm solid #000;
             background: #f0f0f0;
-            font-size: 13px;
+            font-size: 15px;
           }
 
           .ticket-row {
@@ -2680,7 +2863,8 @@ export class TicketComponent implements OnInit, OnDestroy {
             gap: 1.5mm;
             border-bottom: 0.2mm solid #000;
             padding: 1mm;
-            font-size: 11px;
+            font-size: 13px;
+            line-height: 1.3;
           }
 
           .ticket-row:last-child {
@@ -2703,12 +2887,12 @@ export class TicketComponent implements OnInit, OnDestroy {
             text-align: center;
             padding: 2mm 1mm;
             border: 0.4mm dashed #000;
-            font-size: 12px;
+            font-size: 14px;
           }
 
           .footer {
             text-align: center;
-            font-size: 10px;
+            font-size: 12px;
             margin-top: 1.5mm;
             padding-top: 1mm;
             border-top: 0.3mm dashed #000;
@@ -2720,6 +2904,17 @@ export class TicketComponent implements OnInit, OnDestroy {
           <div class="header">
             <div class="title">إيصال تحصيل</div>
             <div class="subtitle">NPark Management System</div>
+          </div>
+
+          <div class="ticket-block">
+            <div class="ticket-row">
+              <span>رقم البوابة</span>
+              <strong>${gateNumber}</strong>
+            </div>
+            <div class="ticket-row">
+              <span>نوع البوابة</span>
+              <strong>${gateTypeLabel}</strong>
+            </div>
           </div>
 
           ${ticketBlocks}
@@ -2885,7 +3080,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     const pwd = this.supervisorPassword;
     const gateId = this.auth.getGateId();
     const gateData = this.auth.getGateData();
-    const gateType = gateData?.gateType ?? GateType.Entrance;
+    const gateType = GateType.Entrance;
     const gateNumber = gateData?.gateNumber ?? null;
 
     if (!user || !pwd) {

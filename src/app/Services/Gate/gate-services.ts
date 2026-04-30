@@ -9,6 +9,7 @@ export interface GateConnectionInfo {
   pcIp?: string;
   lprIp?: string;
   controlIp?: string;
+  hasScanner?: boolean | null;
   hasQrPrinterName: boolean;
   qrPrinterName?: string | null;
   hasReceiptPrinterName: boolean;
@@ -56,6 +57,7 @@ export class GateServices {
               res?.ControlId ??
               res?.controllerId ??
               res?.ControllerId,
+            hasScanner: res?.hasScanner ?? res?.HasScanner ?? null,
             hasQrPrinterName: !!(
               res?.hasQrPrinterName ??
               res?.HasQrPrinterName ??

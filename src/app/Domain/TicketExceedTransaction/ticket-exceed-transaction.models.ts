@@ -29,6 +29,8 @@ export interface CollectExceedTransactionDetail {
   vehicleNumber: string | null;
   cardNumber: string | null;
   isSubscriber: boolean;
+  gateNumber?: number | null;
+  gateType?: number | string | null;
 }
 
 export interface CollectExceedTransactionsResponse {

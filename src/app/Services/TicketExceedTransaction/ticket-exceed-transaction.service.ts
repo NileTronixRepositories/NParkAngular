@@ -152,6 +152,11 @@ export class TicketExceedTransactionService {
       vehicleNumber: item?.vehicleNumber ?? item?.VehicleNumber ?? null,
       cardNumber: item?.cardNumber ?? item?.CardNumber ?? null,
       isSubscriber: !!(item?.isSubscriber ?? item?.IsSubscriber),
+      gateNumber:
+        item?.gateNumber != null || item?.GateNumber != null
+          ? Number(item?.gateNumber ?? item?.GateNumber)
+          : null,
+      gateType: item?.gateType ?? item?.GateType ?? null,
     };
   }
 }

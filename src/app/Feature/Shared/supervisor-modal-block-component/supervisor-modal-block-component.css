@@ -82,6 +82,37 @@
   min-height: 0;
 }
 
+.gate-context-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.gate-context-item {
+  min-width: 0;
+  padding: 0.55rem 0.6rem;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #f8fafc;
+  text-align: start;
+}
+
+.gate-context-item span {
+  display: block;
+  margin-bottom: 0.15rem;
+  color: #64748b;
+  font-size: 0.66rem;
+  font-weight: 800;
+}
+
+.gate-context-item strong {
+  display: block;
+  color: #0f172a;
+  font-size: 0.82rem;
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
 .modal-body-summary {
   overflow: hidden;
   display: flex;
@@ -301,6 +332,7 @@
   }
 
   .summary-stats-grid,
+  .gate-context-grid,
   .ticket-detail-grid {
     grid-template-columns: 1fr;
   }

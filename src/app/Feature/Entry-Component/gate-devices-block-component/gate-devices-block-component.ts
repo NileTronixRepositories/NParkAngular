@@ -23,6 +23,7 @@ type EntryPreviewFile = {
   safeUrl?: any;
   type: string;
   file: File;
+  source?: 'scanner' | 'snapshot' | 'upload';
 };
 
 @Component({
@@ -45,6 +46,7 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
   @Input() cameraSnapshotLoading = false;
   @Input() cameraSnapshotDisabled = false;
   @Input() cameraSnapshotTitle = '';
+  @Input() focusRequest = 0;
 
   @Output() manualLprPlateChange = new EventEmitter<string>();
   @Output() manualLprPlateBlur = new EventEmitter<void>();
@@ -194,6 +196,11 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['focusRequest'] && !changes['focusRequest'].firstChange) {
+      this.focusPlateArea(true, true);
+      return;
+    }
+
     if (changes['manualLprPlate'] || changes['adding']) {
       this.focusPlateArea(!this.manualLprPlate?.trim());
     }
@@ -313,11 +320,13 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
     return !allSelected && Date.now() - this.lastPlateKeyAt > 700;
   }
 
-  private focusPlateArea(selectAll = false): void {
+  private focusPlateArea(selectAll = false, force = false): void {
     setTimeout(() => {
       const el = this.manualLprPlateArea?.nativeElement;
       if (!el) return;
-      if (document.activeElement && this.isInteractiveElement(document.activeElement)) return;
+      if (!force && document.activeElement && this.isInteractiveElement(document.activeElement)) {
+        return;
+      }
       el.focus();
       if (selectAll) {
         el.select();

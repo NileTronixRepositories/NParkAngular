@@ -21,6 +21,7 @@ export interface OnvifCameraSettingDto {
 }
 
 export interface GateConfigDto {
+  hasScanner?: boolean | null;
   gateNumber: number;
   lprIp?: string | null;
   pcIp?: string | null;

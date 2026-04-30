@@ -23,6 +23,8 @@ export class SupervisorModalBlockComponent {
   @Input() summary: CollectDailyTicketsResponse | null = null;
   @Input() exceedSummary: CollectExceedTransactionsResponse | null = null;
   @Input() readyToCollect = false;
+  @Input() gateNumber: string | number | null = null;
+  @Input() gateType: string | number | null = null;
 
   @Output() usernameChange = new EventEmitter<string>();
   @Output() passwordChange = new EventEmitter<string>();
@@ -40,6 +42,10 @@ export class SupervisorModalBlockComponent {
       cancel: 'إلغاء',
       logout: 'تسجيل خروج',
       collection_summary: 'ملخص التحصيل',
+      gate_number: 'رقم البوابة',
+      gate_type: 'نوع البوابة',
+      gate_type_entry: 'دخول',
+      gate_type_exit: 'خروج',
       total_amount: 'إجمالي المبلغ',
       total_tickets: 'عدد التذاكر',
       ticket: 'التذكرة',
@@ -76,6 +82,10 @@ export class SupervisorModalBlockComponent {
       cancel: 'Cancel',
       logout: 'Logout',
       collection_summary: 'Collection summary',
+      gate_number: 'Gate number',
+      gate_type: 'Gate type',
+      gate_type_entry: 'Entry',
+      gate_type_exit: 'Exit',
       total_amount: 'Total amount',
       total_tickets: 'Total tickets',
       ticket: 'Ticket',
@@ -107,6 +117,27 @@ export class SupervisorModalBlockComponent {
 
   t(key: string): string {
     return this.dict[this.i18n.current]?.[key] ?? this.dict['en']?.[key] ?? key;
+  }
+
+  get showGateContext(): boolean {
+    return this.hasGateNumber || this.gateType !== null;
+  }
+
+  get hasGateNumber(): boolean {
+    return this.gateNumber !== null && this.gateNumber !== undefined && this.gateNumber !== '';
+  }
+
+  get gateNumberLabel(): string {
+    return this.hasGateNumber ? String(this.gateNumber) : '--';
+  }
+
+  get gateTypeLabel(): string {
+    const numericGateType = Number(this.gateType);
+
+    if (numericGateType === 1) return this.t('gate_type_entry');
+    if (numericGateType === 2) return this.t('gate_type_exit');
+
+    return '--';
   }
 
   onSubmit(): void {

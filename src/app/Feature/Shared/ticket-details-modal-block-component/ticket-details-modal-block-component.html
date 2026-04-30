@@ -9,87 +9,123 @@
   (click)="onClose()"
 >
   <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
-    <div class="modal-content border-0 shadow-lg rounded-4 overflow-hidden">
+    <div
+      class="modal-content ticket-summary-modal border-0 shadow-lg overflow-hidden"
+      [attr.dir]="isRTL ? 'rtl' : 'ltr'"
+    >
       <!-- Header -->
-      <div class="modal-header border-bottom-0 bg-primary text-white p-3">
-        <h5 class="modal-title fw-bold m-0">
-          <i class="bi bi-ticket-detailed me-2"></i>{{ t('ticket_details') }}
+      <div class="modal-header details-header border-bottom-0 bg-primary text-white">
+        <h5 class="modal-title fw-bold m-0 d-flex align-items-center gap-2 min-w-0">
+          <i class="bi bi-ticket-detailed"></i>
+          <span class="text-truncate">{{ t('ticket_details') }}</span>
         </h5>
-        <button type="button" class="btn-close btn-close-white" (click)="onClose()" aria-label="Close"></button>
+        <button
+          type="button"
+          class="btn-close btn-close-white details-close"
+          (click)="onClose()"
+          aria-label="Close"
+        ></button>
       </div>
 
       <!-- Body -->
-      <div class="modal-body p-4" *ngIf="ticket">
-        <div class="d-flex flex-column gap-3">
-          
-          <!-- Highlights Card -->
-          <div class="d-flex justify-content-between align-items-center bg-light p-3 rounded-3 border">
-            <div>
-              <span class="text-muted x-small d-block text-uppercase fw-bold">{{ t('ticket_number') }}</span>
-              <span class="fs-4 fw-bold mono text-dark">{{ ticket.ticketNumber || ticket.id }}</span>
-            </div>
-            <div class="text-end">
-              <span class="badge rounded-pill px-3 py-2" 
-                    [class.bg-success]="ticket.isCollectedByCashier"
-                    [class.bg-warning]="!ticket.isCollectedByCashier">
-                <i class="bi me-1" [class.bi-check-circle]="ticket.isCollectedByCashier" [class.bi-clock-history]="!ticket.isCollectedByCashier"></i>
-                {{ ticket.isCollectedByCashier ? t('collected') : t('not_collected') }}
-              </span>
-            </div>
+      <div class="modal-body" *ngIf="ticket">
+        <div class="summary-shell">
+          <div class="summary-main">
+            <div class="summary-label">{{ t('ticket_number') }}</div>
+            <div class="summary-ticket mono" dir="ltr">{{ ticket.ticketNumber || ticket.id }}</div>
           </div>
 
-          <!-- Main Info Grid -->
-          <div class="row g-4 mt-1">
-            <div class="col-6">
-              <div class="text-muted x-small text-uppercase fw-bold mb-1"><i class="bi bi-calendar3 me-1 text-primary"></i>{{ t('time') }}</div>
-              <div class="fw-semibold text-dark">{{ ticket.time | date: 'dd/MM/yyyy, h:mm a' }}</div>
-            </div>
-            
-            <div class="col-6" *ngIf="ticket.price !== undefined">
-              <div class="text-muted x-small text-uppercase fw-bold mb-1"><i class="bi bi-currency-exchange me-1 text-success"></i>{{ t('price') }}</div>
-              <div class="fw-bold text-success fs-5">{{ ticket.price | number: '1.0-2' }} {{ t('currency') }}</div>
+          <div class="summary-status">
+            <span
+              class="status-pill"
+              [class.status-pill--success]="ticket.isCollectedByCashier"
+              [class.status-pill--warning]="!ticket.isCollectedByCashier"
+            >
+              <i
+                class="bi"
+                [class.bi-check-circle]="ticket.isCollectedByCashier"
+                [class.bi-clock-history]="!ticket.isCollectedByCashier"
+              ></i>
+              {{ ticket.isCollectedByCashier ? t('collected') : t('not_collected') }}
+            </span>
+          </div>
+
+          <div class="summary-grid">
+            <div class="summary-item">
+              <div class="summary-item-label">
+                <i class="bi bi-calendar3 text-primary"></i>
+                <span>{{ t('time') }}</span>
+              </div>
+              <div class="summary-item-value mono" dir="ltr">
+                {{ ticket.time | date: 'dd/MM/yyyy - h:mm a' }}
+              </div>
             </div>
 
-            <div class="col-6" *ngIf="ticket.plate || ticket.plateNumber">
-              <div class="text-muted x-small text-uppercase fw-bold mb-1"><i class="bi bi-car-front-fill me-1 text-info"></i>{{ t('plate') }}</div>
-              <div class="fw-bold mono border-bottom border-2 border-info d-inline-block text-dark" dir="ltr">
+            <div class="summary-item" *ngIf="ticket.price !== undefined">
+              <div class="summary-item-label">
+                <i class="bi bi-currency-exchange text-success"></i>
+                <span>{{ t('price') }}</span>
+              </div>
+              <div class="summary-item-value summary-price">
+                {{ ticket.price | number: '1.0-2' }} {{ t('currency') }}
+              </div>
+            </div>
+
+            <div class="summary-item" *ngIf="ticket.plate || ticket.plateNumber">
+              <div class="summary-item-label">
+                <i class="bi bi-car-front-fill text-info"></i>
+                <span>{{ t('plate') }}</span>
+              </div>
+              <div class="summary-item-value mono" dir="ltr">
                 {{ ticket.plate || ticket.plateNumber }}
               </div>
             </div>
 
-            <div class="col-6" *ngIf="ticket.gate">
-              <div class="text-muted x-small text-uppercase fw-bold mb-1"><i class="bi bi-door-open-fill me-1 text-secondary"></i>{{ t('gate') }}</div>
-              <div class="fw-semibold text-dark">{{ ticket.gate }}</div>
-            </div>
-
-            <!-- Full width items -->
-            <div class="col-12 border-top pt-3" *ngIf="ticket.customerName">
-              <div class="text-muted x-small text-uppercase fw-bold mb-1"><i class="bi bi-person-fill me-1 text-primary"></i>{{ t('customerName') }}</div>
-              <div class="fw-medium text-dark">{{ ticket.customerName }}</div>
-            </div>
-
-            <div class="col-6" *ngIf="ticket.cardNumber">
-              <div class="text-muted x-small text-uppercase fw-bold mb-1"><i class="bi bi-credit-card-2-front-fill me-1 text-primary"></i>{{ t('cardNumber') }}</div>
-              <div class="fw-bold mono text-dark" dir="ltr">{{ ticket.cardNumber }}</div>
-            </div>
-
-            <div class="col-6" *ngIf="ticket.phone">
-              <div class="text-muted x-small text-uppercase fw-bold mb-1"><i class="bi bi-telephone-fill me-1 text-success"></i>{{ t('phone') }}</div>
-              <div class="fw-bold mono text-dark" dir="ltr">{{ ticket.phone }}</div>
-            </div>
-
-            <div class="col-12" *ngIf="ticket.info">
-              <div class="text-muted x-small text-uppercase fw-bold mb-1"><i class="bi bi-info-circle-fill me-1 text-warning"></i>{{ t('additional_info') }}</div>
-              <div class="bg-warning bg-opacity-10 p-2 rounded small text-dark border border-warning border-opacity-25">
-                {{ ticket.info }}
+            <div class="summary-item" *ngIf="ticket.gate">
+              <div class="summary-item-label">
+                <i class="bi bi-door-open-fill text-secondary"></i>
+                <span>{{ t('gate') }}</span>
               </div>
+              <div class="summary-item-value">{{ ticket.gate }}</div>
+            </div>
+
+            <div class="summary-item summary-item--wide" *ngIf="ticket.customerName">
+              <div class="summary-item-label">
+                <i class="bi bi-person-fill text-primary"></i>
+                <span>{{ t('customerName') }}</span>
+              </div>
+              <div class="summary-item-value">{{ ticket.customerName }}</div>
+            </div>
+
+            <div class="summary-item" *ngIf="ticket.cardNumber">
+              <div class="summary-item-label">
+                <i class="bi bi-credit-card-2-front-fill text-primary"></i>
+                <span>{{ t('cardNumber') }}</span>
+              </div>
+              <div class="summary-item-value mono" dir="ltr">{{ ticket.cardNumber }}</div>
+            </div>
+
+            <div class="summary-item" *ngIf="ticket.phone">
+              <div class="summary-item-label">
+                <i class="bi bi-telephone-fill text-success"></i>
+                <span>{{ t('phone') }}</span>
+              </div>
+              <div class="summary-item-value mono" dir="ltr">{{ ticket.phone }}</div>
+            </div>
+
+            <div class="summary-item summary-item--wide" *ngIf="ticket.info">
+              <div class="summary-item-label">
+                <i class="bi bi-info-circle-fill text-warning"></i>
+                <span>{{ t('additional_info') }}</span>
+              </div>
+              <div class="summary-info">{{ ticket.info }}</div>
             </div>
           </div>
         </div>
       </div>
 
       <!-- Footer -->
-      <div class="modal-footer border-top-0 bg-light p-3">
+      <div class="modal-footer details-footer border-top-0 bg-light">
         <button type="button" class="btn btn-secondary rounded-pill px-4 fw-bold" (click)="onClose()">
           {{ t('close') }}
         </button>

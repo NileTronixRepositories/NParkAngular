@@ -23,16 +23,17 @@
     <label class="form-label x-small fw-bold text-muted text-uppercase mb-0">
       {{ t('vehicle_images') }}
     </label>
-    <span
+    <button
+      type="button"
       class="btn btn-outline-primary btn-xs camera-snapshot-btn camera-snapshot-indicator"
       [class.capture-attention]="!cameraSnapshotDisabled"
-      [class.disabled]="cameraSnapshotDisabled"
       [title]="cameraSnapshotTitle || t('take_snapshot')"
-      aria-hidden="true"
+      [disabled]="cameraSnapshotDisabled || cameraSnapshotLoading"
+      (click)="onCameraSnapshotClick()"
     >
       <i class="bi bi-camera" *ngIf="!cameraSnapshotLoading"></i>
       <span class="spinner-border spinner-border-sm" *ngIf="cameraSnapshotLoading"></span>
-    </span>
+    </button>
   </div>
   <div class="scanned-card-premium mt-2 rounded-3 border overflow-hidden">
     <div class="bg-dark text-white p-1 px-2 x-small d-flex align-items-center gap-2">

@@ -29,6 +29,17 @@
               {{ t('pleaseLoginToProceed') }}
             </p>
 
+            <div class="gate-context-grid mb-3" *ngIf="showGateContext">
+              <div class="gate-context-item">
+                <span>{{ t('gate_number') }}</span>
+                <strong class="mono">{{ gateNumberLabel }}</strong>
+              </div>
+              <div class="gate-context-item">
+                <span>{{ t('gate_type') }}</span>
+                <strong>{{ gateTypeLabel }}</strong>
+              </div>
+            </div>
+
             <div class="form-floating mb-3">
               <input
                 type="text"
@@ -91,6 +102,11 @@
               <span>{{ t('ready_to_collect') }}</span>
               <strong>{{ t('collect_now') }}</strong>
             </div>
+
+            <div class="summary-stat" *ngIf="showGateContext">
+              <span>{{ t('gate_number') }} / {{ t('gate_type') }}</span>
+              <strong>{{ gateNumberLabel }} - {{ gateTypeLabel }}</strong>
+            </div>
           </div>
 
           <div class="summary-stats-grid" *ngIf="summary">
@@ -102,6 +118,11 @@
             <div class="summary-stat">
               <span>{{ t('total_tickets') }}</span>
               <strong>{{ summary.totalTicketsCollected }}</strong>
+            </div>
+
+            <div class="summary-stat" *ngIf="showGateContext">
+              <span>{{ t('gate_number') }} / {{ t('gate_type') }}</span>
+              <strong>{{ gateNumberLabel }} - {{ gateTypeLabel }}</strong>
             </div>
           </div>
 
@@ -150,6 +171,11 @@
             <div class="summary-stat">
               <span>{{ t('total_transactions') }}</span>
               <strong>{{ exceedSummary.totalTransactionsCollected }}</strong>
+            </div>
+
+            <div class="summary-stat" *ngIf="showGateContext">
+              <span>{{ t('gate_number') }} / {{ t('gate_type') }}</span>
+              <strong>{{ gateNumberLabel }} - {{ gateTypeLabel }}</strong>
             </div>
           </div>
 

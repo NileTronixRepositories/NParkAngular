@@ -32,6 +32,7 @@ export interface LoginResponse {
 export interface GateDevicePeripheral {
   pcIp: string;
   lprIp: string;
+  hasScanner?: boolean | null;
   hasPc: boolean;
   hasLpr: boolean;
   gateNumber: number;

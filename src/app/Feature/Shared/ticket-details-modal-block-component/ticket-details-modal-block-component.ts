@@ -17,6 +17,10 @@ export class TicketDetailsModalBlockComponent {
   @Input() ticket: TicketDto | null = null;
   @Output() close = new EventEmitter<void>();
 
+  get isRTL(): boolean {
+    return this.i18n.isRTL();
+  }
+
   private readonly dict: Record<AppLang, Record<string, string>> = {
     ar: {
       ticket_details: 'تفاصيل التذكرة',

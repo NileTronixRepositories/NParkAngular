@@ -85,6 +85,20 @@
           </button>
         </div>
 
+        <div
+          class="summary-gate-context-inline p-2 mb-2"
+          *ngIf="showGateContext"
+        >
+          <span>
+            {{ 'gate_number' | t }}:
+            <strong class="mono">{{ gateNumber }}</strong>
+          </span>
+          <span>
+            {{ 'gate_type' | t }}:
+            <strong>{{ gateTypeLabelKey ? (gateTypeLabelKey | t) : '--' }}</strong>
+          </span>
+        </div>
+
         <div class="summary-stats-inline p-2 mb-2" *ngIf="collectSummary">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <span class="text-muted small">{{ 'total_collected_amount' | t }}</span>
