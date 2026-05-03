@@ -7,14 +7,19 @@ import { tokenInterceptor } from './app/interceptors/Auth/token.interceptor';
 import { provideRouter } from '@angular/router';
 import { routes } from './app/app.routes';
 import { provideAnimations } from '@angular/platform-browser/animations';
+import { loadRuntimeEnvironment } from './app/Shared/environment/environment';
 
-bootstrapApplication(App, {
-  ...appConfig,
-  providers: [
-    ...(appConfig.providers ?? []),
-    provideHttpClient(withInterceptorsFromDi()),
-    provideHttpClient(withInterceptors([tokenInterceptor])),
-    provideRouter(routes),
-    provideAnimations(),
-  ],
-}).catch((err) => console.error(err));
+loadRuntimeEnvironment()
+  .then(() =>
+    bootstrapApplication(App, {
+      ...appConfig,
+      providers: [
+        ...(appConfig.providers ?? []),
+        provideHttpClient(withInterceptorsFromDi()),
+        provideHttpClient(withInterceptors([tokenInterceptor])),
+        provideRouter(routes),
+        provideAnimations(),
+      ],
+    }),
+  )
+  .catch((err) => console.error(err));

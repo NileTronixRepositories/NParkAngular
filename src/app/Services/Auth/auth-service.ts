@@ -12,7 +12,6 @@ import { environment } from '../../Shared/environment/environment';
 
 const TOKEN_KEY = 'auth_token';
 const USER_KEY = 'auth_user';
-const API_BASE = `${environment.baseUrl}/auth`;
 
 export interface StoredUser {
   role: string;
@@ -38,8 +37,12 @@ export class AuthService {
   private collectLoading = false;
   private unloadLogoutStarted = false;
 
+  private get apiBase(): string {
+    return `${environment.baseUrl}/auth`;
+  }
+
   private get logoutEndpoint(): string {
-    return `${API_BASE}/Logout`;
+    return `${this.apiBase}/Logout`;
   }
 
   // ================== STORAGE HELPERS ==================
@@ -65,7 +68,7 @@ export class AuthService {
   login(body: any): Observable<AuthResponse> {
     const remember = !!body.remember;
 
-    return this.http.post<AuthResponse>(`${API_BASE}/login`, body).pipe(
+    return this.http.post<AuthResponse>(`${this.apiBase}/login`, body).pipe(
       tap((res) => {
         const store = this.storage(remember);
 
@@ -86,14 +89,14 @@ export class AuthService {
 
   // ================== LOGIN FIRST TIME ==================
   loginFirstTime(body: LoginFirstTimeCommand): Observable<HttpResponse<void>> {
-    return this.http.post<void>(`${API_BASE}/loginfirsttime`, body, {
+    return this.http.post<void>(`${this.apiBase}/loginfirsttime`, body, {
       observe: 'response',
     });
   }
 
   // ================== CHECK GATE ==================
   checkGate(): Observable<AuthResponse> {
-    return this.http.post<AuthResponse>(`${API_BASE}/CheckGate`, {}).pipe(
+    return this.http.post<AuthResponse>(`${this.apiBase}/CheckGate`, {}).pipe(
       tap((res) => {
         this.updateToken(res.token);
 
@@ -117,7 +120,7 @@ export class AuthService {
   selectGate(gateId: string | number, gateType: GateType): Observable<AuthResponse> {
     const body = { gateId };
 
-    return this.http.post<AuthResponse>(`${API_BASE}/CheckGate`, body).pipe(
+    return this.http.post<AuthResponse>(`${this.apiBase}/CheckGate`, body).pipe(
       tap((res) => {
         this.updateToken(res.token);
 
