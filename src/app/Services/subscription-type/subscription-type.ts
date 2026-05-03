@@ -4,7 +4,10 @@ import { catchError, map, Observable, throwError } from 'rxjs';
 import { environment } from '../../Shared/environment/environment';
 import {
   DurationType,
+  CreateEnterPricingSchemaRequest,
+  CreateEnterPricingSchemaResponse,
   PricingSchemaAddDto,
+  PricingSchemaUpdateRequest,
   PricingSchemaUpdateDto,
   PricingSchemaRow,
 } from '../../Domain/Subscription-type/subscription-type.models';
@@ -33,7 +36,9 @@ export class SubscriptionType {
       })
       .pipe(
         map((res: any) => {
-          const data: PricingSchemaRow[] = res?.data ?? res?.items ?? res ?? [];
+          const data: PricingSchemaRow[] = (res?.data ?? res?.items ?? res ?? []).map(
+            (item: any) => this.normalizeRow(item),
+          );
           return {
             currentPage: res?.currentPage ?? page,
             pageSize: res?.pageSize ?? pageSize,
@@ -48,9 +53,11 @@ export class SubscriptionType {
   }
 
   getById(id: string): Observable<PricingSchemaRow> {
-    return this.http.get<PricingSchemaRow>(`${this.base}/GetById/${encodeURIComponent(id)}`, {
-      headers: { 'Cache-Control': 'no-cache' },
-    });
+    return this.http
+      .get<PricingSchemaRow>(`${this.base}/GetById/${encodeURIComponent(id)}`, {
+        headers: { 'Cache-Control': 'no-cache' },
+      })
+      .pipe(map((res: any) => this.normalizeRow(res)));
   }
 
   private toHms(t?: string | null): string | null {
@@ -85,7 +92,18 @@ export class SubscriptionType {
     return this.http.post<PricingSchemaRow>(`${this.base}/Add`, payload);
   }
 
-  update(dto: PricingSchemaUpdateDto) {
+  update(dto: PricingSchemaUpdateRequest) {
+    if (dto.isEnterPriceSchema === true) {
+      const payload = {
+        id: dto.id,
+        name: (dto.name ?? '').trim(),
+        price: Number(dto.price ?? 0),
+        isEnterPriceSchema: true,
+      };
+
+      return this.http.put<PricingSchemaRow>(`${this.base}/Update`, payload);
+    }
+
     const isHours = dto.durationType === DurationType.Hours;
     const isDays = dto.durationType === DurationType.Days;
     const repeated = isHours ? !!dto.isRepeated : false;
@@ -104,9 +122,50 @@ export class SubscriptionType {
       isRepeated: isHours ? repeated : false,
       totalHours: isHours ? Number(dto.totalHours ?? 0) : null,
       totalDays: isDays ? Number(dto.totalDays ?? 0) : null,
+      isEnterPriceSchema: false,
     };
 
     return this.http.put<PricingSchemaRow>(`${this.base}/Update`, payload);
+  }
+
+  createEnterPriceSchema(
+    request: CreateEnterPricingSchemaRequest,
+  ): Observable<CreateEnterPricingSchemaResponse> {
+    const payload: CreateEnterPricingSchemaRequest = {
+      name: (request.name ?? '').trim(),
+      salary: Number(request.salary ?? 0),
+    };
+
+    return this.http
+      .post<CreateEnterPricingSchemaResponse>(
+        `${this.base}/create-enter-pricing-schema`,
+        payload,
+      )
+      .pipe(map((res: any) => this.normalizeEnterResponse(res)));
+  }
+
+  private normalizeRow(row: any): PricingSchemaRow {
+    return {
+      id: row?.id ?? row?.Id ?? '',
+      name: row?.name ?? row?.Name ?? '',
+      durationType: row?.durationType ?? row?.DurationType ?? DurationType.Days,
+      startTime: row?.startTime ?? row?.StartTime ?? null,
+      endTime: row?.endTime ?? row?.EndTime ?? null,
+      price: Number(row?.price ?? row?.Price ?? row?.salary ?? row?.Salary ?? 0),
+      isRepeated: !!(row?.isRepeated ?? row?.IsRepeated),
+      totalDays: row?.totalDays ?? row?.TotalDays ?? null,
+      totalHours: row?.totalHours ?? row?.TotalHours ?? null,
+      isEnterPriceSchema: !!(row?.isEnterPriceSchema ?? row?.IsEnterPriceSchema),
+    };
+  }
+
+  private normalizeEnterResponse(res: any): CreateEnterPricingSchemaResponse {
+    return {
+      id: res?.id ?? res?.Id ?? '',
+      name: res?.name ?? res?.Name ?? '',
+      salary: Number(res?.salary ?? res?.Salary ?? 0),
+      isEnterPriceSchema: !!(res?.isEnterPriceSchema ?? res?.IsEnterPriceSchema),
+    };
   }
 
   delete(id: string): Observable<void> {

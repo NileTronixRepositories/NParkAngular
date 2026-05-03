@@ -636,7 +636,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       this.dict[this.lang.current]?.[key] ??
       fallback[this.lang.current]?.[key] ??
       fallback.en[key] ??
-      key;
+      this.lang.fallbackText(key);
     if (params && params.length > 0) {
       params.forEach((p, i) => {
         text = text.replace(`{${i}}`, p);
@@ -1383,6 +1383,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.totalPriceAfterExceed = Number(response.totalPriceAfterExceed ?? 0);
           this.isExceedRegistered = true;
           this.notify('success', 'exceed_registered_success');
+          this.printExceedQrTicket(response);
           this.printExceedReceipt(response);
 
           if (continueExitAfterSuccess) {
@@ -1396,6 +1397,201 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           this.registeringExceed = false;
         },
       });
+  }
+
+  private printExceedQrTicket(response: CreateTicketExceedTransactionResponse): void {
+    const qrImage = this.normalizeQrImage(response.qrCode);
+    if (!qrImage) {
+      console.warn('No valid qrCode returned from TicketExceedTransaction/Create', response);
+      this.toast.warn('No QR code was returned for this exceed transaction.');
+      return;
+    }
+
+    const printerName =
+      this.gateConnectionInfo?.qrPrinterName?.trim() || environment.qrPrinterName?.trim();
+
+    if (!printerName) {
+      this.toast.warn('QR printer is not configured for this gate.');
+      return;
+    }
+
+    const htmlContent = this.buildExceedQrTicketHtml(response, qrImage);
+
+    this.localPrint
+      .printHtml({
+        printerName,
+        htmlContent,
+        jobName: `Exceed-QR-${response.ticketInfo || response.ticketId}`,
+      })
+      .subscribe({
+        next: () => this.notify('success', 'printing_sent'),
+        error: (err) => {
+          console.error('[printExceedQrTicket] Print failed', err);
+          this.notify('error', 'printing_failed');
+        },
+      });
+  }
+
+  private buildExceedQrTicketHtml(
+    response: CreateTicketExceedTransactionResponse,
+    qrImage: string,
+  ): string {
+    const ticket = this.selectedTicketForExceed;
+    const gateNumber = this.gatePeripheral?.gateNumber ?? '---';
+    const ticketInfo = response.ticketInfo || ticket?.uniqueCode || response.ticketId;
+    const vehicleNumber = ticket?.vehicleNumber || '---';
+    const createdAt = response.createdAt
+      ? new Date(response.createdAt).toLocaleString('ar-EG', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        })
+      : new Date().toLocaleString('ar-EG');
+
+    return `
+    <html dir="rtl" lang="ar">
+      <head>
+        <meta charset="utf-8" />
+        <title>NPark Exceed QR</title>
+        <style>
+          * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            color: #000 !important;
+            font-family: Tahoma, Arial, sans-serif !important;
+            font-weight: 900 !important;
+            line-height: 1.25;
+            text-rendering: geometricPrecision;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+          }
+          @page { margin: 0; size: 80mm auto; }
+          body {
+            margin: 0;
+            padding: 0;
+            width: 80mm;
+            direction: rtl;
+            background: #fff;
+            overflow: hidden;
+          }
+          .rotation-wrapper {
+            width: 80mm;
+            padding: 2mm;
+            transform: rotate(90deg);
+            transform-origin: top left;
+            position: absolute;
+            top: 0;
+            left: 80mm;
+            height: 80mm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .ticket-wrapper {
+            width: 76mm;
+            border: 0.8mm solid #000;
+            padding: 2mm;
+            display: flex;
+            flex-direction: column;
+            gap: 1mm;
+          }
+          .header-line {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 16px;
+            border-bottom: 0.3mm dashed #000;
+            padding-bottom: 1.5mm;
+            margin-bottom: 1mm;
+          }
+          .main-row {
+            display: flex;
+            width: 100%;
+            gap: 2mm;
+            align-items: center;
+            justify-content: space-between;
+          }
+          .info-side {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1.5mm;
+          }
+          .info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 2mm;
+            font-size: 14px;
+          }
+          .label { white-space: nowrap; }
+          .value {
+            text-align: left;
+            direction: ltr;
+            font-size: 14px;
+          }
+          .qr-side {
+            width: 32mm;
+            height: 32mm;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+          }
+          .qr-side img {
+            width: 100%;
+            height: 100%;
+            display: block;
+          }
+          .footer-line {
+            text-align: center;
+            font-size: 12px;
+            border-top: 0.3mm dashed #000;
+            padding-top: 1mm;
+            margin-top: 1mm;
+          }
+        </style>
+      </head>
+      <body>
+        <div class="rotation-wrapper">
+          <div class="ticket-wrapper">
+            <div class="header-line">
+              <span>Exit QR</span>
+              <span style="direction: ltr;">${this.escapeHtml(ticketInfo)}</span>
+            </div>
+
+            <div class="main-row">
+              <div class="info-side">
+                <div class="info-item">
+                  <span class="label">Created:</span>
+                  <span class="value">${this.escapeHtml(createdAt)}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">Gate:</span>
+                  <span class="value">${this.escapeHtml(String(gateNumber))}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">Vehicle:</span>
+                  <span class="value">${this.escapeHtml(vehicleNumber)}</span>
+                </div>
+                <div class="info-item">
+                  <span class="label">Total:</span>
+                  <span class="value">${response.totalPriceAfterExceed.toFixed(2)}</span>
+                </div>
+              </div>
+
+              <div class="qr-side">
+                <img src="${this.escapeHtml(qrImage)}" alt="QR" />
+              </div>
+            </div>
+
+            <div class="footer-line">www.niletronix.com</div>
+          </div>
+        </div>
+      </body>
+    </html>`;
   }
 
   private printExceedReceipt(response: CreateTicketExceedTransactionResponse): void {
@@ -1597,6 +1793,47 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       .replace(/>/g, '&gt;')
       .replace(/"/g, '&quot;')
       .replace(/'/g, '&#039;');
+  }
+
+  private normalizeQrImage(qr: string | number[] | null | undefined): string | null {
+    if (!qr) return null;
+    if (Array.isArray(qr)) {
+      try {
+        const binary = String.fromCharCode(...qr);
+        return `data:image/png;base64,${btoa(binary)}`;
+      } catch (err) {
+        console.error('Failed to convert QR byte array to base64:', err);
+        return null;
+      }
+    }
+
+    const value = String(qr).trim();
+    if (/^(data:image\/|blob:|https?:\/\/)/i.test(value)) return value;
+
+    const clean = value.replace(/\s+/g, '');
+
+    if (/^[0-9A-Fa-f]+$/.test(clean)) {
+      try {
+        return `data:image/png;base64,${this.hexToBase64(clean)}`;
+      } catch (err) {
+        console.error('Failed to convert HEX to base64:', err);
+        return null;
+      }
+    }
+
+    if (/^[A-Za-z0-9+/=]+$/.test(clean)) {
+      return `data:image/png;base64,${clean}`;
+    }
+
+    return null;
+  }
+
+  private hexToBase64(hexString: string): string {
+    const bytes: number[] = [];
+    for (let i = 0; i < hexString.length; i += 2) {
+      bytes.push(parseInt(hexString.substring(i, i + 2), 16));
+    }
+    return btoa(String.fromCharCode(...bytes));
   }
 
   onCalculateSalary(): void {

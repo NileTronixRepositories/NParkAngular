@@ -57,7 +57,7 @@ export class TicketDetailsModalBlockComponent {
   };
 
   t(k: string): string {
-    return this.dict[this.i18n.current]?.[k] ?? k;
+    return this.i18n.translate(this.dict, k);
   }
 
   onClose(): void {

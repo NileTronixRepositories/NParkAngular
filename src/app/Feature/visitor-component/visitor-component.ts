@@ -112,7 +112,7 @@ export class VisitorComponent implements OnInit {
       visitor: 'Visitor',
     },
   };
-  t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
+  t = (k: string) => this.i18n.translate(this.dict, k);
   dir = computed(() => this.i18n.dir());
   isRTL = computed(() => this.i18n.isRTL());
 

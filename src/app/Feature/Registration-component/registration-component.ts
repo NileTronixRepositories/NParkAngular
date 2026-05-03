@@ -449,9 +449,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
 
   // ===== i18n helper =====
   private t(key: string): string {
-    const langKey = this.lang.current === 'ar' ? 'ar' : 'en';
-    const g: any = (this.dict as any)?.[langKey] ?? {};
-    return g[key] ?? key;
+    return this.lang.translate(this.dict, key);
   }
 
   // ===== Message extractors (from backend) =====

@@ -165,7 +165,7 @@ export class LoginComponent {
 
   // ترجمة بسيطة من الـ dict المحلي
   private t(key: string): string {
-    return this.dict[this.lang.current]?.[key] ?? key;
+    return this.lang.translate(this.dict, key);
   }
 
   // ====== Helpers ======

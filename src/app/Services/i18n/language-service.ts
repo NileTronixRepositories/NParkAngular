@@ -41,17 +41,46 @@ export class LanguageService {
     this.set(this._current() === 'ar' ? 'en' : 'ar');
   }
 
+  translate(dict: Partial<I18nDict> | null | undefined, key: string, fallback?: string): string {
+    const normalizedKey = String(key ?? '').trim();
+    if (!normalizedKey) return '';
+
+    const currentText = dict?.[this.current]?.[normalizedKey];
+    if (this.hasText(currentText)) return currentText;
+
+    const arText = dict?.ar?.[normalizedKey];
+    if (this.hasText(arText)) return arText;
+
+    const enText = dict?.en?.[normalizedKey];
+    if (this.hasText(enText)) return enText;
+
+    if (this.hasText(fallback)) return fallback;
+
+    return this.fallbackText(normalizedKey);
+  }
+
+  fallbackText(key: string): string {
+    return String(key ?? '')
+      .replace(/[_-]+/g, ' ')
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      .replace(/\s+/g, ' ')
+      .trim();
+  }
+
   // -------- private helpers --------
 
   private getInitialLang(): AppLang {
     const saved = localStorage.getItem(this.LS_KEY) as AppLang | null;
 
-    const initial: AppLang =
-      saved ?? (navigator.language && navigator.language.startsWith('ar') ? 'ar' : 'en');
+    const initial: AppLang = saved === 'ar' || saved === 'en' ? saved : 'ar';
 
     // Apply direction on init immediately
     this.applyDomDirection(initial);
     return initial;
+  }
+
+  private hasText(value: unknown): value is string {
+    return typeof value === 'string' && value.trim().length > 0;
   }
 
   private applyDomDirection(lang: AppLang) {

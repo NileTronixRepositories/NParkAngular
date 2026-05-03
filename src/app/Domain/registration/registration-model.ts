@@ -21,6 +21,13 @@ export interface PricingSchemaDto {
   id: string;
   name: string;
   description?: string | null;
+  salary?: number | null;
+}
+
+export interface EnterPriceSchemaSelectionDto {
+  id: string;
+  name: string;
+  salary: number;
 }
 
 export interface AddParkingMembershipCommandFront {

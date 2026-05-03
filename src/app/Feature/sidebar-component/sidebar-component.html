@@ -1,6 +1,10 @@
 <div class="sidebar-backdrop" [class.show]="!collapsed" (click)="onToggle()"></div>
 
-<aside class="app-sidebar" [class.collapsed]="collapsed">
+<aside
+  class="app-sidebar"
+  [class.collapsed]="collapsed"
+  [class.gate-session]="showGateSessionActions"
+>
   <!-- Sidebar Header -->
   <div class="sidebar-header">
     <a class="brand" routerLink="/" *ngIf="!collapsed">

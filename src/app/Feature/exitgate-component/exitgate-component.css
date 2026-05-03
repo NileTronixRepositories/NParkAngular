@@ -302,11 +302,7 @@
 
 .exit-workspace-grid {
   display: grid;
-  grid-template-columns:
-    minmax(285px, 0.9fr)
-    minmax(330px, 1fr)
-    minmax(330px, 1fr)
-    minmax(285px, 0.9fr);
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 0.75rem;
   align-items: stretch;
 }
@@ -320,6 +316,16 @@
 .exit-workspace-panel > * {
   width: 100%;
   min-width: 0;
+}
+
+.gate-devices-panel,
+.sanctions-panel {
+  grid-column: span 4;
+}
+
+.validation-panel,
+.tickets-panel {
+  grid-column: span 2;
 }
 
 /* ================== CHIPS / BADGES ================== */
@@ -357,11 +363,17 @@
 /* Cards: full height only when the page has enough actual content width. */
 @container (min-width: 1500px) {
   .exit-workspace-grid {
-    grid-template-columns:
-      minmax(285px, 0.9fr)
-      minmax(330px, 1fr)
-      minmax(330px, 1fr)
-      minmax(285px, 0.9fr);
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+  }
+
+  .gate-devices-panel,
+  .sanctions-panel {
+    grid-column: span 4;
+  }
+
+  .validation-panel,
+  .tickets-panel {
+    grid-column: span 2;
   }
 
   .exit-theme .card.shadow-soft {
@@ -371,11 +383,17 @@
 
 @container (min-width: 1200px) and (max-width: 1499px) {
   .exit-workspace-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(12, minmax(0, 1fr));
   }
 
-  .exit-workspace-panel:nth-child(4) {
-    grid-column: 1 / -1;
+  .gate-devices-panel,
+  .sanctions-panel {
+    grid-column: span 6;
+  }
+
+  .validation-panel,
+  .tickets-panel {
+    grid-column: span 6;
   }
 }
 
@@ -384,9 +402,11 @@
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .exit-workspace-panel:nth-child(1),
-  .exit-workspace-panel:nth-child(4) {
-    grid-column: 1 / -1;
+  .gate-devices-panel,
+  .validation-panel,
+  .sanctions-panel,
+  .tickets-panel {
+    grid-column: span 1;
   }
 }
 
@@ -436,6 +456,13 @@
   .exit-workspace-grid {
     grid-template-columns: 1fr;
     gap: 0.65rem;
+  }
+
+  .gate-devices-panel,
+  .validation-panel,
+  .sanctions-panel,
+  .tickets-panel {
+    grid-column: 1 / -1;
   }
 
   .exit-theme .card.shadow-soft {

@@ -66,7 +66,7 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
   };
 
   t(key: string): string {
-    return this.dict[this.lang.current]?.[key] ?? this.localFallback[key] ?? key;
+    return this.lang.translate(this.dict as any, key, this.localFallback[key]);
   }
 
   onValidateText(): void {

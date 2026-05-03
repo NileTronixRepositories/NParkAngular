@@ -9,6 +9,31 @@ body {
   font-family: 'Cairo', 'Helvetica Neue', sans-serif;
 }
 
+body,
+button,
+input,
+textarea,
+select,
+.btn,
+.form-control,
+.form-select,
+.dropdown-menu,
+.modal,
+.mat-typography,
+.mat-mdc-button,
+.mat-mdc-raised-button,
+.mat-mdc-outlined-button,
+.mat-mdc-unelevated-button,
+.mat-mdc-form-field,
+.mat-mdc-select,
+.mat-mdc-option,
+.mat-mdc-menu-panel,
+.mat-mdc-tab,
+.mat-stepper-horizontal,
+.mat-stepper-vertical {
+  font-family: 'Cairo', 'Helvetica Neue', Arial, sans-serif !important;
+}
+
 /* ==================================
    Global Shepherd.js Custom Theme
    ================================== */

@@ -53,15 +53,15 @@
 
 :host .table {
   margin-bottom: 0;
-  font-size: 0.7rem;
-  min-width: 320px;
+  font-size: 0.64rem;
+  min-width: 240px;
   table-layout: fixed;
 }
 
 :host .table-responsive {
   overflow: auto;
-  min-height: 240px;
-  max-height: min(520px, 58vh);
+  min-height: 180px;
+  max-height: min(420px, 48vh);
 }
 
 :host .table-head {
@@ -78,7 +78,7 @@
   z-index: 2;
   border-bottom: 1px solid var(--border, #e5e7eb);
   font-weight: 600;
-  padding: 0.25rem 0.35rem;
+  padding: 0.2rem 0.28rem;
   background: var(--bg-soft, #f9fafb);
   white-space: nowrap;
 }
@@ -87,7 +87,7 @@
 :host tbody tr td {
   border-top: 1px solid var(--border, #e5e7eb);
   vertical-align: middle;
-  padding: 0.25rem 0.35rem;
+  padding: 0.2rem 0.28rem;
   color: var(--text, #111827);
   overflow: hidden;
   text-overflow: ellipsis;
@@ -197,8 +197,8 @@
 
 :host .btn-collect-today {
   width: 100%;
-  padding: 0.25rem 0.5rem;
-  font-size: 0.72rem;
+  padding: 0.22rem 0.45rem;
+  font-size: 0.68rem;
   font-weight: 600;
   border-radius: 6px;
   display: flex;
@@ -238,12 +238,12 @@
 }
 
 :host .exit-table-footer {
-  min-height: 48px;
-  padding: 0.45rem 0.55rem;
+  min-height: 42px;
+  padding: 0.35rem 0.45rem;
   border-top: 1px solid var(--border, #e5e7eb);
   background: #ffffff;
   display: grid;
-  grid-template-columns: minmax(96px, 1fr) minmax(130px, auto) minmax(110px, auto);
+  grid-template-columns: minmax(72px, 1fr) minmax(92px, auto) minmax(88px, auto);
   align-items: center;
   gap: 0.5rem;
 }
@@ -267,7 +267,7 @@
 :host .footer-label {
   min-width: 0;
   color: #64748b;
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   font-weight: 800;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -276,7 +276,7 @@
 
 :host .footer-stat-total strong {
   color: #b91c1c;
-  font-size: 0.72rem;
+  font-size: 0.66rem;
   font-weight: 900;
   white-space: nowrap;
 }
@@ -284,7 +284,7 @@
 :host .footer-pager {
   justify-self: end;
   display: inline-grid;
-  grid-template-columns: 28px minmax(52px, auto) 28px;
+  grid-template-columns: 24px minmax(44px, auto) 24px;
   align-items: center;
   overflow: hidden;
   border: 1px solid #cbd5e1;
@@ -293,8 +293,8 @@
 }
 
 :host .footer-page-btn {
-  width: 28px;
-  height: 28px;
+  width: 24px;
+  height: 24px;
   border: 0;
   background: transparent;
   color: #334155;
@@ -317,11 +317,11 @@
 }
 
 :host .footer-page-count {
-  min-width: 52px;
-  padding-inline: 0.35rem;
+  min-width: 44px;
+  padding-inline: 0.25rem;
   border-inline: 1px solid #cbd5e1;
   color: #475569;
-  font-size: 0.66rem;
+  font-size: 0.6rem;
   font-weight: 900;
   text-align: center;
   white-space: nowrap;
@@ -472,11 +472,11 @@
    Refactored Inline Styles
    ========================== */
 .col-time {
-  width: 90px;
+  width: 64px;
 }
 
 .col-fees {
-  width: 95px;
+  width: 64px;
 }
 
 .col-fees-sm {

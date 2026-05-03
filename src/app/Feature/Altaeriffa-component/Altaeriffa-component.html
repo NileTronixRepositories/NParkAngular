@@ -1,6 +1,6 @@
-<div class="subscription-page container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
+<div class="subscription-page container-fluid py-3" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- Page Header -->
-  <div class="page-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
+  <div class="page-header mb-3 fade-in-down p-3 rounded-3 shadow-sm">
     <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
       <div class="d-flex align-items-center gap-3">
         <div class="header-icon-wrapper rounded-3">
@@ -25,10 +25,10 @@
     </div>
   </div>
 
-  <div class="row g-3">
+  <div class="row g-3 align-items-start pricing-layout">
     <!-- ==== Table ==== -->
-    <div class="col-12 col-md-7 col-lg-8 col-xl-8 order-2 order-md-1">
-      <div class="card border-0 shadow-sm h-100 subscription-table-card rounded-4 overflow-hidden">
+    <div class="col-12 col-xl-8 order-2 order-xl-1 pricing-table-col">
+      <div class="card border-0 shadow-sm subscription-table-card rounded-3 overflow-hidden">
         <div
           class="card-header bg-white border-bottom-0 p-3 d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3"
         >
@@ -50,9 +50,9 @@
         </div>
 
         <!-- Table -->
-        <div class="card-body p-0 table-responsive custom-scrollbar">
-          <table class="table table-hover align-middle mb-0 table-striped">
-            <thead class="table-light sticky-top bg-light">
+        <div class="card-body p-0 table-responsive custom-scrollbar pricing-table-scroll">
+          <table class="table table-hover align-middle mb-0 pricing-table">
+            <thead class="sticky-top">
               <tr class="small text-uppercase text-muted">
                 <th class="text-center py-2 col-index">{{ t('col_index') }}</th>
                 <th class="py-2">{{ t('col_name') }}</th>
@@ -74,6 +74,12 @@
                     class="badge rounded-pill bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25 px-2 py-1"
                   >
                     {{ durationLabel(r.durationType) }}
+                  </span>
+                  <span
+                    *ngIf="r.isEnterPriceSchema"
+                    class="badge rounded-pill bg-info bg-opacity-10 text-info border border-info border-opacity-25 px-2 py-1 ms-1"
+                  >
+                    {{ t('enter_price_badge') }}
                   </span>
                 </td>
                 <td class="text-muted small d-none d-md-table-cell">
@@ -126,14 +132,14 @@
         </div>
 
         <!-- Footer: Pagination -->
-        <div class="card-footer bg-white border-0 p-3">
+        <div class="card-footer bg-white border-0 p-3 subscription-table-footer">
           <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-3 text-center text-md-start">
             <span class="small text-muted fw-medium">
               {{ t('total_label') }} {{ totalItems() }} — {{ t('page') }} {{ page() }} {{ t('of') }}
               {{ totalPages() }}
             </span>
 
-            <div class="btn-group shadow-sm rounded-3 overflow-hidden d-flex w-100" style="max-width: 400px;">
+            <div class="btn-group shadow-sm rounded-3 overflow-hidden d-flex w-100 subscription-pager">
               <button
                 class="btn btn-sm btn-white border px-3 d-flex align-items-center justify-content-center gap-1 flex-fill"
                 [disabled]="!hasPrev()"
@@ -159,8 +165,77 @@
     </div>
 
     <!-- ==== Form ==== -->
-    <div class="col-12 col-md-5 col-lg-4 col-xl-4 order-1 order-md-2 mb-4 mb-md-0">
-      <div class="card border-0 shadow-sm h-100 subscription-form-card rounded-4">
+    <div class="col-12 col-xl-4 order-1 order-xl-2 mb-4 mb-xl-0 pricing-side-col">
+      <div class="pricing-side-stack">
+      <div
+        class="card border-0 shadow-sm rounded-3 subscription-enter-price-card mb-3"
+        *ngIf="!isEditingEnterPriceSchema()"
+      >
+        <div class="card-header bg-white border-bottom-0 p-3">
+          <h6 class="mb-1 fw-bold text-dark d-flex align-items-center gap-2">
+            <i class="bi bi-ticket-perforated text-primary"></i>
+            {{ t('enter_price_title') }}
+          </h6>
+          <p class="small text-muted mb-0">{{ t('enter_price_hint') }}</p>
+        </div>
+
+        <div class="card-body p-3" [formGroup]="enterPriceForm">
+          <div class="mb-3">
+            <label class="form-label fw-bold text-muted small text-uppercase mb-1">
+              {{ t('enter_price_name') }}
+            </label>
+            <input
+              class="form-control rounded-3 p-2"
+              formControlName="name"
+              placeholder="Entrance Ticket 50 EGP"
+            />
+            <div
+              class="invalid-feedback d-block small mt-1 fw-medium"
+              *ngIf="enterPriceForm.get('name')?.touched && enterPriceForm.get('name')?.invalid"
+            >
+              <i class="bi bi-exclamation-circle me-1"></i> {{ t('name_required') }}
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label fw-bold text-muted small text-uppercase mb-1">
+              {{ t('enter_price_salary') }}
+            </label>
+            <input
+              type="number"
+              min="0.01"
+              step="0.01"
+              class="form-control rounded-3 p-2"
+              formControlName="salary"
+              placeholder="50"
+            />
+            <div
+              class="invalid-feedback d-block small mt-1 fw-medium"
+              *ngIf="
+                enterPriceForm.get('salary')?.touched && enterPriceForm.get('salary')?.invalid
+              "
+            >
+              <i class="bi bi-exclamation-circle me-1"></i>
+              {{ t('enter_price_salary_required') }}
+            </div>
+          </div>
+
+          <button
+            type="button"
+            class="btn btn-primary w-100 rounded-3 fw-bold"
+            (click)="saveEnterPriceSchema()"
+            [disabled]="savingEnterPrice()"
+          >
+            <span *ngIf="!savingEnterPrice()" class="d-inline-flex align-items-center gap-2">
+              <i class="bi bi-plus-circle"></i>
+              {{ t('enter_price_add') }}
+            </span>
+            <span *ngIf="savingEnterPrice()" class="spinner-border spinner-border-sm"></span>
+          </button>
+        </div>
+      </div>
+
+      <div class="card border-0 shadow-sm subscription-form-card rounded-3">
         <div
           class="card-header bg-white border-bottom-0 p-3 d-flex align-items-center justify-content-between"
         >
@@ -168,7 +243,13 @@
           <span
             class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 fw-medium"
           >
-            {{ editingId() ? t('edit_action') : t('add') }}
+            {{
+              isEditingEnterPriceSchema()
+                ? t('enter_price_badge')
+                : editingId()
+                  ? t('edit_action')
+                  : t('add')
+            }}
           </span>
         </div>
 
@@ -192,7 +273,7 @@
           </div>
 
           <!-- Field: Duration Type -->
-          <div class="mb-3">
+          <div class="mb-3" *ngIf="!isEditingEnterPriceSchema()">
             <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
               t('duration_type')
             }}</label>
@@ -234,7 +315,7 @@
           </div>
 
           <!-- Toggle: Repeated (only for Hours) -->
-          <div class="mb-3" *ngIf="showIsRepeated()">
+          <div class="mb-3" *ngIf="!isEditingEnterPriceSchema() && showIsRepeated()">
             <div
               class="form-check form-switch bg-light rounded-3 p-2 ms-0 d-flex align-items-center justify-content-between"
             >
@@ -254,7 +335,10 @@
           </div>
 
           <!-- Time Window -->
-          <div class="row g-2 mb-3 subscription-time-window" *ngIf="showRangeWindow()">
+          <div
+            class="row g-2 mb-3 subscription-time-window"
+            *ngIf="!isEditingEnterPriceSchema() && showRangeWindow()"
+          >
             <div class="col-12 col-sm-6">
               <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
                 t('from')
@@ -270,7 +354,7 @@
           </div>
 
           <!-- Total Hours -->
-          <div class="mb-3" *ngIf="isHours()">
+          <div class="mb-3" *ngIf="!isEditingEnterPriceSchema() && isHours()">
             <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
               t('total_hours')
             }}</label>
@@ -296,7 +380,7 @@
           </div>
 
           <!-- Total Days -->
-          <div class="mb-3" *ngIf="isDays()">
+          <div class="mb-3" *ngIf="!isEditingEnterPriceSchema() && isDays()">
             <label class="form-label fw-bold text-muted small text-uppercase mb-1">{{
               t('total_days')
             }}</label>
@@ -334,7 +418,7 @@
                 type="number"
                 class="form-control border-0 ps-2 bg-white"
                 formControlName="price"
-                min="0"
+                [min]="isEditingEnterPriceSchema() ? 0.01 : 0"
                 step="0.5"
               />
             </div>
@@ -365,6 +449,7 @@
             </button>
           </div>
         </div>
+      </div>
       </div>
     </div>
   </div>

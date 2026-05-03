@@ -23,7 +23,12 @@ export class IssueTicketBlockComponent {
   @Input() lprMembershipStatus: LprMembershipStatus = 'idle';
   @Input() lprCardNumber: string | null = null;
   @Input() selectedPricingSchemaId = '';
-  @Input() pricingSchemas: { id: string; name: string; description?: string | null }[] = [];
+  @Input() pricingSchemas: {
+    id: string;
+    name: string;
+    description?: string | null;
+    salary?: number | null;
+  }[] = [];
   @Input() pricingSchemasLoading = false;
   @Input() hasVehicleImages = false;
   @Input() showMissingLprVehicleHint = false;

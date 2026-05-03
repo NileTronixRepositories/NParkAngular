@@ -59,7 +59,7 @@ export class SearchBlockComponent implements OnDestroy {
       close: 'Close',
     },
   };
-  t = (k: string) => this.dict[this.i18n.current]?.[k] ?? k;
+  t = (k: string) => this.i18n.translate(this.dict, k);
 
   @Input() placeholder = '';
   @Input() searching = false;

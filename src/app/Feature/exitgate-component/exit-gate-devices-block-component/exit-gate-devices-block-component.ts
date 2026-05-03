@@ -80,7 +80,7 @@ export class ExitGateDevicesBlockComponent {
   }
 
   t(key: string): string {
-    return this.dict[this.lang.current]?.[key] ?? this.fallbackDict[key] ?? key;
+    return this.lang.translate(this.dict, key, this.fallbackDict[key]);
   }
 
   get headerVehicleNumber(): string {

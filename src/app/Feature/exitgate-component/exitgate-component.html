@@ -107,7 +107,7 @@
   <!-- Responsive workspace grid -->
   <div class="exit-workspace-grid">
     <!-- Block 1: Gate Devices -->
-    <div class="exit-workspace-panel">
+    <div class="exit-workspace-panel gate-devices-panel">
       <app-exit-gate-devices-block-component
         [gatePeripheral]="gatePeripheral"
         [scannedFile]="scannedFile"
@@ -122,7 +122,7 @@
     </div>
 
     <!-- Block 2: Exit Validation -->
-    <div class="exit-workspace-panel">
+    <div class="exit-workspace-panel validation-panel">
       <app-exit-validation-block-component
         [detectedVehicleNumber]="detectedVehicleNumber"
         [lprListening]="lprSignalRConnected"
@@ -145,7 +145,7 @@
     </div>
 
     <!-- Block 3: Sanctions -->
-    <div class="exit-workspace-panel">
+    <div class="exit-workspace-panel sanctions-panel">
       <app-exit-sanctions-block-component
         [allSanctions]="allSanctions"
         [selectedSanctionIds]="selectedSanctionIds"
@@ -166,7 +166,7 @@
     </div>
 
     <!-- Block 4: Tickets Table -->
-    <div class="exit-workspace-panel">
+    <div class="exit-workspace-panel tickets-panel">
       <app-exit-tickets-table-block-component
         [tickets]="filtered"
         [page]="page"

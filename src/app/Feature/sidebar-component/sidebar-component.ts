@@ -87,7 +87,7 @@ export class SidebarComponent implements OnDestroy {
     },
   };
 
-  t = (key: string) => this.dict[this.i18n.current]?.[key] ?? key;
+  t = (key: string) => this.i18n.translate(this.dict, key);
   dir = computed(() => this.i18n.dir());
   isRTL = computed(() => this.i18n.isRTL());
 

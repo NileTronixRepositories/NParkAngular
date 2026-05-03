@@ -1,4 +1,9 @@
-<div class="app-shell" [attr.dir]="dir()">
+<div
+  class="app-shell"
+  [attr.dir]="dir()"
+  [class.gate-session-shell]="isEntryRoute() || isExitRoute()"
+  [class.sidebar-is-collapsed]="effectiveSidebarCollapsed()"
+>
   <!-- Sidebar -->
   <app-sidebar-component
     [collapsed]="effectiveSidebarCollapsed()"

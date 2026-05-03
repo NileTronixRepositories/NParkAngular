@@ -14,6 +14,8 @@ export interface CreateTicketExceedTransactionResponse {
   superVisorCollectorId: string | null;
   sanctionIds: string[];
   createdAt: string;
+  qrCode: string | number[] | null;
+  ticketInfo: string;
 }
 
 export interface CollectExceedTransactionDetail {

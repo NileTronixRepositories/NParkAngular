@@ -10,11 +10,30 @@
 
 .section-title {
   border-bottom: 1px solid rgba(0,0,0,0.05);
-  padding-bottom: 4px;
+  padding-bottom: 2px;
 }
 
 .result-card {
   transition: all 0.3s ease;
+  font-size: 0.7rem;
+}
+
+.result-card h6 {
+  font-size: 0.74rem;
+}
+
+.result-card .col-6 {
+  flex: 0 0 100%;
+  max-width: 100%;
+}
+
+.card-body {
+  padding: 0.45rem !important;
+}
+
+textarea.form-control {
+  min-height: 58px;
+  resize: vertical;
 }
 
 .validation-loading,
@@ -24,16 +43,16 @@
 }
 
 .auto-validation-hint {
-  min-height: 24px;
-  padding: 0.25rem 0.45rem;
+  min-height: 22px;
+  padding: 0.2rem 0.4rem;
   border: 1px dashed rgba(37, 99, 235, 0.22);
   border-radius: 7px;
   background: rgba(239, 246, 255, 0.7);
 }
 
 .last-submitted-text {
-  min-height: 24px;
-  padding: 0.25rem 0.45rem;
+  min-height: 22px;
+  padding: 0.2rem 0.4rem;
   border: 1px solid #e5e7eb;
   border-radius: 7px;
   background: #ffffff;

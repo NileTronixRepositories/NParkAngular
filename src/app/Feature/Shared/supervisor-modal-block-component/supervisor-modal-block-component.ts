@@ -116,7 +116,7 @@ export class SupervisorModalBlockComponent {
   };
 
   t(key: string): string {
-    return this.dict[this.i18n.current]?.[key] ?? this.dict['en']?.[key] ?? key;
+    return this.i18n.translate(this.dict as any, key);
   }
 
   get showGateContext(): boolean {

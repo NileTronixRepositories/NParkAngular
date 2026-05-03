@@ -1,8 +1,10 @@
 .app-shell {
   display: flex;
   min-height: 100vh;
+  width: 100%;
+  max-width: 100vw;
   background: #f8fafc;
-  overflow-x: hidden;  
+  overflow-x: clip;
   position: relative;
 }
 
@@ -13,7 +15,7 @@
   flex-direction: column;
   min-width: 0; 
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
 }
 
 .page-content {
@@ -21,6 +23,30 @@
   padding: 1rem;
   padding-bottom: 2rem;
   min-width: 0;
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+.gate-session-shell {
+  --gate-sidebar-width: 85px;
+  width: 100vw;
+  max-width: 100vw;
+}
+
+.gate-session-shell.sidebar-is-collapsed .app-content {
+  flex: 0 1 calc(100vw - var(--gate-sidebar-width));
+  width: calc(100vw - var(--gate-sidebar-width));
+  max-width: calc(100vw - var(--gate-sidebar-width));
+}
+
+.gate-session-shell .page-content {
+  padding: 0.75rem;
+}
+
+@media (max-width: 768px) {
+  .gate-session-shell {
+    --gate-sidebar-width: 80px;
+  }
 }
 
 .app-content.headerless .page-content {

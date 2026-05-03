@@ -410,6 +410,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       pricing_schema: 'التعريفة',
       select_pricing_schema: 'اختر التعريفة',
       select_pricing_schema_first: 'يرجى اختيار التعريفة أولا',
+      no_enter_price_schemas: 'لا توجد أسعار دخول. يرجى إنشاء سعر دخول أولا.',
       lpr_vehicle_number_missing_after_pricing: 'لم يتم إدخال رقم سيارة من LPR',
       create_lpr_ticket: 'إنشاء تذكرة LPR',
       vehicle_images: 'ماسح الصور',
@@ -556,6 +557,7 @@ export class TicketComponent implements OnInit, OnDestroy {
       pricing_schema: 'Pricing schema',
       select_pricing_schema: 'Select pricing schema',
       select_pricing_schema_first: 'Please select a pricing schema first',
+      no_enter_price_schemas: 'No enter price schemas found. Please create one first.',
       lpr_vehicle_number_missing_after_pricing: 'No LPR vehicle number entered',
       create_lpr_ticket: 'Create LPR ticket',
       vehicle_images: 'Vehicle images',
@@ -590,7 +592,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     },
   };
 
-  t = (k: string) => (this.dict as any)[this.i18n.current]?.[k] ?? this.dict.en[k] ?? k;
+  t = (k: string) => this.i18n.translate(this.dict, k);
   dir = computed(() => this.i18n.dir());
   isRTL = computed(() => this.i18n.isRTL());
 
@@ -1210,7 +1212,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     const pricingSchemaId = this.selectedPricingSchemaId?.trim();
     if (!pricingSchemaId) {
       this.ensurePricingSchemasLoaded();
-      // this.toast.warn(this.t('select_pricing_schema_first'));
+      this.toast.warn(this.t('select_pricing_schema_first'));
       return;
     }
 
@@ -1503,7 +1505,7 @@ export class TicketComponent implements OnInit, OnDestroy {
         return;
       }
 
-      // this.toast.warn(this.t('select_pricing_schema_first'));
+      this.toast.warn(this.t('select_pricing_schema_first'));
     }
   }
 
@@ -1512,13 +1514,20 @@ export class TicketComponent implements OnInit, OnDestroy {
 
     this.pricingSchemasLoading = true;
 
-    this.registrationSvc.getAll().subscribe({
+    this.registrationSvc.getEnterPriceSchemasForSelection().subscribe({
       next: (schemas) => {
         this.pricingSchemas = (schemas ?? []).map((schema: any) => ({
           id: schema.id ?? schema.Id ?? '',
           name: schema.name ?? schema.Name ?? '',
           description: schema.description ?? schema.Description ?? null,
+          salary: Number(schema.salary ?? schema.Salary ?? 0),
         }));
+        if (
+          this.selectedPricingSchemaId &&
+          !this.pricingSchemas.some((schema) => schema.id === this.selectedPricingSchemaId)
+        ) {
+          this.selectedPricingSchemaId = '';
+        }
       },
       error: (err) => {
         this.handleBackendError('Get Pricing Schemas error', err);
@@ -1544,7 +1553,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     const pricingSchemaId = this.selectedPricingSchemaId?.trim();
     if (!pricingSchemaId) {
       this.ensurePricingSchemasLoaded();
-      // this.toast.warn(this.t('select_pricing_schema_first'));
+      this.toast.warn(this.t('select_pricing_schema_first'));
       this.lprMembershipStatus = 'non-subscriber';
       return;
     }

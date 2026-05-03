@@ -192,7 +192,7 @@ export class ReportsComponent implements OnInit {
     const data = this.reports();
     if (data.length === 0) return;
 
-    const t = (k: string) => (this.dict as any)[this.lang.current]?.[k] ?? k;
+    const t = (k: string) => this.lang.translate(this.dict as any, k);
     const isAr = this.lang.current === 'ar';
 
     const exportData = data.map((r) => ({
@@ -221,7 +221,7 @@ export class ReportsComponent implements OnInit {
     const data = this.reports();
     if (data.length === 0) return;
 
-    const t = (k: string) => (this.dict as any)[this.lang.current]?.[k] ?? k;
+    const t = (k: string) => this.lang.translate(this.dict as any, k);
     const isAr = this.lang.current === 'ar';
     const locale = isAr ? 'ar-EG' : 'en-US';
     const fileName = `Reports_${new Date().getTime()}.pdf`;

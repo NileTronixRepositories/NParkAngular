@@ -3,7 +3,10 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../Shared/environment/environment';
 import { PagedResult } from '../../Domain/PageResult/PagedResult';
-import { ParkingMembershipDto } from '../../Domain/registration/registration-model';
+import {
+  EnterPriceSchemaSelectionDto,
+  ParkingMembershipDto,
+} from '../../Domain/registration/registration-model';
 
 export interface PricingSchemaDto {
   id: string;
@@ -22,6 +25,10 @@ export class Registrationservice {
 
   getAll(): Observable<PricingSchemaDto[]> {
     return this.http.get<PricingSchemaDto[]>(`${this.pricingBase}/GetWithoudPagination`);
+  }
+
+  getEnterPriceSchemasForSelection(): Observable<EnterPriceSchemaSelectionDto[]> {
+    return this.http.get<any[]>(`${this.pricingBase}/enter-price-schema-for-selection`);
   }
 
   addMembership(fd: FormData) {

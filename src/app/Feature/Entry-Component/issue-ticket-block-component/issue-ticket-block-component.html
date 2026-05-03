@@ -85,12 +85,17 @@
           (click)="onPricingSchemaChange(schema.id)"
         >
           <span class="schema-dot"></span>
-          <span class="schema-name text-truncate">{{ schema.name }}</span>
+          <span class="schema-name text-truncate">
+            {{ schema.name }}
+            <ng-container *ngIf="schema.salary !== null && schema.salary !== undefined">
+              - {{ schema.salary | number: '1.0-2' }} {{ t('currency') }}
+            </ng-container>
+          </span>
         </button>
       </div>
       <ng-template #noPricingSchemas>
         <div class="empty-pricing-state x-small text-muted border rounded-2 bg-white px-2 py-1">
-          {{ t('select_pricing_schema') }}
+          {{ t('no_enter_price_schemas') }}
         </div>
       </ng-template>
       <div class="x-small text-muted mt-1" *ngIf="pricingSchemasLoading">

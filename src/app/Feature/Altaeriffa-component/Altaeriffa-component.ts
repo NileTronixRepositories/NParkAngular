@@ -13,7 +13,9 @@ import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { ToastServices } from '../../Services/Toster/toast-services';
 
 import {
+  EnterPricingSchemaUpdateDto,
   PricingSchemaAddDto,
+  PricingSchemaUpdateRequest,
   PricingSchemaUpdateDto,
 } from '../../Domain/Subscription-type/subscription-type.models';
 import { AltaeriffaTourService } from '../../Services/AltaeriffaTour/Altaeriffa-tour.service';
@@ -30,6 +32,11 @@ type FormShape = {
   isRepeated: FormControl<boolean>;
   totalHours: FormControl<number | null>;
   totalDays: FormControl<number | null>;
+};
+
+type EnterPriceFormShape = {
+  name: FormControl<string>;
+  salary: FormControl<number | null>;
 };
 
 @Component({
@@ -65,6 +72,16 @@ type FormShape = {
           total_days_required: 'إجمالي الأيام مطلوب (حد أدنى 1).',
           price_label: '(جنيه) السعر',
           price_required: 'السعر مطلوب ويجب أن يكون 0 أو أكثر.',
+          enter_price_title: 'سعر تذكرة الدخول',
+          enter_price_hint: 'إنشاء سعر دخول باستخدام الاسم والسعر فقط.',
+          enter_price_name: 'اسم سعر الدخول',
+          enter_price_salary: 'سعر الدخول',
+          enter_price_salary_required: 'سعر الدخول مطلوب ويجب أن يكون أكبر من 0.',
+          enter_price_add: 'إنشاء سعر دخول',
+          enter_price_added_success: 'تم إنشاء سعر الدخول بنجاح',
+          enter_price_badge: 'سعر دخول',
+          enter_price_validation: 'الاسم وسعر أكبر من 0 مطلوبان.',
+          enter_price_edit_disabled: 'سعر الدخول لا يتم تعديله من فورم التعريفة العادية.',
           reset: 'إعادة ضبط',
           save: 'حفظ',
           list_title: 'قائمة الشرائح',
@@ -91,6 +108,7 @@ type FormShape = {
           errors_title: 'أخطاء في البيانات:',
           err_name: 'الاسم مطلوب ويجب أن يكون على الأقل حرفين',
           err_price: 'السعر مطلوب ويجب أن يكون 0 أو أكثر',
+          err_enter_price: 'سعر الدخول مطلوب ويجب أن يكون أكبر من 0',
           err_days: 'إجمالي الأيام مطلوب ويجب أن يكون 1 أو أكثر',
           err_hours: 'إجمالي الساعات مطلوب ويجب أن يكون 1 أو أكثر',
           err_time_needed: 'وقت البداية والنهاية مطلوبان عندما لا يكون الحساب متكرر',
@@ -132,6 +150,16 @@ type FormShape = {
           total_days_required: 'Total days is required (min 1).',
           price_label: 'Price (EGP)',
           price_required: 'Price is required and must be ≥ 0.',
+          enter_price_title: 'Enter ticket price',
+          enter_price_hint: 'Create a dedicated entry ticket price using name and salary only.',
+          enter_price_name: 'Name',
+          enter_price_salary: 'Salary',
+          enter_price_salary_required: 'Salary is required and must be greater than 0.',
+          enter_price_add: 'Create enter price',
+          enter_price_added_success: 'Enter price schema created successfully',
+          enter_price_badge: 'Enter price',
+          enter_price_validation: 'Name and salary greater than 0 are required.',
+          enter_price_edit_disabled: 'Enter price schemas cannot be edited from the normal schema form.',
           reset: 'Reset',
           save: 'Save',
           list_title: 'Schemes',
@@ -158,6 +186,7 @@ type FormShape = {
           errors_title: 'Validation errors:',
           err_name: 'Name is required (min 2 chars).',
           err_price: 'Price is required and must be ≥ 0.',
+          err_enter_price: 'Enter price is required and must be greater than 0.',
           err_days: 'Total days is required and must be ≥ 1.',
           err_hours: 'Total hours is required and must be ≥ 1.',
           err_time_needed: 'Start/End time are required when not repeated.',
@@ -213,6 +242,16 @@ export class AltaeriffaComponent implements OnInit {
       total_days_required: 'إجمالي الأيام مطلوب (حد أدنى 1).',
       price_label: '(جنيه) السعر',
       price_required: 'السعر مطلوب ويجب أن يكون 0 أو أكثر.',
+      enter_price_title: 'سعر تذكرة الدخول',
+      enter_price_hint: 'إنشاء سعر دخول باستخدام الاسم والسعر فقط.',
+      enter_price_name: 'اسم سعر الدخول',
+      enter_price_salary: 'سعر الدخول',
+      enter_price_salary_required: 'سعر الدخول مطلوب ويجب أن يكون أكبر من 0.',
+      enter_price_add: 'إنشاء سعر دخول',
+      enter_price_added_success: 'تم إنشاء سعر الدخول بنجاح',
+      enter_price_badge: 'سعر دخول',
+      enter_price_validation: 'الاسم وسعر أكبر من 0 مطلوبان.',
+      enter_price_edit_disabled: 'سعر الدخول لا يتم تعديله من فورم التعريفة العادية.',
       reset: 'إعادة ضبط',
       save: 'حفظ',
       list_title: 'قائمة الشرائح',
@@ -239,6 +278,7 @@ export class AltaeriffaComponent implements OnInit {
       errors_title: 'أخطاء في البيانات:',
       err_name: 'الاسم مطلوب ويجب أن يكون على الأقل حرفين',
       err_price: 'السعر مطلوب ويجب أن يكون 0 أو أكثر',
+      err_enter_price: 'سعر الدخول مطلوب ويجب أن يكون أكبر من 0',
       err_days: 'إجمالي الأيام مطلوب ويجب أن يكون 1 أو أكثر',
       err_hours: 'إجمالي الساعات مطلوب ويجب أن يكون 1 أو أكثر',
       err_time_needed: 'وقت البداية والنهاية مطلوبان عندما لا يكون الحساب متكرر',
@@ -279,6 +319,16 @@ export class AltaeriffaComponent implements OnInit {
       total_days_required: 'Total days is required (min 1).',
       price_label: 'Price (EGP)',
       price_required: 'Price is required and must be ≥ 0.',
+      enter_price_title: 'Enter ticket price',
+      enter_price_hint: 'Create a dedicated entry ticket price using name and salary only.',
+      enter_price_name: 'Name',
+      enter_price_salary: 'Salary',
+      enter_price_salary_required: 'Salary is required and must be greater than 0.',
+      enter_price_add: 'Create enter price',
+      enter_price_added_success: 'Enter price schema created successfully',
+      enter_price_badge: 'Enter price',
+      enter_price_validation: 'Name and salary greater than 0 are required.',
+      enter_price_edit_disabled: 'Enter price schemas cannot be edited from the normal schema form.',
       reset: 'Reset',
       save: 'Save',
       list_title: 'Schemes',
@@ -305,6 +355,7 @@ export class AltaeriffaComponent implements OnInit {
       errors_title: 'Validation errors:',
       err_name: 'Name is required (min 2 chars).',
       err_price: 'Price is required and must be ≥ 0.',
+      err_enter_price: 'Enter price is required and must be greater than 0.',
       err_days: 'Total days is required and must be ≥ 1.',
       err_hours: 'Total hours is required and must be ≥ 1.',
       err_time_needed: 'Start/End time are required when not repeated.',
@@ -328,7 +379,7 @@ export class AltaeriffaComponent implements OnInit {
     this.AltaeriffaTourService.startTour();
   }
 
-  t = (key: string) => (this.dict as any)[this.i18n.current]?.[key] ?? key;
+  t = (key: string) => this.i18n.translate(this.dict, key);
   dir = computed(() => this.i18n.dir());
   isRTL = computed(() => this.i18n.isRTL());
 
@@ -343,9 +394,11 @@ export class AltaeriffaComponent implements OnInit {
   // ===== Data/UI =====
   loading = signal(false);
   saving = signal(false);
+  savingEnterPrice = signal(false);
   rows = signal<PricingSchemaRow[]>([]);
   query = signal<string>('');
   private editingRowId = signal<string | null>(null);
+  private editingEnterPriceSchema = signal(false);
 
   form = this.fb.group<FormShape>({
     id: this.fb.control<string | null>(null),
@@ -362,6 +415,16 @@ export class AltaeriffaComponent implements OnInit {
     isRepeated: this.fb.control<boolean>(false, { nonNullable: true }),
     totalHours: this.fb.control<number | null>(null),
     totalDays: this.fb.control<number | null>(1, { validators: [Validators.min(1)] }),
+  });
+
+  enterPriceForm = this.fb.group<EnterPriceFormShape>({
+    name: this.fb.control<string>('', {
+      nonNullable: true,
+      validators: [Validators.required, Validators.minLength(2)],
+    }),
+    salary: this.fb.control<number | null>(null, {
+      validators: [Validators.required, Validators.min(0.01)],
+    }),
   });
 
   filtered = computed(() => {
@@ -416,6 +479,7 @@ export class AltaeriffaComponent implements OnInit {
 
   // ===== Validation rules =====
   private updateTimeAndModeRules() {
+    const isEnterEdit = this.editingEnterPriceSchema();
     const dt = this.form.controls.durationType.value;
     const isRep = this.form.controls.isRepeated.value;
 
@@ -425,7 +489,25 @@ export class AltaeriffaComponent implements OnInit {
     this.form.controls.totalDays.clearValidators();
     this.form.controls.totalHours.clearValidators();
 
-    this.form.controls.price.setValidators([Validators.required, Validators.min(0)]);
+    this.form.controls.price.setValidators([
+      Validators.required,
+      Validators.min(isEnterEdit ? 0.01 : 0),
+    ]);
+
+    if (isEnterEdit) {
+      this.form.controls.durationType.setValue(DurationType.Days, { emitEvent: false });
+      this.form.controls.startTime.setValue(null, { emitEvent: false });
+      this.form.controls.endTime.setValue(null, { emitEvent: false });
+      this.form.controls.isRepeated.setValue(false, { emitEvent: false });
+      this.form.controls.totalHours.setValue(null, { emitEvent: false });
+      this.form.controls.totalDays.setValue(null, { emitEvent: false });
+      this.form.controls.startTime.updateValueAndValidity({ emitEvent: false });
+      this.form.controls.endTime.updateValueAndValidity({ emitEvent: false });
+      this.form.controls.totalDays.updateValueAndValidity({ emitEvent: false });
+      this.form.controls.totalHours.updateValueAndValidity({ emitEvent: false });
+      this.form.controls.price.updateValueAndValidity({ emitEvent: false });
+      return;
+    }
 
     if (dt === DurationType.Days) {
       this.form.controls.totalDays.setValidators([Validators.required, Validators.min(1)]);
@@ -486,7 +568,7 @@ export class AltaeriffaComponent implements OnInit {
     };
   }
 
-  private buildUpdateDto(): PricingSchemaUpdateDto {
+  private buildUpdateDto(): PricingSchemaUpdateRequest {
     const v = this.form.getRawValue();
     let id = this.editingRowId();
     if ((id === null || id === undefined) && v.id !== null && v.id !== undefined) {
@@ -494,6 +576,15 @@ export class AltaeriffaComponent implements OnInit {
     }
     if (!id || typeof id !== 'string' || id.trim().length === 0) {
       throw new Error('Cannot update without a valid id');
+    }
+
+    if (this.editingEnterPriceSchema()) {
+      return {
+        id,
+        name: (v.name || '').trim(),
+        price: Number(v.price ?? 0),
+        isEnterPriceSchema: true,
+      } satisfies EnterPricingSchemaUpdateDto;
     }
 
     const isHours = v.durationType === DurationType.Hours;
@@ -514,6 +605,7 @@ export class AltaeriffaComponent implements OnInit {
       isRepeated: isHours ? isRep : false,
       totalHours: isHours ? Number(v.totalHours ?? 0) : null,
       totalDays: isDays ? Number(v.totalDays ?? 0) : null,
+      isEnterPriceSchema: false,
     };
   }
 
@@ -536,7 +628,12 @@ export class AltaeriffaComponent implements OnInit {
     return this.editingRowId();
   }
 
+  isEditingEnterPriceSchema(): boolean {
+    return this.editingEnterPriceSchema();
+  }
+
   setMode(mode: DurationType) {
+    if (this.editingEnterPriceSchema()) return;
     this.form.controls.durationType.setValue(mode, { emitEvent: true });
   }
 
@@ -586,6 +683,7 @@ export class AltaeriffaComponent implements OnInit {
   }
 
   resetForm() {
+    this.editingEnterPriceSchema.set(false);
     this.form.reset({
       id: '',
       name: '',
@@ -673,36 +771,49 @@ export class AltaeriffaComponent implements OnInit {
     }
   }
 
-  private validateDto(dto: PricingSchemaAddDto | PricingSchemaUpdateDto): boolean {
+  private validateDto(dto: PricingSchemaAddDto | PricingSchemaUpdateRequest): boolean {
     const errors: string[] = [];
 
     if (!dto.name || dto.name.trim().length < 2) {
       errors.push(this.t('err_name'));
     }
 
-    if (dto.price === null || dto.price === undefined || dto.price < 0) {
+    if ('isEnterPriceSchema' in dto && dto.isEnterPriceSchema === true) {
+      if (dto.price === null || dto.price === undefined || dto.price <= 0) {
+        errors.push(this.t('err_enter_price'));
+      }
+      if (errors.length > 0) {
+        this.toast.warn(errors.join('، '), this.t('errors_title'));
+        return false;
+      }
+      return true;
+    }
+
+    const normalDto = dto as PricingSchemaAddDto | PricingSchemaUpdateDto;
+
+    if (normalDto.price === null || normalDto.price === undefined || normalDto.price < 0) {
       errors.push(this.t('err_price'));
     }
 
-    if (dto.durationType === DurationType.Days) {
-      if (!dto.totalDays || dto.totalDays < 1) {
+    if (normalDto.durationType === DurationType.Days) {
+      if (!normalDto.totalDays || normalDto.totalDays < 1) {
         errors.push(this.t('err_days'));
       }
-    } else if (dto.durationType === DurationType.Hours) {
-      if (!dto.totalHours || dto.totalHours < 1) {
+    } else if (normalDto.durationType === DurationType.Hours) {
+      if (!normalDto.totalHours || normalDto.totalHours < 1) {
         errors.push(this.t('err_hours'));
       }
-      if (!dto.isRepeated) {
-        if (!dto.startTime || !dto.endTime) {
+      if (!normalDto.isRepeated) {
+        if (!normalDto.startTime || !normalDto.endTime) {
           errors.push(this.t('err_time_needed'));
         }
       }
-    } else if (dto.durationType === DurationType.Year) {
-      dto.totalDays = null;
-      dto.totalHours = null;
-      dto.startTime = null;
-      dto.endTime = null;
-      dto.isRepeated = false;
+    } else if (normalDto.durationType === DurationType.Year) {
+      normalDto.totalDays = null;
+      normalDto.totalHours = null;
+      normalDto.startTime = null;
+      normalDto.endTime = null;
+      normalDto.isRepeated = false;
     }
 
     if (errors.length > 0) {
@@ -736,18 +847,19 @@ export class AltaeriffaComponent implements OnInit {
     const rep = isHours ? !!r.isRepeated : false;
 
     this.editingRowId.set(r.id ?? null);
+    this.editingEnterPriceSchema.set(!!r.isEnterPriceSchema);
 
     const formValues: any = {
       id: r.id ?? null,
       name: r.name ?? '',
-      durationType: dt,
+      durationType: r.isEnterPriceSchema ? DurationType.Days : dt,
       price: r.price ?? null,
-      isRepeated: rep,
-      totalHours: isHours ? (r.totalHours ?? 1) : null,
-      totalDays: isDays ? (r.totalDays ?? 1) : null,
+      isRepeated: r.isEnterPriceSchema ? false : rep,
+      totalHours: r.isEnterPriceSchema ? null : isHours ? (r.totalHours ?? 1) : null,
+      totalDays: r.isEnterPriceSchema ? null : isDays ? (r.totalDays ?? 1) : null,
     };
 
-    if (isHours && !rep) {
+    if (!r.isEnterPriceSchema && isHours && !rep) {
       formValues.startTime = this.toHmForInput(r.startTime) || '00:00';
       formValues.endTime = this.toHmForInput(r.endTime) || '00:00';
     } else {
@@ -755,7 +867,7 @@ export class AltaeriffaComponent implements OnInit {
       formValues.endTime = null;
     }
 
-    if (isYear) {
+    if (!r.isEnterPriceSchema && isYear) {
       formValues.totalHours = null;
       formValues.totalDays = null;
       formValues.isRepeated = false;
@@ -764,5 +876,38 @@ export class AltaeriffaComponent implements OnInit {
     this.form.setValue(formValues);
     this.updateTimeAndModeRules();
     this.focusForm();
+  }
+
+  saveEnterPriceSchema() {
+    this.enterPriceForm.markAllAsTouched();
+    if (this.enterPriceForm.invalid) {
+      this.toast.warn(this.t('enter_price_validation'));
+      return;
+    }
+
+    const value = this.enterPriceForm.getRawValue();
+    const payload = {
+      name: (value.name ?? '').trim(),
+      salary: Number(value.salary ?? 0),
+    };
+
+    this.savingEnterPrice.set(true);
+    this.api.createEnterPriceSchema(payload).subscribe({
+      next: () => {
+        this.toast.success(this.t('enter_price_added_success'));
+        this.enterPriceForm.reset({
+          name: '',
+          salary: null,
+        });
+        this.page.set(1);
+        this.loadRows();
+      },
+      error: (err) => {
+        this.toast.fromProblem(err);
+      },
+      complete: () => {
+        this.savingEnterPrice.set(false);
+      },
+    });
   }
 }

@@ -11,7 +11,6 @@ import { I18N_DICT, I18nDict } from './i18n.tokens';
 export class TranslatePipePipe implements PipeTransform {
   constructor(private lang: LanguageService, @Inject(I18N_DICT) private dict: I18nDict) {}
   transform(key: string): string {
-    const d = this.dict[this.lang.current] || {};
-    return d[key] ?? key;
+    return this.lang.translate(this.dict, key);
   }
 }

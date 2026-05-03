@@ -115,6 +115,8 @@ export class TicketExceedTransactionService {
       superVisorCollectorId: res?.superVisorCollectorId ?? res?.SuperVisorCollectorId ?? null,
       sanctionIds: res?.sanctionIds ?? res?.SanctionIds ?? [],
       createdAt: res?.createdAt ?? res?.CreatedAt ?? '',
+      qrCode: res?.qrCode ?? res?.QrCode ?? res?.qrCodeBase64 ?? res?.QrCodeBase64 ?? null,
+      ticketInfo: res?.ticketInfo ?? res?.TicketInfo ?? '',
     };
   }
 
