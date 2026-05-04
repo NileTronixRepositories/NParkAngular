@@ -67,15 +67,74 @@
 .table thead th {
   border: none;
   letter-spacing: 0.05em;
+  padding: 0.7rem 0.55rem !important;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1.35;
+  white-space: normal;
 }
 
 .table tbody tr {
   transition: all 0.2s ease;
 }
 
+.table tbody td {
+  padding: 0.58rem 0.55rem !important;
+  font-size: 0.78rem;
+  font-weight: 500;
+  line-height: 1.35;
+  vertical-align: middle;
+}
+
 .table tbody tr:hover {
   background-color: #f8fafc;
   transform: scale(1.002);
+}
+
+.report-row .fw-bold {
+  font-weight: 650 !important;
+}
+
+.report-row .fw-semibold,
+.report-row .fw-medium {
+  font-weight: 500 !important;
+}
+
+.report-row .fs-5 {
+  font-size: 0.95rem !important;
+}
+
+.report-row .fs-6 {
+  font-size: 0.82rem !important;
+}
+
+.report-row .badge {
+  padding: 0.18rem 0.45rem !important;
+  font-size: 0.72rem;
+  font-weight: 650;
+  line-height: 1.2;
+  white-space: normal;
+}
+
+.report-row .avatar-sm {
+  width: 22px;
+  height: 22px;
+  font-size: 0.72rem;
+  flex: 0 0 22px;
+}
+
+.report-row .small {
+  font-size: 0.72rem;
+  line-height: 1.25;
+}
+
+.report-row .x-small {
+  font-size: 0.62rem;
+  line-height: 1.2;
+}
+
+.report-row .mono {
+  font-size: 0.78rem;
 }
 
 .report-row {

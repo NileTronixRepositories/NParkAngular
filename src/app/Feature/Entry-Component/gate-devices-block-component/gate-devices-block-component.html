@@ -41,62 +41,15 @@
       <span>{{ t('scanner_ready') }}</span>
     </div>
     <div class="p-1">
-      <ng-container *ngIf="shouldShowSplitPreview; else singleScannedPreview">
-        <div class="composite-preview">
-          <div
-            class="preview-box composite-main scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
-            [class.preview-box-button]="isImageFile(mainPreviewFile)"
-            (click)="openScannedPreview(mainPreviewFile)"
-            [attr.aria-label]="mainPreviewFile?.name"
-          >
-            <span class="split-preview-label x-small">
-              {{ t('camera_snapshot') }}
-            </span>
-            <img [src]="mainPreviewFile?.safeUrl" class="preview-media" alt="Preview" />
-          </div>
-
-          <button
-            *ngIf="secondaryPreviewFile as secondary"
-            type="button"
-            class="scanner-mini-preview"
-            (click)="openScannedPreview(secondary)"
-            [attr.aria-label]="secondary.name"
-          >
-            <span class="scanner-mini-title text-truncate">{{ secondary.name }}</span>
-            <img
-              *ngIf="isImageFile(secondary)"
-              [src]="secondary.safeUrl"
-              class="scanner-mini-media"
-              alt="Scanner preview"
-            />
-            <iframe
-              *ngIf="isPdfFile(secondary)"
-              [src]="secondary.safeUrl"
-              class="scanner-mini-document"
-              title="Scanner preview"
-              tabindex="-1"
-            ></iframe>
-            <span
-              *ngIf="!isImageFile(secondary) && !isPdfFile(secondary)"
-              class="scanner-mini-file"
-            >
-              <i class="bi bi-paperclip"></i>
-            </span>
-          </button>
-        </div>
-      </ng-container>
-
-      <ng-template #singleScannedPreview>
-        <button
-          *ngIf="scannedFile?.type?.startsWith('image/'); else scannedDocumentPreview"
-          type="button"
-          class="preview-box preview-box-button scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
-          (click)="openScannedPreview()"
-          [attr.aria-label]="scannedFile?.name"
-        >
-          <img [src]="scannedFile?.safeUrl" class="preview-media" alt="Preview" />
-        </button>
-      </ng-template>
+      <button
+        *ngIf="scannedFile?.type?.startsWith('image/'); else scannedDocumentPreview"
+        type="button"
+        class="preview-box preview-box-button scanned-preview-box border rounded-2 bg-light d-flex align-items-center justify-content-center overflow-hidden w-100"
+        (click)="openScannedPreview()"
+        [attr.aria-label]="scannedFile?.name"
+      >
+        <img [src]="scannedFile?.safeUrl" class="preview-media" alt="Preview" />
+      </button>
 
       <ng-template #scannedDocumentPreview>
         <div
@@ -124,6 +77,64 @@
           </div>
         </div>
       </ng-template>
+
+      <div class="samples-strip mt-2" *ngIf="uploadedVehicleImages.length">
+        <div class="d-flex align-items-center justify-content-between gap-2 mb-1">
+          <div class="x-small fw-bold text-primary">
+            {{ t('vehicle_images_attached') }}
+          </div>
+          <span class="badge pill theme-green">{{ uploadedVehicleImages.length }}</span>
+        </div>
+
+        <div class="samples-grid">
+          <div
+            role="button"
+            tabindex="0"
+            class="sample-tile"
+            *ngFor="let file of uploadedVehicleImages; let i = index"
+            [class.preview-selected]="isPreviewSelected(file.url)"
+            (click)="openScannedPreview(file)"
+            (keydown.enter)="openScannedPreview(file)"
+            (keydown.space)="openScannedPreview(file)"
+            [attr.aria-label]="file.name"
+          >
+            <span class="sample-badge">
+              <i
+                class="bi"
+                [class.bi-camera-fill]="isSnapshotFile(file)"
+                [class.bi-printer-fill]="isScannerAttachment(file)"
+                [class.bi-paperclip]="!isSnapshotFile(file) && !isScannerAttachment(file)"
+              ></i>
+            </span>
+            <img
+              *ngIf="isImageFile(file)"
+              [src]="file.safeUrl"
+              class="sample-media"
+              alt="Sample"
+            />
+            <iframe
+              *ngIf="isPdfFile(file)"
+              [src]="file.safeUrl"
+              class="sample-media sample-pdf-preview"
+              title="PDF preview"
+            ></iframe>
+            <span *ngIf="!isImageFile(file) && !isPdfFile(file)" class="sample-file">
+              <i class="bi bi-file-earmark"></i>
+            </span>
+            <span class="sample-name text-truncate" dir="ltr">{{ file.name }}</span>
+            <button
+              type="button"
+              class="sample-remove"
+              (click)="$event.stopPropagation(); onRemoveVehicleImage(i)"
+              (keydown.enter)="$event.stopPropagation(); onRemoveVehicleImage(i)"
+              (keydown.space)="$event.stopPropagation(); onRemoveVehicleImage(i)"
+              [attr.aria-label]="t('deleteDoc') || 'Remove'"
+            >
+              <i class="bi bi-x-lg"></i>
+            </button>
+          </div>
+        </div>
+      </div>
       <!-- <div class="mt-1 d-flex flex-column gap-1">
         <div class="x-small text-muted text-center text-truncate">{{ scannedFile.name }}</div>
         <a
@@ -201,14 +212,14 @@
         </div>
 
         <div class="mt-2">
-          <!-- <input
+          <input
             type="file"
             class="form-control form-control-sm x-small"
-            accept="image/*,.pdf"
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
             multiple
             (change)="onVehicleImagesChange($event)"
           />
-          <div class="x-small text-muted mt-1">{{ t('vehicle_images_optional') }}</div> -->
+          <div class="x-small text-muted mt-1">{{ t('vehicle_images_optional') }}</div>
         </div>
 
         <!-- <div class="mt-1" *ngIf="gp.lprIp">
@@ -269,14 +280,14 @@
 
 <div
   class="scan-preview-modal"
-  *ngIf="scannedPreviewOpen && scannedFile"
+  *ngIf="scannedPreviewOpen && previewFile"
   (click)="closeScannedPreview()"
 >
   <div class="scan-preview-dialog" (click)="$event.stopPropagation()">
     <div class="scan-preview-header">
       <div class="scan-preview-title text-truncate">
         <i class="bi bi-image text-primary"></i>
-        <span dir="ltr">{{ scannedFile.name }}</span>
+        <span dir="ltr">{{ previewFile.name }}</span>
       </div>
       <button
         type="button"
@@ -288,15 +299,15 @@
       </button>
     </div>
     <div class="scan-preview-body">
-      <img *ngIf="isImageFile(scannedFile)" [src]="scannedFile.safeUrl" alt="Preview" />
+      <img *ngIf="isImageFile(previewFile)" [src]="previewFile.safeUrl" alt="Preview" />
       <iframe
-        *ngIf="isPdfFile(scannedFile)"
-        [src]="scannedFile.safeUrl"
+        *ngIf="isPdfFile(previewFile)"
+        [src]="previewFile.safeUrl"
         title="Scanned document preview"
       ></iframe>
-      <div *ngIf="!isImageFile(scannedFile) && !isPdfFile(scannedFile)" class="scan-file-empty">
+      <div *ngIf="!isImageFile(previewFile) && !isPdfFile(previewFile)" class="scan-file-empty">
         <i class="bi bi-paperclip"></i>
-        <span>{{ scannedFile.name }}</span>
+        <span>{{ previewFile.name }}</span>
       </div>
     </div>
   </div>

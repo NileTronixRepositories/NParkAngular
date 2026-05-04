@@ -1,7 +1,13 @@
 import { Component, computed, inject } from '@angular/core';
 import { NgIf, NgFor, NgClass, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { UserDto, UserCreateDto, UserUpdateDto, RoleDto } from '../../Domain/Users/user.model';
+import {
+  UserDto,
+  UserCreateDto,
+  UserUpdateDto,
+  RoleDto,
+  isCashierRole,
+} from '../../Domain/Users/user.model';
 import { UsersServices } from '../../Services/Users/users-services';
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { ToastServices } from '../../Services/Toster/toast-services';
@@ -47,6 +53,8 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
           failed_load: 'فشل تحميل المستخدمين',
           failed_save: 'تعذر الحفظ',
           password: 'كلمة المرور',
+          change_password: 'تغيير كلمة المرور',
+          cancel_password_change: 'إلغاء تغيير كلمة المرور',
           show_password: 'عرض كلمة المرور',
           hide_password: 'إخفاء كلمة المرور',
           phone: 'الجوال',
@@ -59,6 +67,14 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
           delete_ok: 'تم حذف المستخدم بنجاح',
           delete_failed: 'فشل حذف المستخدم',
           leave_empty_to_keep: 'اتركه فارغاً للاحتفاظ بكلمة المرور الحالية',
+          shiftStartTime: 'بداية الشفت',
+          shiftEndTime: 'نهاية الشفت',
+          shift: 'الشفت',
+          shift_required_start: 'Shift start time is required for cashier users',
+          shift_required_end: 'Shift end time is required for cashier users',
+          shift_required_pair: 'Shift start time and shift end time must be provided together',
+          shift_cashier_only: 'Shift time is allowed only for EntranceCashier and ExitCashier roles',
+          shift_invalid_format: 'Shift time must be in 24-hour HH:mm format',
           helpTour: 'شرح الواجهة',
         },
         en: {
@@ -89,6 +105,8 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
           failed_load: 'Failed to load users',
           failed_save: 'Failed to save',
           password: 'Password',
+          change_password: 'Change Password',
+          cancel_password_change: 'Cancel Password Change',
           show_password: 'Show password',
           hide_password: 'Hide password',
           phone: 'Phone',
@@ -102,6 +120,14 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
           delete_ok: 'User deleted successfully',
           delete_failed: 'Failed to delete user',
           leave_empty_to_keep: 'Leave empty to keep current',
+          shiftStartTime: 'Shift Start Time',
+          shiftEndTime: 'Shift End Time',
+          shift: 'Shift',
+          shift_required_start: 'Shift start time is required for cashier users',
+          shift_required_end: 'Shift end time is required for cashier users',
+          shift_required_pair: 'Shift start time and shift end time must be provided together',
+          shift_cashier_only: 'Shift time is allowed only for EntranceCashier and ExitCashier roles',
+          shift_invalid_format: 'Shift time must be in 24-hour HH:mm format',
           helpTour: 'Help Tour',
         },
       }),
@@ -143,6 +169,8 @@ export class Users {
       failed_load: 'فشل تحميل المستخدمين',
       failed_save: 'تعذر الحفظ',
       password: 'كلمة المرور',
+      change_password: 'تغيير كلمة المرور',
+      cancel_password_change: 'إلغاء تغيير كلمة المرور',
       show_password: 'عرض كلمة المرور',
       hide_password: 'إخفاء كلمة المرور',
       phone: 'الجوال',
@@ -155,6 +183,14 @@ export class Users {
       delete_ok: 'تم حذف المستخدم بنجاح',
       delete_failed: 'فشل حذف المستخدم',
       leave_empty_to_keep: 'اتركه فارغاً للاحتفاظ بكلمة المرور الحالية',
+      shiftStartTime: 'بداية الشفت',
+      shiftEndTime: 'نهاية الشفت',
+      shift: 'الشفت',
+      shift_required_start: 'Shift start time is required for cashier users',
+      shift_required_end: 'Shift end time is required for cashier users',
+      shift_required_pair: 'Shift start time and shift end time must be provided together',
+      shift_cashier_only: 'Shift time is allowed only for EntranceCashier and ExitCashier roles',
+      shift_invalid_format: 'Shift time must be in 24-hour HH:mm format',
     },
     en: {
       users: 'Users',
@@ -184,6 +220,8 @@ export class Users {
       failed_load: 'Failed to load users',
       failed_save: 'Failed to save',
       password: 'Password',
+      change_password: 'Change Password',
+      cancel_password_change: 'Cancel Password Change',
       show_password: 'Show password',
       hide_password: 'Hide password',
       phone: 'Phone',
@@ -196,6 +234,14 @@ export class Users {
       delete_ok: 'User deleted successfully',
       delete_failed: 'Failed to delete user',
       leave_empty_to_keep: 'Leave empty to keep current',
+      shiftStartTime: 'Shift Start Time',
+      shiftEndTime: 'Shift End Time',
+      shift: 'Shift',
+      shift_required_start: 'Shift start time is required for cashier users',
+      shift_required_end: 'Shift end time is required for cashier users',
+      shift_required_pair: 'Shift start time and shift end time must be provided together',
+      shift_cashier_only: 'Shift time is allowed only for EntranceCashier and ExitCashier roles',
+      shift_invalid_format: 'Shift time must be in 24-hour HH:mm format',
     },
   };
 
@@ -210,6 +256,7 @@ export class Users {
   showForm = false;
   isEdit = false;
   showPassword = false;
+  changePasswordMode = false;
 
   roles: RoleDto[] = [];
   rolesLoading = false;
@@ -223,6 +270,8 @@ export class Users {
     password: '',
     phoneNumber: '',
     nationalId: '',
+    shiftStartTime: null,
+    shiftEndTime: null,
   };
 
   constructor() {
@@ -274,8 +323,11 @@ export class Users {
       password: '',
       phoneNumber: '',
       nationalId: '',
+      shiftStartTime: null,
+      shiftEndTime: null,
     };
     this.showPassword = false;
+    this.changePasswordMode = true;
     this.showForm = true;
   }
 
@@ -297,8 +349,11 @@ export class Users {
       password: '',
       phoneNumber: u.phoneNumber ?? '',
       nationalId: u.nationalId ?? '',
+      shiftStartTime: this.toTimeInputValue(u.shiftStartTime),
+      shiftEndTime: this.toTimeInputValue(u.shiftEndTime),
     };
     this.showPassword = false;
+    this.changePasswordMode = false;
     this.showForm = true;
   }
 
@@ -307,9 +362,104 @@ export class Users {
     this.showForm = false;
   }
 
+  toggleChangePassword(): void {
+    this.changePasswordMode = !this.changePasswordMode;
+    this.showPassword = false;
+    this.model.password = '';
+  }
+
   private isValidEmail(v?: string) {
     if (!v) return false;
     return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
+  }
+
+  isCashierRoleSelected(roleId: string | null | undefined = this.model.roleId): boolean {
+    return isCashierRole(roleId);
+  }
+
+  onRoleChanged(roleId: string): void {
+    this.model.roleId = roleId;
+    if (!this.isCashierRoleSelected(roleId)) {
+      this.model.shiftStartTime = null;
+      this.model.shiftEndTime = null;
+    }
+  }
+
+  private toTimeInputValue(value: string | null | undefined): string | null {
+    return this.normalizeShiftTime(value);
+  }
+
+  private normalizeShiftTime(value: string | null | undefined): string | null {
+    const raw = String(value ?? '').trim();
+    if (!raw) return null;
+
+    const dayTimeMatch = raw.match(/^0\.([01]\d|2[0-3]):([0-5]\d):([0-5]\d)$/);
+    if (dayTimeMatch) {
+      return `${dayTimeMatch[1]}:${dayTimeMatch[2]}`;
+    }
+
+    const match = raw.match(/^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/);
+    if (!match) return null;
+
+    return `${match[1]}:${match[2]}`;
+  }
+
+  private getShiftPayload(roleId: string): {
+    shiftStartTime: string | null;
+    shiftEndTime: string | null;
+  } | null {
+    const start = this.normalizeShiftTime(this.model.shiftStartTime);
+    const end = this.normalizeShiftTime(this.model.shiftEndTime);
+    const hasStart = !!String(this.model.shiftStartTime ?? '').trim();
+    const hasEnd = !!String(this.model.shiftEndTime ?? '').trim();
+
+    if (!this.isCashierRoleSelected(roleId)) {
+      this.model.shiftStartTime = null;
+      this.model.shiftEndTime = null;
+
+      return {
+        shiftStartTime: null,
+        shiftEndTime: null,
+      };
+    }
+
+    if (hasStart !== hasEnd) {
+      this.toast.warn(this.t('shift_required_pair'));
+      return null;
+    }
+
+    if (hasStart && !start) {
+      this.toast.warn(this.t('shift_invalid_format'));
+      return null;
+    }
+
+    if (hasEnd && !end) {
+      this.toast.warn(this.t('shift_invalid_format'));
+      return null;
+    }
+
+    if (!start) {
+      this.toast.warn(this.t('shift_required_start'));
+      return null;
+    }
+
+    if (!end) {
+      this.toast.warn(this.t('shift_required_end'));
+      return null;
+    }
+
+    return {
+      shiftStartTime: start,
+      shiftEndTime: end,
+    };
+  }
+
+  formatShiftRange(u: UserDto): string {
+    const start = this.normalizeShiftTime(u.shiftStartTime);
+    const end = this.normalizeShiftTime(u.shiftEndTime);
+    if (!start || !end) return '---';
+
+    return `${start} -> ${end}`;
   }
 
   save() {
@@ -332,6 +482,9 @@ export class Users {
       return;
     }
 
+    const shiftPayload = this.getShiftPayload(roleId);
+    if (!shiftPayload) return;
+
     if (this.isEdit) {
       // ======== UPDATE ========
       const id = this.model.id as string;
@@ -340,7 +493,9 @@ export class Users {
         userName,
         email,
         roleId,
-        password: this.model.password?.trim() || undefined,
+        password: this.changePasswordMode ? this.model.password?.trim() || null : null,
+        shiftStartTime: shiftPayload.shiftStartTime,
+        shiftEndTime: shiftPayload.shiftEndTime,
       };
 
       console.log('Saving user update', payload);
@@ -359,6 +514,8 @@ export class Users {
               email,
               roleId,
               roleName,
+              shiftStartTime: shiftPayload.shiftStartTime,
+              shiftEndTime: shiftPayload.shiftEndTime,
             };
           }
 
@@ -398,6 +555,8 @@ export class Users {
         phoneNumber,
         nationalId,
         roleId,
+        shiftStartTime: shiftPayload.shiftStartTime,
+        shiftEndTime: shiftPayload.shiftEndTime,
       };
 
       console.log('Saving new user', payload);
@@ -406,14 +565,17 @@ export class Users {
       this.svc.add(payload).subscribe({
         next: (res: any) => {
           if (res && res.id) {
-            const roleName = this.roles.find((r) => r.id === res.roleId)?.name || res.roleName;
+            const responseRoleId = res.roleId || roleId;
+            const roleName = this.roles.find((r) => r.id === responseRoleId)?.name || res.roleName;
 
             const newUser: UserDto = {
               id: res.id,
               name: res.name,
               email: res.email,
-              roleId: res.roleId,
+              roleId: responseRoleId,
               roleName,
+              shiftStartTime: res.shiftStartTime ?? shiftPayload.shiftStartTime,
+              shiftEndTime: res.shiftEndTime ?? shiftPayload.shiftEndTime,
             };
 
             this.users = [...this.users, newUser];

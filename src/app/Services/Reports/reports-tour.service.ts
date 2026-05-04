@@ -158,8 +158,10 @@ export class ReportsTourService {
         id: 'reports-filters',
         titleAr: 'قسم الفلاتر',
         titleEn: 'Filters Section',
-        textAr: 'استخدم هذا القسم لتصفية التقارير. حدد تاريخ البداية والنهاية أو ابحث بالسيارة أو رقم التذكرة.',
-        textEn: 'Use this section to filter the reports. Set a date range or search by vehicle number or ticket number.',
+        textAr:
+          'استخدم هذا القسم لتصفية التقارير. حدد تاريخ البداية والنهاية أو ابحث بأي قيمة مدعومة مثل رقم التذكرة، العربية، الكارت، المستخدم، المحصل، البوابة، أو الحالة.',
+        textEn:
+          'Use this section to filter reports. Set a date range or search any supported value such as ticket, vehicle, card, user, collector, gate, or status.',
         attachTo: '.reports-theme .reports-filters-card',
         position: 'bottom',
       },
@@ -185,8 +187,10 @@ export class ReportsTourService {
         id: 'reports-search-box',
         titleAr: 'البحث النصي',
         titleEn: 'Text Search',
-        textAr: 'اكتب رقم السيارة أو رقم التذكرة للبحث السريع داخل نتائج التقرير.',
-        textEn: 'Type a vehicle number or ticket number to quickly search within the report results.',
+        textAr:
+          'اكتب رقم السيارة، رقم التذكرة، رقم الكارت، اسم المستخدم أو المحصل، رقم البوابة، أو كلمات مثل داخل، خرج، مشترك، زائر، محصل، غير محصل.',
+        textEn:
+          'Type a vehicle, ticket, card, user, collector, gate number, or keywords like inside, exited, subscriber, visitor, collected, or pending.',
         attachTo: '.reports-theme .reports-search-box',
         position: 'bottom',
       },

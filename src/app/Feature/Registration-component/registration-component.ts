@@ -21,6 +21,7 @@ import {
   PagedResult,
   ParkingMembershipDto,
   PlateGroup,
+  VehicleImageDto,
 } from '../../Domain/registration/registration-model';
 import { DurationType } from '../../Domain/Subscription-type/subscription-type.models';
 import {
@@ -657,9 +658,9 @@ export class RegistrationComponent implements OnInit, OnDestroy {
     }
 
     const fileField = editingId ? 'NewVehicleImages' : 'VehicleImage';
-    const imgs = this.documents().filter((d) => d.isImage && d.file);
-    for (const img of imgs) {
-      fd.append(fileField, img.file as File, img.name);
+    const files = this.documents().filter((d) => d.file);
+    for (const doc of files) {
+      fd.append(fileField, doc.file as File, doc.name);
     }
 
     if (editingId) {
@@ -756,39 +757,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
       },
     });
 
-    // Load existing vehicle images/documents
-    if (row.vehicleImage && row.vehicleImage.length > 0) {
-      const docs: DocumentItem[] = [];
-
-      for (const img of row.vehicleImage) {
-        const apiOrigin = new URL(environment.baseUrl).origin;
-        const fullUrl = img.filePath.startsWith('http')
-          ? img.filePath
-          : `${apiOrigin}/${img.filePath.replace(/^\//, '')}`;
-
-        const fileName = img.filePath.split('/').pop() || 'image.jpg';
-
-        const ext = fileName.split('.').pop()?.toLowerCase() || '';
-        let mimeType = 'image/jpeg';
-        if (ext === 'png') mimeType = 'image/png';
-        else if (ext === 'pdf') mimeType = 'application/pdf';
-        else if (ext === 'gif') mimeType = 'image/gif';
-
-        docs.push({
-          name: fileName,
-          mime: mimeType,
-          size: 0,
-          dataUrl: fullUrl,
-          isImage: mimeType.startsWith('image/'),
-          file: null,
-          remoteId: img.id,
-        });
-      }
-
-      this.documents.set(docs);
-    } else {
-      this.documents.set([]);
-    }
+    this.documents.set(this.mapRemoteDocuments(row));
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
@@ -821,6 +790,37 @@ export class RegistrationComponent implements OnInit, OnDestroy {
   startRegistrationTour() {
     this.regTour.startTour();
   }
+
+  private mapRemoteDocuments(row: ParkingMembershipDto): DocumentItem[] {
+    const remoteFiles = row.vehicleImage ?? row.vehicleImages ?? row.attachments ?? [];
+
+    return remoteFiles
+      .map((file) => this.mapRemoteDocument(file))
+      .filter((file): file is DocumentItem => !!file);
+  }
+
+  private mapRemoteDocument(file: VehicleImageDto): DocumentItem | null {
+    const filePath = file.filePath ?? file.imagePath ?? file.path ?? file.url ?? file.fileUrl;
+    if (!filePath) return null;
+
+    const apiOrigin = new URL(environment.baseUrl).origin;
+    const fullUrl = filePath.startsWith('http')
+      ? filePath
+      : `${apiOrigin}/${filePath.replace(/^\//, '')}`;
+
+    const fileName = file.fileName ?? file.name ?? filePath.split('/').pop() ?? 'document';
+    const mimeType = file.contentType ?? file.mimeType ?? mimeFromFileName(fileName);
+
+    return {
+      name: fileName,
+      mime: mimeType,
+      size: 0,
+      dataUrl: fullUrl,
+      isImage: mimeType.startsWith('image/'),
+      file: null,
+      remoteId: file.id,
+    };
+  }
 }
 
 /* ===== Helpers (file utils + time range) ===== */
@@ -835,6 +835,21 @@ function fileToDataUrl(file: File) {
 
 function isImageMime(mime: string) {
   return !!mime && mime.startsWith('image/');
+}
+
+function mimeFromFileName(fileName: string) {
+  const ext = fileName.split('.').pop()?.toLowerCase() || '';
+  if (ext === 'jpg' || ext === 'jpeg') return 'image/jpeg';
+  if (ext === 'png') return 'image/png';
+  if (ext === 'gif') return 'image/gif';
+  if (ext === 'webp') return 'image/webp';
+  if (ext === 'pdf') return 'application/pdf';
+  if (ext === 'txt') return 'text/plain';
+  if (ext === 'doc') return 'application/msword';
+  if (ext === 'docx') return 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+  if (ext === 'xls') return 'application/vnd.ms-excel';
+  if (ext === 'xlsx') return 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+  return 'application/octet-stream';
 }
 
 function timeRangeValidator(group: AbstractControl) {

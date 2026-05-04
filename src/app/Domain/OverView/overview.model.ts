@@ -90,6 +90,8 @@ export type ExpiringMembershipDto = MembershipBaseDto;
 
 export interface DashboardDto {
   date: string;
+  fromDate: string;
+  toDate: string;
 
   subscriptionCount: number;
   activeSubscriptionCount: number;
@@ -151,4 +153,66 @@ export interface DashboardDto {
   chartIn?: number[];
   chartOut?: number[];
   recentTickets?: OverviewTicketDto[];
+}
+
+export interface DashboardApiResponse {
+  date?: string;
+  fromDate?: string;
+  toDate?: string;
+
+  subscriptionCount?: number;
+  activeSubscriptionCount?: number;
+  inactiveSubscriptionCount?: number;
+  membershipsExpiringNext7Days?: number;
+
+  ticketEnterToday?: number;
+  ticketEnterNotTodayButNotExitYet?: number;
+  exitTicketsCount?: number;
+
+  currentVehiclesInside?: number;
+  activeTicketsCount?: number;
+  occupancyPercentage?: number;
+  estimatedFreeSlots?: number;
+
+  totalRevenue?: number;
+  collectedRevenue?: number;
+  pendingRevenue?: number;
+
+  ticketBaseRevenue?: number;
+  collectedTicketBaseRevenue?: number;
+  pendingTicketBaseRevenue?: number;
+
+  membershipTicketsCount?: number;
+  walkInTicketsCount?: number;
+  membershipRelatedRevenue?: number;
+  walkInRevenue?: number;
+
+  averageDurationMinutes?: number;
+  maxDurationMinutes?: number;
+
+  exceededTicketsCount?: number;
+  exceedTransactionsCount?: number;
+  collectedExceedTransactionsCount?: number;
+  pendingExceedTransactionsCount?: number;
+
+  totalExceedRevenue?: number;
+  collectedExceedRevenue?: number;
+  pendingExceedRevenue?: number;
+
+  averageExceedPerTicket?: number;
+  averageExceedPerTransaction?: number;
+
+  busiestGateNumber?: number;
+  busiestGateTicketsCount?: number;
+
+  topCollectorName?: string | null;
+  topCollectorAmount?: number;
+  topCollectorTicketsCount?: number;
+
+  topExceedCollectorName?: string | null;
+  topExceedCollectorAmount?: number;
+  topExceedCollectorTransactionsCount?: number;
+
+  entryGates?: EntryGateSummaryDto[];
+  exitGates?: ExitGateSummaryDto[];
 }

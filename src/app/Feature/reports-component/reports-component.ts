@@ -30,14 +30,30 @@ import html2canvas from 'html2canvas';
           ticketNumber: 'رقم التذكرة',
           enterDate: 'تاريخ الدخول',
           exitDate: 'تاريخ الخروج',
-          price: 'السعر',
+          price: 'سعر التذكرة',
+          exceedPrice: 'قيمة الغرامة',
           vehicleNumber: 'رقم المركبة',
           collectorName: 'المحصل',
-          isSubscribed: 'مشترك؟',
+          createdByUserName: 'منشئ التذكرة',
+          ticketStatus: 'حالة التذكرة',
+          entryGateNumber: 'بوابة الدخول',
+          exitGateNumber: 'بوابة الخروج',
+          insideParking: 'داخل الجراج',
+          exited: 'خرج',
+          isSubscribed: 'نوع العميل',
+          notExitedYet: 'لم تخرج بعد',
+          unavailable: 'غير متوفر',
+          noVehicleNumber: 'لا يوجد رقم مركبة',
+          noEntryGate: 'لا توجد بوابة دخول',
+          noExitGate: 'لا توجد بوابة خروج',
+          noCollector: 'لا يوجد محصل',
+          noCreatedBy: 'غير محدد',
           filters: 'البحث',
           dateFrom: 'من تاريخ',
           dateTo: 'إلى تاريخ',
+          reportPeriod: 'الفترة',
           search: 'بحث',
+          searchPlaceholder: 'ابحث بالتذكرة، العربية، الكارت، البوابة، المستخدم، المحصل، الحالة...',
           noReports: 'لا توجد تقارير حالياً',
           subscriber: 'مشترك',
           visitor: 'زائر',
@@ -57,14 +73,30 @@ import html2canvas from 'html2canvas';
           ticketNumber: 'Ticket Number',
           enterDate: 'Enter Date',
           exitDate: 'Exit Date',
-          price: 'Price',
+          price: 'Ticket Price',
+          exceedPrice: 'Exceed Fee',
           vehicleNumber: 'Vehicle Number',
           collectorName: 'Collector',
-          isSubscribed: 'Is Subscribed?',
+          createdByUserName: 'Created By',
+          ticketStatus: 'Ticket Status',
+          entryGateNumber: 'Entry Gate',
+          exitGateNumber: 'Exit Gate',
+          insideParking: 'Inside parking',
+          exited: 'Exited',
+          isSubscribed: 'Customer Type',
+          notExitedYet: 'Not exited yet',
+          unavailable: 'Unavailable',
+          noVehicleNumber: 'No vehicle number',
+          noEntryGate: 'No entry gate',
+          noExitGate: 'No exit gate',
+          noCollector: 'No collector',
+          noCreatedBy: 'Not specified',
           filters: 'Search',
           dateFrom: 'Date From',
           dateTo: 'Date To',
+          reportPeriod: 'Period',
           search: 'Search',
+          searchPlaceholder: 'Search ticket, vehicle, card, gate, user, collector, status...',
           noReports: 'No reports found',
           subscriber: 'Subscriber',
           visitor: 'Visitor',
@@ -165,6 +197,12 @@ export class ReportsComponent implements OnInit {
     this.openTicketDetails(ticket);
   }
 
+  attachmentPath(
+    attachment: { imagePath?: string; filePath?: string; path?: string } | null | undefined,
+  ): string {
+    return attachment?.imagePath ?? attachment?.filePath ?? attachment?.path ?? '';
+  }
+
   attachmentUrl(path: string | null | undefined): string {
     const value = String(path ?? '').trim();
     if (!value) return '';
@@ -185,7 +223,62 @@ export class ReportsComponent implements OnInit {
   }
 
   isPdfAttachment(path: string | null | undefined): boolean {
-    return String(path ?? '').toLowerCase().split('?')[0].endsWith('.pdf');
+    return String(path ?? '')
+      .toLowerCase()
+      .split('?')[0]
+      .endsWith('.pdf');
+  }
+
+  statusLabel(ticket: ReportTicketsResponse): string {
+    const status = ticket.ticketStatus.trim().toLowerCase();
+    if (status === 'insideparking' || status === 'inside') {
+      return this.lang.translate(this.dict as any, 'insideParking');
+    }
+    if (status === 'exited' || status === 'exit') {
+      return this.lang.translate(this.dict as any, 'exited');
+    }
+    if (ticket.ticketStatus) return ticket.ticketStatus;
+    return ticket.isInsideParking
+      ? this.lang.translate(this.dict as any, 'insideParking')
+      : this.lang.translate(this.dict as any, 'exited');
+  }
+
+  vehicleNumberLabel(ticket: ReportTicketsResponse): string {
+    return ticket.vehicleNumber?.trim() || this.lang.translate(this.dict as any, 'noVehicleNumber');
+  }
+
+  ticketNumberLabel(ticket: ReportTicketsResponse): string {
+    return (
+      ticket.ticketNumber || ticket.ticketId || this.lang.translate(this.dict as any, 'unavailable')
+    );
+  }
+
+  entryGateLabel(ticket: ReportTicketsResponse): string | number {
+    return ticket.entryGateNumber ?? this.lang.translate(this.dict as any, 'noEntryGate');
+  }
+
+  exitGateLabel(ticket: ReportTicketsResponse): string | number {
+    if (ticket.exitGateNumber !== null && ticket.exitGateNumber !== undefined)
+      return ticket.exitGateNumber;
+    if (!ticket.exitDate || ticket.isInsideParking) return this.notExitedYetLabel();
+    return this.lang.translate(this.dict as any, 'noExitGate');
+  }
+
+  collectorNameLabel(ticket: ReportTicketsResponse): string {
+    return ticket.collectorName?.trim() || this.lang.translate(this.dict as any, 'noCollector');
+  }
+
+  createdByUserNameLabel(ticket: ReportTicketsResponse): string {
+    return ticket.createdByUserName?.trim() || this.lang.translate(this.dict as any, 'noCreatedBy');
+  }
+
+  moneyLabel(value: number | null | undefined): string {
+    const amount = Number(value ?? 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+
+    return `${amount} ${this.lang.translate(this.dict as any, 'egp')}`;
   }
 
   exportExcel(): void {
@@ -194,18 +287,33 @@ export class ReportsComponent implements OnInit {
 
     const t = (k: string) => this.lang.translate(this.dict as any, k);
     const isAr = this.lang.current === 'ar';
+    const locale = isAr ? 'ar-EG' : 'en-US';
+    const periodLabel = this.reportPeriodLabel(t, locale);
 
     const exportData = data.map((r) => ({
-      [t('ticketNumber')]: r.ticketNumber || r.ticketId,
-      [t('vehicleNumber')]: r.vehicleNumber || '---',
-      [t('enterDate')]: new Date(r.enterDate).toLocaleString(isAr ? 'ar-EG' : 'en-US'),
-      [t('exitDate')]: new Date(r.exitDate).toLocaleString(isAr ? 'ar-EG' : 'en-US'),
+      [t('ticketNumber')]: this.ticketNumberLabel(r),
+      [t('vehicleNumber')]: this.vehicleNumberLabel(r),
+      [t('enterDate')]: this.formatReportDate(r.enterDate, isAr ? 'ar-EG' : 'en-US'),
+      [t('exitDate')]: this.formatReportDate(
+        r.exitDate,
+        isAr ? 'ar-EG' : 'en-US',
+        t('notExitedYet'),
+      ),
+      [t('ticketStatus')]: this.statusLabel(r),
+      [t('entryGateNumber')]: this.entryGateLabel(r),
+      [t('exitGateNumber')]: this.exitGateLabel(r),
       [t('isSubscribed')]: r.isSubscribed ? t('subscriber') : t('visitor'),
-      [t('price')]: r.price + ' ' + t('egp'),
-      [t('collectorName')]: r.collectorName || '---',
+      [t('price')]: this.exportMoneyLabel(r.price, t),
+      [t('exceedPrice')]: this.exportMoneyLabel(r.exceedPrice, t),
+      [t('collectorName')]: this.collectorNameLabel(r),
+      [t('createdByUserName')]: this.createdByUserNameLabel(r),
     }));
 
-    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const worksheet = XLSX.utils.aoa_to_sheet([[t('reports')], [periodLabel], []]);
+    XLSX.utils.sheet_add_json(worksheet, exportData, {
+      origin: 'A4',
+      skipHeader: false,
+    });
 
     if (isAr) {
       worksheet['!dir'] = 'rtl';
@@ -266,7 +374,9 @@ export class ReportsComponent implements OnInit {
       setTimeout(() => URL.revokeObjectURL(url), 60_000);
     } catch {
       viewer.close();
-      this.toastService.error(this.lang.isRTL() ? 'تعذر إنشاء ملف PDF.' : 'Failed to create the PDF.');
+      this.toastService.error(
+        this.lang.isRTL() ? 'تعذر إنشاء ملف PDF.' : 'Failed to create the PDF.',
+      );
     } finally {
       container.remove();
     }
@@ -284,17 +394,23 @@ export class ReportsComponent implements OnInit {
   ): HTMLElement {
     const dir = isAr ? 'rtl' : 'ltr';
     const align = isAr ? 'right' : 'left';
+    const periodLabel = this.reportPeriodLabel(t, locale);
     const rows = data
       .map(
         (r) => `
           <tr>
-            <td class="mono">${this.escapeHtml(r.ticketNumber || r.ticketId || '---')}</td>
-            <td>${this.escapeHtml(r.vehicleNumber || '---')}</td>
+            <td class="mono">${this.escapeHtml(this.ticketNumberLabel(r))}</td>
+            <td>${this.escapeHtml(this.vehicleNumberLabel(r))}</td>
             <td class="date">${this.escapeHtml(this.formatReportDate(r.enterDate, locale))}</td>
-            <td class="date">${this.escapeHtml(this.formatReportDate(r.exitDate, locale))}</td>
+            <td class="date">${this.escapeHtml(this.formatReportDate(r.exitDate, locale, t('notExitedYet')))}</td>
+            <td>${this.escapeHtml(this.statusLabel(r))}</td>
+            <td>${this.escapeHtml(this.entryGateLabel(r))}</td>
+            <td>${this.escapeHtml(this.exitGateLabel(r))}</td>
             <td>${this.escapeHtml(r.isSubscribed ? t('subscriber') : t('visitor'))}</td>
-            <td>${this.escapeHtml(r.collectorName || '---')}</td>
-            <td class="money">${this.escapeHtml(`${Number(r.price || 0).toFixed(2)} ${t('egp')}`)}</td>
+            <td>${this.escapeHtml(this.collectorNameLabel(r))}</td>
+            <td>${this.escapeHtml(this.createdByUserNameLabel(r))}</td>
+            <td class="money">${this.escapeHtml(this.exportMoneyLabel(r.price, t))}</td>
+            <td class="money exceed-money">${this.escapeHtml(this.exportMoneyLabel(r.exceedPrice, t))}</td>
           </tr>
         `,
       )
@@ -316,31 +432,38 @@ export class ReportsComponent implements OnInit {
         .pdf-report {
           box-sizing: border-box;
           width: 1120px;
-          padding: 20px 24px;
+          padding: 18px 18px;
           background: #fff;
           direction: ${dir};
           font-family: 'Cairo', 'Arial', 'Tahoma', sans-serif;
         }
         .pdf-report * { box-sizing: border-box; }
         .pdf-title {
-          margin: 0 0 18px;
+          margin: 0 0 6px;
           text-align: center;
           font-size: 22px;
           font-weight: 800;
           line-height: 1.4;
           color: #111827;
         }
+        .pdf-period {
+          margin: 0 0 16px;
+          text-align: center;
+          font-size: 13px;
+          font-weight: 700;
+          color: #475569;
+        }
         .pdf-table {
           width: 100%;
           border-collapse: collapse;
           table-layout: fixed;
-          font-size: 13px;
+          font-size: 11px;
           direction: ${dir};
         }
         .pdf-table th,
         .pdf-table td {
           border-bottom: 1px solid #dfe4ea;
-          padding: 10px 9px;
+          padding: 8px 6px;
           text-align: ${align};
           vertical-align: middle;
           overflow-wrap: anywhere;
@@ -362,11 +485,13 @@ export class ReportsComponent implements OnInit {
           unicode-bidi: plaintext;
           font-weight: 800;
         }
+        .pdf-table .exceed-money {
+          color: #b91c1c;
+        }
       </style>
       <section class="pdf-report">
-        <h1 class="pdf-title">${this.escapeHtml(t('reports'))} - ${this.escapeHtml(
-          new Date().toLocaleDateString(locale),
-        )}</h1>
+        <h1 class="pdf-title">${this.escapeHtml(t('reports'))}</h1>
+        <p class="pdf-period">${this.escapeHtml(periodLabel)}</p>
         <table class="pdf-table">
           <thead>
             <tr>
@@ -374,9 +499,14 @@ export class ReportsComponent implements OnInit {
               <th>${this.escapeHtml(t('vehicleNumber'))}</th>
               <th>${this.escapeHtml(t('enterDate'))}</th>
               <th>${this.escapeHtml(t('exitDate'))}</th>
+              <th>${this.escapeHtml(t('ticketStatus'))}</th>
+              <th>${this.escapeHtml(t('entryGateNumber'))}</th>
+              <th>${this.escapeHtml(t('exitGateNumber'))}</th>
               <th>${this.escapeHtml(t('isSubscribed'))}</th>
               <th>${this.escapeHtml(t('collectorName'))}</th>
+              <th>${this.escapeHtml(t('createdByUserName'))}</th>
               <th>${this.escapeHtml(t('price'))}</th>
+              <th>${this.escapeHtml(t('exceedPrice'))}</th>
             </tr>
           </thead>
           <tbody>${rows}</tbody>
@@ -430,13 +560,43 @@ export class ReportsComponent implements OnInit {
     }
   }
 
-  private formatReportDate(value: string | Date | null | undefined, locale: string): string {
-    if (!value) return '---';
+  notExitedYetLabel(): string {
+    return this.lang.translate(this.dict as any, 'notExitedYet');
+  }
+
+  private formatReportDate(
+    value: string | Date | null | undefined,
+    locale: string,
+    emptyLabel?: string,
+  ): string {
+    const fallback = emptyLabel ?? this.lang.translate(this.dict as any, 'unavailable');
+    if (!value) return fallback;
 
     const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '---';
+    if (Number.isNaN(date.getTime())) return fallback;
 
     return date.toLocaleString(locale);
+  }
+
+  private exportMoneyLabel(value: number | null | undefined, t: (key: string) => string): string {
+    return `${Number(value ?? 0).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })} ${t('egp')}`;
+  }
+
+  private reportPeriodLabel(t: (key: string) => string, locale: string): string {
+    const from = this.formatFilterDate(this.dateFrom, locale);
+    const to = this.formatFilterDate(this.dateTo, locale);
+    return `${t('reportPeriod')}: ${t('dateFrom')} ${from} - ${t('dateTo')} ${to}`;
+  }
+
+  private formatFilterDate(value: string, locale: string): string {
+    const match = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
+    if (!match) return this.formatReportDate(value, locale);
+
+    const [, year, month, day] = match;
+    return new Date(Number(year), Number(month) - 1, Number(day)).toLocaleDateString(locale);
   }
 
   private escapeHtml(value: unknown): string {

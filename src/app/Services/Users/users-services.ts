@@ -20,15 +20,27 @@ export class UsersServices {
   private http = inject(HttpClient);
   private base = environment.baseUrl;
 
+  private toApiTimeSpan(value: string | null | undefined): string | null {
+    const raw = String(value ?? '').trim();
+    if (!raw) return null;
+
+    const match = raw.match(/^([01]\d|2[0-3]):([0-5]\d)(?::([0-5]\d))?$/);
+    if (match) return `${match[1]}:${match[2]}:${match[3] ?? '00'}`;
+
+    return raw;
+  }
+
   private mapSystemToDto(row: UserSystemResponse): UserDto {
     return {
-      id: row.id,
-      name: row.name ?? row.userName ?? row.username ?? '',
-      email: row.email,
-      roleId: row.roleId,
-      roleName: row.roleName,
-      phoneNumber: row.phoneNumber,
-      nationalId: row.nationalId,
+      id: row.id ?? row.Id ?? '',
+      name: row.name ?? row.userName ?? row.username ?? row.Username ?? '',
+      email: row.email ?? row.Email ?? '',
+      roleId: row.roleId ?? row.RoleId ?? '',
+      roleName: row.roleName ?? row.RoleName ?? '',
+      phoneNumber: row.phoneNumber ?? row.PhoneNumber,
+      nationalId: row.nationalId ?? row.NationalId,
+      shiftStartTime: row.shiftStartTime ?? row.ShiftStartTime ?? null,
+      shiftEndTime: row.shiftEndTime ?? row.ShiftEndTime ?? null,
     };
   }
 
@@ -49,8 +61,8 @@ export class UsersServices {
     return this.http.get<RoleSystemResponse[]>(`${this.base}/Role/GetAll`).pipe(
       map((rows) =>
         (rows ?? []).map((r) => ({
-          id: r.roleId,
-          name: r.roleName,
+          id: r.roleId ?? (r as any).RoleId ?? '',
+          name: r.roleName ?? (r as any).RoleName ?? '',
         })),
       ),
       catchError((err) => {
@@ -70,6 +82,8 @@ export class UsersServices {
       phoneNumber: u.phoneNumber,
       nationalId: u.nationalId,
       roleId: u.roleId,
+      shiftStartTime: this.toApiTimeSpan(u.shiftStartTime),
+      shiftEndTime: this.toApiTimeSpan(u.shiftEndTime),
     };
 
     return this.http.post<UserSystemResponse | null>(`${this.base}/User/Create`, body).pipe(
@@ -89,7 +103,9 @@ export class UsersServices {
       userName: u.userName,
       roleId: u.roleId,
       id: u.id,
-      password: u.password || undefined,
+      password: u.password?.trim() || null,
+      shiftStartTime: this.toApiTimeSpan(u.shiftStartTime),
+      shiftEndTime: this.toApiTimeSpan(u.shiftEndTime),
     };
 
     return this.http.put<any>(`${this.base}/User/Update`, body).pipe(

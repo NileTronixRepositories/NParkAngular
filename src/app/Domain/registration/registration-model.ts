@@ -40,15 +40,25 @@ export interface AddParkingMembershipCommandFront {
   VehicleImage?: File[];
 }
 export interface VehicleImageDto {
-  id: string;
-  filePath: string;
+  id?: string;
+  filePath?: string;
+  imagePath?: string;
+  path?: string;
+  url?: string;
+  fileUrl?: string;
+  fileName?: string;
+  name?: string;
+  contentType?: string;
+  mimeType?: string;
 }
 export interface ParkingMembershipDto {
   id: string;
   name: string;
   phone: string;
   nationalId: string;
-  vehicleImage: VehicleImageDto[];
+  vehicleImage?: VehicleImageDto[];
+  vehicleImages?: VehicleImageDto[];
+  attachments?: VehicleImageDto[];
   vehicleNumber: string;
   cardNumber: string;
   pricingSchemeId: string;

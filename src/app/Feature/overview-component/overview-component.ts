@@ -74,7 +74,7 @@ interface UiNotification {
           occupancy: 'الإشغال',
           inside: 'داخل',
           free: 'فارغ',
-          ticketsToday: 'التذاكر اليوم',
+          ticketsToday: 'حركة التذاكر',
           entry: 'دخول',
           exit: 'خروج',
           active: 'نشط',
@@ -122,6 +122,8 @@ interface UiNotification {
           count: 'العدد',
           percentage: 'النسبة',
           selectedDate: 'التاريخ',
+          fromDate: 'من',
+          toDate: 'إلى',
           applyDate: 'عرض',
           ticketBaseRevenue: 'إيرادات التذاكر ',
           totalExceedRevenue: 'إجمالي الغرامات',
@@ -160,7 +162,7 @@ interface UiNotification {
           occupancy: 'Occupancy',
           inside: 'Inside',
           free: 'Free',
-          ticketsToday: 'Tickets Today',
+          ticketsToday: 'Ticket Flow',
           entry: 'Entry',
           exit: 'Exit',
           active: 'Active',
@@ -208,6 +210,8 @@ interface UiNotification {
           count: 'Count',
           percentage: 'Percentage',
           selectedDate: 'Date',
+          fromDate: 'From',
+          toDate: 'To',
           applyDate: 'Apply',
           ticketBaseRevenue: 'Ticket Base',
           totalExceedRevenue: 'Total Exceed Revenue',
@@ -255,7 +259,8 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   dashboard = signal<DashboardDto | null>(null);
   loading = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
-  selectedDashboardDate = this.toDateInputValue(new Date());
+  selectedDashboardFrom = this.toDateInputValue(this.firstDayOfMonth(new Date()));
+  selectedDashboardTo = this.toDateInputValue(new Date());
 
   // Tickets lists
   ticketsInside = signal<TicketInsideParkDto[]>([]);
@@ -313,6 +318,11 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   enterTicketsCount = computed(() => this.ticketEnterToday());
   exitTicketsCount = computed(() => this.dashboard()?.exitTicketsCount ?? 0);
   activeTicketsCount = computed(() => this.dashboard()?.activeTicketsCount ?? 0);
+  ticketFlowCount = computed(
+    () =>
+      this.activeTicketsCount() ||
+      this.ticketEnterToday() + this.ticketEnterNotTodayButNotExitYet() + this.exitTicketsCount(),
+  );
 
   subscriptionCount = computed(() => this.dashboard()?.subscriptionCount ?? 0);
   activeSubscriptionCount = computed(() => this.dashboard()?.activeSubscriptionCount ?? 0);
@@ -512,23 +522,27 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.loading.set(true);
     this.errorMessage.set(null);
 
-    this.overviewServices.getDashboard(this.selectedDashboardDate).subscribe({
-      next: (dto) => {
-        this.loading.set(false);
-        this.dashboard.set(dto);
+    this.normalizeDashboardDateRange();
 
-        this.syncOccupancyWithTicketsInside();
-        this.loadTodayTickets();
-        this.loadMembershipDetails();
-      },
-      error: (err) => {
-        console.error('Error loading dashboard', err);
-        this.loading.set(false);
-        const fallback =
-          this.lang.current === 'ar' ? 'حدث خطأ في تحميل البيانات' : 'Error loading data';
-        this.errorMessage.set(this.errorExtractor.extractErrorMessage(err, fallback));
-      },
-    });
+    this.overviewServices
+      .getDashboard(this.selectedDashboardFrom, this.selectedDashboardTo)
+      .subscribe({
+        next: (dto) => {
+          this.loading.set(false);
+          this.dashboard.set(dto);
+
+          this.syncOccupancyWithTicketsInside();
+          this.loadTodayTickets();
+          this.loadMembershipDetails();
+        },
+        error: (err) => {
+          console.error('Error loading dashboard', err);
+          this.loading.set(false);
+          const fallback =
+            this.lang.current === 'ar' ? 'حدث خطأ في تحميل البيانات' : 'Error loading data';
+          this.errorMessage.set(this.errorExtractor.extractErrorMessage(err, fallback));
+        },
+      });
   }
 
   private syncOccupancyWithTicketsInside(): void {
@@ -667,6 +681,27 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
+  }
+
+  private firstDayOfMonth(date: Date): Date {
+    return new Date(date.getFullYear(), date.getMonth(), 1);
+  }
+
+  private normalizeDashboardDateRange(): void {
+    if (this.selectedDashboardFrom && this.selectedDashboardTo) {
+      if (this.selectedDashboardFrom > this.selectedDashboardTo) {
+        this.selectedDashboardTo = this.selectedDashboardFrom;
+      }
+      return;
+    }
+
+    if (!this.selectedDashboardFrom && this.selectedDashboardTo) {
+      this.selectedDashboardFrom = this.selectedDashboardTo;
+    }
+
+    if (this.selectedDashboardFrom && !this.selectedDashboardTo) {
+      this.selectedDashboardTo = this.selectedDashboardFrom;
+    }
   }
 
   // ===== Search tickets =====

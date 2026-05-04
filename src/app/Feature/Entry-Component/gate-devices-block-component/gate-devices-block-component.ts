@@ -60,6 +60,7 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
   @ViewChild('manualLprPlateArea') manualLprPlateArea?: ElementRef<HTMLTextAreaElement>;
 
   scannedPreviewOpen = false;
+  previewFile: EntryPreviewFile | null = null;
 
   private lastPlateKeyAt = 0;
   private scannerBurstBase = '';
@@ -77,9 +78,9 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
 
   get splitPreviewFiles(): EntryPreviewFile[] {
     const files = this.uploadedVehicleImages.filter(Boolean);
-    const snapshot = files.find(
-      (file) => this.isSnapshotFile(file) && this.isImageFile(file),
-    );
+    const snapshot = [...files]
+      .reverse()
+      .find((file) => this.isSnapshotFile(file) && this.isImageFile(file));
     const secondary = [...files]
       .reverse()
       .find((file) => file.url !== snapshot?.url && !this.isSnapshotFile(file));
@@ -180,12 +181,13 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
 
   openScannedPreview(file = this.scannedFile): void {
     if (!file) return;
-    this.scannedFile = file;
+    this.previewFile = file;
     this.scannedPreviewOpen = true;
   }
 
   closeScannedPreview(): void {
     this.scannedPreviewOpen = false;
+    this.previewFile = null;
   }
 
   isPreviewSelected(fileUrl: string): boolean {
@@ -202,6 +204,10 @@ export class GateDevicesBlockComponent implements OnChanges, AfterViewInit, OnDe
 
   isSnapshotFile(file: EntryPreviewFile | null | undefined): boolean {
     return file?.source === 'snapshot' || !!file?.name?.startsWith('gate-snapshot-');
+  }
+
+  isScannerAttachment(file: EntryPreviewFile | null | undefined): boolean {
+    return file?.source === 'scanner';
   }
 
   ngAfterViewInit(): void {

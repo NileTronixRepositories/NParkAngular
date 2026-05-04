@@ -85,7 +85,7 @@
             <input
               type="text"
               class="form-control border-2 border-start-0 rounded-end-3"
-              [placeholder]="'Search by vehicle or ticket...'"
+              [placeholder]="'searchPlaceholder' | t"
               [(ngModel)]="filterSearchTerm"
             />
           </div>
@@ -135,15 +135,19 @@
             <th class="py-3">{{ 'vehicleNumber' | t }}</th>
             <th class="py-3">{{ 'enterDate' | t }}</th>
             <th class="py-3">{{ 'exitDate' | t }}</th>
+            <th class="py-3">{{ 'ticketStatus' | t }}</th>
+            <th class="py-3">{{ 'entryGateNumber' | t }}</th>
+            <th class="py-3">{{ 'exitGateNumber' | t }}</th>
             <th class="py-3 text-center">{{ 'isSubscribed' | t }}</th>
             <th class="py-3">{{ 'collectorName' | t }}</th>
-            <th class="py-3 text-end pe-4">{{ 'price' | t }}</th>
+            <th class="py-3 text-end">{{ 'price' | t }}</th>
+            <th class="py-3 text-end pe-4">{{ 'exceedPrice' | t }}</th>
           </tr>
         </thead>
         <tbody class="border-top-0">
           @if (loading()) {
             <tr>
-              <td colspan="7" class="text-center py-5">
+              <td colspan="11" class="text-center py-5">
                 <div class="spinner-border text-primary" role="status">
                   <span class="visually-hidden">Loading...</span>
                 </div>
@@ -159,12 +163,12 @@
                 (keydown)="onTicketRowKeydown($event, r)"
               >
                 <td class="ps-4">
-                  <span class="fw-bold text-dark mono">#{{ r.ticketNumber }}</span>
+                  <span class="fw-bold text-dark mono">#{{ ticketNumberLabel(r) }}</span>
                 </td>
                 <td>
                   <div class="d-flex align-items-center gap-2">
                     <i class="bi bi-car-front fs-5 text-muted"></i>
-                    <span class="fw-semibold">{{ r.vehicleNumber || '---' }}</span>
+                    <span class="fw-semibold">{{ vehicleNumberLabel(r) }}</span>
                   </div>
                 </td>
                 <td>
@@ -175,9 +179,35 @@
                 </td>
                 <td>
                   <div class="d-flex flex-column">
-                    <span class="small fw-semibold">{{ r.exitDate | date: 'shortDate' }}</span>
-                    <span class="x-small text-muted">{{ r.exitDate | date: 'shortTime' }}</span>
+                    @if (r.exitDate) {
+                      <span class="small fw-semibold">{{ r.exitDate | date: 'shortDate' }}</span>
+                      <span class="x-small text-muted">{{ r.exitDate | date: 'shortTime' }}</span>
+                    } @else {
+                      <span class="small fw-semibold text-muted">{{ notExitedYetLabel() }}</span>
+                    }
                   </div>
+                </td>
+                <td>
+                  <span
+                    class="badge rounded-pill px-3 py-1"
+                    [ngClass]="
+                      r.isInsideParking
+                        ? 'bg-success-soft text-success'
+                        : 'bg-secondary-subtle text-secondary'
+                    "
+                  >
+                    {{ statusLabel(r) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark border">
+                    {{ entryGateLabel(r) }}
+                  </span>
+                </td>
+                <td>
+                  <span class="badge bg-light text-dark border">
+                    {{ exitGateLabel(r) }}
+                  </span>
                 </td>
                 <td class="text-center">
                   <span
@@ -196,21 +226,25 @@
                     >
                       <i class="bi bi-person text-secondary"></i>
                     </div>
-                    <span class="small fw-medium">{{ r.collectorName || '---' }}</span>
+                    <span class="small fw-medium">{{ collectorNameLabel(r) }}</span>
+                  </div>
+                </td>
+                <td class="text-end">
+                  <div class="d-flex flex-column align-items-end">
+                    <span class="fw-bold text-primary fs-6"
+                      >{{ moneyLabel(r.price) }}</span
+                    >
                   </div>
                 </td>
                 <td class="text-end pe-4">
-                  <div class="d-flex flex-column align-items-end">
-                    <span class="fw-bold text-primary fs-6"
-                      >{{ r.price | number: '1.2-2' }}
-                      <span class="small">{{ 'egp' | t }}</span></span
-                    >
-                  </div>
+                  <span class="fw-bold text-danger">
+                    {{ moneyLabel(r.exceedPrice) }}
+                  </span>
                 </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="7" class="text-center py-5">
+                <td colspan="11" class="text-center py-5">
                   <div class="py-4">
                     <i class="bi bi-inbox fs-1 text-muted opacity-25"></i>
                     <p class="mt-2 text-muted">{{ 'noReports' | t }}</p>
@@ -231,7 +265,9 @@
       <header class="report-details-header">
         <div class="min-w-0">
           <div class="report-details-title">{{ 'ticketDetails' | t }}</div>
-          <div class="report-details-ticket mono">#{{ ticket.ticketNumber || ticket.ticketId }}</div>
+          <div class="report-details-ticket mono">
+            #{{ ticket.ticketNumber || ticket.ticketId }}
+          </div>
         </div>
         <button
           type="button"
@@ -247,7 +283,7 @@
         <div class="report-summary-grid">
           <div class="summary-item">
             <span>{{ 'vehicleNumber' | t }}</span>
-            <strong>{{ ticket.vehicleNumber || '---' }}</strong>
+            <strong>{{ vehicleNumberLabel(ticket) }}</strong>
           </div>
           <div class="summary-item">
             <span>{{ 'enterDate' | t }}</span>
@@ -255,7 +291,19 @@
           </div>
           <div class="summary-item">
             <span>{{ 'exitDate' | t }}</span>
-            <strong>{{ ticket.exitDate | date: 'short' }}</strong>
+            <strong>{{ ticket.exitDate ? (ticket.exitDate | date: 'short') : notExitedYetLabel() }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>{{ 'ticketStatus' | t }}</span>
+            <strong>{{ statusLabel(ticket) }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>{{ 'entryGateNumber' | t }}</span>
+            <strong>{{ entryGateLabel(ticket) }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>{{ 'exitGateNumber' | t }}</span>
+            <strong>{{ exitGateLabel(ticket) }}</strong>
           </div>
           <div class="summary-item">
             <span>{{ 'isSubscribed' | t }}</span>
@@ -263,39 +311,47 @@
           </div>
           <div class="summary-item">
             <span>{{ 'collectorName' | t }}</span>
-            <strong>{{ ticket.collectorName || '---' }}</strong>
+            <strong>{{ collectorNameLabel(ticket) }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>{{ 'createdByUserName' | t }}</span>
+            <strong>{{ createdByUserNameLabel(ticket) }}</strong>
           </div>
           <div class="summary-item">
             <span>{{ 'price' | t }}</span>
-            <strong>{{ ticket.price | number: '1.2-2' }} {{ 'egp' | t }}</strong>
+            <strong>{{ moneyLabel(ticket.price) }}</strong>
+          </div>
+          <div class="summary-item">
+            <span>{{ 'exceedPrice' | t }}</span>
+            <strong>{{ moneyLabel(ticket.exceedPrice) }}</strong>
           </div>
         </div>
 
         <div class="attachments-header">
           <span>{{ 'attachments' | t }}</span>
-          <span class="attachments-count">{{ ticket.attachments?.length || 0 }}</span>
+          <span class="attachments-count">{{ ticket.attachments.length }}</span>
         </div>
 
-        @if (ticket.attachments?.length) {
+        @if (ticket.attachments.length) {
           <div class="attachments-grid">
-            @for (attachment of ticket.attachments; track attachment.imagePath) {
+            @for (attachment of ticket.attachments; track attachmentPath(attachment)) {
               <a
                 class="attachment-card"
-                [href]="attachmentUrl(attachment.imagePath)"
+                [href]="attachmentUrl(attachmentPath(attachment))"
                 target="_blank"
                 rel="noopener"
               >
-                @if (isPdfAttachment(attachment.imagePath)) {
+                @if (isPdfAttachment(attachmentPath(attachment))) {
                   <iframe
                     class="attachment-pdf"
-                    [src]="attachmentSafeUrl(attachment.imagePath)"
+                    [src]="attachmentSafeUrl(attachmentPath(attachment))"
                     title="Ticket attachment"
                     tabindex="-1"
                   ></iframe>
                 } @else {
                   <img
                     class="attachment-image"
-                    [src]="attachmentUrl(attachment.imagePath)"
+                    [src]="attachmentUrl(attachmentPath(attachment))"
                     alt="Ticket attachment"
                     loading="lazy"
                   />

@@ -159,7 +159,8 @@ type EnterPriceFormShape = {
           enter_price_added_success: 'Enter price schema created successfully',
           enter_price_badge: 'Enter price',
           enter_price_validation: 'Name and salary greater than 0 are required.',
-          enter_price_edit_disabled: 'Enter price schemas cannot be edited from the normal schema form.',
+          enter_price_edit_disabled:
+            'Enter price schemas cannot be edited from the normal schema form.',
           reset: 'Reset',
           save: 'Save',
           list_title: 'Schemes',
@@ -205,9 +206,9 @@ type EnterPriceFormShape = {
           deleted_success: 'Deleted successfully',
           helpTour: 'Help Tour',
         },
-      }
-    }
-  ]
+      },
+    },
+  ],
 })
 export class AltaeriffaComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -328,7 +329,8 @@ export class AltaeriffaComponent implements OnInit {
       enter_price_added_success: 'Enter price schema created successfully',
       enter_price_badge: 'Enter price',
       enter_price_validation: 'Name and salary greater than 0 are required.',
-      enter_price_edit_disabled: 'Enter price schemas cannot be edited from the normal schema form.',
+      enter_price_edit_disabled:
+        'Enter price schemas cannot be edited from the normal schema form.',
       reset: 'Reset',
       save: 'Save',
       list_title: 'Schemes',

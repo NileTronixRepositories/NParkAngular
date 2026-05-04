@@ -699,7 +699,6 @@ export class TicketComponent implements OnInit, OnDestroy {
         source: 'scanner',
       };
 
-      this.scannedFile = this.resolveActivePreviewAfterAdd(scannedAttachment);
       this.uploadedVehicleImages = [...this.uploadedVehicleImages, scannedAttachment];
 
       console.log('TicketComponent: Successfully processed file', {
@@ -966,14 +965,14 @@ export class TicketComponent implements OnInit, OnDestroy {
       source: 'snapshot',
     };
 
-    this.uploadedVehicleImages
-      .filter((item) => item.name.startsWith('gate-snapshot-'))
-      .forEach((item) => this.revokeImageUrl(item));
+    if (
+      this.scannedFile &&
+      this.isSnapshotAttachment(this.scannedFile) &&
+      !this.uploadedVehicleImages.some((attachment) => attachment.url === this.scannedFile?.url)
+    ) {
+      this.revokeImageUrl(this.scannedFile);
+    }
 
-    this.uploadedVehicleImages = [
-      ...this.uploadedVehicleImages.filter((item) => !item.name.startsWith('gate-snapshot-')),
-      snapshotAttachment,
-    ];
     this.scannedFile = snapshotAttachment;
   }
 
@@ -1774,18 +1773,18 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   private getVehicleImagePayloads(): File[] {
-    if (this.uploadedVehicleImages.length) {
-      return this.uploadedVehicleImages
-        .filter((file) => !this.isScannerAttachment(file))
-        .map((file) => file.file)
-        .filter((file): file is File => !!file);
+    const files = this.uploadedVehicleImages
+      .map((file) => file.file)
+      .filter((file): file is File => !!file);
+
+    if (
+      this.scannedFile?.file &&
+      !this.uploadedVehicleImages.some((file) => file.url === this.scannedFile?.url)
+    ) {
+      files.push(this.scannedFile.file);
     }
 
-    return [
-      this.scannedFile && !this.isScannerAttachment(this.scannedFile)
-        ? this.scannedFile.file
-        : null,
-    ].filter((file): file is File => !!file);
+    return Array.from(new Set(files));
   }
 
   private getScannerPhotoPayload(): File | null {

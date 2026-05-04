@@ -127,15 +127,33 @@
         </div>
 
         <div class="d-flex align-items-center gap-2 align-self-stretch align-self-md-auto">
-          <label class="dashboard-date-control">
-            <span>{{ 'selectedDate' | t }}</span>
-            <input
-              type="date"
-              class="dashboard-date-input"
-              [(ngModel)]="selectedDashboardDate"
-              (change)="loadDashboard()"
-            />
-          </label>
+          <div class="dashboard-date-range">
+            <label class="dashboard-date-control">
+              <span>{{ 'fromDate' | t }}</span>
+              <input
+                type="date"
+                class="dashboard-date-input"
+                [(ngModel)]="selectedDashboardFrom"
+              />
+            </label>
+
+            <label class="dashboard-date-control">
+              <span>{{ 'toDate' | t }}</span>
+              <input
+                type="date"
+                class="dashboard-date-input"
+                [(ngModel)]="selectedDashboardTo"
+              />
+            </label>
+
+            <button
+              type="button"
+              class="dashboard-date-apply"
+              (click)="loadDashboard()"
+            >
+              {{ 'applyDate' | t }}
+            </button>
+          </div>
 
           <button
             type="button"
@@ -221,7 +239,7 @@
             <div class="kpi-content flex-grow-1">
               <div class="kpi-label">{{ 'ticketsToday' | t }}</div>
               <div class="kpi-value">
-                {{ ticketEnterToday() + exitTicketsCount() }}
+                {{ ticketFlowCount() }}
               </div>
 
               <div class="kpi-stats d-flex flex-wrap gap-2">

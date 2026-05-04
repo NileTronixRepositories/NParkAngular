@@ -14,6 +14,7 @@ import {
   ActiveMembershipDto,
   InactiveMembershipDto,
   ExpiringMembershipDto,
+  DashboardApiResponse,
 } from '../../Domain/OverView/overview.model';
 import { environment } from '../../Shared/environment/environment';
 
@@ -27,14 +28,17 @@ export class OverviewServices {
 
   // ===== Dashboard =====
 
-  getDashboard(date?: string): Observable<DashboardDto> {
+  getDashboard(from?: string, to?: string): Observable<DashboardDto> {
     let params = new HttpParams();
-    if (date) {
-      params = params.set('date', date);
+    if (from) {
+      params = params.set('from', from);
+    }
+    if (to) {
+      params = params.set('to', to);
     }
 
     return this.http
-      .get<any>(`${this.baseUrl}/Dashboard`, { params })
+      .get<any>(`${this.baseUrl}/dashboard`, { params })
       .pipe(map((res) => this.normalizeDashboard(res)));
   }
 
@@ -54,147 +58,80 @@ export class OverviewServices {
 
   getActiveMemberships(): Observable<ActiveMembershipDto[]> {
     return this.http.get<ActiveMembershipDto[]>(
-      `${this.baseUrl}/ParkingMemberships/GetActiveMembership`
+      `${this.baseUrl}/ParkingMemberships/GetActiveMembership`,
     );
   }
 
   getInactiveMemberships(): Observable<InactiveMembershipDto[]> {
     return this.http.get<InactiveMembershipDto[]>(
-      `${this.baseUrl}/ParkingMemberships/GetInactiveMembership`
+      `${this.baseUrl}/ParkingMemberships/GetInactiveMembership`,
     );
   }
 
   getMembershipsExpireNextSevenDays(): Observable<ExpiringMembershipDto[]> {
     return this.http.get<ExpiringMembershipDto[]>(
-      `${this.baseUrl}/ParkingMemberships/GetMembershipExpireNextSevenDays`
+      `${this.baseUrl}/ParkingMemberships/GetMembershipExpireNextSevenDays`,
     );
   }
 
-  private normalizeDashboard(res: any): DashboardDto {
-    const entryGates = this.pick<any[]>(res, 'entryGates', 'EntryGates') ?? [];
-    const exitGates = this.pick<any[]>(res, 'exitGates', 'ExitGates') ?? [];
-    const recentTickets = this.pick<any[]>(res, 'recentTickets', 'RecentTickets') ?? [];
+  private normalizeDashboard(res: DashboardApiResponse & Record<string, any>): DashboardDto {
+    const entryGates = this.dashboardArray(res, 'entryGates');
+    const exitGates = this.dashboardArray(res, 'exitGates');
+    const recentTickets = this.dashboardArray(res, 'recentTickets');
 
     return {
-      date: this.pick<string>(res, 'date', 'Date') ?? '',
-      subscriptionCount: this.number(res, 'subscriptionCount', 'SubscriptionCount'),
-      activeSubscriptionCount: this.number(
-        res,
-        'activeSubscriptionCount',
-        'ActiveSubscriptionCount',
-      ),
-      inactiveSubscriptionCount: this.number(
-        res,
-        'inactiveSubscriptionCount',
-        'InactiveSubscriptionCount',
-      ),
-      membershipsExpiringNext7Days: this.number(
-        res,
-        'membershipsExpiringNext7Days',
-        'MembershipsExpiringNext7Days',
-      ),
-      ticketEnterToday: this.number(
-        res,
-        'ticketEnterToday',
-        'TicketEnterToday',
-        'enterTicketsCount',
-        'EnterTicketsCount',
-      ),
-      ticketEnterNotTodayButNotExitYet: this.number(
+      date: this.dashboardString(res, 'date'),
+      fromDate: this.dashboardString(res, 'fromDate'),
+      toDate: this.dashboardString(res, 'toDate'),
+      subscriptionCount: this.dashboardNumber(res, 'subscriptionCount'),
+      activeSubscriptionCount: this.dashboardNumber(res, 'activeSubscriptionCount'),
+      inactiveSubscriptionCount: this.dashboardNumber(res, 'inactiveSubscriptionCount'),
+      membershipsExpiringNext7Days: this.dashboardNumber(res, 'membershipsExpiringNext7Days'),
+      ticketEnterToday: this.dashboardNumber(res, 'ticketEnterToday', 'enterTicketsCount'),
+      ticketEnterNotTodayButNotExitYet: this.dashboardNumber(
         res,
         'ticketEnterNotTodayButNotExitYet',
-        'TicketEnterNotTodayButNotExitYet',
       ),
-      exitTicketsCount: this.number(res, 'exitTicketsCount', 'ExitTicketsCount'),
-      currentVehiclesInside: this.number(res, 'currentVehiclesInside', 'CurrentVehiclesInside'),
-      activeTicketsCount: this.number(res, 'activeTicketsCount', 'ActiveTicketsCount'),
-      occupancyPercentage: this.number(res, 'occupancyPercentage', 'OccupancyPercentage'),
-      estimatedFreeSlots: this.number(res, 'estimatedFreeSlots', 'EstimatedFreeSlots'),
-      totalRevenue: this.number(res, 'totalRevenue', 'TotalRevenue'),
-      collectedRevenue: this.number(res, 'collectedRevenue', 'CollectedRevenue'),
-      pendingRevenue: this.number(res, 'pendingRevenue', 'PendingRevenue'),
-      ticketBaseRevenue: this.number(res, 'ticketBaseRevenue', 'TicketBaseRevenue'),
-      collectedTicketBaseRevenue: this.number(
-        res,
-        'collectedTicketBaseRevenue',
-        'CollectedTicketBaseRevenue',
-      ),
-      pendingTicketBaseRevenue: this.number(
-        res,
-        'pendingTicketBaseRevenue',
-        'PendingTicketBaseRevenue',
-      ),
-      membershipTicketsCount: this.number(res, 'membershipTicketsCount', 'MembershipTicketsCount'),
-      walkInTicketsCount: this.number(res, 'walkInTicketsCount', 'WalkInTicketsCount'),
-      membershipRelatedRevenue: this.number(
-        res,
-        'membershipRelatedRevenue',
-        'MembershipRelatedRevenue',
-      ),
-      walkInRevenue: this.number(res, 'walkInRevenue', 'WalkInRevenue'),
-      averageDurationMinutes: this.number(
-        res,
-        'averageDurationMinutes',
-        'AverageDurationMinutes',
-      ),
-      maxDurationMinutes: this.number(res, 'maxDurationMinutes', 'MaxDurationMinutes'),
-      exceededTicketsCount: this.number(res, 'exceededTicketsCount', 'ExceededTicketsCount'),
-      exceedTransactionsCount: this.number(
-        res,
-        'exceedTransactionsCount',
-        'ExceedTransactionsCount',
-      ),
-      collectedExceedTransactionsCount: this.number(
+      exitTicketsCount: this.dashboardNumber(res, 'exitTicketsCount'),
+      currentVehiclesInside: this.dashboardNumber(res, 'currentVehiclesInside'),
+      activeTicketsCount: this.dashboardNumber(res, 'activeTicketsCount'),
+      occupancyPercentage: this.dashboardNumber(res, 'occupancyPercentage'),
+      estimatedFreeSlots: this.dashboardNumber(res, 'estimatedFreeSlots'),
+      totalRevenue: this.dashboardNumber(res, 'totalRevenue'),
+      collectedRevenue: this.dashboardNumber(res, 'collectedRevenue'),
+      pendingRevenue: this.dashboardNumber(res, 'pendingRevenue'),
+      ticketBaseRevenue: this.dashboardNumber(res, 'ticketBaseRevenue'),
+      collectedTicketBaseRevenue: this.dashboardNumber(res, 'collectedTicketBaseRevenue'),
+      pendingTicketBaseRevenue: this.dashboardNumber(res, 'pendingTicketBaseRevenue'),
+      membershipTicketsCount: this.dashboardNumber(res, 'membershipTicketsCount'),
+      walkInTicketsCount: this.dashboardNumber(res, 'walkInTicketsCount'),
+      membershipRelatedRevenue: this.dashboardNumber(res, 'membershipRelatedRevenue'),
+      walkInRevenue: this.dashboardNumber(res, 'walkInRevenue'),
+      averageDurationMinutes: this.dashboardNumber(res, 'averageDurationMinutes'),
+      maxDurationMinutes: this.dashboardNumber(res, 'maxDurationMinutes'),
+      exceededTicketsCount: this.dashboardNumber(res, 'exceededTicketsCount'),
+      exceedTransactionsCount: this.dashboardNumber(res, 'exceedTransactionsCount'),
+      collectedExceedTransactionsCount: this.dashboardNumber(
         res,
         'collectedExceedTransactionsCount',
-        'CollectedExceedTransactionsCount',
       ),
-      pendingExceedTransactionsCount: this.number(
-        res,
-        'pendingExceedTransactionsCount',
-        'PendingExceedTransactionsCount',
-      ),
-      totalExceedRevenue: this.number(res, 'totalExceedRevenue', 'TotalExceedRevenue'),
-      collectedExceedRevenue: this.number(
-        res,
-        'collectedExceedRevenue',
-        'CollectedExceedRevenue',
-      ),
-      pendingExceedRevenue: this.number(res, 'pendingExceedRevenue', 'PendingExceedRevenue'),
-      averageExceedPerTicket: this.number(
-        res,
-        'averageExceedPerTicket',
-        'AverageExceedPerTicket',
-      ),
-      averageExceedPerTransaction: this.number(
-        res,
-        'averageExceedPerTransaction',
-        'AverageExceedPerTransaction',
-      ),
-      busiestGateNumber: this.number(res, 'busiestGateNumber', 'BusiestGateNumber'),
-      busiestGateTicketsCount: this.number(
-        res,
-        'busiestGateTicketsCount',
-        'BusiestGateTicketsCount',
-      ),
-      topCollectorName: this.pick<string | null>(res, 'topCollectorName', 'TopCollectorName') ?? null,
-      topCollectorAmount: this.number(res, 'topCollectorAmount', 'TopCollectorAmount'),
-      topCollectorTicketsCount: this.number(
-        res,
-        'topCollectorTicketsCount',
-        'TopCollectorTicketsCount',
-      ),
+      pendingExceedTransactionsCount: this.dashboardNumber(res, 'pendingExceedTransactionsCount'),
+      totalExceedRevenue: this.dashboardNumber(res, 'totalExceedRevenue'),
+      collectedExceedRevenue: this.dashboardNumber(res, 'collectedExceedRevenue'),
+      pendingExceedRevenue: this.dashboardNumber(res, 'pendingExceedRevenue'),
+      averageExceedPerTicket: this.dashboardNumber(res, 'averageExceedPerTicket'),
+      averageExceedPerTransaction: this.dashboardNumber(res, 'averageExceedPerTransaction'),
+      busiestGateNumber: this.dashboardNumber(res, 'busiestGateNumber'),
+      busiestGateTicketsCount: this.dashboardNumber(res, 'busiestGateTicketsCount'),
+      topCollectorName: this.dashboardValue<string | null>(res, 'topCollectorName') ?? null,
+      topCollectorAmount: this.dashboardNumber(res, 'topCollectorAmount'),
+      topCollectorTicketsCount: this.dashboardNumber(res, 'topCollectorTicketsCount'),
       topExceedCollectorName:
-        this.pick<string | null>(res, 'topExceedCollectorName', 'TopExceedCollectorName') ?? null,
-      topExceedCollectorAmount: this.number(
-        res,
-        'topExceedCollectorAmount',
-        'TopExceedCollectorAmount',
-      ),
-      topExceedCollectorTransactionsCount: this.number(
+        this.dashboardValue<string | null>(res, 'topExceedCollectorName') ?? null,
+      topExceedCollectorAmount: this.dashboardNumber(res, 'topExceedCollectorAmount'),
+      topExceedCollectorTransactionsCount: this.dashboardNumber(
         res,
         'topExceedCollectorTransactionsCount',
-        'TopExceedCollectorTransactionsCount',
       ),
       entryGates: entryGates.map((item) => this.normalizeEntryGateSummary(item)),
       exitGates: exitGates.map((item) => this.normalizeExitGateSummary(item)),
@@ -280,6 +217,37 @@ export class OverviewServices {
     };
   }
 
+  private dashboardNumber(
+    source: DashboardApiResponse & Record<string, any>,
+    key: keyof DashboardApiResponse | string,
+    ...aliases: string[]
+  ): number {
+    return Number(this.dashboardValue(source, key, ...aliases) ?? 0);
+  }
+
+  private dashboardString(
+    source: DashboardApiResponse & Record<string, any>,
+    key: keyof DashboardApiResponse | string,
+  ): string {
+    return String(this.dashboardValue(source, key) ?? '');
+  }
+
+  private dashboardArray(
+    source: DashboardApiResponse & Record<string, any>,
+    key: keyof DashboardApiResponse | string,
+  ): any[] {
+    const value = this.dashboardValue<any[]>(source, key);
+    return Array.isArray(value) ? value : [];
+  }
+
+  private dashboardValue<T = any>(
+    source: DashboardApiResponse & Record<string, any>,
+    key: keyof DashboardApiResponse | string,
+    ...aliases: string[]
+  ): T | undefined {
+    return this.pick<T>(source, String(key), this.pascalCase(String(key)), ...aliases);
+  }
+
   private number(source: any, ...keys: string[]): number {
     return Number(this.pick(source, ...keys) ?? 0);
   }
@@ -294,5 +262,9 @@ export class OverviewServices {
       if (source?.[key] !== undefined) return source[key] as T;
     }
     return undefined;
+  }
+
+  private pascalCase(value: string): string {
+    return value.charAt(0).toUpperCase() + value.slice(1);
   }
 }

@@ -39,10 +39,17 @@
 
 .config-layout {
   align-items: flex-start;
+  min-width: 0;
 }
 
 .config-main-col,
 .config-summary-col {
+  min-width: 0;
+}
+
+.config-main-card,
+.config-summary-card,
+.config-gates-tabs {
   min-width: 0;
 }
 
@@ -195,12 +202,40 @@
 }
 
 .config-summary-card .card-body > .d-flex > .d-flex {
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.35rem 0.5rem;
   min-height: 40px;
   padding: 0.65rem 0.75rem !important;
   background: #fff;
+  min-width: 0;
   transition:
     background 0.14s ease,
     color 0.14s ease;
+}
+
+.config-summary-card .card-body > .d-flex > .d-flex > .d-flex {
+  min-width: 0;
+}
+
+.config-summary-card .card-body > .d-flex > .d-flex > .d-flex span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  line-height: 1.25;
+}
+
+.config-summary-card .card-body > .d-flex > .d-flex > span:last-child {
+  min-width: 0;
+  max-width: 100%;
+  justify-self: end;
+  overflow-wrap: anywhere;
+  text-align: end;
+  line-height: 1.25;
+}
+
+.config-summary-card .card-body > .d-flex > .d-flex > .badge {
+  white-space: normal;
+  text-align: center;
 }
 
 .config-summary-card .card-body > .d-flex > .d-flex + .d-flex {
@@ -361,6 +396,8 @@
   padding: 0.95rem 1rem 0.6rem;
   background: #fff;
   border-bottom: 1px solid var(--config-border);
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 :host ::ng-deep .mat-horizontal-stepper-header {
@@ -391,6 +428,7 @@
   color: var(--config-muted);
   font-size: 0.76rem;
   font-weight: 700;
+  white-space: normal;
 }
 
 :host ::ng-deep .mat-step-label-selected {
@@ -448,6 +486,8 @@
 
 :host ::ng-deep .mat-mdc-tab-header {
   border-bottom: 1px solid var(--config-border);
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 :host ::ng-deep .mat-mdc-tab {
@@ -487,13 +527,29 @@
 }
 
 /* ================= RESPONSIVE ================= */
-@media (max-width: 1399.98px) {
+@media (min-width: 768px) and (max-width: 1399.98px) {
   :host > .container-fluid {
     padding-inline: 1rem;
   }
 
+  .config-mode-group,
+  .config-capture-group,
+  .config-options-group,
+  .config-pricing-group {
+    width: 50%;
+  }
+
   .config-gates-tabs [formarrayname] > [class*='col-'] {
     max-width: 100%;
+  }
+}
+
+@media (min-width: 1400px) and (max-width: 1599.98px) {
+  .config-mode-group,
+  .config-capture-group,
+  .config-options-group,
+  .config-pricing-group {
+    width: 50%;
   }
 }
 
@@ -504,10 +560,11 @@
 
   .config-summary-card .card-body > .d-flex {
     display: grid !important;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   }
 
   .config-summary-card .card-body > .d-flex > .d-flex {
+    min-height: 58px;
     border-inline-end: 1px solid #edf2f7;
   }
 
@@ -521,12 +578,19 @@
     padding: 0.85rem 0.75rem 1.5rem;
   }
 
+  .config-mode-group,
+  .config-capture-group,
+  .config-options-group,
+  .config-pricing-group {
+    width: 100%;
+  }
+
   .config-main-card form {
     padding: 0.75rem !important;
   }
 
   .config-summary-card .card-body > .d-flex {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
   }
 
   :host ::ng-deep .config-gates-tabs [formarrayname] .mat-expansion-panel-body {
@@ -593,6 +657,7 @@
   }
 
   .config-summary-card .card-body > .d-flex > .d-flex {
+    min-height: 52px;
     border-inline-end: 0;
   }
 }
