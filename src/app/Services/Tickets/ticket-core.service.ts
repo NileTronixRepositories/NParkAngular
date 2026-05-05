@@ -357,10 +357,24 @@ export class TicketCoreService {
   mapCollectEnterResponseToSummary(res: CollectEnterTicketsResponse | any): CollectDailyTicketsResponse {
     const tickets = res?.tickets ?? res?.Tickets ?? [];
     const collectedAt = res?.collectedAt ?? res?.CollectedAt ?? new Date().toISOString();
+    const lines = (res?.lines ?? res?.Lines ?? []).map((line: any) => ({
+      responsibleUserId: String(line?.responsibleUserId ?? line?.ResponsibleUserId ?? ''),
+      responsibleUserName: String(line?.responsibleUserName ?? line?.ResponsibleUserName ?? ''),
+      ticketsCount: Number(line?.ticketsCount ?? line?.TicketsCount ?? line?.itemsCount ?? 0),
+      totalOriginalPrice: Number(
+        line?.totalOriginalPrice ?? line?.TotalOriginalPrice ?? line?.totalAmount ?? 0,
+      ),
+    }));
+    const responsibleNames = new Map(
+      lines.map((line: any) => [line.responsibleUserId, line.responsibleUserName]),
+    );
 
     return {
+      transactionId: res?.transactionId ?? res?.TransactionId ?? null,
       gateId: res?.gateId ?? res?.GateId ?? '',
       gateName: null,
+      collectedBy: res?.collectedBy ?? res?.CollectedBy ?? null,
+      collectedName: res?.collectedName ?? res?.CollectedName ?? null,
       date: collectedAt,
       totalAmount: Number(
         res?.totalOriginalPriceCollected ?? res?.TotalOriginalPriceCollected ?? 0,
@@ -371,8 +385,15 @@ export class TicketCoreService {
       totalTicketsCollected: Number(
         res?.totalTicketsCollected ?? res?.TotalTicketsCollected ?? tickets.length,
       ),
+      lines,
       ticketCollectDetails: tickets.map((ticket: any) => ({
         ticketId: ticket?.ticketId ?? ticket?.TicketId ?? null,
+        responsibleUserId: ticket?.responsibleUserId ?? ticket?.ResponsibleUserId ?? null,
+        responsibleUserName:
+          ticket?.responsibleUserName ??
+          ticket?.ResponsibleUserName ??
+          responsibleNames.get(ticket?.responsibleUserId ?? ticket?.ResponsibleUserId) ??
+          null,
         collectedAt: ticket?.collectedAt ?? ticket?.CollectedAt ?? collectedAt,
         ticketNumber:
           ticket?.ticketUniqueCode ??
@@ -387,6 +408,7 @@ export class TicketCoreService {
         vehicleNumber: ticket?.vehicleNumber ?? ticket?.VehicleNumber ?? null,
         cardNumber: ticket?.cardNumber ?? ticket?.CardNumber ?? null,
         isSubscriber: !!(ticket?.isSubscriber ?? ticket?.IsSubscriber),
+        gateId: ticket?.gateId ?? ticket?.GateId ?? null,
         gateNumber:
           ticket?.gateNumber != null || ticket?.GateNumber != null
             ? Number(ticket?.gateNumber ?? ticket?.GateNumber)

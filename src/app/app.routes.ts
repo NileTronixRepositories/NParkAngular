@@ -29,6 +29,24 @@ export const routes: Routes = [
 
       // Users
       {
+        path: 'users/by-role',
+        canActivate: [authGuard],
+        data: { roles: ['Admin'] },
+        loadComponent: () =>
+          import('./Feature/users-by-role-report/users-by-role-report').then(
+            (m) => m.UsersByRoleReport,
+          ),
+      },
+      {
+        path: 'users/by-role/:roleId',
+        canActivate: [authGuard],
+        data: { roles: ['Admin'] },
+        loadComponent: () =>
+          import('./Feature/users-by-role-report/users-by-role-report').then(
+            (m) => m.UsersByRoleReport,
+          ),
+      },
+      {
         path: 'users',
         canActivate: [authGuard],
         data: { roles: ['Admin'] },

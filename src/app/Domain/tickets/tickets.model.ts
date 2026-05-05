@@ -151,16 +151,28 @@ export interface AddTicketRequest {
 }
 
 export interface CollectDailyTicketsResponse {
+  transactionId?: string | null;
   gateId: number | string;
   gateName?: string | null;
+  collectedBy?: string | null;
+  collectedName?: string | null;
   date: string;
 
   totalAmount: number;
   totalPriceCollected: number;
   totalTicketsCollected: number;
 
+  lines?: {
+    responsibleUserId: string;
+    responsibleUserName: string;
+    ticketsCount: number;
+    totalOriginalPrice: number;
+  }[];
+
   ticketCollectDetails: {
     ticketId?: string | null;
+    responsibleUserId?: string | null;
+    responsibleUserName?: string | null;
     collectedAt: string;
     ticketNumber: string;
     source?: string | null;
@@ -170,6 +182,7 @@ export interface CollectDailyTicketsResponse {
     vehicleNumber?: string | null;
     cardNumber?: string | null;
     isSubscriber?: boolean;
+    gateId?: string | null;
     gateNumber?: number | null;
     gateType?: number | string | null;
     exitGateId?: string | null;
@@ -199,15 +212,25 @@ export interface UncollectedEnterTicketsResponse {
 }
 
 export interface CollectedEnterTicketDto extends UncollectedEnterTicketDto {
+  responsibleUserId: string;
+  responsibleUserName?: string | null;
   collectedAt: string;
 }
 
 export interface CollectEnterTicketsResponse {
+  transactionId: string;
   gateId: string;
   collectedBy: string;
+  collectedName: string;
   collectedAt: string;
   totalTicketsCollected: number;
   totalOriginalPriceCollected: number;
+  lines: {
+    responsibleUserId: string;
+    responsibleUserName: string;
+    ticketsCount: number;
+    totalOriginalPrice: number;
+  }[];
   tickets: CollectedEnterTicketDto[];
 }
 

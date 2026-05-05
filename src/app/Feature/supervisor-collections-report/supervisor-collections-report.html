@@ -1,0 +1,274 @@
+<div class="supervisor-report" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
+  <section class="filters-panel bg-white border rounded-3 shadow-soft mb-3">
+    <header class="panel-header border-bottom">
+      <i class="bi bi-filter-right text-primary"></i>
+      <span>{{ t('title') }}</span>
+    </header>
+
+    <div class="row g-3 align-items-end p-3">
+      <div class="col-12 col-lg-4">
+        <label class="form-label small fw-semibold text-muted">{{ t('supervisor') }}</label>
+        <div class="fixed-supervisor-box">
+          <i class="bi bi-person-check-fill"></i>
+          <span>{{ supervisorName || supervisorId || t('unavailable') }}</span>
+        </div>
+      </div>
+
+      <div class="col-6 col-lg-2">
+        <label class="form-label small fw-semibold text-muted">{{ t('fromDate') }}</label>
+        <input
+          type="date"
+          class="form-control form-control-sm"
+          [(ngModel)]="fromDate"
+          [disabled]="loading"
+        />
+      </div>
+
+      <div class="col-6 col-lg-2">
+        <label class="form-label small fw-semibold text-muted">{{ t('toDate') }}</label>
+        <input
+          type="date"
+          class="form-control form-control-sm"
+          [(ngModel)]="toDate"
+          [disabled]="loading"
+        />
+      </div>
+
+      <div class="col-12 col-lg-2">
+        <button
+          type="button"
+          class="btn btn-primary btn-sm w-100 d-inline-flex align-items-center justify-content-center gap-2"
+          (click)="search()"
+          [disabled]="loading"
+        >
+          <span *ngIf="loading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          <i *ngIf="!loading" class="bi bi-search"></i>
+          <span>{{ loading ? t('loading') : t('search') }}</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-start gap-2" role="alert">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div>{{ errorMessage }}</div>
+  </div>
+
+  <section *ngIf="loading" class="loading-panel bg-white border rounded-3 shadow-soft">
+    <div class="spinner-border text-primary" role="status"></div>
+    <span>{{ t('loading') }}</span>
+  </section>
+
+  <ng-container *ngIf="report as r">
+    <section class="supervisor-info bg-white border rounded-3 shadow-soft mb-3">
+      <header class="panel-header border-bottom">
+        <i class="bi bi-person-vcard text-primary"></i>
+        <span>{{ t('supervisorInfo') }}</span>
+      </header>
+
+      <div class="info-grid p-3">
+        <div class="info-item">
+          <span>{{ t('supervisorName') }}</span>
+          <strong>{{ r.supervisor.supervisorName }}</strong>
+        </div>
+        <div class="info-item">
+          <span>{{ t('username') }}</span>
+          <strong>{{ r.supervisor.username }}</strong>
+        </div>
+        <div class="info-item">
+          <span>{{ t('role') }}</span>
+          <strong>{{ roleLabel() }}</strong>
+        </div>
+        <div class="info-item">
+          <span>{{ t('from') }}</span>
+          <strong>{{ dateOnlyLabel(r.period.from) }}</strong>
+        </div>
+        <div class="info-item">
+          <span>{{ t('to') }}</span>
+          <strong>{{ dateOnlyLabel(r.period.to) }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="summary-section mb-3">
+      <div class="section-title">
+        <i class="bi bi-bar-chart-fill"></i>
+        <span>{{ t('collectionsSummary') }}</span>
+      </div>
+      <div class="summary-grid">
+        <article class="summary-card" *ngFor="let card of summaryCards" [class]="'tone-' + card.tone">
+          <div class="summary-icon"><i class="bi" [ngClass]="card.icon"></i></div>
+          <div class="min-w-0">
+            <span>{{ t(card.key) }}</span>
+            <strong>{{ card.money ? moneyLabel(r.summary[card.key]) : r.summary[card.key] }}</strong>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section *ngIf="noCollectionsFound" class="empty-state bg-white border rounded-3 shadow-soft mb-3">
+      <i class="bi bi-inbox text-muted"></i>
+      <p class="mb-0 text-muted">{{ t('noCollections') }}</p>
+    </section>
+
+    <section class="collections-panel bg-white border rounded-3 shadow-soft">
+      <div class="tabs-bar border-bottom">
+        <button type="button" class="tab-button" [class.active]="activeTab === 'transactions'" (click)="setTab('transactions')">
+          <i class="bi bi-receipt"></i>
+          <span>{{ t('transactions') }}</span>
+          <strong>{{ r.collectionTransactions.length }}</strong>
+        </button>
+        <button type="button" class="tab-button" [class.active]="activeTab === 'collectors'" (click)="setTab('collectors')">
+          <i class="bi bi-people"></i>
+          <span>{{ t('responsibleUsers') }}</span>
+          <strong>{{ r.ticketCollectorsSummary.length }}</strong>
+        </button>
+        <button type="button" class="tab-button" [class.active]="activeTab === 'active'" (click)="setTab('active')">
+          <i class="bi bi-p-circle"></i>
+          <span>{{ t('enterTickets') }}</span>
+          <strong>{{ r.activeTicketCollections.length }}</strong>
+        </button>
+        <button type="button" class="tab-button" [class.active]="activeTab === 'exceed'" (click)="setTab('exceed')">
+          <i class="bi bi-exclamation-circle"></i>
+          <span>{{ t('exceedTransactions') }}</span>
+          <strong>{{ r.supervisorExceedCollections.length }}</strong>
+        </button>
+      </div>
+
+      <div *ngIf="activeTab === 'transactions'" class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">{{ t('transactionType') }}</th>
+              <th>{{ t('gateName') }}</th>
+              <th>{{ t('collectedBy') }}</th>
+              <th>{{ t('collectedDate') }}</th>
+              <th>{{ t('totalItems') }}</th>
+              <th class="pe-3">{{ t('totalAmount') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of r.collectionTransactions; trackBy: trackTransaction">
+              <td class="ps-3 fw-bold">{{ valueLabel(row.transactionType) }}</td>
+              <td>{{ valueLabel(row.gateName) }}</td>
+              <td>{{ valueLabel(row.collectedByName) }}</td>
+              <td>{{ dateLabel(row.collectedAt) }}</td>
+              <td>{{ row.totalItemsCollected }}</td>
+              <td class="pe-3 fw-bold">{{ moneyLabel(row.totalAmountCollected) }}</td>
+            </tr>
+            <tr *ngIf="r.collectionTransactions.length === 0">
+              <td colspan="6" class="text-center py-5 text-muted">{{ t('noCollections') }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="activeTab === 'collectors'" class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">{{ t('responsibleUserName') }}</th>
+              <th>{{ t('enterTicketsCount') }}</th>
+              <th>{{ t('exceedTransactionsCount') }}</th>
+              <th>{{ t('totalItemsCount') }}</th>
+              <th>{{ t('enterTicketsAmount') }}</th>
+              <th>{{ t('responsibleExceedAmount') }}</th>
+              <th class="pe-3">{{ t('totalAmount') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of r.ticketCollectorsSummary; trackBy: trackCollector">
+              <td class="ps-3 fw-bold">{{ valueLabel(row.responsibleUserName) }}</td>
+              <td>{{ row.enterTicketsCount }}</td>
+              <td>{{ row.exceedTransactionsCount }}</td>
+              <td>{{ row.totalItemsCount }}</td>
+              <td>{{ moneyLabel(row.enterTicketsAmount) }}</td>
+              <td>{{ moneyLabel(row.exceedAmount) }}</td>
+              <td class="pe-3 fw-bold">{{ moneyLabel(row.totalAmount) }}</td>
+            </tr>
+            <tr *ngIf="r.ticketCollectorsSummary.length === 0">
+              <td colspan="7" class="text-center py-5 text-muted">{{ t('noCollections') }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="activeTab === 'active'" class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">{{ t('ticketCode') }}</th>
+              <th>{{ t('startDate') }}</th>
+              <th>{{ t('collectedDate') }}</th>
+              <th>{{ t('responsibleUserName') }}</th>
+              <th>{{ t('collectionAmount') }}</th>
+              <th>{{ t('vehicleNumber') }}</th>
+              <th>{{ t('subscriber') }}</th>
+              <th>{{ t('cardNumber') }}</th>
+              <th class="pe-3">{{ t('gateNumber') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of r.activeTicketCollections; trackBy: trackActive">
+              <td class="ps-3 mono fw-bold">{{ row.uniqueCode }}</td>
+              <td>{{ dateLabel(row.startDate) }}</td>
+              <td>{{ dateLabel(row.collectedDate) }}</td>
+              <td>{{ valueLabel(row.collectorName) }}</td>
+              <td class="fw-bold">{{ moneyLabel(row.collectionAmount) }}</td>
+              <td>{{ valueLabel(row.vehicleNumber) }}</td>
+              <td>{{ subscriberLabel(row.isSubscriber) }}</td>
+              <td class="mono">{{ valueLabel(row.cardNumber) }}</td>
+              <td class="pe-3">{{ valueLabel(row.gateNumber) }}</td>
+            </tr>
+            <tr *ngIf="r.activeTicketCollections.length === 0">
+              <td colspan="9" class="text-center py-5 text-muted">{{ t('noCollections') }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="activeTab === 'exceed'" class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">{{ t('ticketCode') }}</th>
+              <th>{{ t('ticketStartDate') }}</th>
+              <th>{{ t('ticketEndDate') }}</th>
+              <th>{{ t('exceedAmount') }}</th>
+              <th>{{ t('ticketPrice') }}</th>
+              <th>{{ t('ticketOldExceedPrice') }}</th>
+              <th>{{ t('totalPriceAfterExceed') }}</th>
+              <th>{{ t('vehicleNumber') }}</th>
+              <th>{{ t('exceedCreatedByName') }}</th>
+              <th>{{ t('supervisorCollectorName') }}</th>
+              <th>{{ t('supervisorCollectedAt') }}</th>
+              <th>{{ t('createdAt') }}</th>
+              <th class="pe-3">{{ t('gateNumber') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let row of r.supervisorExceedCollections; trackBy: trackExceed">
+              <td class="ps-3 mono fw-bold">{{ row.ticketUniqueCode }}</td>
+              <td>{{ dateLabel(row.ticketStartDate) }}</td>
+              <td>{{ dateLabel(row.ticketEndDate) }}</td>
+              <td class="fw-bold">{{ moneyLabel(row.exceedAmount) }}</td>
+              <td>{{ moneyLabel(row.ticketPrice) }}</td>
+              <td>{{ moneyLabel(row.ticketOldExceedPrice) }}</td>
+              <td>{{ moneyLabel(row.totalPriceAfterExceed) }}</td>
+              <td>{{ valueLabel(row.vehicleNumber) }}</td>
+              <td>{{ valueLabel(row.exceedCreatedByName) }}</td>
+              <td>{{ valueLabel(row.supervisorCollectorName) }}</td>
+              <td>{{ dateLabel(row.supervisorCollectedAt) }}</td>
+              <td>{{ dateLabel(row.createdAt) }}</td>
+              <td class="pe-3">{{ valueLabel(row.gateNumber) }}</td>
+            </tr>
+            <tr *ngIf="r.supervisorExceedCollections.length === 0">
+              <td colspan="13" class="text-center py-5 text-muted">{{ t('noCollections') }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+    </section>
+  </ng-container>
+</div>

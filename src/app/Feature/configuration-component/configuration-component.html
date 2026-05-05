@@ -1,5 +1,5 @@
 <div
-  class="container-fluid py-2"
+  class="container-fluid py-2 configuration-page"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
@@ -107,7 +107,7 @@
                 </div>
               </div>
 
-              <div class="d-flex justify-content-end mt-2 pt-1 border-top">
+              <div class="d-flex justify-content-end mt-2 pt-1 border-top config-step-actions">
                 <div class="d-grid d-sm-block">
                   <button
                     mat-flat-button
@@ -128,110 +128,88 @@
           <mat-step [stepControl]="step2Form" [label]="'modeAndSettings' | t">
             <form [formGroup]="step2Form" class="p-2">
               <!-- ===== Settings (Mode / Capture / Print / Options / Pricing) ===== -->
-              <div class="row g-2 mb-2">
-                <!-- MODE -->
-                <div class="col-12 col-sm-6 col-xxl-3 config-mode-group">
-                  <div class="card h-100 border bg-light shadow-sm">
-                    <div class="card-body p-2">
-                      <div class="d-flex align-items-center gap-2 mb-2 text-primary">
-                        <i class="bi bi-currency-exchange fs-5"></i>
-                        <h6 class="mb-0 fw-bold">{{ 'Due_collection' | t }}</h6>
-                      </div>
-                      <div class="d-flex flex-column gap-2">
-                        <mat-checkbox
-                          [checked]="modeCtrl.value === 'entry'"
-                          (change)="modeCtrl.setValue('entry')"
-                          color="primary"
-                        >
-                          {{ 'entry' | t }}
-                        </mat-checkbox>
-                        <mat-checkbox
-                          [checked]="modeCtrl.value === 'exit'"
-                          (change)="modeCtrl.setValue('exit')"
-                          color="primary"
-                        >
-                          {{ 'exit' | t }}
-                        </mat-checkbox>
-                      </div>
-                    </div>
+              <section class="config-operations-panel mb-2">
+                <div class="config-operations-section config-collection-section">
+                  <div class="config-section-title">
+                    <i class="bi bi-currency-exchange"></i>
+                    <span>{{ 'Due_collection' | t }}</span>
+                  </div>
+                  <div class="config-segmented-control">
+                    <button
+                      type="button"
+                      class="config-segment"
+                      [class.is-active]="modeCtrl.value === 'entry'"
+                      (click)="modeCtrl.setValue('entry')"
+                    >
+                      <i class="bi bi-box-arrow-in-down"></i>
+                      <span>{{ 'entry' | t }}</span>
+                    </button>
+                    <button
+                      type="button"
+                      class="config-segment"
+                      [class.is-active]="modeCtrl.value === 'exit'"
+                      (click)="modeCtrl.setValue('exit')"
+                    >
+                      <i class="bi bi-box-arrow-up"></i>
+                      <span>{{ 'exit' | t }}</span>
+                    </button>
                   </div>
                 </div>
 
-                <!-- CAPTURE MODE -->
-                <div class="col-12 col-sm-6 col-xxl-3 config-capture-group">
-                  <div class="card h-100 border bg-light shadow-sm">
-                    <div class="card-body p-2">
-                      <div class="d-flex align-items-center gap-2 mb-2 text-primary">
-                        <i class="bi bi-camera-video fs-5"></i>
-                        <h6 class="mb-0 fw-bold">{{ 'Image_Capture_Mode' | t }}</h6>
-                      </div>
-                      <mat-radio-group
-                        formControlName="captureMode"
-                        class="d-flex flex-column gap-2"
-                      >
-                        <mat-radio-button value="VEHICLE_PLATE" color="primary">{{
-                          'vehiclePlate' | t
-                        }}</mat-radio-button>
-                        <mat-radio-button value="SCANNER" color="primary">{{
-                          'scanner' | t
-                        }}</mat-radio-button>
-                        <mat-radio-button value="BOTH" color="primary">{{
-                          'both' | t
-                        }}</mat-radio-button>
-                      </mat-radio-group>
-                    </div>
+                <div class="config-operations-section config-capture-section">
+                  <div class="config-section-title">
+                    <i class="bi bi-camera-video"></i>
+                    <span>{{ 'Image_Capture_Mode' | t }}</span>
+                  </div>
+                  <mat-radio-group formControlName="captureMode" class="config-choice-list">
+                    <mat-radio-button value="VEHICLE_PLATE" color="primary">
+                      <span>{{ 'vehiclePlate' | t }}</span>
+                    </mat-radio-button>
+                    <mat-radio-button value="SCANNER" color="primary">
+                      <span>{{ 'scanner' | t }}</span>
+                    </mat-radio-button>
+                    <mat-radio-button value="BOTH" color="primary">
+                      <span>{{ 'both' | t }}</span>
+                    </mat-radio-button>
+                  </mat-radio-group>
+                </div>
+
+                <div class="config-operations-section config-ticket-section">
+                  <div class="config-section-title">
+                    <i class="bi bi-ticket-perforated"></i>
+                    <span>{{ 'ticketOptions' | t }}</span>
+                  </div>
+                  <div class="config-ticket-chips">
+                    <mat-checkbox formControlName="dateTimeFlag" color="primary">
+                      {{ 'ticketDateTime' | t }}
+                    </mat-checkbox>
+                    <mat-checkbox formControlName="ticketIdFlag" color="primary">
+                      {{ 'ticketNumberOnTicket' | t }}
+                    </mat-checkbox>
+                    <mat-checkbox formControlName="feesFlag" color="primary">
+                      {{ 'ticketFees' | t }}
+                    </mat-checkbox>
                   </div>
                 </div>
 
-                <!-- OPTIONS -->
-                <div class="col-12 col-sm-6 col-xxl-3 config-options-group">
-                  <div class="card h-100 border bg-light shadow-sm">
-                    <div class="card-body p-2">
-                      <div class="d-flex align-items-center gap-2 mb-2 text-primary">
-                        <i class="bi bi-ticket-perforated fs-5"></i>
-                        <h6 class="mb-0 fw-bold">{{ 'ticketOptions' | t }}</h6>
-                      </div>
-                      <div class="d-flex flex-wrap gap-3">
-                        <mat-checkbox formControlName="dateTimeFlag" color="primary">
-                          {{ 'ticketDateTime' | t }}
-                        </mat-checkbox>
-                        <mat-checkbox formControlName="ticketIdFlag" color="primary">
-                          {{ 'ticketNumberOnTicket' | t }}
-                        </mat-checkbox>
-                        <mat-checkbox formControlName="feesFlag" color="primary">
-                          {{ 'ticketFees' | t }}
-                        </mat-checkbox>
-                      </div>
-                    </div>
+                <div class="config-operations-section config-pricing-section" *ngIf="modeCtrl.value === 'entry'">
+                  <div class="config-section-title">
+                    <i class="bi bi-tags"></i>
+                    <span>{{ 'pricingSchema' | t }}</span>
                   </div>
+                  <mat-form-field appearance="outline" class="w-100 config-pricing-field">
+                    <mat-label>{{ 'pricingSchema' | t }}</mat-label>
+                    <mat-select formControlName="pricingSchemaId">
+                      <mat-option *ngFor="let s of pricingSchemas" [value]="s.id">
+                        {{ s.name }}
+                      </mat-option>
+                    </mat-select>
+                    <mat-error *ngIf="step2Form.get('pricingSchemaId')?.hasError('required')">
+                      {{ 'pricingSchemaRequired' | t }}
+                    </mat-error>
+                  </mat-form-field>
                 </div>
-
-                <!-- PRICING SCHEMA (ENTRY ONLY) -->
-                <div
-                  class="col-12 col-sm-6 col-xxl-3 config-pricing-group"
-                  *ngIf="modeCtrl.value === 'entry'"
-                >
-                  <div class="card h-100 border bg-light shadow-sm">
-                    <div class="card-body p-2">
-                      <div class="d-flex align-items-center gap-2 mb-2 text-primary">
-                        <i class="bi bi-tags fs-5"></i>
-                        <h6 class="mb-0 fw-bold">{{ 'pricingSchema' | t }}</h6>
-                      </div>
-                      <mat-form-field appearance="outline" class="w-100 bg-white rounded-2">
-                        <mat-label>{{ 'pricingSchema' | t }}</mat-label>
-                        <mat-select formControlName="pricingSchemaId">
-                          <mat-option *ngFor="let s of pricingSchemas" [value]="s.id">
-                            {{ s.name }}
-                          </mat-option>
-                        </mat-select>
-                        <mat-error *ngIf="step2Form.get('pricingSchemaId')?.hasError('required')">
-                          {{ 'pricingSchemaRequired' | t }}
-                        </mat-error>
-                      </mat-form-field>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              </section>
 
               <!-- ===== Tabs for Entry / Exit Gates ===== -->
               <mat-tab-group class="mb-2 config-gates-tabs" animationDuration="0ms">
@@ -683,7 +661,7 @@
               </mat-tab-group>
 
               <div
-                class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-2 pt-1 border-top"
+                class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-2 pt-1 border-top config-action-bar"
               >
                 <button mat-stroked-button type="button" (click)="goBack()" class="px-4">
                   {{ 'back' | t }}

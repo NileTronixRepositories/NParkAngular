@@ -74,6 +74,35 @@ export interface RoleDto {
   name: string;
 }
 
+export interface Pagination<T> {
+  currentPage: number;
+  pageSize: number;
+  totalItems: number;
+  totalPages: number;
+  data: T[];
+}
+
+export interface UserByRoleResponse {
+  userId: string;
+  name: string;
+  username: string;
+  email: string;
+  phoneNumber: string;
+  nationalId: string;
+  roleId: string;
+  roleNameEn: string;
+  roleNameAr: string;
+  shiftStartTime: string | null;
+  shiftEndTime: string | null;
+}
+
+export interface GetUsersByRoleIdResponse {
+  roleId: string;
+  roleNameEn: string;
+  roleNameAr: string;
+  users: Pagination<UserByRoleResponse>;
+}
+
 export const RoleIds = {
   admin: 'f47ac10b-58cc-4372-a567-0e02b2c3d479',
   entranceCashier: '11111111-1111-1111-1111-111111111111',

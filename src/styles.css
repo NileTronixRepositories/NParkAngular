@@ -34,6 +34,71 @@ select,
   font-family: 'Cairo', 'Helvetica Neue', Arial, sans-serif !important;
 }
 
+/* ================================
+   Global Page Header Contract
+   ================================ */
+
+:root {
+  --np-page-header-padding-y: 0.875rem;
+  --np-page-header-padding-x: 1.25rem;
+  --np-page-header-min-height: 78px;
+  --np-page-header-radius: 8px;
+  --np-page-header-icon-size: 38px;
+  --np-page-header-title-size: 1rem;
+  --np-page-header-subtitle-size: 0.72rem;
+}
+
+body .page-header.page-header {
+  width: 100% !important;
+  max-width: 100% !important;
+  min-height: var(--np-page-header-min-height) !important;
+  padding: var(--np-page-header-padding-y) var(--np-page-header-padding-x) !important;
+  margin-inline: 0 !important;
+  border-radius: var(--np-page-header-radius) !important;
+  box-sizing: border-box !important;
+}
+
+body .page-header.page-header > .d-flex,
+body .page-header.page-header > .header-content {
+  min-height: calc(
+    var(--np-page-header-min-height) - (var(--np-page-header-padding-y) * 2)
+  ) !important;
+}
+
+body .page-header.page-header .header-icon-wrapper.header-icon-wrapper {
+  width: var(--np-page-header-icon-size) !important;
+  height: var(--np-page-header-icon-size) !important;
+  flex: 0 0 var(--np-page-header-icon-size) !important;
+  border-radius: 8px !important;
+}
+
+body .page-header.page-header .header-icon.header-icon {
+  font-size: 1rem !important;
+  line-height: 1 !important;
+}
+
+body .page-header.page-header .page-title.page-title {
+  font-size: var(--np-page-header-title-size) !important;
+  line-height: 1.2 !important;
+  letter-spacing: 0 !important;
+}
+
+body .page-header.page-header .page-subtitle.page-subtitle {
+  font-size: var(--np-page-header-subtitle-size) !important;
+  line-height: 1.35 !important;
+}
+
+@media (max-width: 575.98px) {
+  :root {
+    --np-page-header-padding-y: 0.75rem;
+    --np-page-header-padding-x: 0.875rem;
+    --np-page-header-min-height: 68px;
+    --np-page-header-icon-size: 34px;
+    --np-page-header-title-size: 0.9rem;
+    --np-page-header-subtitle-size: 0.66rem;
+  }
+}
+
 /* ==================================
    Global Shepherd.js Custom Theme
    ================================== */

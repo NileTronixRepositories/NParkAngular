@@ -10,6 +10,7 @@ import {
   UserSystemResponse,
   RoleDto,
   RoleSystemResponse,
+  GetUsersByRoleIdResponse,
 } from '../../Domain/Users/user.model';
 import { environment } from '../../Shared/environment/environment';
 
@@ -44,7 +45,6 @@ export class UsersServices {
     };
   }
 
-
   // ========= GET USERS =========
   getAll(): Observable<UserDto[]> {
     return this.http.get<UserSystemResponse[]>(`${this.base}/User/GetUserSystem`).pipe(
@@ -70,6 +70,24 @@ export class UsersServices {
         return of([] as RoleDto[]);
       }),
     );
+  }
+
+  // ========= GET USERS BY ROLE =========
+  getUsersByRoleId(
+    roleId: string,
+    pageNumber: number = 1,
+    pageSize: number = 10,
+    searchText: string = '',
+  ): Observable<GetUsersByRoleIdResponse> {
+    const params = {
+      pageNumber,
+      pageSize,
+      searchText: searchText.trim(),
+    };
+
+    return this.http.get<GetUsersByRoleIdResponse>(`${this.base}/user/by-role/${roleId}`, {
+      params,
+    });
   }
 
   // ========= ADD =========

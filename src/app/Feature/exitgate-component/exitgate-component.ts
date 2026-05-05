@@ -1,5 +1,4 @@
 import { Component, Inject, OnInit, OnDestroy, inject, ChangeDetectorRef } from '@angular/core';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
@@ -24,6 +23,7 @@ import {
   GateServices,
   OpenGateResponse,
 } from '../../Services/Gate/gate-services';
+import { GatePeripheralFacade } from '../../Services/Gate/gate-peripheral.facade';
 import { AuthService } from '../../Services/Auth/auth-service';
 import { GateType, GateDevicePeripheral, GateDto } from '../../Domain/Auth/auth.models';
 import { LocalHealthService } from '../../Services/Gate/local-health.service';
@@ -40,6 +40,7 @@ import { ExitTourService } from '../../Services/Exit/exit-tour.service';
 import { DashboardHubService } from '../../Services/OverView/dashboard-hub.service';
 import { TicketExitedNotification } from '../../Domain/OverView/dashboard-notifications.model';
 import { ScanHubService, ScanFileMessage } from '../../Services/Gate/scan-hub.service';
+import { ScannerAttachmentService } from '../../Services/Gate/scanner-attachment.service';
 import {
   LprSignalRService,
   LprVehicleDetectedEvent,
@@ -58,6 +59,7 @@ import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal
 import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
 import { LocalPrintService } from '../../Services/Print/local-print.service';
+import { TicketPrintService } from '../../Services/Print/ticket-print.service';
 import { environment } from '../../Shared/environment/environment';
 
 type ExitToastLevel = 'success' | 'warn' | 'error';
@@ -557,6 +559,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // ====== Injects ======
   private readonly svc = inject(TicketsServices);
   private readonly gateSvc = inject(GateServices);
+  private readonly gatePeripheralFacade = inject(GatePeripheralFacade);
   private readonly auth = inject(AuthService);
   private readonly toast = inject(ToastServices);
   private readonly nfc = inject(NfcReaderService);
@@ -566,10 +569,12 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // NEW: SignalR Hub
   private readonly dashboardHub = inject(DashboardHubService);
   private readonly scanHub = inject(ScanHubService);
+  private readonly scannerAttachment = inject(ScannerAttachmentService);
   private readonly lprSignalR = inject(LprSignalRService);
   private readonly sanctionSvc = inject(SanctionService);
   private readonly ticketExceedTransactionSvc = inject(TicketExceedTransactionService);
   private readonly localPrint = inject(LocalPrintService);
+  private readonly ticketPrint = inject(TicketPrintService);
   private readonly hubSubscriptions = new Subscription();
   private readonly localHealth = inject(LocalHealthService);
 
@@ -708,7 +713,6 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   scannedFile: { name: string; url: string; safeUrl?: any; type: string; bytes: any } | null = null;
   snapshotLoading = false;
   snapshotError: string | null = null;
-  private readonly sanitizer = inject(DomSanitizer);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly errorExtractor = inject(ErrorExtractorService);
 
@@ -810,7 +814,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   private lastSubmittedUniversalInput = '';
 
   get isExitGateConnectionReady(): boolean {
-    return !!this.gateConnectionInfo?.controlIp?.trim();
+    return this.gatePeripheralFacade.hasControlConnection(this.gateConnectionInfo);
   }
 
   private get isExitValidationBusy(): boolean {
@@ -911,33 +915,19 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.showToast('success', `${this.t('scanner_ready')}: ${msg.fileName}`);
 
     if (this.scannedFile?.url) {
-      URL.revokeObjectURL(this.scannedFile.url);
+      this.scannerAttachment.revokeUrl(this.scannedFile.url);
     }
 
     try {
-      let data: Uint8Array;
-      if (typeof msg.bytes === 'string') {
-        const binaryString = window.atob(msg.bytes);
-        data = new Uint8Array(binaryString.length);
-        for (let i = 0; i < binaryString.length; i++) {
-          data[i] = binaryString.charCodeAt(i);
-        }
-      } else if (msg.bytes instanceof ArrayBuffer) {
-        data = new Uint8Array(msg.bytes);
-      } else {
-        data = new Uint8Array(msg.bytes as any);
-      }
-
-      console.log('ExitgateComponent: Final data size:', data.length);
-      const blob = new Blob([data as any], { type: msg.contentType });
-      const rawUrl = URL.createObjectURL(blob);
+      const attachment = this.scannerAttachment.fromScanMessage(msg);
+      console.log('ExitgateComponent: Final data size:', attachment.size);
 
       this.scannedFile = {
-        name: msg.fileName,
-        url: rawUrl,
-        safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
-        type: msg.contentType,
-        bytes: msg.bytes,
+        name: attachment.name,
+        url: attachment.url,
+        safeUrl: attachment.safeUrl,
+        type: attachment.type,
+        bytes: attachment.bytes,
       };
 
       console.log('ExitgateComponent: Processed file', msg.fileName);
@@ -950,7 +940,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
   clearScannedFile(): void {
     if (this.scannedFile?.url) {
-      URL.revokeObjectURL(this.scannedFile.url);
+      this.scannerAttachment.revokeUrl(this.scannedFile.url);
     }
 
     this.scannedFile = null;
@@ -958,7 +948,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   retrySnapshot(): void {
-    const cameraUrl = this.gateConnectionInfo?.onvifCameraSetting?.url?.trim();
+    const cameraUrl = this.gatePeripheralFacade.cameraUrl(this.gateConnectionInfo);
     if (!cameraUrl) return;
     this.loadCameraSnapshot(cameraUrl);
   }
@@ -987,16 +977,16 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
   private attachSnapshotBlob(blob: Blob): void {
     if (this.scannedFile?.url) {
-      URL.revokeObjectURL(this.scannedFile.url);
+      this.scannerAttachment.revokeUrl(this.scannedFile.url);
     }
 
-    const rawUrl = URL.createObjectURL(blob);
+    const attachment = this.scannerAttachment.fromSnapshotBlob(blob);
     this.scannedFile = {
-      name: `gate-snapshot-${Date.now()}.jpg`,
-      url: rawUrl,
-      safeUrl: this.sanitizer.bypassSecurityTrustResourceUrl(rawUrl),
-      type: blob.type || 'image/jpeg',
-      bytes: blob,
+      name: attachment.name,
+      url: attachment.url,
+      safeUrl: attachment.safeUrl,
+      type: attachment.type,
+      bytes: attachment.bytes,
     };
 
     this.cdr.markForCheck();
@@ -1085,15 +1075,15 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.gateConnectionError = null;
     this.snapshotError = null;
 
-    this.gateSvc.getGateConnectionInfo(gateId).subscribe({
+    this.gatePeripheralFacade.getConnectionInfo(gateId).subscribe({
       next: (info) => {
         this.gateConnectionInfo = info;
         this.mergeGateConnectionIntoPeripheral(info);
-        if (!info?.controlIp?.trim()) {
+        if (!this.gatePeripheralFacade.hasControlConnection(info)) {
           this.gateConnectionError = this.t('gate_connection_required');
         }
 
-        const cameraUrl = info.onvifCameraSetting?.url?.trim();
+        const cameraUrl = this.gatePeripheralFacade.cameraUrl(info);
         if (cameraUrl) {
           this.loadCameraSnapshot(cameraUrl);
         }
@@ -1111,17 +1101,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   private mergeGateConnectionIntoPeripheral(info: GateConnectionInfo): void {
-    const current = this.gatePeripheral;
-    if (!current) return;
-
-    this.gatePeripheral = {
-      ...current,
-      pcIp: info.pcIp ?? current.pcIp,
-      lprIp: info.lprIp ?? current.lprIp,
-      hasScanner: info.hasScanner ?? current.hasScanner ?? null,
-      hasPc: !!info.pcIp || current.hasPc,
-      hasLpr: !!info.lprIp || current.hasLpr,
-    };
+    this.gatePeripheral = this.gatePeripheralFacade.mergeConnectionInfo(
+      this.gatePeripheral,
+      info,
+    );
   }
 
   private handleError(operation: string, err: any): void {
@@ -1306,7 +1289,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
   exitSelectedTicketAfterExceed(): void {
     const ticket = this.selectedTicketForExceed;
-    const controllerId = this.gateConnectionInfo?.controlIp?.trim();
+    const controllerId = this.gatePeripheralFacade.controlId(this.gateConnectionInfo);
 
     if (!ticket?.id) {
       this.notify('warn', 'please_select_ticket');
@@ -1400,7 +1383,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   private printExceedQrTicket(response: CreateTicketExceedTransactionResponse): void {
-    const qrImage = this.normalizeQrImage(response.qrCode);
+    const qrImage = this.ticketPrint.normalizeQrImage(response.qrCode);
     if (!qrImage) {
       console.warn('No valid qrCode returned from TicketExceedTransaction/Create', response);
       this.toast.warn('No QR code was returned for this exceed transaction.');
@@ -1795,47 +1778,6 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       .replace(/'/g, '&#039;');
   }
 
-  private normalizeQrImage(qr: string | number[] | null | undefined): string | null {
-    if (!qr) return null;
-    if (Array.isArray(qr)) {
-      try {
-        const binary = String.fromCharCode(...qr);
-        return `data:image/png;base64,${btoa(binary)}`;
-      } catch (err) {
-        console.error('Failed to convert QR byte array to base64:', err);
-        return null;
-      }
-    }
-
-    const value = String(qr).trim();
-    if (/^(data:image\/|blob:|https?:\/\/)/i.test(value)) return value;
-
-    const clean = value.replace(/\s+/g, '');
-
-    if (/^[0-9A-Fa-f]+$/.test(clean)) {
-      try {
-        return `data:image/png;base64,${this.hexToBase64(clean)}`;
-      } catch (err) {
-        console.error('Failed to convert HEX to base64:', err);
-        return null;
-      }
-    }
-
-    if (/^[A-Za-z0-9+/=]+$/.test(clean)) {
-      return `data:image/png;base64,${clean}`;
-    }
-
-    return null;
-  }
-
-  private hexToBase64(hexString: string): string {
-    const bytes: number[] = [];
-    for (let i = 0; i < hexString.length; i += 2) {
-      bytes.push(parseInt(hexString.substring(i, i + 2), 16));
-    }
-    return btoa(String.fromCharCode(...bytes));
-  }
-
   onCalculateSalary(): void {
     if (this.scannedTicket) {
       this.fetchSalaryOnly(String(this.scannedTicket.id));
@@ -1985,7 +1927,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     const normalized = this.normalizeExitScanText(vehicleNumber);
     if (!normalized) return;
 
-    const controllerId = this.gateConnectionInfo?.controlIp?.trim();
+    const controllerId = this.gatePeripheralFacade.controlId(this.gateConnectionInfo);
     if (!controllerId) {
       this.setFeedback('openGate', 'gate_connection_required', 'warn');
       this.focusValidationTextNonce++;
@@ -2230,7 +2172,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
   private registerValidatedExitAndOpenGate(): void {
     const result = this.textValidationResult || this.vehicleValidationResult;
-    const controllerId = this.gateConnectionInfo?.controlIp?.trim();
+    const controllerId = this.gatePeripheralFacade.controlId(this.gateConnectionInfo);
 
     if (
       !result?.isValidForExit ||
@@ -2954,77 +2896,12 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // ========= Print =========
 
   printSummary(): void {
-    if (!this.scannedTicket && !this.salarySummary) return;
-
-    const t = this.scannedTicket;
-    const s = this.salarySummary;
-
-    const w = window.open('', '_blank', 'width=420,height=600');
-    if (!w) return;
-
-    const html = `
-      <html>
-        <head>
-          <title>Exit Ticket</title>
-          <style>
-            *{box-sizing:border-box;color:#000!important;font-family:Tahoma,Arial,sans-serif!important;font-weight:900!important;line-height:1.35;text-rendering:geometricPrecision;-webkit-print-color-adjust:exact;print-color-adjust:exact;}
-            body{margin:0;padding:16px;font-family:Tahoma,Arial,sans-serif;color:#000;}
-            .wrap{display:flex;flex-direction:column;gap:8px;}
-            .row{display:flex;justify-content:space-between;font-size:17px;}
-            .title{font-size:22px;font-weight:900;margin-bottom:8px;}
-            .mono{font-family:Consolas,'Courier New',monospace!important;font-weight:900;}
-          </style>
-        </head>
-        <body onload="window.print(); window.close();">
-          <div class="wrap">
-            <div class="title">${this.t('exitTicket')}</div>
-            ${
-              t
-                ? `
-              <div class="row"><span>${this.t('id')}</span><span class="mono">${t.id}</span></div>
-              <div class="row"><span>${this.t('plate')}</span><span class="mono">${
-                t.ticketInfo || ''
-              }</span></div>
-              <div class="row"><span>${this.t('start')}</span><span>${new Date(
-                t.startDate,
-              ).toLocaleString()}</span></div>
-              <div class="row"><span>${this.t('end')}</span><span>${new Date().toLocaleString()}</span></div>
-              <div class="row"><span>${this.t(
-                'totalDue',
-              )}</span><span class="mono">${t.price.toFixed(2)}</span></div>
-            `
-                : ''
-            }
-            ${
-              s
-                ? `
-              <hr/>
-              <div class="title">${this.t('salary_total')}</div>
-              <div class="row"><span>${this.t(
-                'salary_total',
-              )}</span><span class="mono">${this.currentTotalWithSanctions.toFixed(2)}</span></div>
-              <div class="row"><span>${this.t('salary_enter_date')}</span><span>${new Date(
-                s.enterDate,
-              ).toLocaleString()}</span></div>
-              <div class="row"><span>${this.t('salary_exit_valid')}</span><span>${
-                s.isExitValid ? this.t('yes') : this.t('no')
-              }</span></div>
-              <div class="row"><span>${this.t('salary_cashier_collected')}</span><span>${
-                s.isCollectByCashier
-                  ? this.t('cashierCollectedShort')
-                  : this.t('cashier_not_collected')
-              }</span></div>
-            `
-                : ''
-            }
-          </div>
-        </body>
-      </html>
-    `;
-
-    w.document.open();
-    w.document.write(html);
-    w.document.close();
+    this.ticketPrint.printExitSummaryWindow({
+      scannedTicket: this.scannedTicket,
+      salarySummary: this.salarySummary,
+      currentTotalWithSanctions: this.currentTotalWithSanctions,
+      t: (key) => this.t(key),
+    });
   }
 
   // ========= Helpers =========

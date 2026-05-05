@@ -130,27 +130,15 @@
           <div class="dashboard-date-range">
             <label class="dashboard-date-control">
               <span>{{ 'fromDate' | t }}</span>
-              <input
-                type="date"
-                class="dashboard-date-input"
-                [(ngModel)]="selectedDashboardFrom"
-              />
+              <input type="date" class="dashboard-date-input" [(ngModel)]="selectedDashboardFrom" />
             </label>
 
             <label class="dashboard-date-control">
               <span>{{ 'toDate' | t }}</span>
-              <input
-                type="date"
-                class="dashboard-date-input"
-                [(ngModel)]="selectedDashboardTo"
-              />
+              <input type="date" class="dashboard-date-input" [(ngModel)]="selectedDashboardTo" />
             </label>
 
-            <button
-              type="button"
-              class="dashboard-date-apply"
-              (click)="loadDashboard()"
-            >
+            <button type="button" class="dashboard-date-apply" (click)="loadDashboard()">
               {{ 'applyDate' | t }}
             </button>
           </div>
@@ -358,19 +346,23 @@
       <div class="revenue-summary-grid">
         <div class="revenue-summary-card">
           <span>{{ 'ticketBaseRevenue' | t }}</span>
-          <strong>{{ formatCurrency(ticketBaseRevenue()) }} {{ lang.isRTL() ? 'ج.م' : 'EGP' }}</strong>
+          <strong
+            >{{ formatCurrency(ticketBaseRevenue()) }} {{ lang.isRTL() ? 'ج.م' : 'EGP' }}</strong
+          >
           <small>
-            {{ 'collected' | t }} {{ formatCurrency(collectedTicketBaseRevenue()) }}
-            · {{ 'pending' | t }} {{ formatCurrency(pendingTicketBaseRevenue()) }}
+            {{ 'collected' | t }} {{ formatCurrency(collectedTicketBaseRevenue()) }} ·
+            {{ 'pending' | t }} {{ formatCurrency(pendingTicketBaseRevenue()) }}
           </small>
         </div>
 
         <div class="revenue-summary-card revenue-summary-card--exceed">
           <span>{{ 'totalExceedRevenue' | t }}</span>
-          <strong>{{ formatCurrency(totalExceedRevenue()) }} {{ lang.isRTL() ? 'ج.م' : 'EGP' }}</strong>
+          <strong
+            >{{ formatCurrency(totalExceedRevenue()) }} {{ lang.isRTL() ? 'ج.م' : 'EGP' }}</strong
+          >
           <small>
-            {{ 'collectedExceedRevenue' | t }} {{ formatCurrency(collectedExceedRevenue()) }}
-            · {{ 'pendingExceedRevenue' | t }} {{ formatCurrency(pendingExceedRevenue()) }}
+            {{ 'collectedExceedRevenue' | t }} {{ formatCurrency(collectedExceedRevenue()) }} ·
+            {{ 'pendingExceedRevenue' | t }} {{ formatCurrency(pendingExceedRevenue()) }}
           </small>
         </div>
 
@@ -378,8 +370,8 @@
           <span>{{ 'pending' | t }}</span>
           <strong>{{ formatCurrency(pendingRevenue()) }} {{ lang.isRTL() ? 'ج.م' : 'EGP' }}</strong>
           <small>
-            {{ 'totalRevenue' | t }} {{ formatCurrency(totalRevenue()) }}
-            · {{ 'collected' | t }} {{ formatCurrency(collectedRevenue()) }}
+            {{ 'totalRevenue' | t }} {{ formatCurrency(totalRevenue()) }} · {{ 'collected' | t }}
+            {{ formatCurrency(collectedRevenue()) }}
           </small>
         </div>
       </div>
@@ -721,7 +713,9 @@
                         <td>
                           {{ gate.exceedTransactionsCount }}
                           <span class="text-muted">
-                            ({{ gate.collectedExceedTransactionsCount }}/{{ gate.pendingExceedTransactionsCount }})
+                            ({{ gate.collectedExceedTransactionsCount }}/{{
+                              gate.pendingExceedTransactionsCount
+                            }})
                           </span>
                         </td>
                         <td>{{ formatCurrency(gate.totalExceedAmount) }}</td>

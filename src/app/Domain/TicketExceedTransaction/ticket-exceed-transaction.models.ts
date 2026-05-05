@@ -22,6 +22,8 @@ export interface CollectExceedTransactionDetail {
   transactionId: string;
   ticketIdSnapshot: string;
   ticketUniqueCode: string;
+  responsibleUserId: string;
+  responsibleUserName: string;
   transactionCreatedAt: string;
   supervisorCollectedAt: string;
   ticketPrice: number;
@@ -35,8 +37,21 @@ export interface CollectExceedTransactionDetail {
   gateType?: number | string | null;
 }
 
+export interface CollectExceedTransactionLine {
+  responsibleUserId: string;
+  responsibleUserName: string;
+  transactionsCount: number;
+  totalExceedAmount: number;
+}
+
 export interface CollectExceedTransactionsResponse {
+  collectionTransactionId: string;
+  gateId: string;
+  collectedBy: string;
+  collectedName: string;
+  collectedAt: string;
   totalExceedAmountCollected: number;
   totalTransactionsCollected: number;
+  lines: CollectExceedTransactionLine[];
   ticketExceedCollectDetails: CollectExceedTransactionDetail[];
 }

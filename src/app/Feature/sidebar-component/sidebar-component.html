@@ -166,10 +166,23 @@
       class="nav-item"
       routerLink="/reports"
       routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
       [attr.title]="collapsed ? t('reports') : null"
     >
       <i class="bi bi-file-earmark-bar-graph"></i>
       <span class="nav-text" *ngIf="!collapsed">{{ t('reports') }}</span>
+    </a>
+
+    <!-- User reports by role - Admin only -->
+    <a
+      *ngIf="isAdmin"
+      class="nav-item"
+      routerLink="/users/by-role"
+      routerLinkActive="active"
+      [attr.title]="collapsed ? t('userRoleReports') : null"
+    >
+      <i class="bi bi-person-lines-fill"></i>
+      <span class="nav-text" *ngIf="!collapsed">{{ t('userRoleReports') }}</span>
     </a>
 
     <!-- Users — Admin only -->
@@ -178,6 +191,7 @@
       class="nav-item"
       routerLink="/users"
       routerLinkActive="active"
+      [routerLinkActiveOptions]="{ exact: true }"
       [attr.title]="collapsed ? t('users') : null"
     >
       <i class="bi bi-people-fill"></i>

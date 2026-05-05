@@ -1,0 +1,352 @@
+<div
+  class="entrance-report container-fluid py-4"
+  [class.page-rtl]="isRTL()"
+  [class.embedded-report]="embedded"
+  [attr.dir]="dir()"
+>
+  <div *ngIf="!embedded" class="page-header mb-4 p-3 rounded-4 shadow-soft">
+    <div
+      class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3"
+    >
+      <div class="d-flex align-items-center gap-3 min-w-0">
+        <div class="header-icon d-flex align-items-center justify-content-center rounded-3">
+          <i class="bi bi-door-open-fill"></i>
+        </div>
+        <div class="min-w-0">
+          <h1 class="page-title mb-0 fw-bold">{{ t('title') }}</h1>
+          <p class="page-subtitle mb-0 small">{{ t('subtitle') }}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <section class="filters-panel bg-white border rounded-3 shadow-soft mb-3">
+    <header class="panel-header border-bottom">
+      <i class="bi bi-filter-right text-primary"></i>
+      <span>{{ t('filters') }}</span>
+    </header>
+
+    <div class="row g-3 align-items-end p-3">
+      <div class="col-12 col-lg-4" *ngIf="!fixedCashierId; else fixedCashierBlock">
+        <label class="form-label small fw-semibold text-muted">{{ t('entranceCashier') }}</label>
+        <select
+          class="form-select form-select-sm"
+          [(ngModel)]="selectedCashierId"
+          [disabled]="loading"
+        >
+          <option value="" disabled>
+            {{ cashiersLoading ? t('loading') : t('selectCashier') }}
+          </option>
+          <option *ngFor="let cashier of cashiers" [value]="cashier.id">
+            {{ cashier.name }} - {{ cashier.email }}
+          </option>
+        </select>
+      </div>
+      <ng-template #fixedCashierBlock>
+        <div class="col-12 col-lg-4">
+          <label class="form-label small fw-semibold text-muted">{{ t('entranceCashier') }}</label>
+          <div class="fixed-cashier-box">
+            <i class="bi bi-person-badge"></i>
+            <span>{{ fixedCashierLabel }}</span>
+          </div>
+        </div>
+      </ng-template>
+
+      <div class="col-6 col-lg-2">
+        <label class="form-label small fw-semibold text-muted">{{ t('fromDate') }}</label>
+        <input
+          type="date"
+          class="form-control form-control-sm"
+          [(ngModel)]="fromDate"
+          [disabled]="loading"
+        />
+      </div>
+
+      <div class="col-6 col-lg-2">
+        <label class="form-label small fw-semibold text-muted">{{ t('toDate') }}</label>
+        <input
+          type="date"
+          class="form-control form-control-sm"
+          [(ngModel)]="toDate"
+          [disabled]="loading"
+        />
+      </div>
+
+      <div class="col-12 col-lg-2">
+        <button
+          type="button"
+          class="btn btn-primary btn-sm w-100 d-inline-flex align-items-center justify-content-center gap-2"
+          (click)="search()"
+          [disabled]="loading"
+        >
+          <span *ngIf="loading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+          <i *ngIf="!loading" class="bi bi-search"></i>
+          <span>{{ loading ? t('loading') : t('search') }}</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-start gap-2" role="alert">
+    <i class="bi bi-exclamation-triangle-fill"></i>
+    <div>{{ errorMessage }}</div>
+  </div>
+
+  <section *ngIf="loading" class="loading-panel bg-white border rounded-3 shadow-soft">
+    <div class="spinner-border text-primary" role="status"></div>
+    <span>{{ t('loading') }}</span>
+  </section>
+
+  <ng-container *ngIf="report as r">
+    <section class="cashier-info bg-white border rounded-3 shadow-soft mb-3">
+      <header class="panel-header border-bottom">
+        <i class="bi bi-person-vcard text-primary"></i>
+        <span>{{ t('cashierInfo') }}</span>
+      </header>
+
+      <div class="info-grid p-3">
+        <div class="info-item">
+          <span>{{ t('cashierName') }}</span>
+          <strong>{{ r.cashierName }}</strong>
+        </div>
+        <div class="info-item">
+          <span>{{ t('username') }}</span>
+          <strong>{{ r.username }}</strong>
+        </div>
+        <div class="info-item">
+          <span>{{ t('role') }}</span>
+          <strong>{{ roleLabel() }}</strong>
+        </div>
+        <div class="info-item">
+          <span>{{ t('from') }}</span>
+          <strong>{{ dateOnlyLabel(r.from) }}</strong>
+        </div>
+        <div class="info-item">
+          <span>{{ t('to') }}</span>
+          <strong>{{ dateOnlyLabel(r.to) }}</strong>
+        </div>
+      </div>
+    </section>
+
+    <section class="summary-section mb-3">
+      <div class="section-title">
+        <i class="bi bi-bar-chart-fill"></i>
+        <span>{{ t('counts') }}</span>
+      </div>
+      <div class="summary-grid">
+        <article
+          class="summary-card"
+          *ngFor="let card of summaryCards"
+          [class]="'tone-' + card.tone"
+        >
+          <div class="summary-icon"><i class="bi" [ngClass]="card.icon"></i></div>
+          <div class="min-w-0">
+            <span>{{ t(card.key) }}</span>
+            <strong>{{ r.summary[card.key] }}</strong>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="summary-section mb-3">
+      <div class="section-title">
+        <i class="bi bi-cash-coin"></i>
+        <span>{{ t('moneyTotals') }}</span>
+      </div>
+      <div class="summary-grid money-grid">
+        <article class="summary-card" *ngFor="let card of moneyCards" [class]="'tone-' + card.tone">
+          <div class="summary-icon"><i class="bi" [ngClass]="card.icon"></i></div>
+          <div class="min-w-0">
+            <span>{{ t(card.key) }}</span>
+            <strong>{{ moneyLabel(r.summary[card.key]) }}</strong>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section *ngIf="noTicketsFound" class="empty-state bg-white border rounded-3 shadow-soft mb-3">
+      <i class="bi bi-inbox text-muted"></i>
+      <p class="mb-0 text-muted">{{ t('noTickets') }}</p>
+    </section>
+
+    <section class="tickets-panel bg-white border rounded-3 shadow-soft">
+      <div class="tabs-bar border-bottom">
+        <button
+          type="button"
+          class="tab-button"
+          [class.active]="activeTab === 'inside'"
+          (click)="setTab('inside')"
+        >
+          <i class="bi bi-p-circle"></i>
+          <span>{{ t('insideTickets') }}</span>
+          <strong>{{ r.insideParkTickets.length }}</strong>
+        </button>
+        <button
+          type="button"
+          class="tab-button"
+          [class.active]="activeTab === 'outside'"
+          (click)="setTab('outside')"
+        >
+          <i class="bi bi-box-arrow-right"></i>
+          <span>{{ t('outsideTickets') }}</span>
+          <strong>{{ r.outsideParkTickets.length }}</strong>
+        </button>
+      </div>
+
+      <div *ngIf="activeTab === 'inside'" class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">{{ t('ticketCode') }}</th>
+              <th>{{ t('startDate') }}</th>
+              <th>{{ t('vehicleNumber') }}</th>
+              <th>{{ t('price') }}</th>
+              <th>{{ t('exceedPrice') }}</th>
+              <th>{{ t('totalPrice') }}</th>
+              <th>{{ t('subscriber') }}</th>
+              <th>{{ t('subscriberNationalId') }}</th>
+              <th>{{ t('cardNumber') }}</th>
+              <th>{{ t('gateNumber') }}</th>
+              <th class="pe-3">{{ t('attachments') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ticket of r.insideParkTickets; trackBy: trackInside">
+              <td class="ps-3 mono fw-bold">{{ ticket.uniqueCode }}</td>
+              <td>{{ dateLabel(ticket.startDate) }}</td>
+              <td>{{ valueLabel(ticket.vehicleNumber) }}</td>
+              <td>{{ moneyLabel(ticket.price) }}</td>
+              <td>{{ moneyLabel(ticket.exceedPrice) }}</td>
+              <td class="fw-bold">{{ moneyLabel(ticket.totalPrice) }}</td>
+              <td>{{ subscriberLabel(ticket.isSubscriber) }}</td>
+              <td class="mono">{{ valueLabel(ticket.subscriberNationalId) }}</td>
+              <td class="mono">{{ valueLabel(ticket.cardNumber) }}</td>
+              <td>{{ ticket.gateNumber }}</td>
+              <td class="pe-3">
+                <button
+                  *ngIf="ticket.attachments.length; else noInsideAttachments"
+                  type="button"
+                  class="btn btn-outline-primary btn-sm attachment-btn"
+                  (click)="openAttachments(ticket)"
+                >
+                  <i class="bi bi-images"></i>
+                  <span>{{ t('viewAttachments') }}</span>
+                </button>
+                <ng-template #noInsideAttachments>
+                  <span class="text-muted small">{{ t('noAttachments') }}</span>
+                </ng-template>
+              </td>
+            </tr>
+            <tr *ngIf="r.insideParkTickets.length === 0">
+              <td colspan="11" class="text-center py-5 text-muted">{{ t('noTickets') }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div *ngIf="activeTab === 'outside'" class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th class="ps-3">{{ t('ticketCode') }}</th>
+              <th>{{ t('startDate') }}</th>
+              <th>{{ t('endDate') }}</th>
+              <th>{{ t('vehicleNumber') }}</th>
+              <th>{{ t('price') }}</th>
+              <th>{{ t('exceedPrice') }}</th>
+              <th>{{ t('totalPrice') }}</th>
+              <th>{{ t('subscriber') }}</th>
+              <th>{{ t('subscriberNationalId') }}</th>
+              <th>{{ t('cardNumber') }}</th>
+              <th>{{ t('gateNumber') }}</th>
+              <th>{{ t('exitGateNumber') }}</th>
+              <th>{{ t('collectorName') }}</th>
+              <th>{{ t('collectedDate') }}</th>
+              <th class="pe-3">{{ t('attachments') }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let ticket of r.outsideParkTickets; trackBy: trackOutside">
+              <td class="ps-3 mono fw-bold">{{ ticket.uniqueCode }}</td>
+              <td>{{ dateLabel(ticket.startDate) }}</td>
+              <td>{{ dateLabel(ticket.endDate) }}</td>
+              <td>{{ valueLabel(ticket.vehicleNumber) }}</td>
+              <td>{{ moneyLabel(ticket.price) }}</td>
+              <td>{{ moneyLabel(ticket.exceedPrice) }}</td>
+              <td class="fw-bold">{{ moneyLabel(ticket.totalPrice) }}</td>
+              <td>{{ subscriberLabel(ticket.isSubscriber) }}</td>
+              <td class="mono">{{ valueLabel(ticket.subscriberNationalId) }}</td>
+              <td class="mono">{{ valueLabel(ticket.cardNumber) }}</td>
+              <td>{{ ticket.gateNumber }}</td>
+              <td>{{ ticket.exitGateNumber }}</td>
+              <td>{{ valueLabel(ticket.collectorName) }}</td>
+              <td>{{ dateLabel(ticket.collectedDate) }}</td>
+              <td class="pe-3">
+                <button
+                  *ngIf="ticket.attachments.length; else noOutsideAttachments"
+                  type="button"
+                  class="btn btn-outline-primary btn-sm attachment-btn"
+                  (click)="openAttachments(ticket)"
+                >
+                  <i class="bi bi-images"></i>
+                  <span>{{ t('viewAttachments') }}</span>
+                </button>
+                <ng-template #noOutsideAttachments>
+                  <span class="text-muted small">{{ t('noAttachments') }}</span>
+                </ng-template>
+              </td>
+            </tr>
+            <tr *ngIf="r.outsideParkTickets.length === 0">
+              <td colspan="15" class="text-center py-5 text-muted">{{ t('noTickets') }}</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </ng-container>
+</div>
+
+<div *ngIf="selectedAttachments.length" class="attachments-backdrop" (click)="closeAttachments()">
+  <section class="attachments-modal" (click)="$event.stopPropagation()">
+    <header class="attachments-header">
+      <div>
+        <strong>{{ t('attachments') }}</strong>
+        <span class="mono">#{{ selectedTicketCode }}</span>
+      </div>
+      <button
+        type="button"
+        class="attachments-close"
+        [attr.aria-label]="t('close')"
+        (click)="closeAttachments()"
+      >
+        <i class="bi bi-x-lg"></i>
+      </button>
+    </header>
+
+    <div class="attachments-grid">
+      <a
+        *ngFor="let attachment of selectedAttachments; trackBy: trackAttachment"
+        class="attachment-card"
+        [href]="attachmentUrl(attachmentPath(attachment))"
+        target="_blank"
+        rel="noopener"
+      >
+        <iframe
+          *ngIf="isPdfAttachment(attachmentPath(attachment)); else imageAttachment"
+          class="attachment-pdf"
+          [src]="attachmentSafeUrl(attachmentPath(attachment))"
+          title="Ticket attachment"
+          tabindex="-1"
+        ></iframe>
+        <ng-template #imageAttachment>
+          <img
+            class="attachment-image"
+            [src]="attachmentUrl(attachmentPath(attachment))"
+            alt="Ticket attachment"
+            loading="lazy"
+          />
+        </ng-template>
+      </a>
+    </div>
+  </section>
+</div>

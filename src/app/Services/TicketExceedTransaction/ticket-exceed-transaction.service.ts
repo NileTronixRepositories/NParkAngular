@@ -122,25 +122,54 @@ export class TicketExceedTransactionService {
 
   private normalizeCollectResponse(res: any): CollectExceedTransactionsResponse {
     const details = res?.ticketExceedCollectDetails ?? res?.TicketExceedCollectDetails ?? [];
+    const lines = res?.lines ?? res?.Lines ?? [];
+    const normalizedLines = Array.isArray(lines)
+      ? lines.map((line) => ({
+          responsibleUserId: line?.responsibleUserId ?? line?.ResponsibleUserId ?? '',
+          responsibleUserName: line?.responsibleUserName ?? line?.ResponsibleUserName ?? '',
+          transactionsCount: Number(
+            line?.transactionsCount ?? line?.TransactionsCount ?? line?.itemsCount ?? 0,
+          ),
+          totalExceedAmount: Number(
+            line?.totalExceedAmount ?? line?.TotalExceedAmount ?? line?.totalAmount ?? 0,
+          ),
+        }))
+      : [];
 
     return {
+      collectionTransactionId:
+        res?.collectionTransactionId ?? res?.CollectionTransactionId ?? '',
+      gateId: res?.gateId ?? res?.GateId ?? '',
+      collectedBy: res?.collectedBy ?? res?.CollectedBy ?? '',
+      collectedName: res?.collectedName ?? res?.CollectedName ?? '',
+      collectedAt: res?.collectedAt ?? res?.CollectedAt ?? '',
       totalExceedAmountCollected: Number(
         res?.totalExceedAmountCollected ?? res?.TotalExceedAmountCollected ?? 0,
       ),
       totalTransactionsCollected: Number(
         res?.totalTransactionsCollected ?? res?.TotalTransactionsCollected ?? 0,
       ),
+      lines: normalizedLines,
       ticketExceedCollectDetails: Array.isArray(details)
-        ? details.map((item) => this.normalizeCollectDetail(item))
+        ? details.map((item) => this.normalizeCollectDetail(item, normalizedLines))
         : [],
     };
   }
 
-  private normalizeCollectDetail(item: any): CollectExceedTransactionDetail {
+  private normalizeCollectDetail(item: any, lines: CollectExceedTransactionsResponse['lines']): CollectExceedTransactionDetail {
+    const responsibleUserId = item?.responsibleUserId ?? item?.ResponsibleUserId ?? '';
+    const responsibleUserName =
+      item?.responsibleUserName ??
+      item?.ResponsibleUserName ??
+      lines.find((line) => line.responsibleUserId === responsibleUserId)?.responsibleUserName ??
+      '';
+
     return {
       transactionId: item?.transactionId ?? item?.TransactionId ?? '',
       ticketIdSnapshot: item?.ticketIdSnapshot ?? item?.TicketIdSnapshot ?? '',
       ticketUniqueCode: item?.ticketUniqueCode ?? item?.TicketUniqueCode ?? '',
+      responsibleUserId,
+      responsibleUserName,
       transactionCreatedAt: item?.transactionCreatedAt ?? item?.TransactionCreatedAt ?? '',
       supervisorCollectedAt: item?.supervisorCollectedAt ?? item?.SupervisorCollectedAt ?? '',
       ticketPrice: Number(item?.ticketPrice ?? item?.TicketPrice ?? 0),
