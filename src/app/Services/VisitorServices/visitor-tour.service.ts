@@ -14,7 +14,7 @@ export class VisitorTourService {
 
   constructor() {
     effect(() => {
-      this.lang.isRTL();
+      this.lang.currentSignal();
       if (this.tour && this.tour.isActive()) {
         const currentId = this.tour.getCurrentStep()?.id;
         this.tour.cancel();

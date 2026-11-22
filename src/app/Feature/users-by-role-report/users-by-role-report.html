@@ -14,7 +14,16 @@
         </div>
       </div>
 
-      <div class="role-picker d-flex flex-column flex-sm-row align-items-stretch gap-2">
+      <div class="role-picker d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center gap-2">
+        <button
+          type="button"
+          class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour"
+          (click)="startTour()"
+        >
+          <i class="fa-solid fa-circle-question"></i>
+          <span>{{ t('helpTour') }}</span>
+        </button>
+
         <label class="visually-hidden" for="usersRoleReportRole">{{ t('chooseRole') }}</label>
         <div class="role-select-wrap">
           <i class="fa-solid fa-user-shield role-select-icon"></i>

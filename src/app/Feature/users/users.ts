@@ -1,4 +1,4 @@
-import { Component, computed, inject } from '@angular/core';
+import { Component, OnDestroy, computed, inject } from '@angular/core';
 import { NgIf, NgFor, NgClass, CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -140,7 +140,7 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
     },
   ],
 })
-export class Users {
+export class Users implements OnDestroy {
   private svc = inject(UsersServices);
   private toast = inject(ToastServices);
   i18n = inject(LanguageService);
@@ -289,6 +289,10 @@ export class Users {
   constructor() {
     this.reload();
     this.loadRoles();
+  }
+
+  ngOnDestroy(): void {
+    this.usersTour.cancelTour();
   }
 
   trackById = (_: number, u: UserDto) => u.id;

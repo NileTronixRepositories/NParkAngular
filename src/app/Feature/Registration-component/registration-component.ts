@@ -386,6 +386,7 @@ export class RegistrationComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.regTour.cancelTour();
     this.hubSubscriptions.unsubscribe();
   }
 

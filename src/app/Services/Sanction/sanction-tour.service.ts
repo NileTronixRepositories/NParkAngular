@@ -144,7 +144,7 @@ export class SanctionTourService {
       if (!isLast) {
         buttons.push({
           text: this.t('تخطي', 'Skip'),
-          classes: 'shepherd-button-secondary np-tour-skip',
+          classes: 'shepherd-button-skip',
           action: () => this.tour?.cancel(),
         });
       }
@@ -152,22 +152,27 @@ export class SanctionTourService {
         buttons.push({
           text: this.isRTL
             ? `<i class="fa-solid fa-arrow-right"></i> السابق`
-            : `<i class="fa-solid fa-arrow-left"></i> Back`,
+            : `<i class="fa-solid fa-arrow-left"></i> Previous`,
           classes: 'shepherd-button-secondary',
           action: () => this.tour?.back(),
         });
       }
-      buttons.push({
-        text: isLast
-          ? this.isRTL
+      if (isLast) {
+        buttons.push({
+          text: this.isRTL
             ? `إنهاء <i class="fa-solid fa-check"></i>`
-            : `Finish <i class="fa-solid fa-check"></i>`
-          : this.isRTL
+            : `Finish <i class="fa-solid fa-check"></i>`,
+          classes: 'shepherd-button-finish',
+          action: () => this.tour?.complete(),
+        });
+      } else {
+        buttons.push({
+          text: this.isRTL
             ? `التالي <i class="fa-solid fa-arrow-left"></i>`
             : `Next <i class="fa-solid fa-arrow-right"></i>`,
-        classes: 'shepherd-button-primary',
-        action: () => (isLast ? this.tour?.complete() : this.tour?.next()),
-      });
+          action: () => this.tour?.next(),
+        });
+      }
 
       this.tour?.addStep({
         id: step.id,

@@ -48,6 +48,9 @@ export class AltaeriffaTourService {
   }
 
   private pos(base: Placement): Placement {
+    if (typeof window !== 'undefined' && window.innerWidth < 992) {
+      return base === 'top' ? 'top' : 'bottom';
+    }
     if (base === 'top' || base === 'bottom') return base;
     if (!this.isRTL) return base;
     return base === 'left' ? 'right' : 'left';

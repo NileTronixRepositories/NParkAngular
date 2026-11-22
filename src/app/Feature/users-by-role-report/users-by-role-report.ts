@@ -10,6 +10,7 @@ import {
   UserByRoleResponse,
 } from '../../Domain/Users/user.model';
 import { UsersServices } from '../../Services/Users/users-services';
+import { UsersByRoleTourService } from '../../Services/Users/users-by-role-tour.service';
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
 import { ErrorExtractorService } from '../../Services/Shared/error-extractor.service';
@@ -62,6 +63,7 @@ import { SupervisorCollectionsReport } from '../supervisor-collections-report/su
           ticketsReport: 'تقرير التذاكر',
           collectionsReport: 'تقرير التحصيلات',
           closeReport: 'إغلاق التقرير',
+          helpTour: 'شرح الواجهة',
         },
         en: {
           usersByRole: 'Users By Role Report',
@@ -99,6 +101,7 @@ import { SupervisorCollectionsReport } from '../supervisor-collections-report/su
           ticketsReport: 'Tickets Report',
           collectionsReport: 'Collections Report',
           closeReport: 'Close Report',
+          helpTour: 'Help Tour',
         },
       }),
     },
@@ -108,6 +111,7 @@ export class UsersByRoleReport implements OnInit, OnDestroy {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly usersService = inject(UsersServices);
+  private readonly tour = inject(UsersByRoleTourService);
   private readonly errorExtractor = inject(ErrorExtractorService);
   readonly lang = inject(LanguageService);
   private readonly dict = inject(I18N_DICT);
@@ -174,7 +178,12 @@ export class UsersByRoleReport implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.tour.cancelTour();
     this.subscriptions.unsubscribe();
+  }
+
+  startTour(): void {
+    this.tour.startTour();
   }
 
   t(key: string): string {
