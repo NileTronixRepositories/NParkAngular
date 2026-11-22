@@ -7,8 +7,12 @@
 >
   <!-- Sidebar Header -->
   <div class="sidebar-header">
-    <a class="brand" routerLink="/" *ngIf="!collapsed">
-      <span class="brand-n">N</span><span class="brand-park">Park</span>
+    <a class="brand" routerLink="/" *ngIf="!collapsed" dir="ltr">
+      <img src="/assets/image/niletronix-icon.png" alt="Niletronix" class="brand-emblem" />
+      <span class="brand-sep" aria-hidden="true"></span>
+      <span class="brand-wordmark">
+        <span class="brand-n">N</span><span class="brand-park">Park</span>
+      </span>
     </a>
 
     <!-- Toggle Button -->
@@ -36,7 +40,7 @@
       <span class="nav-text" *ngIf="!collapsed">{{ t('overview') }}</span>
     </a>
 
-    <!-- Parking section — Admin +EntranceCashier + ExitCashier + Supervisor -->
+    <!-- Parking section — Admin + EntranceCashier + ExitCashier + Supervisor -->
     <div
       class="nav-section-title"
       *ngIf="(isAdmin || isEntranceCashier || isExitCashier || isSupervisor) && !collapsed"
@@ -64,7 +68,6 @@
 
       <div class="submenu" *ngIf="gateOpen" [class.floating-submenu]="collapsed">
         <!-- Entry Gate — Admin + EntranceCashier + Supervisor -->
-        <!-- Admin can go directly, Cashiers need gate selection -->
         <a
           *ngIf="isAdmin"
           class="nav-item submenu-item"
@@ -85,7 +88,6 @@
         </a>
 
         <!-- Exit Gate — Admin + ExitCashier + Supervisor -->
-        <!-- Admin can go directly, Cashiers need gate selection -->
         <a
           *ngIf="isAdmin"
           class="nav-item submenu-item"

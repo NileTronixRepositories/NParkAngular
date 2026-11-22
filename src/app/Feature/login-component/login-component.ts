@@ -31,16 +31,28 @@ import { FooterComponent } from '../footer-component/footer-component';
       useValue: <I18nDict>{
         ar: {
           brandSuffix: 'Park',
+          platformSubtitle: 'منصة إدارة المواقف',
+          welcomeBack: 'مرحبًا بعودتك',
+          enterCredentials: 'أدخل بيانات حسابك للمتابعة',
+          heroHeadline: 'إدارة مواقف السيارات بكل سهولة',
+          heroDescription: 'نظام متكامل لإدارة الدخول والخروج، ومتابعة المواقف والتقارير لحظيًا.',
+          featureEntryExit: 'دخول وخروج',
+          featureParkingMgmt: 'إدارة المواقف',
+          featureLiveReports: 'تقارير لحظية',
           signInToContinue: 'سجّل الدخول للمتابعة',
           username: 'اسم المستخدم',
           password: 'كلمة المرور',
-          usernamePh: 'admin',
-          passwordPh: '••••••',
+          usernamePh: 'أدخل اسم المستخدم',
+          passwordPh: '••••••••',
           usernameRequired: 'اسم المستخدم مطلوب.',
           passwordRequired: 'كلمة المرور مطلوبة.',
           rememberMe: 'تذكرني',
           forgotPassword: 'نسيت كلمة المرور؟',
           signIn: 'تسجيل الدخول',
+          signingIn: 'جارٍ تسجيل الدخول...',
+          showPassword: 'إظهار كلمة المرور',
+          hidePassword: 'إخفاء كلمة المرور',
+          switchLang: 'English',
           changeAdminCreds: 'تغيير بيانات المشرف',
           tempPasswordNotice:
             'أنت تستخدم كلمة مرور مؤقتة. من فضلك أدخل كلمة مرور جديدة ثم قم بالتسجيل.',
@@ -64,16 +76,29 @@ import { FooterComponent } from '../footer-component/footer-component';
         },
         en: {
           brandSuffix: 'Park',
+          platformSubtitle: 'Parking Management Platform',
+          welcomeBack: 'Welcome Back',
+          enterCredentials: 'Enter your account credentials to continue',
+          heroHeadline: 'Effortless Parking Management',
+          heroDescription:
+            'An integrated platform for entry & exit operations, parking oversight, and real-time reporting.',
+          featureEntryExit: 'Entry & Exit',
+          featureParkingMgmt: 'Parking Control',
+          featureLiveReports: 'Live Reports',
           signInToContinue: 'Sign in to continue',
           username: 'Username',
           password: 'Password',
-          usernamePh: 'admin',
-          passwordPh: '••••••',
+          usernamePh: 'Enter your username',
+          passwordPh: '••••••••',
           usernameRequired: 'Username is required.',
           passwordRequired: 'Password is required.',
           rememberMe: 'Remember me',
           forgotPassword: 'Forgot password?',
           signIn: 'Sign In',
+          signingIn: 'Signing in...',
+          showPassword: 'Show password',
+          hidePassword: 'Hide password',
+          switchLang: 'العربية',
           changeAdminCreds: 'Change admin credentials',
           tempPasswordNotice:
             'You are using a temporary password. Please enter a new password to continue.',
@@ -169,6 +194,10 @@ export class LoginComponent {
   }
 
   // ====== Helpers ======
+  toggleLanguage(): void {
+    this.lang.toggle();
+  }
+
   roleIsGateCashier(): boolean {
     const role = this.auth.role;
     return role === 'EntranceCashier' || role === 'ExitCashier' || role === 'Supervisor';
@@ -176,10 +205,16 @@ export class LoginComponent {
 
   // ====== SUBMIT LOGIN ======
   submit(): void {
+    if (this.loading) {
+      return;
+    }
+
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
+
+    this.errorToast = null;
 
     const username = (this.form.value.username ?? '').trim();
     const password = this.form.value.password ?? '';

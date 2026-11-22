@@ -1,37 +1,71 @@
 <footer
   class="footer"
+  [class.footer--login]="variant === 'login'"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
 >
-  <div class="footer-container">
-    <div class="footer-content">
-      <div class="footer-brand">
-        <div class="brand-logo" aria-label="NPark">
-          <span class="brand-n">N</span><span class="brand-park">Park</span>
-        </div>
-        <!-- <span class="footer-product">Parking Management System</span> -->
-        <p class="footer-copy">
-          <span>&copy; {{ currentYear }} NPark</span>
-          <span>{{ 'rights' | t }}</span>
-        </p>
-      </div>
+  <div *ngIf="variant === 'login'; else defaultFooter" class="login-footer-container">
+    <div class="login-footer-left" dir="ltr">
+      <a
+        href="https://www.niletronix.com"
+        target="_blank"
+        rel="noopener noreferrer"
+        class="login-niletronix-link"
+        aria-label="Niletronix"
+      >
+        <img
+          src="/assets/image/nile.png"
+          alt="Niletronix"
+          class="login-niletronix-logo"
+        />
+      </a>
+      <span class="login-footer-sep" aria-hidden="true">|</span>
+      <span class="login-footer-version">{{ 'version' | t }} 1.0</span>
+    </div>
 
-      <div class="footer-meta">
-        <span class="footer-version">{{ 'version' | t }} 1.0</span>
-        <a
-          href="https://www.niletronix.com"
-          target="_blank"
-          rel="noopener noreferrer"
-          class="niletronix-link"
-          aria-label="Niletronix"
-        >
-          <span class="powered-text">{{ 'poweredBy' | t }}</span>
-          <span class="niletronix-brand">
-            <img src="/assets/image/nile.png" alt="Niletronix" class="logo" />
-          </span>
-        </a>
-      </div>
+    <div class="login-footer-right">
+      <span class="login-footer-copy">
+        &copy; {{ currentYear }}
+        <span class="login-copy-brand" dir="ltr">
+          <span class="brand-n">N</span><span class="brand-park">Park</span>
+        </span>
+        <span class="login-copy-dash" aria-hidden="true">&mdash;</span>
+        <span>{{ 'rights' | t }}</span>
+      </span>
     </div>
   </div>
+
+  <ng-template #defaultFooter>
+    <div class="footer-container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <div class="brand-logo" aria-label="NPark">
+            <span class="brand-n">N</span><span class="brand-park">Park</span>
+          </div>
+          <!-- <span class="footer-product">Parking Management System</span> -->
+          <p class="footer-copy">
+            <span>&copy; {{ currentYear }} NPark</span>
+            <span>{{ 'rights' | t }}</span>
+          </p>
+        </div>
+
+        <div class="footer-meta">
+          <span class="footer-version">{{ 'version' | t }} 1.0</span>
+          <a
+            href="https://www.niletronix.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            class="niletronix-link"
+            aria-label="Niletronix"
+          >
+            <span class="powered-text">{{ 'poweredBy' | t }}</span>
+            <span class="niletronix-brand">
+              <img src="/assets/image/nile.png" alt="Niletronix" class="logo" />
+            </span>
+          </a>
+        </div>
+      </div>
+    </div>
+  </ng-template>
 </footer>

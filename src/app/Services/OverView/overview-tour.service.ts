@@ -4,6 +4,16 @@ import { LanguageService } from '../../Services/i18n/language-service';
 
 type Placement = 'top' | 'bottom' | 'left' | 'right';
 
+interface TourStepDefinition {
+  id: string;
+  titleAr: string;
+  titleEn: string;
+  textAr: string;
+  textEn: string;
+  attachTo: string;
+  position: Placement;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OverviewTourService {
   private tour: any | null = null;
@@ -21,7 +31,6 @@ export class OverviewTourService {
           this.tour.cancel();
 
           this.buildTour();
-
           this.startAfterRender(stepId);
         }
       },
@@ -44,37 +53,35 @@ export class OverviewTourService {
   }
 
   cancelTour(): void {
-    this.tour?.cancel();
+    if (this.tour?.isActive()) {
+      this.tour.cancel();
+    }
   }
 
   private startAfterRender(stepId?: string): void {
     afterNextRender(
       () => {
         queueMicrotask(() => {
-          this.tour?.start();
-          if (stepId) this.tour?.show(stepId);
+          if (!this.tour) return;
+          this.tour.start();
+          if (stepId) {
+            const exists = this.tour.steps?.some((s: any) => s.id === stepId);
+            if (exists) this.tour.show(stepId);
+          }
         });
       },
       { injector: this.injector },
     );
   }
 
-  private waitForElement(selector: string, timeoutMs = 2500): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const start = performance.now();
-
-      const tick = () => {
-        const el = document.querySelector(selector);
-        if (el) return resolve();
-
-        if (performance.now() - start > timeoutMs) {
-          return reject(new Error(`Shepherd target not found: ${selector}`));
-        }
-        requestAnimationFrame(tick);
-      };
-
-      tick();
-    });
+  private isElementVisible(selector: string): boolean {
+    if (typeof document === 'undefined') return false;
+    const el = document.querySelector(selector) as HTMLElement | null;
+    if (!el) return false;
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden') return false;
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
   }
 
   private buildTour(): void {
@@ -82,9 +89,11 @@ export class OverviewTourService {
 
     this.tour = new Shepherd.Tour({
       useModalOverlay: true,
+      keyboardNavigation: true,
       defaultStepOptions: {
         arrow: true,
         modalOverlayOpeningPadding: 8,
+        modalOverlayOpeningRadius: 10,
         scrollTo: { behavior: 'smooth', block: 'center' },
         cancelIcon: { enabled: true },
         canClickTarget: false,
@@ -98,163 +107,132 @@ export class OverviewTourService {
             },
             {
               name: 'preventOverflow',
-              options: { boundary: 'viewport', padding: 8 },
+              options: { boundary: 'viewport', padding: 12 },
             },
             {
               name: 'flip',
-              options: { padding: 8 },
+              options: { padding: 12 },
             },
           ],
         },
       },
     } as any);
 
-    const stepsData: Array<{
-      id: string;
-      titleAr: string;
-      titleEn: string;
-      textAr: string;
-      textEn: string;
-      attachTo: string;
-      position: Placement;
-      hasBack?: boolean;
-    }> = [
-      {
-        id: 'overview-help',
-        titleAr: 'شرح لوحة المعلومات',
-        titleEn: 'Overview help tour',
-        textAr: 'من هنا تقدر تشغّل شرح تفاعلي سريع لواجهة لوحة المعلومات في أي وقت.',
-        textEn:
-          'You can start an interactive guided tour of this dashboard from this Help button at any time.',
-        attachTo: '.btn-help-tour-overview',
-        position: 'bottom',
-        hasBack: false,
-      },
-      {
-        id: 'overview-header',
-        titleAr: 'لوحة المعلومات',
-        titleEn: 'Dashboard header',
-        textAr: 'هنا عنوان لوحة المعلومات مع وصف سريع لكونها ملخص لإحصائيات اليوم.',
-        textEn: "Here you see the dashboard title and a short description of today's statistics.",
-        attachTo: '.overview-header',
-        position: 'bottom',
-      },
+    const allSteps: TourStepDefinition[] = [
       {
         id: 'overview-search',
-        titleAr: 'البحث عن التذاكر',
-        titleEn: 'Ticket search',
-        textAr: 'استخدم البحث للعثور السريع على تذكرة عن طريق رقم التذكرة أو اللوحة أو رقم الكارت.',
-        textEn: 'Use this search box to quickly find a ticket by ticket number, plate, or card.',
+        titleAr: 'البحث السريع عن التذاكر',
+        titleEn: 'Quick Ticket Search',
+        textAr:
+          'ابحث فورًا عن أي تذكرة باستخدام رقم التذكرة أو رقم اللوحة أو الكارت، واضغط على النتيجة لعرض تفاصيلها الكاملة.',
+        textEn:
+          'Search instantly for any ticket by ticket number, plate, or card, then click a result to inspect its full details.',
         attachTo: '.header-search-main',
+        position: 'bottom',
+      },
+      {
+        id: 'overview-date-range',
+        titleAr: 'فلتر الفترة الزمنية',
+        titleEn: 'Date Range Filter',
+        textAr:
+          'حدد تاريخ البداية والنهاية ثم اضغط «عرض» لتحديث جميع الإحصائيات والإيرادات وأداء البوابات لهذه الفترة.',
+        textEn:
+          'Choose a start and end date and click Apply to refresh all metrics, revenue figures, and gate stats for that period.',
+        attachTo: '.dashboard-date-range',
         position: 'bottom',
       },
       {
         id: 'overview-kpis',
         titleAr: 'المؤشرات الرئيسية (KPIs)',
-        titleEn: 'Key KPIs',
+        titleEn: 'Primary KPIs',
         textAr:
-          'هذه الكروت تعرض أهم الأرقام: إجمالي الإيرادات، الإشغال، عدد التذاكر اليوم، وحالة الاشتراكات.',
+          'ملخص فوري لأهم 4 مؤشرات: إجمالي الإيرادات، معدل الإشغال، التذاكر الصادرة، والاشتراكات النشطة — ويمكنك الضغط على المؤشرات التفاعلية لعرض التفاصيل.',
         textEn:
-          "These cards show the main KPIs: total revenue, occupancy, today's tickets, and memberships.",
+          'Instant summary of the 4 core KPIs: Total Revenue, Occupancy Rate, Issued Tickets, and Active Subscriptions — click interactive items to drill down.',
         attachTo: '.overview-kpi-section',
-        position: 'top',
+        position: 'bottom',
       },
       {
-        id: 'overview-revenue-summary',
-        titleAr: 'ملخص الإيرادات',
-        titleEn: 'Revenue summary',
+        id: 'overview-live',
+        titleAr: 'حركة الدخول والخروج المباشرة',
+        titleEn: 'Live Entry & Exit Activity',
         textAr:
-          'هذا القسم يفصل إيرادات التذاكر، إيرادات التجاوزات، والمبالغ المعلقة مع توضيح المحصل وغير المحصل.',
+          'يعرض مقارنة فورية بين دخول اليوم، خروج اليوم، والمركبات التي دخلت سابقًا ولم تخرج بعد، مع تحديث لحظي عبر SignalR.',
         textEn:
-          'This section separates ticket revenue, exceed revenue, and pending amounts with collected versus uncollected totals.',
+          'Compares today’s entries, exits, and prior vehicles still inside in real time via SignalR updates.',
+        attachTo: '.live-card',
+        position: 'bottom',
+      },
+      {
+        id: 'overview-occupancy',
+        titleAr: 'حالة الموقف ونسبة الإشغال',
+        titleEn: 'Parking Occupancy',
+        textAr:
+          'يوضح نسبة الإشغال الحالية، عدد الأماكن المشغولة والمتاحة وإجمالي السعة، مع زر سريع لعرض السيارات الموجودة بالداخل الآن.',
+        textEn:
+          'Displays current occupancy percentage, occupied vs. available spaces, and total capacity with quick access to parked vehicles.',
+        attachTo: '.occupancy-panel',
+        position: 'bottom',
+      },
+      {
+        id: 'overview-financial',
+        titleAr: 'التحليل المالي',
+        titleEn: 'Financial Breakdown',
+        textAr:
+          'يفصل إيرادات التذاكر الأساسية وإجمالي الغرامات والإيراد الكلي، مع توضيح المبالغ المحصّلة والمعلّقة ونسبة التحصيل.',
+        textEn:
+          'Breaks down base ticket revenue, fine revenue, and total revenue with collected vs. pending amounts and collection rate.',
         attachTo: '.overview-revenue-summary-section',
+        position: 'bottom',
+      },
+      {
+        id: 'overview-gates',
+        titleAr: 'أداء البوابات (الدخول والخروج)',
+        titleEn: 'Gate Performance',
+        textAr:
+          'تنقّل بسهولة بين تبويب بوابات الدخول، بوابات الخروج، أو الكل لمتابعة عدد التذاكر والمحصّل وغير المحصّل وأداء المحصّلين والمشرفين.',
+        textEn:
+          'Switch between Entry Gates, Exit Gates, or All to review ticket counts, collected/pending totals, collectors, and supervisors.',
+        attachTo: '.gate-performance-card',
         position: 'top',
       },
       {
-        id: 'overview-revenue',
-        titleAr: 'أنواع العملاء والإيرادات',
-        titleEn: 'Revenue breakdown',
-        textAr: 'هنا ترى كيف يتوزع الدخل بين الاشتراكات والزوار، مع عدد التذاكر وقيمة كل نوع.',
-        textEn: 'Here you can see how revenue is split between memberships and walk-in customers.',
+        id: 'overview-customers',
+        titleAr: 'الاشتراكات والعملاء',
+        titleEn: 'Subscriptions & Customers',
+        textAr:
+          'يعرض توزيع الإيرادات والتذاكر بين المشتركين والزوار، مع اختصارات فورية لقوائم الاشتراكات النشطة وغير النشطة والمنتهية خلال 7 أيام.',
+        textEn:
+          'Shows revenue and ticket distribution between subscribers and walk-ins, plus quick access to active, inactive, and expiring memberships.',
         attachTo: '.overview-revenue-card',
         position: 'top',
       },
       {
-        id: 'overview-live',
-        titleAr: 'الدخول/الخروج المباشر',
-        titleEn: 'Live In/Out',
-        textAr: 'الشارت الحي يوضح عدد التذاكر الداخلة والخارجة الآن، ويتحدث تلقائيًا.',
-        textEn:
-          'This live chart shows how many tickets are entering and exiting right now, updating automatically.',
-        attachTo: '.live-card',
-        position: 'top',
-      },
-      {
-        id: 'overview-duration',
-        titleAr: 'إحصائيات المدة',
-        titleEn: 'Duration statistics',
+        id: 'overview-additional',
+        titleAr: 'مؤشرات إضافية',
+        titleEn: 'Additional Metrics',
         textAr:
-          'هنا تظهر متوسط مدة بقاء المركبات وأطول مدة مسجلة لتقييم نمط استخدام الموقف.',
+          'شريط مدمج يجمع متوسط وأقصى مدة وقوف، أكثر بوابة نشاطًا، أفضل محصّل، أفضل مشرف غرامات، ومتوسط الغرامات في مكان واحد.',
         textEn:
-          'This card shows average parking duration and the longest recorded stay to help evaluate parking usage patterns.',
-        attachTo: '.overview-duration-card',
-        position: 'top',
-      },
-      {
-        id: 'overview-gates',
-        titleAr: 'أداء البوابات',
-        titleEn: 'Gate performance',
-        textAr:
-          'هذه الجداول تعرض أداء بوابات الدخول والخروج، وأعلى البوابات نشاطًا، وإحصائيات التجاوزات.',
-        textEn:
-          'These tables show how each gate is performing plus analytics about exceeded tickets.',
-        attachTo: '.overview-entry-gates-card',
-        position: 'top',
-      },
-      {
-        id: 'overview-exit-gates',
-        titleAr: 'أداء بوابات الخروج',
-        titleEn: 'Exit gate performance',
-        textAr:
-          'هذا الجدول يوضح تذاكر الخروج، معاملات التجاوز، وإيرادات الغرامات لكل بوابة خروج.',
-        textEn:
-          'This table tracks exited tickets, exceed transactions, and fine revenue for every exit gate.',
-        attachTo: '.overview-exit-gates-card',
-        position: 'top',
-      },
-      {
-        id: 'overview-top-performers',
-        titleAr: 'أفضل الأداء',
-        titleEn: 'Top performers',
-        textAr:
-          'هنا تعرف أكثر بوابة نشاطا، أفضل محصل، وأفضل مشرف في تحصيل التجاوزات.',
-        textEn:
-          'This card highlights the busiest gate, top collector, and top exceed collector for quick performance review.',
-        attachTo: '.overview-top-performers-card',
-        position: 'top',
-      },
-      {
-        id: 'overview-exceed-analytics',
-        titleAr: 'تحليلات التجاوزات',
-        titleEn: 'Exceed analytics',
-        textAr:
-          'هذا القسم يلخص عدد التذاكر المتجاوزة، إجمالي الغرامات، المحصل، المعلق، ومتوسط التجاوز.',
-        textEn:
-          'This section summarizes exceeded tickets, total fines, collected and pending exceed amounts, and average exceed values.',
-        attachTo: '.overview-exceed-analytics-card',
+          'A compact strip consolidating average/max parking duration, busiest gate, top collector, top fine supervisor, and fine averages.',
+        attachTo: '.additional-metrics-panel',
         position: 'top',
       },
     ];
 
-    const totalSteps = stepsData.length;
+    // Only include steps whose target element is currently visible in the DOM (no 2.5s freezes!)
+    const visibleSteps = allSteps.filter((step) => this.isElementVisible(step.attachTo));
+    const stepsToUse = visibleSteps.length > 0 ? visibleSteps : allSteps;
+    const totalSteps = stepsToUse.length;
 
-    stepsData.forEach((step, index) => {
+    stepsToUse.forEach((step, index) => {
       const stepNum = index + 1;
+      const isFirst = index === 0;
       const isLast = index === totalSteps - 1;
 
       const progress = `<span class="step-badge" dir="ltr">${stepNum}/${totalSteps}</span>`;
-      const fullTitleAr = `${step.titleAr} ${progress}`;
-      const fullTitleEn = `${step.titleEn} ${progress}`;
+      const fullTitleAr = `<span class="step-title-text">${step.titleAr}</span> ${progress}`;
+      const fullTitleEn = `<span class="step-title-text">${step.titleEn}</span> ${progress}`;
 
       this.addStep({
         id: step.id,
@@ -262,7 +240,7 @@ export class OverviewTourService {
         text: this.t(step.textAr, step.textEn),
         attachTo: step.attachTo,
         position: step.position,
-        hasBack: step.hasBack !== false,
+        isFirst,
         isLast,
       });
     });
@@ -274,12 +252,20 @@ export class OverviewTourService {
     text: string;
     attachTo: string;
     position: Placement;
-    hasBack?: boolean;
-    isLast?: boolean;
+    isFirst: boolean;
+    isLast: boolean;
   }): void {
     const buttons: any[] = [];
 
-    if (config.hasBack) {
+    if (!config.isLast) {
+      buttons.push({
+        text: this.t('تخطي', 'Skip'),
+        action: () => this.tour?.cancel(),
+        classes: 'shepherd-button-skip',
+      });
+    }
+
+    if (!config.isFirst) {
       const backText = this.isRTL
         ? `<i class="bi bi-arrow-right"></i> السابق`
         : `<i class="bi bi-arrow-left"></i> Previous`;
@@ -295,12 +281,19 @@ export class OverviewTourService {
       const finishText = this.isRTL
         ? `إنهاء <i class="bi bi-check-lg"></i>`
         : `Finish <i class="bi bi-check-lg"></i>`;
-      buttons.push({ text: finishText, action: () => this.tour?.complete() });
+      buttons.push({
+        text: finishText,
+        action: () => this.tour?.complete(),
+        classes: 'shepherd-button-finish',
+      });
     } else {
       const nextText = this.isRTL
         ? `التالي <i class="bi bi-arrow-left"></i>`
         : `Next <i class="bi bi-arrow-right"></i>`;
-      buttons.push({ text: nextText, action: () => this.tour?.next() });
+      buttons.push({
+        text: nextText,
+        action: () => this.tour?.next(),
+      });
     }
 
     this.tour?.addStep({
@@ -309,8 +302,6 @@ export class OverviewTourService {
       text: config.text,
       attachTo: { element: config.attachTo, on: config.position },
       buttons,
-
-      beforeShowPromise: () => this.waitForElement(config.attachTo).catch(() => undefined),
     });
   }
 }

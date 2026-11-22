@@ -245,3 +245,131 @@
     height: 32px;
   }
 }
+
+/* =========================================================
+   Minimal Login Footer Variant
+   ========================================================= */
+
+.footer.footer--login {
+  padding: 0.65rem clamp(1.25rem, 3vw, 2.5rem);
+  background: #10243b;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+  color: rgba(226, 232, 240, 0.85);
+}
+
+.login-footer-container {
+  width: 100%;
+  min-height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  direction: ltr;
+}
+
+.login-footer-left,
+.login-footer-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.login-niletronix-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: #f8fafc;
+  text-decoration: none;
+  transition: opacity 180ms ease;
+}
+
+.login-niletronix-link:hover {
+  opacity: 0.88;
+}
+
+.login-niletronix-logo {
+  height: 24px;
+  width: auto;
+  max-width: 132px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+  filter: brightness(1.35) contrast(1.08);
+}
+
+.login-footer-sep {
+  color: rgba(255, 255, 255, 0.28);
+  font-size: 0.8rem;
+}
+
+.login-footer-version {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(203, 213, 225, 0.82);
+  white-space: nowrap;
+}
+
+.login-footer-copy {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: rgba(203, 213, 225, 0.82);
+}
+
+.page-rtl .login-footer-right {
+  direction: rtl;
+}
+
+.page-ltr .login-footer-right {
+  direction: ltr;
+}
+
+.login-copy-brand {
+  font-weight: 800;
+}
+
+.footer--login .brand-n {
+  color: #d20a24;
+}
+
+.footer--login .brand-park {
+  color: #ffffff;
+}
+
+.login-copy-dash {
+  color: rgba(203, 213, 225, 0.45);
+}
+
+@media (max-width: 767.98px) {
+  .footer.footer--login {
+    padding: 0.85rem 1rem calc(0.85rem + env(safe-area-inset-bottom, 0px));
+  }
+
+  .login-footer-container {
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    gap: 0.4rem;
+  }
+
+  .login-footer-left,
+  .login-footer-right,
+  .login-footer-copy {
+    justify-content: center;
+  }
+
+  .login-niletronix-logo {
+    height: 20px;
+  }
+
+  .login-footer-version,
+  .login-footer-copy {
+    font-size: 0.73rem;
+  }
+}

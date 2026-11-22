@@ -1,11 +1,16 @@
 <div
-  class="overview container-fluid p-3"
+  class="command-center"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
 >
-  <!-- LIVE Notifications -->
-  <div class="notifications-container" *ngIf="notifications().length > 0">
+  <!-- LIVE SignalR Notifications -->
+  <div
+    class="notifications-container"
+    *ngIf="notifications().length > 0"
+    role="status"
+    aria-live="polite"
+  >
     <div
       class="notification"
       *ngFor="let n of notifications()"
@@ -15,7 +20,7 @@
         'notification--collected': n.type === 'COLLECTED',
       }"
     >
-      <div class="notification-icon">
+      <div class="notification-icon" aria-hidden="true">
         <i
           class="bi"
           [ngClass]="{
@@ -29,81 +34,99 @@
       <div class="notification-content">
         <div class="notification-title">{{ n.titleKey | t }}</div>
         <div class="notification-message">{{ n.message }}</div>
-        <div class="notification-time">{{ n.time }}</div>
+        <div class="notification-time" dir="ltr">{{ n.time }}</div>
       </div>
 
-      <button type="button" class="notification-close" (click)="dismissNotification(n.id)">
+      <button
+        type="button"
+        class="notification-close"
+        (click)="dismissNotification(n.id)"
+        aria-label="Close"
+      >
         &times;
       </button>
     </div>
   </div>
 
-  <!-- Loading State -->
-  <div *ngIf="loading()" class="loading-state">
-    <div class="spinner"></div>
-    <p>{{ 'loading' | t }}</p>
-  </div>
-
-  <!-- Error State -->
-  <div *ngIf="errorMessage() && !loading()" class="error-state">
-    <i class="bi bi-exclamation-triangle"></i>
-    <p>{{ errorMessage() }}</p>
-    <button class="btn btn-primary" (click)="loadDashboard()">
-      {{ 'retry' | t }}
-    </button>
-  </div>
-
   <!-- ==========================
-       Dashboard Content
+       Section A — Unified NPark Dark Navy Page Header & Toolbar
        ========================== -->
-  <div *ngIf="!loading() && !errorMessage()" class="page-content">
-    <!-- Header -->
-    <header
-      class="page-header overview-header mb-2 mb-lg-3 fade-in-down p-3 rounded-4 shadow-sm d-flex flex-wrap align-items-center justify-content-between gap-3"
-    >
-      <div
-        class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 w-100"
-      >
-        <div class="header-content d-flex align-items-center gap-3 overview-header-title">
-          <div class="header-icon-wrapper rounded-3">
-            <i class="bi bi-speedometer2 header-icon fs-4"></i>
-          </div>
-          <div class="header-text">
-            <h1 class="page-title mb-0 fw-bold">{{ 'overview' | t }}</h1>
-            <p class="page-subtitle mb-0 small opacity-75">{{ 'todayStats' | t }}</p>
-          </div>
+  <header class="overview-header command-header">
+    <div class="command-header__identity">
+      <div class="header-icon-badge" aria-hidden="true">
+        <i class="bi bi-speedometer2"></i>
+      </div>
+      <div class="command-header__titles">
+        <div class="command-title-row">
+          <h1 class="command-title">{{ 'commandCenterTitle' | t }}</h1>
+          <span class="command-breadcrumb" aria-label="Breadcrumb">
+            <span class="breadcrumb-brand" dir="ltr">
+              <span class="brand-n">N</span><span>Park</span>
+            </span>
+            <span class="breadcrumb-sep" aria-hidden="true">/</span>
+            <span class="breadcrumb-current">{{ 'overview' | t }}</span>
+          </span>
+          <span class="refresh-pill" *ngIf="refreshing()">
+            <span class="refresh-spinner" aria-hidden="true"></span>
+            {{ 'refreshing' | t }}
+          </span>
+        </div>
+        <p class="command-subtitle">{{ 'commandCenterSubtitle' | t }}</p>
+      </div>
+    </div>
+
+    <div class="command-toolbar" [class.command-toolbar--filters-open]="mobileFiltersOpen()">
+      <!-- Ticket Search -->
+      <div class="header-search">
+        <div class="header-search-main">
+          <button
+            type="button"
+            class="search-icon-btn"
+            (click)="onSearchTickets()"
+            [attr.aria-label]="lang.isRTL() ? 'بحث' : 'Search'"
+          >
+            <i class="bi bi-search" aria-hidden="true"></i>
+          </button>
+
+          <input
+            type="text"
+            class="header-search-input"
+            [(ngModel)]="searchQuery"
+            (ngModelChange)="onSearchInput($event)"
+            [placeholder]="
+              lang.isRTL()
+                ? 'ابحث برقم التذكرة، اللوحة، أو الكارت'
+                : 'Search by ticket, plate, or card'
+            "
+            (keyup.enter)="onSearchTickets()"
+          />
+
+          <button
+            *ngIf="searchQuery"
+            type="button"
+            class="search-clear-btn"
+            (click)="clearSearch()"
+            [attr.aria-label]="'clearSearch' | t"
+          >
+            <i class="bi bi-x-lg" aria-hidden="true"></i>
+          </button>
         </div>
 
-        <div class="header-search flex-grow-1 d-flex flex-column gap-1">
-          <div class="header-search-main d-flex align-items-center gap-2">
-            <i class="bi bi-search" (click)="onSearchTickets()"></i>
-
-            <input
-              type="text"
-              class="header-search-input"
-              [(ngModel)]="searchQuery"
-              (ngModelChange)="onSearchInput($event)"
-              [placeholder]="
-                lang.isRTL()
-                  ? 'ابحث برقم التذكرة، اللوحة، أو الكارت'
-                  : 'Search by ticket, plate, or card'
-              "
-              (keyup.enter)="onSearchTickets()"
-            />
-          </div>
-
-          <!-- Results dropdown -->
-          <div
-            class="header-search-results"
-            *ngIf="
-              searchQuery && (searchResults.length > 0 || (!searchingTickets && searchAttempted))
-            "
+        <!-- Results Dropdown -->
+        <div
+          class="header-search-results"
+          *ngIf="
+            searchQuery && (searchResults.length > 0 || (!searchingTickets && searchAttempted))
+          "
+        >
+          <button
+            type="button"
+            class="header-search-result-item"
+            *ngFor="let t of searchResults"
+            (click)="onTicketSelected(t)"
           >
-            <div
-              class="header-search-result-item"
-              *ngFor="let t of searchResults"
-              (click)="onTicketSelected(t)"
-            >
+            <i class="bi bi-ticket-perforated" aria-hidden="true"></i>
+            <span>
               {{
                 t.ticketNumber ||
                   t.plateNumber ||
@@ -115,810 +138,1016 @@
                   t.isCollectedByCashier ||
                   ('id' | t) + ': ' + t.id
               }}
-            </div>
+            </span>
+          </button>
 
-            <div
-              class="header-search-result-item text-muted"
-              *ngIf="!searchingTickets && searchAttempted && searchResults.length === 0"
-            >
-              {{ lang.isRTL() ? 'لا توجد تذاكر مطابقة' : 'No matching tickets' }}
+          <div
+            class="header-search-result-empty"
+            *ngIf="!searchingTickets && searchAttempted && searchResults.length === 0"
+          >
+            {{ lang.isRTL() ? 'لا توجد تذاكر مطابقة' : 'No matching tickets' }}
+          </div>
+        </div>
+      </div>
+
+      <!-- Date Range Filter -->
+      <div class="dashboard-date-range">
+        <label class="dashboard-date-control">
+          <span class="date-label">{{ 'fromDate' | t }}</span>
+          <input
+            type="date"
+            class="dashboard-date-input"
+            dir="ltr"
+            [(ngModel)]="selectedDashboardFrom"
+          />
+        </label>
+
+        <label class="dashboard-date-control">
+          <span class="date-label">{{ 'toDate' | t }}</span>
+          <input
+            type="date"
+            class="dashboard-date-input"
+            dir="ltr"
+            [(ngModel)]="selectedDashboardTo"
+          />
+        </label>
+
+        <button
+          type="button"
+          class="dashboard-date-apply"
+          (click)="loadDashboard()"
+          [disabled]="loading() || refreshing()"
+        >
+          <i class="bi bi-arrow-repeat" [class.spin-icon]="refreshing()" aria-hidden="true"></i>
+          <span>{{ 'applyDate' | t }}</span>
+        </button>
+      </div>
+
+      <!-- Header Utility Actions -->
+      <div class="command-header__actions">
+        <button
+          type="button"
+          class="toolbar-btn toolbar-btn--filter-toggle"
+          (click)="toggleMobileFilters()"
+          [attr.aria-expanded]="mobileFiltersOpen()"
+        >
+          <i class="bi bi-calendar3" aria-hidden="true"></i>
+          <span>{{ 'filters' | t }}</span>
+        </button>
+
+        <button
+          type="button"
+          class="toolbar-btn toolbar-btn--ghost btn-help-tour-overview"
+          (click)="startAdminTour()"
+        >
+          <i class="bi bi-question-circle" aria-hidden="true"></i>
+          <span>{{ 'helpTour' | t }}</span>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- ==========================
+       Initial Loading Skeleton
+       ========================== -->
+  <div *ngIf="loading() && !dashboard()" class="skeleton-layout" aria-busy="true">
+    <div class="skeleton-kpi-grid">
+      <div class="skeleton-card" *ngFor="let item of [1, 2, 3, 4]">
+        <div class="skeleton-line skeleton-line--sm"></div>
+        <div class="skeleton-line skeleton-line--lg"></div>
+        <div class="skeleton-line skeleton-line--md"></div>
+      </div>
+    </div>
+
+    <div class="skeleton-ops-grid">
+      <div class="skeleton-panel" *ngFor="let item of [1, 2, 3]">
+        <div class="skeleton-line skeleton-line--md"></div>
+        <div class="skeleton-block"></div>
+      </div>
+    </div>
+
+    <div class="skeleton-panel skeleton-panel--wide">
+      <div class="skeleton-line skeleton-line--md"></div>
+      <div class="skeleton-line skeleton-line--full"></div>
+      <div class="skeleton-line skeleton-line--full"></div>
+    </div>
+  </div>
+
+  <!-- ==========================
+       Error State
+       ========================== -->
+  <div *ngIf="errorMessage() && !loading()" class="error-state-card" role="alert">
+    <div class="error-state-icon" aria-hidden="true">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+    </div>
+    <div class="error-state-body">
+      <h2>{{ 'error' | t }}</h2>
+      <p>{{ errorMessage() }}</p>
+    </div>
+    <button type="button" class="retry-btn" (click)="loadDashboard()">
+      <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+      <span>{{ 'retry' | t }}</span>
+    </button>
+  </div>
+
+  <!-- ==========================
+       Dashboard Command Center Body
+       ========================== -->
+  <div *ngIf="dashboard() && !errorMessage()" class="command-body">
+    <!-- Section B — Primary KPI Strip (4 Columns) -->
+    <section class="overview-kpi-section kpi-grid" aria-label="Primary KPIs">
+      <!-- 1. Total Revenue -->
+      <app-overview-kpi-card
+        [label]="'totalRevenue' | t"
+        [value]="formatCurrency(totalRevenue())"
+        [unit]="'egp' | t"
+        icon="bi bi-cash-stack"
+        tone="navy"
+      >
+        <span class="meta-chip meta-chip--success">
+          <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+          {{ 'collected' | t }}:
+          <strong dir="ltr">{{ formatCurrency(collectedRevenue()) }}</strong>
+        </span>
+        <span class="meta-chip meta-chip--warning">
+          <i class="bi bi-clock-fill" aria-hidden="true"></i>
+          {{ 'pending' | t }}:
+          <strong dir="ltr">{{ formatCurrency(pendingRevenue()) }}</strong>
+        </span>
+      </app-overview-kpi-card>
+
+      <!-- 2. Occupancy Rate -->
+      <app-overview-kpi-card
+        class="occupancy-card"
+        [label]="'occupancy' | t"
+        [value]="(occupancyPercentage() | number: '1.0-1') + '%'"
+        icon="bi bi-car-front-fill"
+        [tone]="occupancyTone()"
+        [clickable]="true"
+        (cardClick)="showOccupancyDetails()"
+      >
+        <span class="meta-chip">
+          <i class="bi bi-arrow-down-circle" aria-hidden="true"></i>
+          {{ 'inside' | t }}: <strong dir="ltr">{{ currentVehiclesInside() }}</strong>
+        </span>
+        <span class="meta-chip">
+          <i class="bi bi-check2-square" aria-hidden="true"></i>
+          {{ 'free' | t }}: <strong dir="ltr">{{ estimatedFreeSlots() }}</strong>
+        </span>
+      </app-overview-kpi-card>
+
+      <!-- 3. Issued Tickets / Ticket Flow -->
+      <app-overview-kpi-card
+        class="tickets-today-card"
+        [label]="'ticketsToday' | t"
+        [value]="ticketFlowCount()"
+        icon="bi bi-ticket-perforated-fill"
+        tone="blue"
+      >
+        <button
+          type="button"
+          class="meta-chip meta-chip--interactive"
+          (click)="showTicketsTodayDetails('entry')"
+        >
+          <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i>
+          {{ 'ticketEnterToday' | t }}: <strong dir="ltr">{{ ticketEnterToday() }}</strong>
+        </button>
+
+        <span class="meta-chip">
+          <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+          {{ 'ticketEnterNotTodayButNotExitYet' | t }}:
+          <strong dir="ltr">{{ ticketEnterNotTodayButNotExitYet() }}</strong>
+        </span>
+
+        <button
+          type="button"
+          class="meta-chip meta-chip--interactive"
+          (click)="showTicketsTodayDetails('exit')"
+        >
+          <i class="bi bi-box-arrow-up" aria-hidden="true"></i>
+          {{ 'exitTicketsCount' | t }}: <strong dir="ltr">{{ exitTicketsCount() }}</strong>
+        </button>
+      </app-overview-kpi-card>
+
+      <!-- 4. Active Subscriptions -->
+      <app-overview-kpi-card
+        class="membership-card"
+        [label]="'memberships' | t"
+        [value]="activeSubscriptionCount()"
+        [unit]="'/ ' + subscriptionCount()"
+        icon="bi bi-person-badge-fill"
+        tone="amber"
+      >
+        <button
+          type="button"
+          class="meta-chip meta-chip--success meta-chip--interactive"
+          (click)="openMembershipModal('active')"
+        >
+          {{ 'active' | t }}: <strong dir="ltr">{{ activeSubscriptionCount() }}</strong>
+        </button>
+
+        <button
+          type="button"
+          class="meta-chip meta-chip--interactive"
+          (click)="openMembershipModal('inactive')"
+        >
+          {{ 'inactive' | t }}: <strong dir="ltr">{{ inactiveSubscriptionCount() }}</strong>
+        </button>
+
+        <button
+          *ngIf="membershipsExpiringNext7Days() > 0"
+          type="button"
+          class="meta-chip meta-chip--warning meta-chip--interactive"
+          (click)="openMembershipModal('expiring')"
+        >
+          <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+          {{ 'expiringNext7Days' | t }}:
+          <strong dir="ltr">{{ membershipsExpiringNext7Days() }}</strong>
+        </button>
+      </app-overview-kpi-card>
+    </section>
+
+    <!-- Section C — Core Operations Grid (3 Columns) -->
+    <section class="ops-grid" aria-label="Core Operations">
+      <!-- Panel 1: Live Entry / Exit Activity -->
+      <article class="panel-card live-card">
+        <div class="panel-header">
+          <div class="panel-title-group">
+            <h2 class="panel-title">{{ 'liveInOut' | t }}</h2>
+            <span class="live-badge">
+              <span class="live-dot" aria-hidden="true"></span>
+              LIVE
+            </span>
+          </div>
+          <span class="panel-counter" dir="ltr">
+            {{ ticketEnterToday() + exitTicketsCount() }}
+          </span>
+        </div>
+
+        <div class="panel-body activity-bars">
+          <!-- Entry Row -->
+          <div class="bar-metric">
+            <div class="bar-metric__head">
+              <button
+                type="button"
+                class="bar-metric__label bar-metric__label--btn"
+                (click)="showTicketsTodayDetails('entry')"
+              >
+                <span class="legend-dot legend-dot--blue"></span>
+                <span>{{ 'ticketEnterToday' | t }}</span>
+              </button>
+              <strong class="bar-metric__value" dir="ltr">{{ ticketEnterToday() }}</strong>
+            </div>
+            <div class="progress-track">
+              <div
+                class="progress-fill progress-fill--blue"
+                [style.width.%]="barPercent(ticketEnterToday(), liveMaxCount())"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Exit Row -->
+          <div class="bar-metric">
+            <div class="bar-metric__head">
+              <button
+                type="button"
+                class="bar-metric__label bar-metric__label--btn"
+                (click)="showTicketsTodayDetails('exit')"
+              >
+                <span class="legend-dot legend-dot--navy"></span>
+                <span>{{ 'exitTicketsCount' | t }}</span>
+              </button>
+              <strong class="bar-metric__value" dir="ltr">{{ exitTicketsCount() }}</strong>
+            </div>
+            <div class="progress-track">
+              <div
+                class="progress-fill progress-fill--navy"
+                [style.width.%]="barPercent(exitTicketsCount(), liveMaxCount())"
+              ></div>
+            </div>
+          </div>
+
+          <!-- Prior Entries Still Inside -->
+          <div class="bar-metric">
+            <div class="bar-metric__head">
+              <span class="bar-metric__label">
+                <span class="legend-dot legend-dot--amber"></span>
+                <span>{{ 'ticketEnterNotTodayButNotExitYet' | t }}</span>
+              </span>
+              <strong class="bar-metric__value" dir="ltr">
+                {{ ticketEnterNotTodayButNotExitYet() }}
+              </strong>
+            </div>
+            <div class="progress-track">
+              <div
+                class="progress-fill progress-fill--amber"
+                [style.width.%]="barPercent(ticketEnterNotTodayButNotExitYet(), liveMaxCount())"
+              ></div>
             </div>
           </div>
         </div>
+      </article>
 
-        <div class="d-flex align-items-center gap-2 align-self-stretch align-self-md-auto">
-          <div class="dashboard-date-range">
-            <label class="dashboard-date-control">
-              <span>{{ 'fromDate' | t }}</span>
-              <input type="date" class="dashboard-date-input" [(ngModel)]="selectedDashboardFrom" />
-            </label>
-
-            <label class="dashboard-date-control">
-              <span>{{ 'toDate' | t }}</span>
-              <input type="date" class="dashboard-date-input" [(ngModel)]="selectedDashboardTo" />
-            </label>
-
-            <button type="button" class="dashboard-date-apply" (click)="loadDashboard()">
-              {{ 'applyDate' | t }}
-            </button>
-          </div>
-
-          <button
-            type="button"
-            class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour btn-help-tour-overview flex-grow-1 flex-md-grow-0"
-            (click)="startAdminTour()"
-          >
-            <i class="bi bi-question-circle"></i>
-            <span>{{ 'helpTour' | t }}</span>
+      <!-- Panel 2: Parking Occupancy -->
+      <article class="panel-card occupancy-panel">
+        <div class="panel-header">
+          <h2 class="panel-title">{{ 'parkingStatus' | t }}</h2>
+          <button type="button" class="panel-link-btn" (click)="showOccupancyDetails()">
+            {{ 'viewDetails' | t }}
           </button>
         </div>
-      </div>
-    </header>
 
-    <!-- ================ Top KPI Cards ================ -->
-    <section class="mb-2 mb-lg-3 overview-kpi-section">
-      <div class="row g-2 g-xl-3">
-        <!-- Total Revenue -->
-        <div class="col-12 col-md-6 col-xl-3">
-          <div class="kpi-card kpi-card--blue h-100 d-flex gap-2">
-            <div class="kpi-icon">
-              <i class="bi bi-cash-stack"></i>
+        <div class="panel-body occupancy-body">
+          <div class="gauge-wrap">
+            <svg viewBox="0 0 140 140" class="occupancy-gauge" aria-hidden="true">
+              <circle cx="70" cy="70" [attr.r]="occupancyGaugeRadius" class="gauge-track"></circle>
+              <circle
+                cx="70"
+                cy="70"
+                [attr.r]="occupancyGaugeRadius"
+                class="gauge-progress"
+                [ngClass]="'gauge-progress--' + occupancyTone()"
+                [attr.stroke-dasharray]="occupancyGaugeCirc"
+                [attr.stroke-dashoffset]="occupancyGaugeOffset()"
+                transform="rotate(-90 70 70)"
+              ></circle>
+            </svg>
+            <div class="gauge-center">
+              <strong class="gauge-percent" dir="ltr">
+                {{ occupancyPercentage() | number: '1.0-1' }}%
+              </strong>
+              <span class="gauge-caption">{{ 'occupancy' | t }}</span>
             </div>
-            <div class="kpi-content flex-grow-1">
-              <div class="kpi-label">{{ 'totalRevenue' | t }}</div>
-              <div class="kpi-value">
-                {{ formatCurrency(totalRevenue()) }}
-                {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-              </div>
+          </div>
 
-              <div class="kpi-stats d-flex flex-wrap gap-2">
-                <div class="stat stat--success d-flex align-items-center gap-1">
-                  <i class="bi bi-check-circle"></i>
-                  <span>
-                    {{ 'collected' | t }}:
-                    {{ formatCurrency(collectedRevenue()) }}
-                  </span>
-                </div>
-                <div class="stat stat--warning d-flex align-items-center gap-1">
-                  <i class="bi bi-clock"></i>
-                  <span>
-                    {{ 'pending' | t }}:
-                    {{ formatCurrency(pendingRevenue()) }}
-                  </span>
-                </div>
-              </div>
+          <div class="occupancy-metrics">
+            <div class="occupancy-stat">
+              <span class="occupancy-stat__label">
+                <span class="legend-dot legend-dot--green"></span>
+                {{ 'occupiedSpaces' | t }}
+              </span>
+              <strong class="occupancy-stat__value" dir="ltr">{{ currentVehiclesInside() }}</strong>
+            </div>
+
+            <div class="occupancy-stat">
+              <span class="occupancy-stat__label">
+                <span class="legend-dot legend-dot--muted"></span>
+                {{ 'availableSpaces' | t }}
+              </span>
+              <strong class="occupancy-stat__value" dir="ltr">{{ estimatedFreeSlots() }}</strong>
+            </div>
+
+            <div class="occupancy-stat occupancy-stat--total" *ngIf="totalCapacity() > 0">
+              <span class="occupancy-stat__label">{{ 'totalCapacity' | t }}</span>
+              <strong class="occupancy-stat__value" dir="ltr">{{ totalCapacity() }}</strong>
             </div>
           </div>
         </div>
+      </article>
 
-        <!-- Occupancy -->
-        <div class="col-12 col-md-6 col-xl-3">
+      <!-- Panel 3: Financial Breakdown -->
+      <article class="panel-card overview-revenue-summary-section">
+        <div class="panel-header">
+          <h2 class="panel-title">{{ 'financialBreakdown' | t }}</h2>
+          <span class="collection-pill" dir="ltr">
+            {{ 'collectionRate' | t }}: {{ collectedPercent() | number: '1.0-0' }}%
+          </span>
+        </div>
+
+        <div class="panel-body financial-list">
+          <!-- Ticket Base Revenue -->
+          <div class="fin-row">
+            <div class="fin-row__top">
+              <span class="fin-row__label">{{ 'ticketBaseRevenue' | t }}</span>
+              <strong class="fin-row__amount" dir="ltr">
+                {{ formatCurrency(ticketBaseRevenue()) }} {{ 'egp' | t }}
+              </strong>
+            </div>
+            <div class="progress-track progress-track--sm">
+              <div
+                class="progress-fill progress-fill--navy"
+                [style.width.%]="barPercent(ticketBaseRevenue(), financialMaxAmount())"
+              ></div>
+            </div>
+            <div class="fin-row__sub">
+              <span class="text-success-ink">
+                {{ 'collected' | t }}: {{ formatCurrency(collectedTicketBaseRevenue()) }}
+              </span>
+              <span class="text-warning-ink">
+                {{ 'pending' | t }}: {{ formatCurrency(pendingTicketBaseRevenue()) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Fine / Exceed Revenue -->
+          <div class="fin-row">
+            <div class="fin-row__top">
+              <span class="fin-row__label">{{ 'totalExceedRevenue' | t }}</span>
+              <strong class="fin-row__amount" dir="ltr">
+                {{ formatCurrency(totalExceedRevenue()) }} {{ 'egp' | t }}
+              </strong>
+            </div>
+            <div class="progress-track progress-track--sm">
+              <div
+                class="progress-fill progress-fill--red"
+                [style.width.%]="barPercent(totalExceedRevenue(), financialMaxAmount())"
+              ></div>
+            </div>
+            <div class="fin-row__sub">
+              <span class="text-success-ink">
+                {{ 'collected' | t }}: {{ formatCurrency(collectedExceedRevenue()) }}
+              </span>
+              <span class="text-warning-ink">
+                {{ 'pending' | t }}: {{ formatCurrency(pendingExceedRevenue()) }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Total Revenue Summary -->
+          <div class="fin-row fin-row--total">
+            <div class="fin-row__top">
+              <span class="fin-row__label">{{ 'totalRevenue' | t }}</span>
+              <strong class="fin-row__amount" dir="ltr">
+                {{ formatCurrency(totalRevenue()) }} {{ 'egp' | t }}
+              </strong>
+            </div>
+            <div class="progress-track progress-track--sm">
+              <div
+                class="progress-fill progress-fill--green"
+                [style.width.%]="collectedPercent()"
+              ></div>
+            </div>
+            <div class="fin-row__sub">
+              <span class="text-success-ink">
+                {{ 'collected' | t }}: {{ formatCurrency(collectedRevenue()) }}
+              </span>
+              <span class="text-warning-ink">
+                {{ 'pending' | t }}: {{ formatCurrency(pendingRevenue()) }}
+              </span>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <!-- Section D — Secondary Operational Grid (Gates + Customers/Subscriptions) -->
+    <section class="secondary-grid overview-gates-section" aria-label="Operational Details">
+      <!-- Gate Performance (Tabbed Entry / Exit / All) -->
+      <article class="panel-card gate-performance-card">
+        <div class="panel-header panel-header--wrap">
+          <h2 class="panel-title">{{ 'gatePerformance' | t }}</h2>
+
+          <div class="segmented-tabs" role="tablist" [attr.aria-label]="'gatePerformance' | t">
+            <button
+              type="button"
+              role="tab"
+              class="seg-tab"
+              [class.is-active]="activeGateTab() === 'entry'"
+              [attr.aria-selected]="activeGateTab() === 'entry'"
+              (click)="setGateTab('entry')"
+            >
+              {{ 'entryGates' | t }}
+              <span class="seg-count" dir="ltr">{{ entryGates().length }}</span>
+            </button>
+
+            <button
+              type="button"
+              role="tab"
+              class="seg-tab"
+              [class.is-active]="activeGateTab() === 'exit'"
+              [attr.aria-selected]="activeGateTab() === 'exit'"
+              (click)="setGateTab('exit')"
+            >
+              {{ 'exitGates' | t }}
+              <span class="seg-count" dir="ltr">{{ exitGates().length }}</span>
+            </button>
+
+            <button
+              type="button"
+              role="tab"
+              class="seg-tab"
+              [class.is-active]="activeGateTab() === 'all'"
+              [attr.aria-selected]="activeGateTab() === 'all'"
+              (click)="setGateTab('all')"
+            >
+              {{ 'allGates' | t }}
+            </button>
+          </div>
+        </div>
+
+        <div class="panel-body panel-body--flush">
+          <!-- Entry Gates Block -->
           <div
-            class="kpi-card kpi-card--green occupancy-card h-100 d-flex gap-2"
-            (click)="showOccupancyDetails()"
+            class="gate-table-block overview-entry-gates-card"
+            *ngIf="activeGateTab() === 'entry' || activeGateTab() === 'all'"
           >
-            <div class="kpi-icon">
-              <i class="bi bi-car-front"></i>
+            <div class="gate-subhead" *ngIf="activeGateTab() === 'all'">
+              <span class="gate-type-dot gate-type-dot--entry"></span>
+              {{ 'entryGates' | t }}
             </div>
-            <div class="kpi-content flex-grow-1">
-              <div class="kpi-label">{{ 'occupancy' | t }}</div>
-              <div class="kpi-value">{{ occupancyPercentage() | number: '1.0-1' }}%</div>
 
-              <div class="kpi-stats d-flex flex-wrap gap-2">
-                <div class="stat d-flex align-items-center gap-1">
-                  <i class="bi bi-arrow-down-circle"></i>
-                  <span>{{ 'inside' | t }}: {{ currentVehiclesInside() }}</span>
-                </div>
-                <div class="stat d-flex align-items-center gap-1">
-                  <i class="bi bi-check2-square"></i>
-                  <span>{{ 'free' | t }}: {{ estimatedFreeSlots() }}</span>
-                </div>
-              </div>
+            <!-- Desktop / Tablet Table -->
+            <div class="table-scroll desktop-table">
+              <table class="ops-table">
+                <thead>
+                  <tr>
+                    <th>{{ 'gateNumber' | t }}</th>
+                    <th>{{ 'tickets' | t }}</th>
+                    <th>{{ 'totalPrice' | t }}</th>
+                    <th>{{ 'collected' | t }}</th>
+                    <th>{{ 'pendingPrice' | t }}</th>
+                    <th>{{ 'collectors' | t }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let gate of entryGates()">
+                    <td>
+                      <span class="gate-badge gate-badge--entry" dir="ltr">
+                        Gate {{ gate.gateNumber }}
+                      </span>
+                    </td>
+                    <td class="num-cell" dir="ltr">{{ gate.ticketsCount }}</td>
+                    <td class="num-cell" dir="ltr">{{ formatCurrency(gate.totalPrice) }}</td>
+                    <td class="num-cell text-success-ink" dir="ltr">
+                      {{ formatCurrency(gate.collectedPrice) }}
+                    </td>
+                    <td class="num-cell text-warning-ink" dir="ltr">
+                      {{ formatCurrency(gate.pendingPrice) }}
+                    </td>
+                    <td>
+                      <ng-container *ngIf="gate.collectors.length > 0; else noCollectors">
+                        <div class="party-list">
+                          <div class="party-item" *ngFor="let collector of gate.collectors">
+                            <strong>{{ formatName(collector.collectorName) }}</strong>
+                            <span dir="ltr">
+                              {{ collector.ticketsCount }} {{ 'tickets' | t }} ·
+                              {{ formatCurrency(collector.collectedAmount) }}
+                            </span>
+                          </div>
+                        </div>
+                      </ng-container>
+                    </td>
+                  </tr>
+                  <tr *ngIf="entryGates().length === 0">
+                    <td colspan="6" class="empty-table-cell">{{ 'noDataAvailable' | t }}</td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
-          </div>
-        </div>
 
-        <!-- Tickets Today -->
-        <div class="col-12 col-md-6 col-xl-3">
-          <div class="kpi-card kpi-card--purple tickets-today-card h-100 d-flex gap-2">
-            <div class="kpi-icon">
-              <i class="bi bi-ticket-perforated"></i>
-            </div>
-            <div class="kpi-content flex-grow-1">
-              <div class="kpi-label">{{ 'ticketsToday' | t }}</div>
-              <div class="kpi-value">
-                {{ ticketFlowCount() }}
-              </div>
-
-              <div class="kpi-stats d-flex flex-wrap gap-2">
-                <div
-                  class="stat clickable-stat d-flex align-items-center gap-1"
-                  (click)="showTicketsTodayDetails('entry')"
+            <!-- Mobile Expandable Gate Cards -->
+            <div class="mobile-gate-list">
+              <div
+                class="mobile-gate-card"
+                *ngFor="let gate of entryGates()"
+                [class.is-expanded]="expandedGateKey() === 'entry-' + gate.gateNumber"
+              >
+                <button
+                  type="button"
+                  class="mobile-gate-summary"
+                  (click)="toggleGateRow('entry-' + gate.gateNumber)"
+                  [attr.aria-expanded]="expandedGateKey() === 'entry-' + gate.gateNumber"
                 >
-                  <i class="bi bi-box-arrow-in-down"></i>
-                  <span>{{ 'ticketEnterToday' | t }}: {{ ticketEnterToday() }}</span>
-                </div>
-
-                <div class="stat d-flex align-items-center gap-1">
-                  <i class="bi bi-hourglass-split"></i>
-                  <span>
-                    {{ 'ticketEnterNotTodayButNotExitYet' | t }}:
-                    {{ ticketEnterNotTodayButNotExitYet() }}
+                  <span class="gate-badge gate-badge--entry" dir="ltr">
+                    Gate {{ gate.gateNumber }}
                   </span>
-                </div>
-
-                <div
-                  class="stat clickable-stat d-flex align-items-center gap-1"
-                  (click)="showTicketsTodayDetails('exit')"
-                >
-                  <i class="bi bi-box-arrow-up"></i>
-                  <span>{{ 'exitTicketsCount' | t }}: {{ exitTicketsCount() }}</span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Memberships -->
-        <div class="col-12 col-md-6 col-xl-3">
-          <div class="kpi-card kpi-card--orange membership-card h-100 d-flex gap-2">
-            <div class="kpi-icon">
-              <i class="bi bi-people"></i>
-            </div>
-
-            <div class="kpi-content flex-grow-1">
-              <div class="kpi-label">{{ 'memberships' | t }}</div>
-              <div class="kpi-value">{{ subscriptionCount() }}</div>
-
-              <!-- Expiring -->
-              <div class="kpi-stats d-flex flex-wrap gap-2">
-                <div
-                  class="stat stat--warning clickable-stat d-flex align-items-center gap-1"
-                  *ngIf="membershipsExpiringNext7Days() > 0"
-                  (click)="openMembershipModal('expiring')"
-                  (mouseenter)="showMembershipHint('expiring')"
-                  (mouseleave)="hideMembershipHint()"
-                >
-                  <i class="bi bi-exclamation-triangle"></i>
-                  <span>
-                    {{ 'expiringNext7Days' | t }}:
-                    {{ membershipsExpiringNext7Days() }}
+                  <span class="mobile-gate-kpi" dir="ltr">
+                    {{ gate.ticketsCount }} {{ 'tickets' | t }} ·
+                    <strong>{{ formatCurrency(gate.totalPrice) }}</strong>
                   </span>
+                  <i
+                    class="bi"
+                    [ngClass]="
+                      expandedGateKey() === 'entry-' + gate.gateNumber
+                        ? 'bi-chevron-up'
+                        : 'bi-chevron-down'
+                    "
+                    aria-hidden="true"
+                  ></i>
+                </button>
 
-                  <div
-                    class="membership-hint-tooltip"
-                    *ngIf="membershipHintVisible() && membershipHintType() === 'expiring'"
-                  >
-                    {{ 'showMoreDetails' | t }}
+                <div
+                  class="mobile-gate-details"
+                  *ngIf="expandedGateKey() === 'entry-' + gate.gateNumber"
+                >
+                  <div class="mobile-detail-row">
+                    <span>{{ 'collected' | t }}</span>
+                    <strong class="text-success-ink" dir="ltr">
+                      {{ formatCurrency(gate.collectedPrice) }}
+                    </strong>
+                  </div>
+                  <div class="mobile-detail-row">
+                    <span>{{ 'pendingPrice' | t }}</span>
+                    <strong class="text-warning-ink" dir="ltr">
+                      {{ formatCurrency(gate.pendingPrice) }}
+                    </strong>
+                  </div>
+                  <div class="mobile-detail-row mobile-detail-row--stack">
+                    <span>{{ 'collectors' | t }}</span>
+                    <ng-container *ngIf="gate.collectors.length > 0; else noCollectors">
+                      <div class="party-list">
+                        <div class="party-item" *ngFor="let collector of gate.collectors">
+                          <strong>{{ formatName(collector.collectorName) }}</strong>
+                          <span dir="ltr">
+                            {{ collector.ticketsCount }} ·
+                            {{ formatCurrency(collector.collectedAmount) }}
+                          </span>
+                        </div>
+                      </div>
+                    </ng-container>
                   </div>
                 </div>
               </div>
 
-              <!-- Active / inactive -->
-              <div class="kpi-stats memberships-stats d-flex flex-wrap gap-2">
-                <div
-                  class="stat stat--success clickable-stat d-flex align-items-center gap-1"
-                  (click)="openMembershipModal('active')"
-                  (mouseenter)="showMembershipHint('active')"
-                  (mouseleave)="hideMembershipHint()"
-                >
-                  <i class="bi bi-check-circle"></i>
-                  <span>
-                    {{ 'active' | t }}:
-                    {{ activeSubscriptionCount() }}
-                  </span>
-
-                  <div
-                    class="membership-hint-tooltip"
-                    *ngIf="membershipHintVisible() && membershipHintType() === 'active'"
-                  >
-                    {{ 'showMoreDetails' | t }}
-                  </div>
-                </div>
-
-                <div
-                  class="stat stat--muted clickable-stat d-flex align-items-center gap-1"
-                  (click)="openMembershipModal('inactive')"
-                  (mouseenter)="showMembershipHint('inactive')"
-                  (mouseleave)="hideMembershipHint()"
-                >
-                  <i class="bi bi-slash-circle"></i>
-                  <span>
-                    {{ 'inactive' | t }}:
-                    {{ inactiveSubscriptionCount() }}
-                  </span>
-
-                  <div
-                    class="membership-hint-tooltip"
-                    *ngIf="membershipHintVisible() && membershipHintType() === 'inactive'"
-                  >
-                    {{ 'showMoreDetails' | t }}
-                  </div>
-                </div>
+              <div class="empty-mobile-state" *ngIf="entryGates().length === 0">
+                {{ 'noDataAvailable' | t }}
               </div>
             </div>
           </div>
-        </div>
-      </div>
-    </section>
 
-    <section class="mb-2 mb-lg-3 overview-revenue-summary-section">
-      <div class="revenue-summary-grid">
-        <div class="revenue-summary-card">
-          <span>{{ 'ticketBaseRevenue' | t }}</span>
-          <strong
-            >{{ formatCurrency(ticketBaseRevenue()) }} {{ lang.isRTL() ? 'ج.م' : 'EGP' }}</strong
+          <!-- Exit Gates Block -->
+          <div
+            class="gate-table-block overview-exit-gates-card"
+            *ngIf="activeGateTab() === 'exit' || activeGateTab() === 'all'"
           >
-          <small>
-            {{ 'collected' | t }} {{ formatCurrency(collectedTicketBaseRevenue()) }} ·
-            {{ 'pending' | t }} {{ formatCurrency(pendingTicketBaseRevenue()) }}
-          </small>
-        </div>
-
-        <div class="revenue-summary-card revenue-summary-card--exceed">
-          <span>{{ 'totalExceedRevenue' | t }}</span>
-          <strong
-            >{{ formatCurrency(totalExceedRevenue()) }} {{ lang.isRTL() ? 'ج.م' : 'EGP' }}</strong
-          >
-          <small>
-            {{ 'collectedExceedRevenue' | t }} {{ formatCurrency(collectedExceedRevenue()) }} ·
-            {{ 'pendingExceedRevenue' | t }} {{ formatCurrency(pendingExceedRevenue()) }}
-          </small>
-        </div>
-
-        <div class="revenue-summary-card revenue-summary-card--pending">
-          <span>{{ 'pending' | t }}</span>
-          <strong>{{ formatCurrency(pendingRevenue()) }} {{ lang.isRTL() ? 'ج.م' : 'EGP' }}</strong>
-          <small>
-            {{ 'totalRevenue' | t }} {{ formatCurrency(totalRevenue()) }} · {{ 'collected' | t }}
-            {{ formatCurrency(collectedRevenue()) }}
-          </small>
-        </div>
-      </div>
-    </section>
-
-    <!-- ================ Charts & Analytics Section ================ -->
-    <section class="mb-2 mb-lg-3">
-      <div class="row g-2 g-xl-3 align-items-stretch">
-        <!-- Left column -->
-        <div class="col-12 col-lg-6">
-          <div class="card chart-card h-100 overview-revenue-card">
-            <div class="card-header d-flex align-items-center justify-content-between">
-              <h6 class="card-title mb-0">
-                {{ 'revenueBreakdown' | t }}
-              </h6>
-              <div class="legend d-flex align-items-center gap-3">
-                <span class="dot dot--purple"></span>
-                {{ 'membershipRevenue' | t }}
-                <span class="dot dot--cyan ms-3"></span>
-                {{ 'walkInRevenue' | t }}
-              </div>
+            <div class="gate-subhead" *ngIf="activeGateTab() === 'all'">
+              <span class="gate-type-dot gate-type-dot--exit"></span>
+              {{ 'exitGates' | t }}
             </div>
 
-            <div class="card-body text-center">
-              <svg width="200" height="200" viewBox="0 0 200 200" class="donut-chart">
-                <circle cx="100" cy="100" [attr.r]="donutRadius()" class="donut-track"></circle>
+            <!-- Desktop / Tablet Table -->
+            <div class="table-scroll desktop-table">
+              <table class="ops-table">
+                <thead>
+                  <tr>
+                    <th>{{ 'gateNumber' | t }}</th>
+                    <th>{{ 'exitedTickets' | t }}</th>
+                    <th>{{ 'exceedTransactions' | t }}</th>
+                    <th>{{ 'totalExceedRevenue' | t }}</th>
+                    <th>{{ 'collectedExceedRevenue' | t }}</th>
+                    <th>{{ 'pendingExceedRevenue' | t }}</th>
+                    <th>{{ 'supervisors' | t }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let gate of exitGates()">
+                    <td>
+                      <span class="gate-badge gate-badge--exit" dir="ltr">
+                        Gate {{ gate.gateNumber }}
+                      </span>
+                    </td>
+                    <td class="num-cell" dir="ltr">{{ gate.exitedTicketsCount }}</td>
+                    <td class="num-cell" dir="ltr">
+                      {{ gate.exceedTransactionsCount }}
+                      <span class="muted-inline">
+                        ({{ gate.collectedExceedTransactionsCount }}/{{
+                          gate.pendingExceedTransactionsCount
+                        }})
+                      </span>
+                    </td>
+                    <td class="num-cell" dir="ltr">{{ formatCurrency(gate.totalExceedAmount) }}</td>
+                    <td class="num-cell text-success-ink" dir="ltr">
+                      {{ formatCurrency(gate.collectedExceedAmount) }}
+                    </td>
+                    <td class="num-cell text-warning-ink" dir="ltr">
+                      {{ formatCurrency(gate.pendingExceedAmount) }}
+                    </td>
+                    <td>
+                      <ng-container *ngIf="gate.supervisors.length > 0; else noSupervisors">
+                        <div class="party-list">
+                          <div class="party-item" *ngFor="let supervisor of gate.supervisors">
+                            <strong>{{ formatName(supervisor.supervisorName) }}</strong>
+                            <span dir="ltr">
+                              {{ supervisor.transactionsCount }} {{ 'transactions' | t }} ·
+                              {{ formatCurrency(supervisor.collectedAmount) }}
+                            </span>
+                          </div>
+                        </div>
+                      </ng-container>
+                    </td>
+                  </tr>
+                  <tr *ngIf="exitGates().length === 0">
+                    <td colspan="7" class="empty-table-cell">{{ 'noDataAvailable' | t }}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
 
-                <!-- Membership -->
-                <circle
-                  cx="100"
-                  cy="100"
-                  [attr.r]="donutRadius()"
-                  class="donut-seg donut-seg--purple"
-                  [attr.stroke-dasharray]="donutCirc()"
-                  [attr.stroke-dashoffset]="donutCirc() - membershipStroke()"
-                  transform="rotate(-90 100 100)"
-                  stroke="url(#purpleGradientDonut)"
-                ></circle>
-
-                <!-- Walk-in -->
-                <circle
-                  cx="100"
-                  cy="100"
-                  [attr.r]="donutRadius()"
-                  class="donut-seg donut-seg--cyan"
-                  [attr.stroke-dasharray]="donutCirc()"
-                  [attr.stroke-dashoffset]="donutCirc() - walkInStroke() - membershipStroke()"
-                  [attr.transform]="'rotate(' + walkInRotateDeg() + ' 100 100)'"
-                  stroke="url(#cyanGradientDonut)"
-                ></circle>
-
-                <defs>
-                  <linearGradient id="purpleGradientDonut" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color: #8b5cf6; stop-opacity: 1" />
-                    <stop offset="100%" style="stop-color: #7c3aed; stop-opacity: 1" />
-                  </linearGradient>
-                  <linearGradient id="cyanGradientDonut" x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" style="stop-color: #06b6d4; stop-opacity: 1" />
-                    <stop offset="100%" style="stop-color: #0891b2; stop-opacity: 1" />
-                  </linearGradient>
-                </defs>
-
-                <!-- Center total -->
-                <text x="50%" y="45%" text-anchor="middle" class="donut-number">
-                  {{ formatCurrency(totalRevenue()) }}
-                </text>
-                <text x="50%" y="55%" text-anchor="middle" class="donut-caption">
-                  {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                </text>
-              </svg>
-
-              <div class="revenue-stats mt-2 d-flex flex-column gap-1">
-                <div
-                  class="stat-row d-flex justify-content-between align-items-center px-2 py-1 bg-light rounded"
+            <!-- Mobile Expandable Gate Cards -->
+            <div class="mobile-gate-list">
+              <div
+                class="mobile-gate-card"
+                *ngFor="let gate of exitGates()"
+                [class.is-expanded]="expandedGateKey() === 'exit-' + gate.gateNumber"
+              >
+                <button
+                  type="button"
+                  class="mobile-gate-summary"
+                  (click)="toggleGateRow('exit-' + gate.gateNumber)"
+                  [attr.aria-expanded]="expandedGateKey() === 'exit-' + gate.gateNumber"
                 >
-                  <span class="stat-label d-flex align-items-center gap-2">
-                    <span class="dot dot--purple"></span>
+                  <span class="gate-badge gate-badge--exit" dir="ltr">
+                    Gate {{ gate.gateNumber }}
+                  </span>
+                  <span class="mobile-gate-kpi" dir="ltr">
+                    {{ gate.exitedTicketsCount }} ·
+                    <strong>{{ formatCurrency(gate.totalExceedAmount) }}</strong>
+                  </span>
+                  <i
+                    class="bi"
+                    [ngClass]="
+                      expandedGateKey() === 'exit-' + gate.gateNumber
+                        ? 'bi-chevron-up'
+                        : 'bi-chevron-down'
+                    "
+                    aria-hidden="true"
+                  ></i>
+                </button>
+
+                <div
+                  class="mobile-gate-details"
+                  *ngIf="expandedGateKey() === 'exit-' + gate.gateNumber"
+                >
+                  <div class="mobile-detail-row">
+                    <span>{{ 'exceedTransactions' | t }}</span>
+                    <strong dir="ltr">
+                      {{ gate.exceedTransactionsCount }} ({{
+                        gate.collectedExceedTransactionsCount
+                      }}/{{ gate.pendingExceedTransactionsCount }})
+                    </strong>
+                  </div>
+                  <div class="mobile-detail-row">
+                    <span>{{ 'collectedExceedRevenue' | t }}</span>
+                    <strong class="text-success-ink" dir="ltr">
+                      {{ formatCurrency(gate.collectedExceedAmount) }}
+                    </strong>
+                  </div>
+                  <div class="mobile-detail-row">
+                    <span>{{ 'pendingExceedRevenue' | t }}</span>
+                    <strong class="text-warning-ink" dir="ltr">
+                      {{ formatCurrency(gate.pendingExceedAmount) }}
+                    </strong>
+                  </div>
+                  <div class="mobile-detail-row mobile-detail-row--stack">
+                    <span>{{ 'supervisors' | t }}</span>
+                    <ng-container *ngIf="gate.supervisors.length > 0; else noSupervisors">
+                      <div class="party-list">
+                        <div class="party-item" *ngFor="let supervisor of gate.supervisors">
+                          <strong>{{ formatName(supervisor.supervisorName) }}</strong>
+                          <span dir="ltr">
+                            {{ supervisor.transactionsCount }} ·
+                            {{ formatCurrency(supervisor.collectedAmount) }}
+                          </span>
+                        </div>
+                      </div>
+                    </ng-container>
+                  </div>
+                </div>
+              </div>
+
+              <div class="empty-mobile-state" *ngIf="exitGates().length === 0">
+                {{ 'noDataAvailable' | t }}
+              </div>
+            </div>
+          </div>
+
+          <ng-template #noCollectors>
+            <span class="muted-inline">{{ 'noCollectionsYet' | t }}</span>
+          </ng-template>
+          <ng-template #noSupervisors>
+            <span class="muted-inline">{{ 'noCollectionsYet' | t }}</span>
+          </ng-template>
+        </div>
+      </article>
+
+      <!-- Customers & Subscriptions Panel -->
+      <article class="panel-card overview-revenue-card">
+        <div class="panel-header">
+          <h2 class="panel-title">{{ 'customersAndSubscriptions' | t }}</h2>
+          <span class="panel-counter" dir="ltr">
+            {{ subscriptionCount() }} {{ 'total' | t }}
+          </span>
+        </div>
+
+        <div class="panel-body customers-body">
+          <!-- Explicit Financial Sub-section: Revenue by Customer Type -->
+          <div class="customers-subsection">
+            <div class="subsection-label">{{ 'revenueByCustomerType' | t }}</div>
+            <div class="customer-split">
+              <div class="mini-donut-wrap">
+                <svg viewBox="0 0 120 120" class="mini-donut" aria-hidden="true">
+                  <circle cx="60" cy="60" [attr.r]="customerDonutRadius" class="gauge-track"></circle>
+                  <circle
+                    cx="60"
+                    cy="60"
+                    [attr.r]="customerDonutRadius"
+                    class="donut-seg donut-seg--navy"
+                    [attr.stroke-dasharray]="customerDonutCirc"
+                    [attr.stroke-dashoffset]="customerDonutCirc - membershipStroke()"
+                    transform="rotate(-90 60 60)"
+                  ></circle>
+                  <circle
+                    cx="60"
+                    cy="60"
+                    [attr.r]="customerDonutRadius"
+                    class="donut-seg donut-seg--blue"
+                    [attr.stroke-dasharray]="customerDonutCirc"
+                    [attr.stroke-dashoffset]="customerDonutCirc - walkInStroke()"
+                    [attr.transform]="'rotate(' + walkInRotateDeg() + ' 60 60)'"
+                  ></circle>
+                </svg>
+                <div class="mini-donut-center">
+                  <strong dir="ltr">{{ formatCurrency(totalRevenue()) }}</strong>
+                  <span>{{ 'egp' | t }}</span>
+                </div>
+              </div>
+
+              <div class="customer-breakdown">
+                <div class="customer-type-row">
+                  <span class="customer-type-label">
+                    <span class="legend-dot legend-dot--navy"></span>
                     {{ 'membershipRevenue' | t }}
                   </span>
-                  <span class="stat-value">
-                    {{ membershipTicketsCount() }} {{ 'tickets' | t }} ·
-                    {{ formatCurrency(membershipRelatedRevenue()) }}
-                    {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                  </span>
+                  <div class="customer-type-val" dir="ltr">
+                    <strong>{{ formatCurrency(membershipRelatedRevenue()) }} {{ 'egp' | t }}</strong>
+                    <span>{{ membershipTicketsCount() }} {{ 'tickets' | t }}</span>
+                  </div>
                 </div>
 
-                <div
-                  class="stat-row d-flex justify-content-between align-items-center px-2 py-1 bg-light rounded shadow-sm mb-1"
-                >
-                  <span class="stat-label d-flex align-items-center gap-2">
-                    <span class="dot dot--cyan"></span>
+                <div class="customer-type-row">
+                  <span class="customer-type-label">
+                    <span class="legend-dot legend-dot--green"></span>
                     {{ 'walkInRevenue' | t }}
                   </span>
-                  <span class="stat-value">
-                    {{ walkInTicketsCount() }} {{ 'tickets' | t }} ·
-                    {{ formatCurrency(walkInRevenue()) }}
-                    {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                  </span>
+                  <div class="customer-type-val" dir="ltr">
+                    <strong>{{ formatCurrency(walkInRevenue()) }} {{ 'egp' | t }}</strong>
+                    <span>{{ walkInTicketsCount() }} {{ 'tickets' | t }}</span>
+                  </div>
                 </div>
               </div>
+            </div>
+          </div>
+
+          <!-- Explicit Subscription Counts Sub-section -->
+          <div class="customers-subsection customers-subsection--counts">
+            <div class="subsection-label">{{ 'subscriptionStatus' | t }}</div>
+            <div class="subscription-strip">
+              <button
+                type="button"
+                class="sub-pill sub-pill--success"
+                (click)="openMembershipModal('active')"
+              >
+                <span>{{ 'active' | t }}</span>
+                <strong dir="ltr">{{ activeSubscriptionCount() }}</strong>
+              </button>
+
+              <button
+                type="button"
+                class="sub-pill"
+                (click)="openMembershipModal('inactive')"
+              >
+                <span>{{ 'inactive' | t }}</span>
+                <strong dir="ltr">{{ inactiveSubscriptionCount() }}</strong>
+              </button>
+
+              <button
+                type="button"
+                class="sub-pill sub-pill--warning"
+                (click)="openMembershipModal('expiring')"
+              >
+                <span>{{ 'expiringNext7Days' | t }}</span>
+                <strong dir="ltr">{{ membershipsExpiringNext7Days() }}</strong>
+              </button>
             </div>
           </div>
         </div>
+      </article>
+    </section>
 
-        <!-- Right column -->
-        <div class="col-12 col-lg-6 d-flex flex-column gap-3">
-          <!-- Live chart -->
-          <div class="card live-card flex-grow-1">
-            <div class="card-header d-flex align-items-center justify-content-between">
-              <div class="header-content d-flex align-items-center gap-2">
-                <h3 class="mb-0">{{ 'liveInOut' | t }}</h3>
-                <div class="live-indicator">
-                  <span class="live-dot"></span>
-                  <span class="live-text">LIVE</span>
-                </div>
-              </div>
-              <div class="legend d-flex align-items-center gap-3">
-                <span class="legend-item">
-                  <span class="legend-color legend-color--blue"></span>
-                  {{ 'in' | t }}
-                </span>
-                <span class="legend-item">
-                  <span class="legend-color legend-color--pink"></span>
-                  {{ 'out' | t }}
-                </span>
-              </div>
-            </div>
+    <!-- Optional Recent Activity Feed (ONLY rendered if API returns recentTickets) -->
+    <section
+      class="panel-card recent-activity-section"
+      *ngIf="recentTickets().length > 0"
+      aria-label="Recent Activity"
+    >
+      <div class="panel-header">
+        <h2 class="panel-title">{{ 'recentTickets' | t }}</h2>
+        <span class="panel-counter" dir="ltr">{{ recentTickets().length }}</span>
+      </div>
 
-            <div class="card-body d-flex justify-content-center p-2">
-              <svg
-                [attr.width]="liveChartWidth()"
-                [attr.height]="liveChartHeight"
-                class="bar-chart"
-              >
-                <defs>
-                  <linearGradient id="blueGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color: #3b82f6; stop-opacity: 1" />
-                    <stop offset="100%" style="stop-color: #2563eb; stop-opacity: 1" />
-                  </linearGradient>
-                  <linearGradient id="pinkGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" style="stop-color: #ec4899; stop-opacity: 1" />
-                    <stop offset="100%" style="stop-color: #db2777; stop-opacity: 1" />
-                  </linearGradient>
-                </defs>
-                <!-- IN bar -->
-                <rect
-                  class="bar bar--blue"
-                  [attr.x]="liveBarX(ticketEnterToday())"
-                  [attr.y]="liveInBarY()"
-                  [attr.width]="liveBarWidth(ticketEnterToday())"
-                  [attr.height]="liveBarThickness"
-                  fill="url(#blueGradient)"
-                ></rect>
-
-                <!-- IN value -->
-                <text
-                  [attr.x]="liveValueX(ticketEnterToday())"
-                  [attr.y]="liveValueYForIn()"
-                  text-anchor="middle"
-                  class="live-value-text"
-                  dominant-baseline="middle"
-                >
-                  {{ ticketEnterToday() }}
-                </text>
-
-                <!-- OUT bar -->
-                <rect
-                  class="bar bar--pink"
-                  [attr.x]="liveBarX(exitTicketsCount())"
-                  [attr.y]="liveOutBarY()"
-                  [attr.width]="liveBarWidth(exitTicketsCount())"
-                  [attr.height]="liveBarThickness"
-                  fill="url(#pinkGradient)"
-                ></rect>
-
-                <!-- OUT value -->
-                <text
-                  [attr.x]="liveValueX(exitTicketsCount())"
-                  [attr.y]="liveValueYForOut()"
-                  text-anchor="middle"
-                  class="live-value-text"
-                  dominant-baseline="middle"
-                >
-                  {{ exitTicketsCount() }}
-                </text>
-
-                <!-- Labels -->
-                <text
-                  [attr.x]="liveLabelX()"
-                  [attr.y]="liveLabelYForIn()"
-                  [attr.text-anchor]="lang.isRTL() ? 'end' : 'start'"
-                  class="axis-label"
-                >
-                  {{ 'in' | t }}
-                </text>
-
-                <text
-                  [attr.x]="liveLabelX()"
-                  [attr.y]="liveLabelYForOut()"
-                  [attr.text-anchor]="lang.isRTL() ? 'end' : 'start'"
-                  class="axis-label"
-                >
-                  {{ 'out' | t }}
-                </text>
-              </svg>
-            </div>
-          </div>
-
-          <!-- Duration stats -->
-          <div class="card stats-card overview-duration-card">
-            <div class="card-header d-flex align-items-center justify-content-between">
-              <h6 class="card-title mb-0">
-                {{ 'durationStats' | t }}
-              </h6>
-            </div>
-            <div class="card-body">
-              <div class="stat-grid">
-                <div class="stat-item d-flex align-items-center gap-2">
-                  <div class="stat-icon stat-icon--green">
-                    <i class="bi bi-clock"></i>
-                  </div>
-                  <div class="stat-info">
-                    <div class="stat-label">
-                      {{ 'avgDuration' | t }}
-                    </div>
-                    <div class="stat-value">
-                      {{ formatDuration(averageDurationMinutes()) }}
-                    </div>
-                  </div>
-                </div>
-
-                <div class="stat-item d-flex align-items-center gap-2">
-                  <div class="stat-icon stat-icon--purple">
-                    <i class="bi bi-alarm"></i>
-                  </div>
-                  <div class="stat-info">
-                    <div class="stat-label">
-                      {{ 'maxDuration' | t }}
-                    </div>
-                    <div class="stat-value">
-                      {{ formatDuration(maxDurationMinutes()) }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+      <div class="panel-body panel-body--flush">
+        <div class="table-scroll">
+          <table class="ops-table">
+            <thead>
+              <tr>
+                <th>{{ 'id' | t }}</th>
+                <th>{{ 'plate' | t }}</th>
+                <th>{{ 'action' | t }}</th>
+                <th>{{ 'gate' | t }}</th>
+                <th>{{ 'time' | t }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let item of recentTickets()">
+                <td class="num-cell" dir="ltr">#{{ item.id }}</td>
+                <td dir="ltr">{{ item.plate || ('notAvailable' | t) }}</td>
+                <td>
+                  <span
+                    class="gate-badge"
+                    [ngClass]="item.action === 'IN' ? 'gate-badge--entry' : 'gate-badge--exit'"
+                  >
+                    {{ item.action | t }}
+                  </span>
+                </td>
+                <td>{{ item.gate || ('notAvailable' | t) }}</td>
+                <td class="num-cell" dir="ltr">{{ item.time }}</td>
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </section>
 
-    <!-- ================ Bottom Section - Tables & Top Performers ================ -->
-    <section class="mb-2 mb-lg-3 overview-gates-section">
-      <div class="row g-2 g-lg-3 align-items-stretch">
-        <!-- Gates tables -->
-        <div class="col-12 col-lg-7">
-          <div class="row g-2">
-            <!-- Entry Gates -->
-            <div class="col-12">
-              <div class="card table-card card-compact h-100 overview-entry-gates-card">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                  <h6 class="card-title mb-0">
-                    {{ 'entryGates' | t }}
-                  </h6>
-                </div>
-                <div class="table-responsive">
-                  <table class="table mb-0">
-                    <thead>
-                      <tr>
-                        <th>{{ 'gateNumber' | t }}</th>
-                        <th>{{ 'tickets' | t }}</th>
-                        <th>{{ 'totalPrice' | t }}</th>
-                        <th>{{ 'collected' | t }}</th>
-                        <th>{{ 'pendingPrice' | t }}</th>
-                        <th>{{ 'collectors' | t }}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let gate of entryGates()">
-                        <td>
-                          <span class="badge badge--blue">Gate {{ gate.gateNumber }}</span>
-                        </td>
-                        <td>{{ gate.ticketsCount }}</td>
-                        <td>
-                          {{ formatCurrency(gate.totalPrice) }}
-                        </td>
-                        <td>{{ formatCurrency(gate.collectedPrice) }}</td>
-                        <td>{{ formatCurrency(gate.pendingPrice) }}</td>
-                        <td>
-                          <ng-container *ngIf="gate.collectors.length > 0; else noCollectors">
-                            <div class="nested-party" *ngFor="let collector of gate.collectors">
-                              <strong>{{ formatName(collector.collectorName) }}</strong>
-                              <span>
-                                {{ collector.ticketsCount }} {{ 'tickets' | t }} ·
-                                {{ formatCurrency(collector.collectedAmount) }}
-                              </span>
-                            </div>
-                          </ng-container>
-                        </td>
-                      </tr>
-                      <tr *ngIf="entryGates().length === 0">
-                        <td colspan="6" class="text-center text-muted">
-                          {{ 'noDataAvailable' | t }}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+    <!-- Section E — Additional Operational Metrics (Inline Strip, No Nested Card Clutter) -->
+    <section class="panel-card additional-metrics-panel" aria-label="Additional Metrics">
+      <div class="panel-header">
+        <h2 class="panel-title">{{ 'additionalMetrics' | t }}</h2>
+      </div>
 
-            <!-- Exit Gates -->
-            <div class="col-12">
-              <div class="card table-card card-compact h-100 overview-exit-gates-card">
-                <div class="card-header d-flex align-items-center justify-content-between">
-                  <h6 class="card-title mb-0">
-                    {{ 'exitGates' | t }}
-                  </h6>
-                </div>
-                <div class="table-responsive">
-                  <table class="table mb-0">
-                    <thead>
-                      <tr>
-                        <th>{{ 'gateNumber' | t }}</th>
-                        <th>{{ 'exitedTickets' | t }}</th>
-                        <th>{{ 'exceedTransactions' | t }}</th>
-                        <th>{{ 'totalExceedRevenue' | t }}</th>
-                        <th>{{ 'collectedExceedRevenue' | t }}</th>
-                        <th>{{ 'pendingExceedRevenue' | t }}</th>
-                        <th>{{ 'supervisors' | t }}</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      <tr *ngFor="let gate of exitGates()">
-                        <td>
-                          <span class="badge badge--green">Gate {{ gate.gateNumber }}</span>
-                        </td>
-                        <td>{{ gate.exitedTicketsCount }}</td>
-                        <td>
-                          {{ gate.exceedTransactionsCount }}
-                          <span class="text-muted">
-                            ({{ gate.collectedExceedTransactionsCount }}/{{
-                              gate.pendingExceedTransactionsCount
-                            }})
-                          </span>
-                        </td>
-                        <td>{{ formatCurrency(gate.totalExceedAmount) }}</td>
-                        <td>
-                          {{ formatCurrency(gate.collectedExceedAmount) }}
-                        </td>
-                        <td>
-                          {{ formatCurrency(gate.pendingExceedAmount) }}
-                        </td>
-                        <td>
-                          <ng-container *ngIf="gate.supervisors.length > 0; else noSupervisors">
-                            <div class="nested-party" *ngFor="let supervisor of gate.supervisors">
-                              <strong>{{ formatName(supervisor.supervisorName) }}</strong>
-                              <span>
-                                {{ supervisor.transactionsCount }} {{ 'transactions' | t }} ·
-                                {{ formatCurrency(supervisor.collectedAmount) }}
-                              </span>
-                            </div>
-                          </ng-container>
-                        </td>
-                      </tr>
-                      <tr *ngIf="exitGates().length === 0">
-                        <td colspan="7" class="text-center text-muted">
-                          {{ 'noDataAvailable' | t }}
-                        </td>
-                      </tr>
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+      <div class="metrics-strip">
+        <!-- Duration Metrics -->
+        <div class="metric-cell overview-duration-card">
+          <span class="metric-accent metric-accent--teal" aria-hidden="true">
+            <i class="bi bi-clock"></i>
+          </span>
+          <div class="metric-cell__body">
+            <span class="metric-cell__label">{{ 'avgDuration' | t }} / {{ 'maxDuration' | t }}</span>
+            <strong class="metric-cell__value" dir="ltr">
+              {{ formatDuration(averageDurationMinutes()) }}
+              <span class="muted-inline">/ {{ formatDuration(maxDurationMinutes()) }}</span>
+            </strong>
           </div>
         </div>
 
-        <ng-template #noCollectors>
-          <span class="text-muted">{{ 'noCollectionsYet' | t }}</span>
-        </ng-template>
-        <ng-template #noSupervisors>
-          <span class="text-muted">{{ 'noCollectionsYet' | t }}</span>
-        </ng-template>
+        <!-- Busiest Gate -->
+        <div class="metric-cell overview-top-performers-card">
+          <span class="metric-accent metric-accent--navy" aria-hidden="true">
+            <i class="bi bi-trophy"></i>
+          </span>
+          <div class="metric-cell__body">
+            <span class="metric-cell__label">{{ 'busiestGate' | t }}</span>
+            <strong class="metric-cell__value" dir="ltr">
+              Gate {{ busiestGateNumber() }}
+              <span class="muted-inline">· {{ busiestGateTicketsCount() }} {{ 'tickets' | t }}</span>
+            </strong>
+          </div>
+        </div>
 
-        <!-- Right column: Top performers + Exceed analytics -->
-        <div class="col-12 col-lg-5">
-          <div class="d-flex flex-column gap-2 h-100">
-            <!-- Top performers -->
-            <div class="card stats-card card-compact flex-grow-1 overview-top-performers-card">
-              <div class="card-header d-flex align-items-center justify-content-between">
-                <h6 class="card-title mb-0">
-                  {{ 'topPerformers' | t }}
-                </h6>
-              </div>
-              <div class="card-body d-flex flex-column justify-content-center gap-2">
-                <div
-                  class="performer-item d-flex align-items-center gap-2 p-2 bg-light rounded border-0"
-                >
-                  <div class="performer-icon">
-                    <i class="bi bi-trophy"></i>
-                  </div>
-                  <div class="performer-info">
-                    <div class="performer-label">
-                      {{ 'busiestGate' | t }}
-                    </div>
-                    <div class="performer-value">
-                      Gate {{ busiestGateNumber() }} -
-                      {{ busiestGateTicketsCount() }}
-                      {{ 'tickets' | t }}
-                    </div>
-                  </div>
-                </div>
+        <!-- Top Collector -->
+        <div class="metric-cell">
+          <span class="metric-accent metric-accent--blue" aria-hidden="true">
+            <i class="bi bi-person-check"></i>
+          </span>
+          <div class="metric-cell__body">
+            <span class="metric-cell__label">{{ 'topCollector' | t }}</span>
+            <strong class="metric-cell__value">{{ formatName(topCollectorName()) }}</strong>
+            <span class="metric-cell__sub" dir="ltr">
+              {{ formatCurrency(topCollectorAmount()) }} {{ 'egp' | t }} ·
+              {{ topCollectorTicketsCount() }} {{ 'tickets' | t }}
+            </span>
+          </div>
+        </div>
 
-                <div
-                  class="performer-item d-flex align-items-center gap-2 p-2 bg-light rounded border-0"
-                >
-                  <div class="performer-icon performer-icon--gold">
-                    <i class="bi bi-person-check"></i>
-                  </div>
-                  <div class="performer-info">
-                    <div class="performer-label">
-                      {{ 'topCollector' | t }}
-                    </div>
-                    <div class="performer-value">
-                      {{ formatName(topCollectorName()) }}
-                    </div>
-                    <div class="performer-stats">
-                      {{ formatCurrency(topCollectorAmount()) }}
-                      {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                      · {{ topCollectorTicketsCount() }} {{ 'tickets' | t }}
-                    </div>
-                  </div>
-                </div>
+        <!-- Top Exceed Supervisor -->
+        <div class="metric-cell">
+          <span class="metric-accent metric-accent--amber" aria-hidden="true">
+            <i class="bi bi-shield-check"></i>
+          </span>
+          <div class="metric-cell__body">
+            <span class="metric-cell__label">{{ 'topExceedCollector' | t }}</span>
+            <strong class="metric-cell__value">{{ formatName(topExceedCollectorName()) }}</strong>
+            <span class="metric-cell__sub" dir="ltr">
+              {{ formatCurrency(topExceedCollectorAmount()) }} {{ 'egp' | t }} ·
+              {{ topExceedCollectorTransactionsCount() }} {{ 'transactions' | t }}
+            </span>
+          </div>
+        </div>
 
-                <div
-                  class="performer-item d-flex align-items-center gap-2 p-2 bg-light rounded border-0"
-                >
-                  <div class="performer-icon performer-icon--gold">
-                    <i class="bi bi-shield-check"></i>
-                  </div>
-                  <div class="performer-info">
-                    <div class="performer-label">
-                      {{ 'topExceedCollector' | t }}
-                    </div>
-                    <div class="performer-value">
-                      {{ formatName(topExceedCollectorName()) }}
-                    </div>
-                    <div class="performer-stats">
-                      {{ formatCurrency(topExceedCollectorAmount()) }}
-                      {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                      · {{ topExceedCollectorTransactionsCount() }} {{ 'transactions' | t }}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Exceed Analytics -->
-            <div class="card stats-card card-compact overview-exceed-analytics-card">
-              <div class="card-header d-flex align-items-center justify-content-between">
-                <h6 class="card-title mb-0">
-                  {{ 'exceedAnalytics' | t }}
-                </h6>
-              </div>
-              <div class="card-body">
-                <div class="stat-grid">
-                  <div class="stat-item d-flex align-items-center gap-2">
-                    <div class="stat-icon stat-icon--red">
-                      <i class="bi bi-exclamation-circle"></i>
-                    </div>
-                    <div class="stat-info">
-                      <div class="stat-label">
-                        {{ 'exceededTickets' | t }}
-                      </div>
-                      <div class="stat-value">
-                        {{ exceededTicketsCount() }}
-                        <span class="text-muted">/ {{ exceedTransactionsCount() }}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="stat-item d-flex align-items-center gap-2">
-                    <div class="stat-icon stat-icon--orange">
-                      <i class="bi bi-cash"></i>
-                    </div>
-                    <div class="stat-info">
-                      <div class="stat-label">
-                        {{ 'totalExceed' | t }}
-                      </div>
-                      <div class="stat-value">
-                        {{ formatCurrency(totalExceedRevenue()) }}
-                        {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="stat-item d-flex align-items-center gap-2">
-                    <div class="stat-icon stat-icon--green">
-                      <i class="bi bi-check2-circle"></i>
-                    </div>
-                    <div class="stat-info">
-                      <div class="stat-label">
-                        {{ 'collectedExceedRevenue' | t }}
-                      </div>
-                      <div class="stat-value">
-                        {{ formatCurrency(collectedExceedRevenue()) }}
-                        {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="stat-item d-flex align-items-center gap-2">
-                    <div class="stat-icon stat-icon--orange">
-                      <i class="bi bi-hourglass-split"></i>
-                    </div>
-                    <div class="stat-info">
-                      <div class="stat-label">
-                        {{ 'pendingExceedRevenue' | t }}
-                      </div>
-                      <div class="stat-value">
-                        {{ formatCurrency(pendingExceedRevenue()) }}
-                        {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div class="stat-item">
-                    <div class="stat-icon stat-icon--blue">
-                      <i class="bi bi-calculator"></i>
-                    </div>
-                    <div class="stat-info">
-                      <div class="stat-label">
-                        {{ 'avgPerTicket' | t }}
-                      </div>
-                      <div class="stat-value">
-                        {{ formatCurrency(averageExceedPerTicket()) }}
-                        {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                        <span class="text-muted">
-                          / {{ formatCurrency(averageExceedPerTransaction()) }}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+        <!-- Exceed / Fine Analytics -->
+        <div class="metric-cell overview-exceed-analytics-card">
+          <span class="metric-accent metric-accent--red" aria-hidden="true">
+            <i class="bi bi-exclamation-circle"></i>
+          </span>
+          <div class="metric-cell__body">
+            <span class="metric-cell__label">{{ 'exceededTickets' | t }}</span>
+            <strong class="metric-cell__value" dir="ltr">
+              {{ exceededTicketsCount() }}
+              <span class="muted-inline">/ {{ exceedTransactionsCount() }}</span>
+            </strong>
+            <span class="metric-cell__sub" dir="ltr">
+              {{ 'avgPerTicket' | t }}: {{ formatCurrency(averageExceedPerTicket()) }} /
+              {{ formatCurrency(averageExceedPerTransaction()) }} {{ 'egp' | t }}
+            </span>
           </div>
         </div>
       </div>
@@ -933,34 +1162,37 @@
   class="data-modal-backdrop"
   *ngIf="activeModal() && activeModal() !== 'ticketDetails'"
   [ngClass]="{ 'data-modal-backdrop-rtl': lang.isRTL() }"
+  (click)="closeModal()"
 >
-  <div class="data-modal" [ngClass]="{ 'data-modal--rtl': lang.isRTL() }">
-    <div class="data-modal__header d-flex align-items-center justify-content-between">
+  <div
+    class="data-modal"
+    [ngClass]="{ 'data-modal--rtl': lang.isRTL() }"
+    role="dialog"
+    aria-modal="true"
+    (click)="$event.stopPropagation()"
+  >
+    <div class="data-modal__header">
       <h5 class="data-modal__title">
         <ng-container [ngSwitch]="activeModal()">
           <span *ngSwitchCase="'occupancy'">
-            {{ 'occupancy' | t }} – {{ 'inside' | t }}:
-            {{ currentVehiclesInside() }}
+            {{ 'occupancy' | t }} – {{ 'inside' | t }}: {{ currentVehiclesInside() }}
           </span>
-
-          <span *ngSwitchCase="'ticketsEntry'"> {{ 'ticketsToday' | t }} – {{ 'entry' | t }} </span>
-
-          <span *ngSwitchCase="'ticketsExit'"> {{ 'ticketsToday' | t }} – {{ 'exit' | t }} </span>
-
+          <span *ngSwitchCase="'ticketsEntry'">{{ 'ticketsToday' | t }} – {{ 'entry' | t }}</span>
+          <span *ngSwitchCase="'ticketsExit'">{{ 'ticketsToday' | t }} – {{ 'exit' | t }}</span>
           <span *ngSwitchCase="'membershipActive'">
             {{ 'memberships' | t }} – {{ 'active' | t }}
           </span>
-
           <span *ngSwitchCase="'membershipInactive'">
             {{ 'memberships' | t }} – {{ 'inactive' | t }}
           </span>
-
           <span *ngSwitchCase="'membershipExpiring'">
             {{ 'memberships' | t }} – {{ 'expiringNext7Days' | t }}
           </span>
         </ng-container>
       </h5>
-      <button type="button" class="data-modal__close" (click)="closeModal()">&times;</button>
+      <button type="button" class="data-modal__close" (click)="closeModal()" aria-label="Close">
+        &times;
+      </button>
     </div>
 
     <div class="data-modal__body">
@@ -975,10 +1207,10 @@
             <div class="data-modal__list">
               <div class="data-modal__item" *ngFor="let t of ticketsInside()">
                 <div class="data-modal__item-main">
-                  <span class="data-modal__ticket-number">
+                  <span class="data-modal__ticket-number" dir="ltr">
                     {{ t.ticketNumber || ('id' | t) + ': ' + t.id }}
                   </span>
-                  <span class="data-modal__ticket-meta">
+                  <span class="data-modal__ticket-meta" dir="ltr">
                     {{ t.startDate | date: 'short' }}
                   </span>
                 </div>
@@ -1000,20 +1232,17 @@
             <div class="data-modal__list">
               <div class="data-modal__item" *ngFor="let ticket of todayEntryTickets()">
                 <div class="data-modal__item-main">
-                  <span class="data-modal__ticket-number">
+                  <span class="data-modal__ticket-number" dir="ltr">
                     {{ ticket.ticketNumber || ('id' | t) + ': ' + ticket.id }}
                   </span>
-                  <span class="data-modal__ticket-meta">
+                  <span class="data-modal__ticket-meta" dir="ltr">
                     {{ ticket.startDate | date: 'shortTime' }}
                   </span>
                 </div>
                 <div class="data-modal__item-extra">
-                  <span>
-                    {{ formatCurrency(ticket.price) }}
-                    {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                  </span>
-                  <span *ngIf="ticket.ticketInfo"> · {{ ticket.ticketInfo }} </span>
-                  <span *ngIf="ticket.isCollectedByCashier" class="text-success">
+                  <span dir="ltr">{{ formatCurrency(ticket.price) }} {{ 'egp' | t }}</span>
+                  <span *ngIf="ticket.ticketInfo"> · {{ ticket.ticketInfo }}</span>
+                  <span *ngIf="ticket.isCollectedByCashier" class="text-success-ink">
                     · {{ 'collected' | t }}
                   </span>
                 </div>
@@ -1032,20 +1261,17 @@
             <div class="data-modal__list">
               <div class="data-modal__item" *ngFor="let ticket of todayExitTickets()">
                 <div class="data-modal__item-main">
-                  <span class="data-modal__ticket-number">
+                  <span class="data-modal__ticket-number" dir="ltr">
                     {{ ticket.ticketNumber || ('id' | t) + ': ' + ticket.id }}
                   </span>
-                  <span class="data-modal__ticket-meta">
+                  <span class="data-modal__ticket-meta" dir="ltr">
                     {{ ticket.startDate | date: 'shortTime' }}
                   </span>
                 </div>
                 <div class="data-modal__item-extra">
-                  <span>
-                    {{ formatCurrency(ticket.price) }}
-                    {{ lang.isRTL() ? 'ج.م' : 'EGP' }}
-                  </span>
-                  <span *ngIf="ticket.ticketInfo"> · {{ ticket.ticketInfo }} </span>
-                  <span *ngIf="ticket.isCollectedByCashier" class="text-success">
+                  <span dir="ltr">{{ formatCurrency(ticket.price) }} {{ 'egp' | t }}</span>
+                  <span *ngIf="ticket.ticketInfo"> · {{ ticket.ticketInfo }}</span>
+                  <span *ngIf="ticket.isCollectedByCashier" class="text-success-ink">
                     · {{ 'collected' | t }}
                   </span>
                 </div>
@@ -1064,21 +1290,16 @@
             <div class="data-modal__list">
               <div class="data-modal__item" *ngFor="let m of activeMemberships()">
                 <div class="data-modal__item-main">
-                  <span class="data-modal__ticket-number">
-                    {{ m.name }}
-                  </span>
-                  <span class="data-modal__ticket-meta">
+                  <span class="data-modal__ticket-number">{{ m.name }}</span>
+                  <span class="data-modal__ticket-meta" dir="ltr">
                     {{ m.vehicleNumber || m.cardNumber }}
                   </span>
                 </div>
                 <div class="data-modal__item-extra">
-                  <span class="membership-plan">
-                    {{ m.pricingSchemeName }}
-                  </span>
+                  <span>{{ m.pricingSchemeName }}</span>
                   ·
-                  <span class="membership-dates">
-                    {{ m.createdAt | date: 'shortDate' }} →
-                    {{ m.endDate | date: 'shortDate' }}
+                  <span dir="ltr">
+                    {{ m.createdAt | date: 'shortDate' }} → {{ m.endDate | date: 'shortDate' }}
                   </span>
                 </div>
               </div>
@@ -1096,21 +1317,16 @@
             <div class="data-modal__list">
               <div class="data-modal__item" *ngFor="let m of inactiveMemberships()">
                 <div class="data-modal__item-main">
-                  <span class="data-modal__ticket-number">
-                    {{ m.name }}
-                  </span>
-                  <span class="data-modal__ticket-meta">
+                  <span class="data-modal__ticket-number">{{ m.name }}</span>
+                  <span class="data-modal__ticket-meta" dir="ltr">
                     {{ m.vehicleNumber || m.cardNumber }}
                   </span>
                 </div>
                 <div class="data-modal__item-extra">
-                  <span class="membership-plan">
-                    {{ m.pricingSchemeName }}
-                  </span>
+                  <span>{{ m.pricingSchemeName }}</span>
                   ·
-                  <span class="membership-dates">
-                    {{ m.createdAt | date: 'shortDate' }} →
-                    {{ m.endDate | date: 'shortDate' }}
+                  <span dir="ltr">
+                    {{ m.createdAt | date: 'shortDate' }} → {{ m.endDate | date: 'shortDate' }}
                   </span>
                 </div>
               </div>
@@ -1118,7 +1334,7 @@
           </ng-container>
         </div>
 
-        <!-- Membership expiring -->
+        <!-- Membership Expiring -->
         <div *ngSwitchCase="'membershipExpiring'">
           <p class="data-modal__subtitle">
             {{
@@ -1132,21 +1348,16 @@
             <div class="data-modal__list">
               <div class="data-modal__item" *ngFor="let m of expiringMemberships()">
                 <div class="data-modal__item-main">
-                  <span class="data-modal__ticket-number">
-                    {{ m.name }}
-                  </span>
-                  <span class="data-modal__ticket-meta">
+                  <span class="data-modal__ticket-number">{{ m.name }}</span>
+                  <span class="data-modal__ticket-meta" dir="ltr">
                     {{ m.vehicleNumber || m.cardNumber }}
                   </span>
                 </div>
                 <div class="data-modal__item-extra">
-                  <span class="membership-plan">
-                    {{ m.pricingSchemeName }}
-                  </span>
+                  <span>{{ m.pricingSchemeName }}</span>
                   ·
-                  <span class="membership-dates">
-                    {{ m.createdAt | date: 'shortDate' }} →
-                    {{ m.endDate | date: 'shortDate' }}
+                  <span dir="ltr">
+                    {{ m.createdAt | date: 'shortDate' }} → {{ m.endDate | date: 'shortDate' }}
                   </span>
                 </div>
               </div>

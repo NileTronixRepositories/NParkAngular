@@ -1,142 +1,254 @@
 <div
-  class="login-page-container d-flex flex-column min-vh-100"
+  class="login-shell"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
-  style="background-color: #f8fafc"
 >
-  <div
-    class="container d-flex align-items-center justify-content-center flex-grow-1 login-wrapper my-4"
-  >
-    <div class="card card--glass fancy-card shadow-sm login-card">
-      <div class="card-body p-4 p-md-5">
-        <div class="text-center mb-4">
-          <div class="brand fs-2 fw-bold">
-            <span class="brand-n">N</span>
-            <span class="brand-text">{{ 'brandSuffix' | t }}</span>
+  <main class="login-split">
+    <!-- Left Section: Visual Branding Panel (55% Desktop) -->
+    <section class="visual-panel" aria-label="NPark Parking Management System">
+      <div class="visual-scene" aria-hidden="true">
+        <div class="visual-overlay"></div>
+      </div>
+      <svg
+        class="visual-smooth-divider"
+        viewBox="0 0 120 1000"
+        preserveAspectRatio="none"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="npDividerAccent" x1="0%" y1="0%" x2="0%" y2="100%">
+            <stop offset="0%" stop-color="#D20A24" stop-opacity="0.65" />
+            <stop offset="48%" stop-color="#D20A24" stop-opacity="0.38" />
+            <stop offset="100%" stop-color="#10243B" stop-opacity="0.16" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M112,0 C82,310 56,660 8,1000 L120,1000 L120,0 Z"
+          fill="#F7F9FC"
+        />
+        <path
+          d="M112,0 C82,310 56,660 8,1000"
+          fill="none"
+          stroke="url(#npDividerAccent)"
+          stroke-width="3.5"
+          stroke-linecap="round"
+        />
+      </svg>
+
+      <div class="visual-content" [attr.dir]="lang.dir()">
+        <div class="visual-brand" dir="ltr" aria-label="NPark">
+          <div class="visual-logo-mark">
+            <img
+              src="/assets/image/niletronix-icon.png"
+              alt="Niletronix"
+              class="npark-emblem-img"
+            />
           </div>
-          <div class="text-muted small">{{ 'signInToContinue' | t }}</div>
+          <span class="visual-brand-divider" aria-hidden="true"></span>
+          <div class="visual-wordmark" dir="ltr">
+            <span class="wordmark-n">N</span><span class="wordmark-park">{{ 'brandSuffix' | t }}</span>
+          </div>
         </div>
 
-        <form [formGroup]="form" (ngSubmit)="submit()">
-          <!-- Username -->
-          <div class="mb-3">
-            <label class="form-label">{{ 'username' | t }}</label>
-            <input
-              class="form-control"
-              type="text"
-              formControlName="username"
-              [placeholder]="'usernamePh' | t"
-            />
-            <div
-              class="invalid-feedback d-block"
-              *ngIf="form.controls.username.touched && form.controls.username.invalid"
-            >
-              {{ 'usernameRequired' | t }}
-            </div>
-          </div>
+        <h1 class="visual-headline">{{ 'heroHeadline' | t }}</h1>
+        <p class="visual-description">{{ 'heroDescription' | t }}</p>
 
-          <!-- Password -->
-          <div class="mb-3">
-            <label class="form-label">{{ 'password' | t }}</label>
-            <div class="input-group">
-              <input
-                class="form-control"
-                [type]="showPassword ? 'text' : 'password'"
-                formControlName="password"
-                [placeholder]="'passwordPh' | t"
-              />
-              <button
-                type="button"
-                class="btn btn-outline-secondary"
-                (click)="showPassword = !showPassword"
-                tabindex="-1"
+        <ul class="visual-highlights" aria-label="Key capabilities">
+          <li class="highlight-item">
+            <span class="highlight-icon" aria-hidden="true">
+              <i class="bi bi-car-front"></i>
+            </span>
+            <span class="highlight-label">{{ 'featureEntryExit' | t }}</span>
+          </li>
+
+          <li class="highlight-divider" aria-hidden="true"></li>
+
+          <li class="highlight-item">
+            <span class="highlight-icon" aria-hidden="true">
+              <i class="bi bi-layers"></i>
+            </span>
+            <span class="highlight-label">{{ 'featureParkingMgmt' | t }}</span>
+          </li>
+
+          <li class="highlight-divider" aria-hidden="true"></li>
+
+          <li class="highlight-item">
+            <span class="highlight-icon" aria-hidden="true">
+              <i class="bi bi-bar-chart-line"></i>
+            </span>
+            <span class="highlight-label">{{ 'featureLiveReports' | t }}</span>
+          </li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Right Section: Login Form Area (45% Desktop / 100% Mobile) -->
+    <section class="auth-panel" [attr.dir]="lang.dir()">
+      <div class="auth-topbar">
+        <button
+          type="button"
+          class="lang-toggle-btn"
+          (click)="toggleLanguage()"
+          [attr.aria-label]="'switchLang' | t"
+        >
+          <i class="bi bi-globe2" aria-hidden="true"></i>
+          <span>{{ 'switchLang' | t }}</span>
+        </button>
+      </div>
+
+      <div class="auth-center">
+        <div class="auth-card">
+          <header class="auth-header">
+            <div class="auth-wordmark" dir="ltr" aria-label="NPark">
+              <span class="wordmark-n">N</span><span class="wordmark-park-dark">{{ 'brandSuffix' | t }}</span>
+            </div>
+            <p class="auth-platform-subtitle">{{ 'platformSubtitle' | t }}</p>
+
+            <h2 class="auth-title">{{ 'welcomeBack' | t }}</h2>
+            <span class="auth-title-accent" aria-hidden="true"></span>
+            <p class="auth-supporting-text">{{ 'enterCredentials' | t }}</p>
+          </header>
+
+          <form class="auth-form" [formGroup]="form" (ngSubmit)="submit()" novalidate>
+            <!-- Username -->
+            <div class="field-group">
+              <label class="field-label" for="login-username">{{ 'username' | t }}</label>
+              <div
+                class="input-shell"
+                [class.is-invalid]="form.controls.username.touched && form.controls.username.invalid"
               >
-                <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
-              </button>
+                <span class="input-leading-icon" aria-hidden="true">
+                  <i class="bi bi-person"></i>
+                </span>
+                <input
+                  id="login-username"
+                  class="field-input"
+                  type="text"
+                  dir="ltr"
+                  formControlName="username"
+                  [placeholder]="'usernamePh' | t"
+                  autocomplete="username"
+                  [attr.aria-invalid]="
+                    form.controls.username.touched && form.controls.username.invalid
+                  "
+                  aria-describedby="username-error"
+                />
+              </div>
+              <div
+                id="username-error"
+                class="field-error"
+                role="alert"
+                *ngIf="form.controls.username.touched && form.controls.username.invalid"
+              >
+                <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                <span>{{ 'usernameRequired' | t }}</span>
+              </div>
             </div>
-            <div
-              class="invalid-feedback d-block"
-              *ngIf="form.controls.password.touched && form.controls.password.invalid"
-            >
-              {{ 'passwordRequired' | t }}
-            </div>
-          </div>
 
-          <!-- Gate fields موجودة في الفورم بس UI متشال حالياً -->
-          <!--
-        <div *ngIf="roleIsGateCashier()" class="row">
-          <div class="col-12 col-md-6 mb-3">
-            <label class="form-label">{{ 'gateType' | t }}</label>
-            <select class="form-select" formControlName="gateType">
-              <option [ngValue]="GateType.Entrance">{{ 'entryGate' | t }}</option>
-              <option [ngValue]="GateType.Exit">{{ 'exitGate' | t }}</option>
-            </select>
-            <div
-              class="invalid-feedback d-block"
-              *ngIf="form.controls.gateType.touched && form.controls.gateType.invalid"
-            >
-              {{ 'gateTypeRequired' | t }}
+            <!-- Password -->
+            <div class="field-group">
+              <label class="field-label" for="login-password">{{ 'password' | t }}</label>
+              <div
+                class="input-shell input-shell--password"
+                [class.is-invalid]="form.controls.password.touched && form.controls.password.invalid"
+              >
+                <span class="input-leading-icon" aria-hidden="true">
+                  <i class="bi bi-lock"></i>
+                </span>
+                <input
+                  id="login-password"
+                  class="field-input"
+                  [type]="showPassword ? 'text' : 'password'"
+                  dir="ltr"
+                  formControlName="password"
+                  [placeholder]="'passwordPh' | t"
+                  autocomplete="current-password"
+                  [attr.aria-invalid]="
+                    form.controls.password.touched && form.controls.password.invalid
+                  "
+                  aria-describedby="password-error"
+                />
+                <button
+                  type="button"
+                  class="password-toggle-btn"
+                  (click)="showPassword = !showPassword"
+                  [attr.aria-label]="(showPassword ? 'hidePassword' : 'showPassword') | t"
+                  [attr.aria-pressed]="showPassword"
+                >
+                  <i [class]="showPassword ? 'bi bi-eye-slash' : 'bi bi-eye'" aria-hidden="true"></i>
+                </button>
+              </div>
+              <div
+                id="password-error"
+                class="field-error"
+                role="alert"
+                *ngIf="form.controls.password.touched && form.controls.password.invalid"
+              >
+                <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+                <span>{{ 'passwordRequired' | t }}</span>
+              </div>
             </div>
-          </div>
 
-          <div class="col-12 col-md-6 mb-3">
-            <label class="form-label">{{ 'gateNumber' | t }}</label>
-            <input
-              class="form-control"
-              type="number"
-              min="1"
-              formControlName="gateNumber"
-              [placeholder]="'gateNumberPh' | t"
-            />
-            <div
-              class="invalid-feedback d-block"
-              *ngIf="form.controls.gateNumber.touched && form.controls.gateNumber.invalid"
-            >
-              {{ 'gateNumberRequired' | t }}
-            </div>
-          </div>
-        </div>
-        -->
-
-          <div class="d-flex justify-content-between align-items-center mb-4">
-            <div class="form-check">
-              <input
-                class="form-check-input"
-                type="checkbox"
-                id="remember"
-                formControlName="remember"
-              />
-              <label class="form-check-label" for="remember">
-                {{ 'rememberMe' | t }}
+            <!-- Remember Me -->
+            <div class="auth-options">
+              <label class="remember-control" for="remember">
+                <input
+                  class="remember-checkbox"
+                  type="checkbox"
+                  id="remember"
+                  formControlName="remember"
+                />
+                <span class="remember-text">{{ 'rememberMe' | t }}</span>
               </label>
             </div>
-            <!-- <a class="small text-decoration-none" routerLink="/forgot-password">
-            {{ 'forgotPassword' | t }}
-          </a> -->
-          </div>
 
-          <button class="btn btn-primary w-100" [disabled]="loading">
-            <span *ngIf="!loading">{{ 'signIn' | t }}</span>
-            <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
-          </button>
+            <!-- Submit Button -->
+            <button
+              type="submit"
+              class="submit-btn"
+              [disabled]="loading"
+              [attr.aria-busy]="loading"
+            >
+              <ng-container *ngIf="!loading">
+                <i
+                  [class]="lang.isRTL() ? 'bi bi-box-arrow-in-left' : 'bi bi-box-arrow-in-right'"
+                  aria-hidden="true"
+                ></i>
+                <span>{{ 'signIn' | t }}</span>
+              </ng-container>
+              <ng-container *ngIf="loading">
+                <span class="btn-spinner" aria-hidden="true"></span>
+                <span>{{ 'signingIn' | t }}</span>
+              </ng-container>
+            </button>
 
-          <div *ngIf="errorToast" class="alert alert-danger mt-3 mb-0">
-            {{ errorToast }}
-          </div>
-        </form>
+            <!-- API Error Banner -->
+            <div *ngIf="errorToast" class="auth-error-banner" role="alert">
+              <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+              <span>{{ errorToast }}</span>
+            </div>
+          </form>
+        </div>
       </div>
-    </div>
-  </div>
+    </section>
+  </main>
 
-  <app-footer-component></app-footer-component>
+  <app-footer-component variant="login"></app-footer-component>
 </div>
 
 <!-- First-time change modal (Popup + Backdrop) -->
-<div *ngIf="showChangeModal" class="change-modal-backdrop" role="dialog" aria-modal="true">
+<div
+  *ngIf="showChangeModal"
+  class="change-modal-backdrop"
+  role="dialog"
+  aria-modal="true"
+  aria-labelledby="change-modal-title"
+  [attr.dir]="lang.dir()"
+>
   <div class="change-modal-card">
     <div class="change-modal-header">
-      <h5 class="change-modal-title">{{ 'changeAdminCreds' | t }}</h5>
+      <h3 id="change-modal-title" class="change-modal-title">{{ 'changeAdminCreds' | t }}</h3>
 
       <button
         type="button"
@@ -145,7 +257,7 @@
         [disabled]="changeLoading"
         aria-label="Close"
       >
-        &times;
+        <i class="bi bi-x-lg" aria-hidden="true"></i>
       </button>
     </div>
 
@@ -153,86 +265,111 @@
       {{ 'tempPasswordNotice' | t }}
     </p>
 
-    <form [formGroup]="changeForm" (ngSubmit)="saveNewCredentials()">
+    <form [formGroup]="changeForm" (ngSubmit)="saveNewCredentials()" novalidate>
       <!-- UserName -->
-      <div class="mb-3">
-        <label class="form-label small">{{ 'username' | t }}</label>
+      <div class="modal-field-group">
+        <label class="field-label" for="change-username">{{ 'username' | t }}</label>
         <input
-          class="form-control form-control-sm"
+          id="change-username"
+          class="modal-input"
           type="text"
+          dir="ltr"
           formControlName="userName"
           autocomplete="off"
         />
       </div>
 
       <!-- Old Password -->
-      <div class="mb-3">
-        <label class="form-label small">{{ 'password' | t }}</label>
+      <div class="modal-field-group">
+        <label class="field-label" for="change-old-pwd">{{ 'password' | t }}</label>
         <div class="password-wrapper">
           <input
-            class="form-control form-control-sm"
+            id="change-old-pwd"
+            class="modal-input"
             [type]="showOldPwd ? 'text' : 'password'"
+            dir="ltr"
             formControlName="password"
             autocomplete="off"
           />
-          <button type="button" class="eye-btn" (click)="showOldPwd = !showOldPwd">
-            <i [class]="showOldPwd ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          <button
+            type="button"
+            class="eye-btn"
+            (click)="showOldPwd = !showOldPwd"
+            [attr.aria-label]="(showOldPwd ? 'hidePassword' : 'showPassword') | t"
+          >
+            <i [class]="showOldPwd ? 'bi bi-eye-slash' : 'bi bi-eye'" aria-hidden="true"></i>
           </button>
         </div>
       </div>
 
       <!-- New Password -->
-      <div class="mb-3">
-        <label class="form-label small">{{ 'newPassword' | t }}</label>
+      <div class="modal-field-group">
+        <label class="field-label" for="change-new-pwd">{{ 'newPassword' | t }}</label>
         <div class="password-wrapper">
           <input
-            class="form-control form-control-sm"
+            id="change-new-pwd"
+            class="modal-input"
             [type]="showNewPwd ? 'text' : 'password'"
+            dir="ltr"
             formControlName="newPassword"
-            autocomplete="off"
+            autocomplete="new-password"
           />
-          <button type="button" class="eye-btn" (click)="showNewPwd = !showNewPwd">
-            <i [class]="showNewPwd ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          <button
+            type="button"
+            class="eye-btn"
+            (click)="showNewPwd = !showNewPwd"
+            [attr.aria-label]="(showNewPwd ? 'hidePassword' : 'showPassword') | t"
+          >
+            <i [class]="showNewPwd ? 'bi bi-eye-slash' : 'bi bi-eye'" aria-hidden="true"></i>
           </button>
         </div>
       </div>
 
       <!-- Confirm Password -->
-      <div class="mb-3">
-        <label class="form-label small">{{ 'confirmPassword' | t }}</label>
+      <div class="modal-field-group">
+        <label class="field-label" for="change-confirm-pwd">{{ 'confirmPassword' | t }}</label>
         <div class="password-wrapper">
           <input
-            class="form-control form-control-sm"
+            id="change-confirm-pwd"
+            class="modal-input"
             [type]="showConfirmPwd ? 'text' : 'password'"
+            dir="ltr"
             formControlName="confirmPassword"
-            autocomplete="off"
+            autocomplete="new-password"
           />
-          <button type="button" class="eye-btn" (click)="showConfirmPwd = !showConfirmPwd">
-            <i [class]="showConfirmPwd ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+          <button
+            type="button"
+            class="eye-btn"
+            (click)="showConfirmPwd = !showConfirmPwd"
+            [attr.aria-label]="(showConfirmPwd ? 'hidePassword' : 'showPassword') | t"
+          >
+            <i [class]="showConfirmPwd ? 'bi bi-eye-slash' : 'bi bi-eye'" aria-hidden="true"></i>
           </button>
         </div>
       </div>
 
-      <div *ngIf="changeForm.hasError('mismatch')" class="alert alert-danger small mt-2">
-        {{ 'pwdMismatch' | t }}
+      <div *ngIf="changeForm.hasError('mismatch')" class="auth-error-banner" role="alert">
+        <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+        <span>{{ 'pwdMismatch' | t }}</span>
       </div>
 
-      <div *ngIf="changeError" class="alert alert-danger small mt-2">
-        {{ changeError }}
+      <div *ngIf="changeError" class="auth-error-banner" role="alert">
+        <i class="bi bi-exclamation-circle" aria-hidden="true"></i>
+        <span>{{ changeError }}</span>
       </div>
 
       <div class="change-modal-footer">
         <button
           type="button"
-          class="btn btn-outline-secondary btn-sm"
+          class="modal-btn modal-btn--secondary"
           (click)="showChangeModal = false"
           [disabled]="changeLoading"
         >
           {{ 'cancel' | t }}
         </button>
-        <button type="submit" class="btn btn-success btn-sm" [disabled]="changeLoading">
+        <button type="submit" class="modal-btn modal-btn--primary" [disabled]="changeLoading">
           <span *ngIf="!changeLoading">{{ 'save' | t }}</span>
-          <span *ngIf="changeLoading" class="spinner-border spinner-border-sm"></span>
+          <span *ngIf="changeLoading" class="btn-spinner" aria-hidden="true"></span>
         </button>
       </div>
     </form>

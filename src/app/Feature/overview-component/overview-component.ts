@@ -18,9 +18,11 @@ import { TicketsServices } from '../../Services/Tickets/tickets-services';
 import { TicketDto } from '../../Domain/tickets/tickets.model';
 import { FormsModule } from '@angular/forms';
 import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal-block-component/ticket-details-modal-block-component';
+import { OverviewKpiCardComponent } from './components/kpi-card/overview-kpi-card.component';
 import { CommonModule } from '@angular/common';
 import {
   Component,
+  ElementRef,
   OnInit,
   OnDestroy,
   signal,
@@ -28,6 +30,7 @@ import {
   HostListener,
   AfterViewInit,
 } from '@angular/core';
+import gsap from 'gsap';
 import { Subscription, Subject, debounceTime, distinctUntilChanged } from 'rxjs';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
@@ -37,6 +40,7 @@ import { ErrorExtractorService } from '../../Services/Shared/error-extractor.ser
 type NotificationType = 'IN' | 'OUT' | 'COLLECTED';
 type MembershipViewType = 'active' | 'inactive' | 'expiring';
 type TicketsTodayTooltipType = 'entry' | 'exit';
+type GateTabType = 'entry' | 'exit' | 'all';
 type DataModalType =
   | 'occupancy'
   | 'ticketsEntry'
@@ -57,7 +61,13 @@ interface UiNotification {
 @Component({
   selector: 'app-overview-component',
   standalone: true,
-  imports: [CommonModule, TranslatePipePipe, FormsModule, TicketDetailsModalBlockComponent],
+  imports: [
+    CommonModule,
+    TranslatePipePipe,
+    FormsModule,
+    TicketDetailsModalBlockComponent,
+    OverviewKpiCardComponent,
+  ],
   templateUrl: './overview-component.html',
   styleUrls: ['./overview-component.css'],
   providers: [
@@ -66,48 +76,63 @@ interface UiNotification {
       useValue: <I18nDict>(<unknown>{
         ar: {
           overview: 'لوحة المعلومات',
+          commandCenterTitle: 'لوحة متابعة العمليات',
+          commandCenterSubtitle: 'نظرة شاملة على حالة المواقف والحركة والإيرادات',
           welcomeBack: 'مرحبًا بعودتك',
           todayStats: 'إحصائيات اليوم',
           totalRevenue: 'إجمالي الإيرادات',
           collected: 'محصّل',
           pending: 'معلّق',
-          occupancy: 'الإشغال',
+          occupancy: 'معدل الإشغال',
+          parkingStatus: 'حالة الموقف',
+          occupiedSpaces: 'أماكن مشغولة',
+          availableSpaces: 'أماكن متاحة',
+          totalCapacity: 'إجمالي السعة',
           inside: 'داخل',
           free: 'فارغ',
-          ticketsToday: 'حركة التذاكر',
+          ticketsToday: 'التذاكر الصادرة',
           entry: 'دخول',
           exit: 'خروج',
           active: 'نشط',
           inactive: 'غير نشط',
-          memberships: 'الاشتراكات',
+          memberships: 'الاشتراكات النشطة',
+          customersAndSubscriptions: 'الاشتراكات والعملاء',
+          revenueByCustomerType: 'الإيرادات حسب نوع العميل (ج.م)',
+          subscriptionStatus: 'حالة الاشتراكات (بالعدد)',
           total: 'الإجمالي',
           expiringNext7Days: 'تنتهي خلال 7 أيام',
-          revenueBreakdown: 'أنواع العملاء ',
+          revenueBreakdown: 'أنواع العملاء',
+          financialBreakdown: 'التحليل المالي',
+          collectionRate: 'نسبة التحصيل',
           membershipRevenue: 'إيراد الاشتراكات',
           walkInRevenue: 'إيراد الزوار',
-          liveInOut: 'الدخول/الخروج المباشر',
+          liveInOut: 'حركة الدخول والخروج',
           in: 'دخول',
           out: 'خروج',
           exceedAnalytics: 'تحليل الغرامات',
           exceededTickets: 'تذاكر عليها غرامة',
           totalExceed: 'إجمالي الغرامات',
-          avgPerTicket: 'متوسط كل تذكرة',
+          avgPerTicket: 'متوسط التذكرة / المعاملة',
           durationStats: 'إحصائيات المدة',
           avgDuration: 'متوسط المدة',
           maxDuration: 'أقصى مدة',
           minutes: 'دقيقة',
+          gatePerformance: 'أداء البوابات',
           entryGates: 'بوابات الدخول',
           exitGates: 'بوابات الخروج',
+          allGates: 'الكل',
           gateNumber: 'البوابة',
+          gateType: 'النوع',
           tickets: 'التذاكر',
           totalPrice: 'المبلغ الكلي',
           collectedPrice: 'المحصّل',
           supervisor: 'المشرف',
-          topPerformers: 'Gate Flow',
+          topPerformers: 'أعلى الأداء',
+          additionalMetrics: 'مؤشرات إضافية',
           busiestGate: 'أكثر بوابة نشاطًا',
           topCollector: 'أفضل محصّل',
           amount: 'المبلغ',
-          recentTickets: 'أحدث التذاكر',
+          recentTickets: 'آخر العمليات',
           id: 'المعرّف',
           plate: 'اللوحة',
           action: 'الإجراء',
@@ -116,6 +141,7 @@ interface UiNotification {
           IN: 'دخول',
           OUT: 'خروج',
           loading: 'جاري التحميل...',
+          refreshing: 'جارٍ التحديث...',
           error: 'حدث خطأ في تحميل البيانات',
           retry: 'إعادة المحاولة',
           egp: 'ج.م',
@@ -125,7 +151,10 @@ interface UiNotification {
           fromDate: 'من',
           toDate: 'إلى',
           applyDate: 'عرض',
-          ticketBaseRevenue: 'إيرادات التذاكر ',
+          filters: 'الفترة الزمنية',
+          clearSearch: 'مسح البحث',
+          viewDetails: 'عرض التفاصيل',
+          ticketBaseRevenue: 'إيرادات التذاكر',
           totalExceedRevenue: 'إجمالي الغرامات',
           collectedExceedRevenue: 'غرامات محصلة',
           pendingExceedRevenue: 'غرامات معلقة',
@@ -137,65 +166,76 @@ interface UiNotification {
           supervisors: 'المشرفون',
           exitedTickets: 'تذاكر خرجت',
           exceedTransactions: 'معاملات الغرامات',
-          noDataAvailable: 'لا توجد بيانات',
+          noDataAvailable: 'لا توجد بيانات متاحة لهذه الفترة',
           noCollectionsYet: 'لا يوجد تحصيل بعد',
           notAvailable: 'غير متاح',
           topExceedCollector: 'أفضل مشرف غرامات',
           transactions: 'معاملات',
-
           notif_in_title: 'تذكرة دخول جديدة',
           notif_out_title: 'تذكرة خروج',
           notif_collected_title: 'تحصيل تذكرة',
-
           showMoreDetails: 'عرض تفاصيل أكثر',
-
-          // زر شرح الواجهة
           helpTour: 'شرح الواجهة',
         },
         en: {
           overview: 'Dashboard',
+          commandCenterTitle: 'Operations Command Center',
+          commandCenterSubtitle: 'Comprehensive overview of parking status, traffic, and revenue',
           welcomeBack: 'Welcome Back',
           todayStats: "Today's Statistics",
           totalRevenue: 'Total Revenue',
           collected: 'Collected',
           pending: 'Pending',
-          occupancy: 'Occupancy',
+          occupancy: 'Occupancy Rate',
+          parkingStatus: 'Parking Occupancy',
+          occupiedSpaces: 'Occupied',
+          availableSpaces: 'Available',
+          totalCapacity: 'Total Capacity',
           inside: 'Inside',
           free: 'Free',
-          ticketsToday: 'Ticket Flow',
+          ticketsToday: 'Issued Tickets',
           entry: 'Entry',
           exit: 'Exit',
           active: 'Active',
           inactive: 'Inactive',
-          memberships: 'Memberships',
+          memberships: 'Active Subscriptions',
+          customersAndSubscriptions: 'Subscriptions & Customers',
+          revenueByCustomerType: 'Revenue by Customer Type (EGP)',
+          subscriptionStatus: 'Subscription Counts',
           total: 'Total',
           expiringNext7Days: 'Expiring in 7 days',
-          revenueBreakdown: 'Customer Type',
+          revenueBreakdown: 'Customer Types',
+          financialBreakdown: 'Financial Breakdown',
+          collectionRate: 'Collection Rate',
           membershipRevenue: 'Membership Revenue',
           walkInRevenue: 'Walk-in Revenue',
-          liveInOut: 'Live In/Out',
-          in: 'IN',
-          out: 'OUT',
-          exceedAnalytics: 'Exceed Analytics',
-          exceededTickets: 'Exceeded Tickets',
-          totalExceed: 'Total Exceed',
-          avgPerTicket: 'Avg per Ticket',
+          liveInOut: 'Entry & Exit Activity',
+          in: 'Entry',
+          out: 'Exit',
+          exceedAnalytics: 'Fine Analytics',
+          exceededTickets: 'Fined Tickets',
+          totalExceed: 'Total Fines',
+          avgPerTicket: 'Avg / Ticket & Tx',
           durationStats: 'Duration Stats',
           avgDuration: 'Avg Duration',
           maxDuration: 'Max Duration',
           minutes: 'min',
+          gatePerformance: 'Gate Performance',
           entryGates: 'Entry Gates',
           exitGates: 'Exit Gates',
+          allGates: 'All',
           gateNumber: 'Gate',
+          gateType: 'Type',
           tickets: 'Tickets',
           totalPrice: 'Total',
           collectedPrice: 'Collected',
           supervisor: 'Supervisor',
-          topPerformers: 'Gate Flow',
+          topPerformers: 'Top Performers',
+          additionalMetrics: 'Additional Metrics',
           busiestGate: 'Busiest Gate',
           topCollector: 'Top Collector',
           amount: 'Amount',
-          recentTickets: 'Recent Tickets',
+          recentTickets: 'Recent Activity',
           id: 'ID',
           plate: 'Plate',
           action: 'Action',
@@ -204,6 +244,7 @@ interface UiNotification {
           IN: 'IN',
           OUT: 'OUT',
           loading: 'Loading...',
+          refreshing: 'Refreshing...',
           error: 'Error loading data',
           retry: 'Retry',
           egp: 'EGP',
@@ -213,30 +254,30 @@ interface UiNotification {
           fromDate: 'From',
           toDate: 'To',
           applyDate: 'Apply',
-          ticketBaseRevenue: 'Ticket Base',
-          totalExceedRevenue: 'Total Exceed Revenue',
-          collectedExceedRevenue: 'Collected Exceed',
-          pendingExceedRevenue: 'Pending Exceed',
+          filters: 'Date Range',
+          clearSearch: 'Clear search',
+          viewDetails: 'View details',
+          ticketBaseRevenue: 'Ticket Revenue',
+          totalExceedRevenue: 'Fine Revenue',
+          collectedExceedRevenue: 'Collected Fines',
+          pendingExceedRevenue: 'Pending Fines',
           ticketEnterToday: 'Entry Today',
-          ticketEnterNotTodayButNotExitYet: 'Old Still Inside',
+          ticketEnterNotTodayButNotExitYet: 'Prior Still Inside',
           exitTicketsCount: 'Exit Today',
-          pendingPrice: 'Pending',
+          pendingPrice: 'Outstanding',
           collectors: 'Collectors',
           supervisors: 'Supervisors',
           exitedTickets: 'Exited Tickets',
-          exceedTransactions: 'Exceed Transactions',
-          noDataAvailable: 'No data available',
+          exceedTransactions: 'Fine Transactions',
+          noDataAvailable: 'No data available for this period',
           noCollectionsYet: 'No collections yet',
           notAvailable: 'N/A',
-          topExceedCollector: 'Top Exceed Collector',
+          topExceedCollector: 'Top Fine Supervisor',
           transactions: 'Transactions',
-
           notif_in_title: 'New entry ticket',
           notif_out_title: 'Exit ticket',
           notif_collected_title: 'Ticket collected',
-
           showMoreDetails: 'Show more details',
-
           helpTour: 'Help tour',
         },
       }),
@@ -253,14 +294,24 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
     private readonly ticketsService: TicketsServices,
     private readonly overviewTour: OverviewTourService,
     private readonly errorExtractor: ErrorExtractorService,
+    private readonly hostRef: ElementRef<HTMLElement>,
   ) {}
+
+  private gsapCtx: gsap.Context | null = null;
+  private hasAnimatedInitialEntrance = false;
 
   // ===== State =====
   dashboard = signal<DashboardDto | null>(null);
   loading = signal<boolean>(false);
+  refreshing = signal<boolean>(false);
   errorMessage = signal<string | null>(null);
   selectedDashboardFrom = this.toDateInputValue(this.firstDayOfMonth(new Date()));
   selectedDashboardTo = this.toDateInputValue(new Date());
+
+  // Local Presentation State
+  activeGateTab = signal<GateTabType>('entry');
+  mobileFiltersOpen = signal<boolean>(false);
+  expandedGateKey = signal<string | null>(null);
 
   // Tickets lists
   ticketsInside = signal<TicketInsideParkDto[]>([]);
@@ -272,7 +323,7 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   inactiveMemberships = signal<InactiveMembershipDto[]>([]);
   expiringMemberships = signal<ExpiringMembershipDto[]>([]);
 
-  // Hover hint (show more details)
+  // Hover hint (preserved for compatibility)
   membershipHintVisible = signal<boolean>(false);
   membershipHintType = signal<MembershipViewType | null>(null);
 
@@ -288,7 +339,7 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   private notificationIdCounter = 0;
   private hubSubscriptions = new Subscription();
 
-  // Tooltips (مش مستخدمة في الـ UI دلوقتي كـ hover)
+  // Tooltips (preserved for compatibility)
   occupancyTooltipVisible = signal<boolean>(false);
   ticketsTodayTooltipVisible = signal<boolean>(false);
   ticketsTodayTooltipType = signal<TicketsTodayTooltipType | null>(null);
@@ -304,12 +355,13 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
 
   collectedPercent = computed(() => {
     const total = this.totalRevenue();
-    return total > 0 ? (this.collectedRevenue() / total) * 100 : 0;
+    return total > 0 ? Math.min(100, (this.collectedRevenue() / total) * 100) : 0;
   });
 
   currentVehiclesInside = computed(() => this.dashboard()?.currentVehiclesInside ?? 0);
   estimatedFreeSlots = computed(() => this.dashboard()?.estimatedFreeSlots ?? 0);
   occupancyPercentage = computed(() => this.dashboard()?.occupancyPercentage ?? 0);
+  totalCapacity = computed(() => this.currentVehiclesInside() + this.estimatedFreeSlots());
 
   ticketEnterToday = computed(() => this.dashboard()?.ticketEnterToday ?? 0);
   ticketEnterNotTodayButNotExitYet = computed(
@@ -327,7 +379,6 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   subscriptionCount = computed(() => this.dashboard()?.subscriptionCount ?? 0);
   activeSubscriptionCount = computed(() => this.dashboard()?.activeSubscriptionCount ?? 0);
   inactiveSubscriptionCount = computed(() => this.dashboard()?.inactiveSubscriptionCount ?? 0);
-
   membershipsExpiringNext7Days = computed(
     () => this.dashboard()?.membershipsExpiringNext7Days ?? 0,
   );
@@ -342,12 +393,12 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   pendingTicketBaseRevenue = computed(() => this.dashboard()?.pendingTicketBaseRevenue ?? 0);
 
   membershipRevenuePercent = computed(() => {
-    const total = this.totalRevenue();
+    const total = this.membershipRelatedRevenue() + this.walkInRevenue();
     return total > 0 ? (this.membershipRelatedRevenue() / total) * 100 : 0;
   });
 
   walkInRevenuePercent = computed(() => {
-    const total = this.totalRevenue();
+    const total = this.membershipRelatedRevenue() + this.walkInRevenue();
     return total > 0 ? (this.walkInRevenue() / total) * 100 : 0;
   });
 
@@ -383,110 +434,66 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   exitGates = computed(() => this.dashboard()?.exitGates ?? []);
   recentTickets = computed(() => this.dashboard()?.recentTickets ?? []);
 
-  // Charts
-  private readonly defaultChartHours = [8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18];
-
-  chartHours = computed(() => {
-    const hours = this.dashboard()?.chartHours;
-    return hours && hours.length > 0 ? hours : this.defaultChartHours;
+  // Occupancy Gauge SVG Geometry (radius 54)
+  readonly occupancyGaugeRadius = 54;
+  readonly occupancyGaugeCirc = 2 * Math.PI * 54;
+  occupancyGaugeOffset = computed(() => {
+    const pct = Math.max(0, Math.min(100, this.occupancyPercentage()));
+    return this.occupancyGaugeCirc * (1 - pct / 100);
+  });
+  occupancyTone = computed<'green' | 'amber' | 'red'>(() => {
+    const pct = this.occupancyPercentage();
+    if (pct >= 85) return 'red';
+    if (pct >= 65) return 'amber';
+    return 'green';
   });
 
-  chartIn = computed(() => this.dashboard()?.chartIn ?? []);
-  chartOut = computed(() => this.dashboard()?.chartOut ?? []);
-
-  // Donut chart
-  donutRadius = signal(58);
-  donutCirc = computed(() => 2 * Math.PI * this.donutRadius());
-  membershipStroke = computed(() => (this.membershipRevenuePercent() / 100) * this.donutCirc());
-  walkInStroke = computed(() => (this.walkInRevenuePercent() / 100) * this.donutCirc());
+  // Customer Split Donut Geometry (radius 46)
+  readonly customerDonutRadius = 46;
+  readonly customerDonutCirc = 2 * Math.PI * 46;
+  membershipStroke = computed(
+    () => (this.membershipRevenuePercent() / 100) * this.customerDonutCirc,
+  );
+  walkInStroke = computed(() => (this.walkInRevenuePercent() / 100) * this.customerDonutCirc);
   walkInRotateDeg = computed(() => -90 + (this.membershipRevenuePercent() / 100) * 360);
 
-  // Live In/Out bars
-  liveChartWidth = signal(360);
-  liveChartHeight = 140;
-  readonly liveLeftPadding = 70;
-  readonly liveRightPadding = 24;
-  readonly liveBarThickness = 32;
-  readonly liveBarsGap = 28;
+  // Activity Max Reference
+  liveMaxCount = computed(() =>
+    Math.max(
+      this.ticketEnterToday(),
+      this.exitTicketsCount(),
+      this.ticketEnterNotTodayButNotExitYet(),
+      1,
+    ),
+  );
 
-  liveMaxCount = computed(() => Math.max(this.ticketEnterToday(), this.exitTicketsCount(), 1));
+  // Financial Max Reference
+  financialMaxAmount = computed(() =>
+    Math.max(this.totalRevenue(), this.ticketBaseRevenue(), this.totalExceedRevenue(), 1),
+  );
 
   @HostListener('window:resize')
   onResize(): void {
-    this.updateChartDimensions();
+    // Layout is pure CSS Grid/Flexbox; keep hook for future chart sizing if needed.
   }
 
-  private updateChartDimensions(): void {
-    const width = window.innerWidth;
-
-    // Adjust Live Chart Width
-    if (width < 400) {
-      this.liveChartWidth.set(Math.min(280, width - 20));
-      this.donutRadius.set(40);
-    } else if (width < 576) {
-      this.liveChartWidth.set(Math.min(320, width - 40));
-      this.donutRadius.set(45);
-    } else if (width < 768) {
-      this.liveChartWidth.set(Math.min(450, width - 60));
-      this.donutRadius.set(50);
-    } else if (width < 1200) {
-      this.liveChartWidth.set(340);
-      this.donutRadius.set(54);
-    } else {
-      this.liveChartWidth.set(380);
-      this.donutRadius.set(58);
-    }
+  barPercent(value: number, max: number): number {
+    if (max <= 0 || value <= 0) return 0;
+    return Math.min(100, Math.max(2, (value / max) * 100));
   }
 
-  liveBarWidth(value: number): number {
-    const usable = this.liveChartWidth() - this.liveLeftPadding - this.liveRightPadding;
-    const max = this.liveMaxCount();
-    const ratio = max > 0 ? value / max : 0;
-    return ratio * usable;
+  setGateTab(tab: GateTabType): void {
+    this.activeGateTab.set(tab);
+    this.expandedGateKey.set(null);
+    requestAnimationFrame(() => this.animateGateTabChange());
   }
 
-  liveBarX(value: number): number {
-    if (this.lang.isRTL()) {
-      return this.liveChartWidth() - this.liveLeftPadding - this.liveBarWidth(value);
-    }
-    return this.liveLeftPadding;
+  toggleGateRow(key: string): void {
+    this.expandedGateKey.update((current) => (current === key ? null : key));
   }
 
-  liveInBarY(): number {
-    return 30;
-  }
-
-  liveOutBarY(): number {
-    return this.liveInBarY() + this.liveBarThickness + this.liveBarsGap;
-  }
-
-  liveValueX(value: number): number {
-    // Center of the bar
-    if (this.lang.isRTL()) {
-      const barW = this.liveBarWidth(value);
-      return this.liveChartWidth() - this.liveLeftPadding - barW / 2;
-    }
-    return this.liveLeftPadding + this.liveBarWidth(value) / 2;
-  }
-
-  liveValueYForIn(): number {
-    return this.liveInBarY() + this.liveBarThickness / 2;
-  }
-
-  liveValueYForOut(): number {
-    return this.liveOutBarY() + this.liveBarThickness / 2;
-  }
-
-  liveLabelX(): number {
-    return this.lang.isRTL() ? this.liveChartWidth() - this.liveLeftPadding : this.liveLeftPadding;
-  }
-
-  liveLabelYForIn(): number {
-    return this.liveInBarY() + this.liveBarThickness + 18;
-  }
-
-  liveLabelYForOut(): number {
-    return this.liveOutBarY() + this.liveBarThickness + 18;
+  toggleMobileFilters(): void {
+    this.mobileFiltersOpen.update((open) => !open);
   }
 
   // ===== Lifecycle =====
@@ -503,23 +510,162 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   ngOnDestroy(): void {
+    this.gsapCtx?.revert();
     this.hubSubscriptions.unsubscribe();
     this.dashboardHub.stop();
+    this.overviewTour.cancelTour();
   }
 
   ngAfterViewInit(): void {
-    // Initial calculation
-    setTimeout(() => this.updateChartDimensions(), 0);
+    // No JS dimension hacks needed; SVG viewBox scales responsively.
   }
 
-  // ===== Help Tour (زرار شرح الواجهة) =====
+  // ===== GSAP Data-Load & Refresh Animations =====
+  private prefersReducedMotion(): boolean {
+    return (
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+  }
+
+  private animateDashboardEntrance(): void {
+    if (this.prefersReducedMotion()) return;
+    const root = this.hostRef.nativeElement;
+    this.gsapCtx?.revert();
+
+    const origin = this.lang.isRTL() ? 'right center' : 'left center';
+
+    this.gsapCtx = gsap.context(() => {
+      const tl = gsap.timeline({ defaults: { ease: 'power3.out' } });
+
+      tl.from('app-overview-kpi-card', {
+        y: 18,
+        opacity: 0,
+        duration: 0.45,
+        stagger: 0.06,
+        clearProps: 'transform,opacity',
+      })
+        .from(
+          '.ops-grid > .panel-card',
+          {
+            y: 20,
+            opacity: 0,
+            duration: 0.48,
+            stagger: 0.08,
+            clearProps: 'transform,opacity',
+          },
+          '-=0.25',
+        )
+        .from(
+          '.progress-fill',
+          {
+            scaleX: 0,
+            transformOrigin: origin,
+            duration: 0.65,
+            stagger: 0.05,
+            ease: 'power2.out',
+            clearProps: 'transform',
+          },
+          '-=0.3',
+        )
+        .from(
+          '.gauge-progress',
+          {
+            attr: { 'stroke-dashoffset': this.occupancyGaugeCirc },
+            duration: 0.8,
+            ease: 'power2.out',
+          },
+          '-=0.55',
+        )
+        .from(
+          '.secondary-grid > .panel-card',
+          {
+            y: 16,
+            opacity: 0,
+            duration: 0.44,
+            stagger: 0.08,
+            clearProps: 'transform,opacity',
+          },
+          '-=0.45',
+        )
+        .from(
+          '.metric-cell',
+          {
+            y: 12,
+            opacity: 0,
+            duration: 0.36,
+            stagger: 0.045,
+            clearProps: 'transform,opacity',
+          },
+          '-=0.25',
+        );
+    }, root);
+  }
+
+  private animateDataRefresh(): void {
+    if (this.prefersReducedMotion()) return;
+    const root = this.hostRef.nativeElement;
+    const origin = this.lang.isRTL() ? 'right center' : 'left center';
+
+    gsap.context(() => {
+      gsap.fromTo(
+        '.kpi-value, .bar-metric__value, .fin-row__amount, .gauge-percent',
+        { y: 6, opacity: 0.45 },
+        {
+          y: 0,
+          opacity: 1,
+          duration: 0.34,
+          stagger: 0.02,
+          ease: 'power2.out',
+          clearProps: 'transform,opacity',
+        },
+      );
+
+      gsap.fromTo(
+        '.progress-fill',
+        { scaleX: 0.15, transformOrigin: origin },
+        {
+          scaleX: 1,
+          duration: 0.5,
+          stagger: 0.03,
+          ease: 'power2.out',
+          clearProps: 'transform',
+        },
+      );
+    }, root);
+  }
+
+  private animateGateTabChange(): void {
+    if (this.prefersReducedMotion()) return;
+    const root = this.hostRef.nativeElement;
+
+    gsap.fromTo(
+      root.querySelectorAll('.gate-table-block'),
+      { y: 10, opacity: 0 },
+      {
+        y: 0,
+        opacity: 1,
+        duration: 0.28,
+        stagger: 0.05,
+        ease: 'power2.out',
+        clearProps: 'transform,opacity',
+      },
+    );
+  }
+
+  // ===== Help Tour =====
   startAdminTour(): void {
     this.overviewTour.startTour();
   }
 
   // ===== API =====
   loadDashboard(): void {
-    this.loading.set(true);
+    const isInitialLoad = !this.dashboard();
+    if (isInitialLoad) {
+      this.loading.set(true);
+    } else {
+      this.refreshing.set(true);
+    }
     this.errorMessage.set(null);
 
     this.normalizeDashboardDateRange();
@@ -529,15 +675,26 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
       .subscribe({
         next: (dto) => {
           this.loading.set(false);
+          this.refreshing.set(false);
           this.dashboard.set(dto);
 
           this.syncOccupancyWithTicketsInside();
           this.loadTodayTickets();
           this.loadMembershipDetails();
+
+          requestAnimationFrame(() => {
+            if (!this.hasAnimatedInitialEntrance) {
+              this.hasAnimatedInitialEntrance = true;
+              this.animateDashboardEntrance();
+            } else {
+              this.animateDataRefresh();
+            }
+          });
         },
         error: (err) => {
           console.error('Error loading dashboard', err);
           this.loading.set(false);
+          this.refreshing.set(false);
           const fallback =
             this.lang.current === 'ar' ? 'حدث خطأ في تحميل البيانات' : 'Error loading data';
           this.errorMessage.set(this.errorExtractor.extractErrorMessage(err, fallback));
@@ -601,7 +758,7 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
     }
   }
 
-  // ===== Tickets Today (now click -> modal) =====
+  // ===== Tickets Today (click -> modal) =====
   showTicketsTodayDetails(type: TicketsTodayTooltipType): void {
     if (type === 'entry') {
       this.activeModal.set('ticketsEntry');
@@ -646,7 +803,6 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
             'notif_collected_title',
             this.buildCollectedMessage(notification),
           );
-
           this.loadDashboard();
         }),
       );
@@ -654,8 +810,6 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
       console.error('Failed to connect to SignalR hub', error);
     }
   }
-
-  // Removed local chart simulation helpers as we now rely on DTO only
 
   formatCurrency(value: number): string {
     return value.toLocaleString('en-US', {
@@ -719,6 +873,13 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
     this.searchSubject.next(value);
   }
 
+  clearSearch(): void {
+    this.searchQuery = '';
+    this.searchResults = [];
+    this.searchAttempted = false;
+    this.searchingTickets = false;
+  }
+
   onSearchTickets(): void {
     const query = this.searchQuery.trim();
     this.performSearch(query);
@@ -749,14 +910,12 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   }
 
   onTicketSelected(ticket: TicketDto): void {
-    console.log('Selected ticket:', ticket);
     this.selectedTicket.set(ticket);
     this.activeModal.set('ticketDetails');
-    this.searchQuery = '';
-    this.searchResults = [];
+    this.clearSearch();
   }
 
-  // Notifications
+  // ===== Notifications =====
   private pushNotification(type: NotificationType, titleKey: string, message: string): void {
     const id = ++this.notificationIdCounter;
     const date = new Date();
@@ -837,8 +996,6 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
       ? `${notification.collectedAmount.toFixed(2)} ج.م`
       : `${notification.collectedAmount.toFixed(2)} EGP`;
 
-    return this.lang.isRTL()
-      ? `${collectorLabel} - ${amountPart}`
-      : `${collectorLabel} - ${amountPart}`;
+    return `${collectorLabel} - ${amountPart}`;
   }
 }

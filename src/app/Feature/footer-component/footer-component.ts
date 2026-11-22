@@ -1,4 +1,4 @@
-import { Component, Inject } from '@angular/core';
+import { Component, Inject, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { LanguageService } from '../../Services/i18n/language-service';
 import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
@@ -29,6 +29,8 @@ import { TranslatePipePipe } from '../../Services/i18n/translate-pipe-pipe';
   ],
 })
 export class FooterComponent {
+  @Input() variant: 'default' | 'login' = 'default';
+
   constructor(public lang: LanguageService, @Inject(I18N_DICT) private dict: I18nDict) {}
   currentYear = new Date().getFullYear();
 }
