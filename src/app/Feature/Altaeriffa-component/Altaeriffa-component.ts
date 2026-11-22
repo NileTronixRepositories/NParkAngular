@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule, NgIf, NgFor, NgClass } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -210,7 +210,7 @@ type EnterPriceFormShape = {
     },
   ],
 })
-export class AltaeriffaComponent implements OnInit {
+export class AltaeriffaComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private api = inject(SubscriptionType);
   private toast = inject(ToastServices);
@@ -399,6 +399,9 @@ export class AltaeriffaComponent implements OnInit {
   savingEnterPrice = signal(false);
   rows = signal<PricingSchemaRow[]>([]);
   query = signal<string>('');
+  activeFilter = signal<'all' | 'enter' | 'hours' | 'days' | 'year'>('all');
+  activeFormTab = signal<'scheme' | 'enter'>('scheme');
+  mobileSheetOpen = signal(false);
   private editingRowId = signal<string | null>(null);
   private editingEnterPriceSchema = signal(false);
 
@@ -431,7 +434,19 @@ export class AltaeriffaComponent implements OnInit {
 
   filtered = computed(() => {
     const q = (this.query() || '').trim().toLowerCase();
-    const data = this.rows();
+    const filter = this.activeFilter();
+    let data = this.rows();
+
+    if (filter === 'enter') {
+      data = data.filter((r) => !!r.isEnterPriceSchema);
+    } else if (filter === 'hours') {
+      data = data.filter((r) => r.durationType === DurationType.Hours);
+    } else if (filter === 'days') {
+      data = data.filter((r) => r.durationType === DurationType.Days);
+    } else if (filter === 'year') {
+      data = data.filter((r) => r.durationType === DurationType.Year);
+    }
+
     if (!q) return data;
     return data.filter(
       (r) =>
@@ -439,6 +454,30 @@ export class AltaeriffaComponent implements OnInit {
         this.durationLabel(r.durationType).toLowerCase().includes(q),
     );
   });
+
+  setFilter(filter: 'all' | 'enter' | 'hours' | 'days' | 'year'): void {
+    this.activeFilter.set(filter);
+  }
+
+  setFormTab(tab: 'scheme' | 'enter'): void {
+    if (tab === 'enter' && this.editingRowId()) {
+      this.resetForm();
+    }
+    this.activeFormTab.set(tab);
+  }
+
+  openMobileSheet(tab: 'scheme' | 'enter' = 'scheme'): void {
+    this.setFormTab(tab);
+    this.mobileSheetOpen.set(true);
+  }
+
+  closeMobileSheet(): void {
+    this.mobileSheetOpen.set(false);
+  }
+
+  clearSearch(): void {
+    this.query.set('');
+  }
 
   showTimeForRow(r: PricingSchemaRow): boolean {
     return r.durationType === DurationType.Hours && r.isRepeated === false;
@@ -625,6 +664,10 @@ export class AltaeriffaComponent implements OnInit {
     this.updateTimeAndModeRules();
   }
 
+  ngOnDestroy(): void {
+    this.AltaeriffaTourService.cancelTour();
+  }
+
   // ===== UI Helpers =====
   editingId(): string | null {
     return this.editingRowId();
@@ -698,6 +741,7 @@ export class AltaeriffaComponent implements OnInit {
       totalDays: 1,
     });
     this.editingRowId.set(null);
+    this.mobileSheetOpen.set(false);
     this.updateTimeAndModeRules();
   }
 
@@ -876,6 +920,8 @@ export class AltaeriffaComponent implements OnInit {
     }
 
     this.form.setValue(formValues);
+    this.activeFormTab.set('scheme');
+    this.mobileSheetOpen.set(true);
     this.updateTimeAndModeRules();
     this.focusForm();
   }
@@ -901,6 +947,7 @@ export class AltaeriffaComponent implements OnInit {
           name: '',
           salary: null,
         });
+        this.mobileSheetOpen.set(false);
         this.page.set(1);
         this.loadRows();
       },

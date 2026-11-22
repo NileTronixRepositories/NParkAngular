@@ -1,5 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import Shepherd from 'shepherd.js';
+import { animateShepherdStep } from '../Shared/tour-animation.helper';
 import { LanguageService } from '../../Services/i18n/language-service';
 
 @Injectable({ providedIn: 'root' })
@@ -43,6 +44,7 @@ export class SanctionTourService {
         cancelIcon: { enabled: true },
         canClickTarget: false,
         classes: stepClass,
+        when: { show: () => animateShepherdStep(this.tour?.getCurrentStep()) },
         popperOptions: {
           strategy: 'fixed',
           modifiers: [
@@ -147,8 +149,8 @@ export class SanctionTourService {
     if (config.hasBack) {
       buttons.push({
         text: this.isRTL
-          ? `<i class="bi bi-arrow-right"></i> السابق`
-          : `<i class="bi bi-arrow-left"></i> Previous`,
+          ? `<i class="fa-solid fa-arrow-right"></i> السابق`
+          : `<i class="fa-solid fa-arrow-left"></i> Previous`,
         action: () => this.tour?.back(),
         secondary: true,
       } as any);
@@ -157,15 +159,15 @@ export class SanctionTourService {
     if (config.isLast) {
       buttons.push({
         text: this.isRTL
-          ? `إنهاء <i class="bi bi-check-lg"></i>`
-          : `Finish <i class="bi bi-check-lg"></i>`,
+          ? `إنهاء <i class="fa-solid fa-check"></i>`
+          : `Finish <i class="fa-solid fa-check"></i>`,
         action: () => this.tour?.complete(),
       });
     } else {
       buttons.push({
         text: this.isRTL
-          ? `التالي <i class="bi bi-arrow-left"></i>`
-          : `Next <i class="bi bi-arrow-right"></i>`,
+          ? `التالي <i class="fa-solid fa-arrow-left"></i>`
+          : `Next <i class="fa-solid fa-arrow-right"></i>`,
         action: () => this.tour?.next(),
       });
     }

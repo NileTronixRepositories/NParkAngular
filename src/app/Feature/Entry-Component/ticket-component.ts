@@ -714,6 +714,7 @@ export class TicketComponent implements OnInit, OnDestroy {
     ) {
       this.revokeImageUrl(this.scannedFile);
     }
+    this.entryTour.cancelTour();
     this.hubSubscriptions.unsubscribe();
     this.lprSignalR.stop();
   }

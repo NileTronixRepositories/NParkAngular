@@ -21,7 +21,7 @@
       (click)="onToggle()"
       [attr.aria-label]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
     >
-      <i class="bi" [ngClass]="collapsed ? 'bi-chevron-right' : 'bi-chevron-left'"></i>
+      <i class="fa-solid" [ngClass]="collapsed ? 'fa-chevron-right' : 'fa-chevron-left'"></i>
     </button>
   </div>
 
@@ -36,7 +36,7 @@
       [routerLinkActiveOptions]="{ exact: true }"
       [attr.title]="collapsed ? t('overview') : null"
     >
-      <i class="bi bi-house"></i>
+      <i class="fa-solid fa-gauge-high"></i>
       <span class="nav-text" *ngIf="!collapsed">{{ t('overview') }}</span>
     </a>
 
@@ -57,24 +57,24 @@
         [attr.aria-expanded]="gateOpen"
         [attr.title]="collapsed ? t('gate') : null"
       >
-        <i class="bi bi-door-open"></i>
+        <i class="fa-solid fa-door-open"></i>
         <span class="nav-text" *ngIf="!collapsed">{{ t('gate') }}</span>
         <i
-          class="expand-icon bi"
-          [ngClass]="gateOpen ? 'bi-chevron-up' : 'bi-chevron-down'"
+          class="expand-icon fa-solid"
+          [ngClass]="gateOpen ? 'fa-chevron-up' : 'fa-chevron-down'"
           *ngIf="!collapsed"
         ></i>
       </button>
 
       <div class="submenu" *ngIf="gateOpen" [class.floating-submenu]="collapsed">
-        <!-- Entry Gate — Admin + EntranceCashier + Supervisor -->
+        <!-- Entry Gate -->
         <a
           *ngIf="isAdmin"
           class="nav-item submenu-item"
           routerLink="/tickets/entry"
           routerLinkActive="active"
         >
-          <i class="bi bi-arrow-right-circle"></i>
+          <i class="fa-solid fa-right-to-bracket"></i>
           <span class="nav-text">{{ t('entryGate') }}</span>
         </a>
         <a
@@ -83,18 +83,18 @@
           (click)="onEntryGateClick()"
           [class.active]="isEntryRoute"
         >
-          <i class="bi bi-arrow-right-circle"></i>
+          <i class="fa-solid fa-right-to-bracket"></i>
           <span class="nav-text">{{ t('entryGate') }}</span>
         </a>
 
-        <!-- Exit Gate — Admin + ExitCashier + Supervisor -->
+        <!-- Exit Gate -->
         <a
           *ngIf="isAdmin"
           class="nav-item submenu-item"
           routerLink="/tickets/exit"
           routerLinkActive="active"
         >
-          <i class="bi bi-box-arrow-right"></i>
+          <i class="fa-solid fa-right-from-bracket"></i>
           <span class="nav-text">{{ t('exitGate') }}</span>
         </a>
         <a
@@ -103,7 +103,7 @@
           (click)="onExitGateClick()"
           [class.active]="isExitRoute"
         >
-          <i class="bi bi-box-arrow-right"></i>
+          <i class="fa-solid fa-right-from-bracket"></i>
           <span class="nav-text">{{ t('exitGate') }}</span>
         </a>
       </div>
@@ -117,7 +117,7 @@
       routerLinkActive="active"
       [attr.title]="collapsed ? t('gateSelection') : null"
     >
-      <i class="bi bi-geo-alt"></i>
+      <i class="fa-solid fa-location-dot"></i>
       <span class="nav-text" *ngIf="!collapsed">{{ t('gateSelection') }}</span>
     </a>
 
@@ -129,7 +129,7 @@
       routerLinkActive="active"
       [attr.title]="collapsed ? t('visitor') : null"
     >
-      <i class="bi bi-person-vcard"></i>
+      <i class="fa-solid fa-id-card"></i>
       <span class="nav-text" *ngIf="!collapsed">{{ t('visitor') }}</span>
     </a>
 
@@ -141,7 +141,7 @@
       routerLinkActive="active"
       [attr.title]="collapsed ? t('altaeriffa') : null"
     >
-      <i class="bi bi-tags-fill"></i>
+      <i class="fa-solid fa-tags"></i>
       <span class="nav-text" *ngIf="!collapsed">{{ t('altaeriffa') }}</span>
     </a>
 
@@ -153,7 +153,7 @@
       routerLinkActive="active"
       [attr.title]="collapsed ? t('subscription') : null"
     >
-      <i class="bi bi-person-badge"></i>
+      <i class="fa-solid fa-id-badge"></i>
       <span class="nav-text" *ngIf="!collapsed">{{ t('subscription') }}</span>
     </a>
 
@@ -171,7 +171,7 @@
       [routerLinkActiveOptions]="{ exact: true }"
       [attr.title]="collapsed ? t('reports') : null"
     >
-      <i class="bi bi-file-earmark-bar-graph"></i>
+      <i class="fa-solid fa-chart-column"></i>
       <span class="nav-text" *ngIf="!collapsed">{{ t('reports') }}</span>
     </a>
 
@@ -183,7 +183,7 @@
       routerLinkActive="active"
       [attr.title]="collapsed ? t('userRoleReports') : null"
     >
-      <i class="bi bi-person-lines-fill"></i>
+      <i class="fa-solid fa-user-tag"></i>
       <span class="nav-text" *ngIf="!collapsed">{{ t('userRoleReports') }}</span>
     </a>
 
@@ -196,7 +196,7 @@
       [routerLinkActiveOptions]="{ exact: true }"
       [attr.title]="collapsed ? t('users') : null"
     >
-      <i class="bi bi-people-fill"></i>
+      <i class="fa-solid fa-users"></i>
       <span class="nav-text" *ngIf="!collapsed">{{ t('users') }}</span>
     </a>
 
@@ -208,7 +208,7 @@
       routerLinkActive="active"
       [attr.title]="collapsed ? t('configuration') : null"
     >
-      <i class="bi bi-sliders"></i>
+      <i class="fa-solid fa-sliders"></i>
       <span class="nav-text" *ngIf="!collapsed">{{ t('configuration') }}</span>
     </a>
 
@@ -220,7 +220,7 @@
       routerLinkActive="active"
       [attr.title]="collapsed ? t('sanction') : null"
     >
-      <i class="bi bi-shield-exclamation"></i>
+      <i class="fa-solid fa-shield-halved"></i>
       <span class="nav-text" *ngIf="!collapsed">{{ t('sanction') }}</span>
     </a>
   </nav>
@@ -232,7 +232,7 @@
       (click)="switchLang()"
       [attr.title]="collapsed ? t('langButton') : null"
     >
-      <i class="bi bi-translate"></i>
+      <i class="fa-solid fa-language"></i>
       <span class="nav-text" *ngIf="!collapsed">{{ i18n.current === 'ar' ? 'AR' : 'EN' }}</span>
     </button>
 
@@ -242,7 +242,10 @@
       (click)="logout()"
       [attr.title]="collapsed ? t('logout') : null"
     >
-      <i class="bi" [ngClass]="i18n.isRTL() ? 'bi-box-arrow-left' : 'bi-box-arrow-right'"></i>
+      <i
+        class="fa-solid"
+        [ngClass]="i18n.isRTL() ? 'fa-right-from-bracket fa-flip-horizontal' : 'fa-right-from-bracket'"
+      ></i>
       <span class="nav-text" *ngIf="!collapsed">{{ t('logout') }}</span>
     </button>
   </div>

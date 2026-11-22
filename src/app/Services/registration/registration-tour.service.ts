@@ -1,5 +1,6 @@
 import { Injectable, Injector, effect, inject } from '@angular/core';
 import Shepherd from 'shepherd.js';
+import { animateShepherdStep } from '../Shared/tour-animation.helper';
 import { LanguageService } from '../../Services/i18n/language-service';
 
 @Injectable({
@@ -83,6 +84,7 @@ export class RegistrationTourService {
         cancelIcon: { enabled: true },
         canClickTarget: false,
         classes: stepClass,
+        when: { show: () => animateShepherdStep(this.tour?.getCurrentStep()) },
         popperOptions: {
           strategy: 'fixed',
           modifiers: [

@@ -1,6 +1,19 @@
-import { Injectable, inject } from '@angular/core';
+import { Injectable, Injector, afterNextRender, effect, inject } from '@angular/core';
 import Shepherd from 'shepherd.js';
+import { animateShepherdStep } from '../Shared/tour-animation.helper';
 import { LanguageService } from '../../Services/i18n/language-service';
+
+type Placement = 'top' | 'bottom' | 'left' | 'right';
+
+interface TourStepDef {
+  id: string;
+  titleAr: string;
+  titleEn: string;
+  textAr: string;
+  textEn: string;
+  attachTo: string;
+  position: Placement;
+}
 
 @Injectable({
   providedIn: 'root',
@@ -8,6 +21,23 @@ import { LanguageService } from '../../Services/i18n/language-service';
 export class ExitTourService {
   private tour: any | null = null;
   private readonly lang = inject(LanguageService);
+  private readonly injector = inject(Injector);
+
+  constructor() {
+    effect(
+      () => {
+        this.lang.currentSignal();
+
+        if (this.tour?.isActive()) {
+          const stepId = this.tour.getCurrentStep()?.id as string | undefined;
+          this.tour.cancel();
+          this.buildTour();
+          this.startAfterRender(stepId);
+        }
+      },
+      { injector: this.injector },
+    );
+  }
 
   private get isRTL(): boolean {
     return this.lang.isRTL();
@@ -17,23 +47,50 @@ export class ExitTourService {
     return this.isRTL ? ar : en;
   }
 
-  private pos(base: 'top' | 'bottom' | 'left' | 'right'): string {
-    if (base === 'top' || base === 'bottom') return 'bottom';
-
+  private pos(base: Placement): Placement {
+    if (base === 'top' || base === 'bottom') return base;
     if (!this.isRTL) return base;
-
-    if (base === 'left') return 'right';
-    if (base === 'right') return 'left';
-
-    return base;
+    return base === 'left' ? 'right' : 'left';
   }
 
   startTour(): void {
-    if (this.tour && this.tour.isActive()) {
+    if (this.tour?.isActive()) {
       this.tour.cancel();
     }
     this.buildTour();
-    this.tour?.start();
+    this.startAfterRender();
+  }
+
+  cancelTour(): void {
+    if (this.tour?.isActive()) {
+      this.tour.cancel();
+    }
+  }
+
+  private startAfterRender(stepId?: string): void {
+    afterNextRender(
+      () => {
+        queueMicrotask(() => {
+          if (!this.tour) return;
+          this.tour.start();
+          if (stepId) {
+            const exists = this.tour.steps?.some((s: any) => s.id === stepId);
+            if (exists) this.tour.show(stepId);
+          }
+        });
+      },
+      { injector: this.injector },
+    );
+  }
+
+  private isElementVisible(selector: string): boolean {
+    if (typeof document === 'undefined') return false;
+    const el = document.querySelector(selector) as HTMLElement | null;
+    if (!el) return false;
+    const style = window.getComputedStyle(el);
+    if (style.display === 'none' || style.visibility === 'hidden') return false;
+    const rect = el.getBoundingClientRect();
+    return rect.width > 0 && rect.height > 0;
   }
 
   private buildTour(): void {
@@ -41,13 +98,16 @@ export class ExitTourService {
 
     this.tour = new Shepherd.Tour({
       useModalOverlay: true,
+      keyboardNavigation: true,
       defaultStepOptions: {
         arrow: true,
         modalOverlayOpeningPadding: 8,
+        modalOverlayOpeningRadius: 10,
         scrollTo: { behavior: 'smooth', block: 'center' },
         cancelIcon: { enabled: true },
         canClickTarget: false,
         classes: stepClass,
+        when: { show: () => animateShepherdStep(this.tour?.getCurrentStep()) },
         popperOptions: {
           strategy: 'fixed',
           modifiers: [
@@ -57,36 +117,27 @@ export class ExitTourService {
             },
             {
               name: 'preventOverflow',
-              options: { boundary: 'viewport', padding: 8 },
+              options: { boundary: 'viewport', padding: 14 },
             },
             {
               name: 'flip',
-              options: { padding: 8 },
+              options: { padding: 14 },
             },
           ],
         },
       },
     } as any);
 
-    const stepsData = [
+    const allSteps: TourStepDef[] = [
       {
-        id: 'exit-help',
-        titleAr: 'دليل شاشة الخروج',
-        titleEn: 'Exit Screen Guide',
-        textAr: 'من هنا تقدر تشغل الشرح التفاعلي لشاشة الخروج في أي وقت.',
-        textEn: 'You can start the interactive guide for the Exit screen from here at any time.',
-        attachTo: '.btn-help-tour',
-        position: 'bottom',
-        hasBack: false,
-      },
-      {
-        id: 'exit-header',
-        titleAr: 'بوابة الخروج',
-        titleEn: 'Exit Screen',
-        textAr: 'هذه الشاشة مخصصة للتحقق من التذاكر، تسجيل الخروج، فتح البوابة، وتحصيل الغرامات.',
+        id: 'exit-header-search',
+        titleAr: 'بحث التذاكر من الهيدر',
+        titleEn: 'Ticket Search In Header',
+        textAr:
+          'ابحث عن التذكرة برقم التذكرة أو اللوحة أو الكارت. نفس البحث يغذي قائمة التذاكر داخل بلوك الغرامات.',
         textEn:
-          'This screen validates tickets, records exits, opens the gate, and collects exceed fines.',
-        attachTo: '.page-header',
+          'Search by ticket, plate, or card number. It also updates the ticket list inside the fines block.',
+        attachTo: '.search-header-container',
         position: 'bottom',
       },
       {
@@ -94,31 +145,20 @@ export class ExitTourService {
         titleAr: 'بيانات اتصال البوابة',
         titleEn: 'Gate Connection Info',
         textAr:
-          'هنا يظهر عنوان جهاز الكمبيوتر، كاميرا قراءة اللوحات، وطابعات QR والإيصال للبوابة الحالية.',
+          'هنا يظهر اتصال جهاز البوابة، كاميرا قراءة اللوحات، وطابعات QR والإيصال الخاصة ببوابة الخروج الحالية.',
         textEn:
-          'This strip shows the PC, LPR camera, QR printer, and receipt printer connected to the current gate.',
+          'Shows the connected PC, LPR camera, QR printer, and receipt printer for the current exit gate.',
         attachTo: '.gate-flow-panel',
         position: 'bottom',
       },
       {
-        id: 'exit-header-search',
-        titleAr: 'بحث التذاكر من الهيدر',
-        titleEn: 'Ticket Search In Header',
-        textAr:
-          'استخدم هذا البحث للوصول للتذكرة برقم التذكرة أو اللوحة أو الكارت. نفس البحث يغذي قائمة التذاكر داخل بلوك الغرامات.',
-        textEn:
-          'Use this search by ticket, plate, or card number. It also drives the ticket list inside the fines block.',
-        attachTo: '.search-header-container',
-        position: 'left',
-      },
-      {
         id: 'exit-devices-camera',
         titleAr: 'كاميرا الخروج و LPR',
-        titleEn: 'Exit Camera And LPR',
+        titleEn: 'Exit Camera & LPR',
         textAr:
-          'هنا تظهر صورة الكاميرا الأمامية وقراءة LPR. استخدمها للتأكد من السيارة قبل التحقق أو الخروج.',
+          'تعرض صورة الكاميرا الأمامية وقراءة LPR للتأكد من السيارة قبل التحقق أو تسجيل الخروج.',
         textEn:
-          'This block shows the front camera image and LPR readings so the operator can verify the vehicle.',
+          'Displays the front camera image and LPR readings so you can verify the vehicle before exit.',
         attachTo: 'app-exit-gate-devices-block-component',
         position: 'right',
       },
@@ -127,51 +167,56 @@ export class ExitTourService {
         titleAr: 'نتيجة التحقق',
         titleEn: 'Validation Result',
         textAr:
-          'امسح QR أو أدخل رقم الكارت أو رقم السيارة. بعد التحقق الصحيح يتم تسجيل خروج التذكرة ثم فتح البوابة.',
+          'امسح QR أو أدخل رقم الكارت أو السيارة. بعد التحقق الصحيح يتم تسجيل خروج التذكرة وفتح البوابة.',
         textEn:
-          'Scan a QR code or enter a card/vehicle number. A valid result records the ticket exit and opens the gate.',
+          'Scan a QR code or enter a card/plate number. Valid results record the exit and open the gate.',
         attachTo: 'app-exit-validation-block-component',
-        position: 'top',
+        position: 'bottom',
       },
       {
         id: 'exit-sanctions',
         titleAr: 'التذاكر والغرامات',
-        titleEn: 'Tickets And Fines',
+        titleEn: 'Tickets & Fines',
         textAr:
-          'يعرض نتائج البحث في سطور مختصرة. اختر التذكرة، اختر الغرامة، ثم سجل مبلغ الزيادة قبل الخروج عند الحاجة.',
+          'اختر التذكرة وحدد الغرامة المطلوبة ثم سجّل مبلغ الزيادة وتحصيله قبل الخروج عند الحاجة.',
         textEn:
-          'Search results are shown as compact rows. Select the ticket, choose the fine, then register the exceed amount when needed.',
+          'Select a ticket, choose the applicable fine, and collect any exceed amount before exit.',
         attachTo: 'app-exit-sanctions-block-component',
-        position: 'top',
+        position: 'bottom',
       },
       {
         id: 'exit-list',
         titleAr: 'تذاكر الخروج والتحصيل',
-        titleEn: 'Exit Tickets And Collection',
+        titleEn: 'Exit Tickets & Collection',
         textAr:
-          'يعرض أحدث تذاكر الخروج وإجمالي رسوم اليوم، ومنه يبدأ تحصيل زيادات الخروج بواسطة المشرف.',
+          'يعرض أحدث تذاكر الخروج وإجمالي رسوم اليوم، ومنه يبدأ تحصيل إيرادات اليوم بواسطة المشرف.',
         textEn:
-          'Shows recent exit tickets and today’s total fees. Supervisors can start exceed collection from here.',
+          'Shows recent exit tickets and today’s total fees, where supervisors can start daily collection.',
         attachTo: 'app-exit-tickets-table-block-component',
-        position: 'top',
-        isLast: true,
+        position: 'left',
       },
     ];
 
-    const totalSteps = stepsData.length;
+    const visibleSteps = allSteps.filter((step) => this.isElementVisible(step.attachTo));
+    const stepsToUse = visibleSteps.length > 0 ? visibleSteps : allSteps;
+    const totalSteps = stepsToUse.length;
 
-    stepsData.forEach((step, index) => {
+    stepsToUse.forEach((step, index) => {
       const stepNum = index + 1;
+      const isFirst = index === 0;
       const isLast = index === totalSteps - 1;
-      const progress = `<span class="step-badge">${stepNum} / ${totalSteps}</span>`;
+      const progress = `<span class="step-badge" dir="ltr">${stepNum}/${totalSteps}</span>`;
 
       this.addStep({
         id: step.id,
-        title: this.t(`${step.titleAr} ${progress}`, `${step.titleEn} ${progress}`),
+        title: this.t(
+          `<span class="step-title-text">${step.titleAr}</span> ${progress}`,
+          `<span class="step-title-text">${step.titleEn}</span> ${progress}`,
+        ),
         text: this.t(step.textAr, step.textEn),
         attachTo: step.attachTo,
-        position: step.position as any,
-        hasBack: step.hasBack !== false,
+        position: step.position,
+        isFirst,
         isLast,
       });
     });
@@ -182,30 +227,43 @@ export class ExitTourService {
     title: string;
     text: string;
     attachTo: string;
-    position: 'top' | 'bottom' | 'left' | 'right';
-    hasBack?: boolean;
-    isLast?: boolean;
-  }) {
-    const buttons: { text: string; action: () => void; secondary?: boolean }[] = [];
+    position: Placement;
+    isFirst: boolean;
+    isLast: boolean;
+  }): void {
+    const buttons: any[] = [];
 
-    if (config.hasBack) {
+    if (!config.isLast) {
+      buttons.push({
+        text: this.t('تخطي', 'Skip'),
+        action: () => this.tour?.cancel(),
+        classes: 'shepherd-button-skip',
+      });
+    }
+
+    if (!config.isFirst) {
       buttons.push({
         text: this.isRTL
-          ? `<i class="bi bi-arrow-right"></i> السابق`
-          : `<i class="bi bi-arrow-left"></i> Previous`,
+          ? `<i class="fa-solid fa-arrow-right"></i> السابق`
+          : `<i class="fa-solid fa-arrow-left"></i> Previous`,
         action: () => this.tour?.back(),
-        secondary: true,
-      } as any);
+        classes: 'shepherd-button-secondary',
+      });
     }
 
     if (config.isLast) {
       buttons.push({
-        text: this.isRTL ? `إنهاء <i class="bi bi-check-lg"></i>` : `Finish <i class="bi bi-check-lg"></i>`,
+        text: this.isRTL
+          ? `إنهاء <i class="fa-solid fa-check"></i>`
+          : `Finish <i class="fa-solid fa-check"></i>`,
         action: () => this.tour?.complete(),
+        classes: 'shepherd-button-finish',
       });
     } else {
       buttons.push({
-        text: this.isRTL ? `التالي <i class="bi bi-arrow-left"></i>` : `Next <i class="bi bi-arrow-right"></i>`,
+        text: this.isRTL
+          ? `التالي <i class="fa-solid fa-arrow-left"></i>`
+          : `Next <i class="fa-solid fa-arrow-right"></i>`,
         action: () => this.tour?.next(),
       });
     }
@@ -219,29 +277,6 @@ export class ExitTourService {
         on: this.pos(config.position),
       },
       buttons,
-      beforeShowPromise: () => this.waitForElement(config.attachTo).catch(() => undefined),
-    });
-  }
-
-  private waitForElement(selector: string, timeoutMs = 2500): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const start = performance.now();
-
-      const tick = () => {
-        if (document.querySelector(selector)) {
-          resolve();
-          return;
-        }
-
-        if (performance.now() - start > timeoutMs) {
-          reject(new Error(`Shepherd target not found: ${selector}`));
-          return;
-        }
-
-        requestAnimationFrame(tick);
-      };
-
-      tick();
     });
   }
 }

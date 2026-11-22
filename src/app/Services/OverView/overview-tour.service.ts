@@ -1,5 +1,6 @@
 import { Injectable, Injector, afterNextRender, effect, inject } from '@angular/core';
 import Shepherd from 'shepherd.js';
+import gsap from 'gsap';
 import { LanguageService } from '../../Services/i18n/language-service';
 
 type Placement = 'top' | 'bottom' | 'left' | 'right';
@@ -46,6 +47,13 @@ export class OverviewTourService {
     return this.isRTL ? ar : en;
   }
 
+  private prefersReducedMotion(): boolean {
+    return (
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    );
+  }
+
   startTour(): void {
     if (this.tour?.isActive()) this.tour.cancel();
     this.buildTour();
@@ -84,6 +92,47 @@ export class OverviewTourService {
     return rect.width > 0 && rect.height > 0;
   }
 
+  private animateStepElement(step: any): void {
+    if (this.prefersReducedMotion()) return;
+    const el = step?.getElement?.() as HTMLElement | null;
+    if (!el) return;
+
+    const content = el.querySelector('.shepherd-content');
+    const text = el.querySelector('.shepherd-text');
+    const footer = el.querySelector('.shepherd-footer');
+
+    if (content) {
+      gsap.fromTo(
+        content,
+        { opacity: 0, scale: 0.93, y: 12 },
+        {
+          opacity: 1,
+          scale: 1,
+          y: 0,
+          duration: 0.32,
+          ease: 'back.out(1.4)',
+          clearProps: 'transform,opacity',
+        },
+      );
+    }
+
+    if (text) {
+      gsap.fromTo(
+        text,
+        { opacity: 0, y: 6 },
+        { opacity: 1, y: 0, duration: 0.24, delay: 0.06, ease: 'power2.out', clearProps: 'transform,opacity' },
+      );
+    }
+
+    if (footer) {
+      gsap.fromTo(
+        footer,
+        { opacity: 0, y: 4 },
+        { opacity: 1, y: 0, duration: 0.22, delay: 0.1, ease: 'power2.out', clearProps: 'transform,opacity' },
+      );
+    }
+  }
+
   private buildTour(): void {
     const stepClass = this.isRTL ? 'np-shepherd-step np-shepherd-rtl' : 'np-shepherd-step';
 
@@ -98,6 +147,11 @@ export class OverviewTourService {
         cancelIcon: { enabled: true },
         canClickTarget: false,
         classes: stepClass,
+        when: {
+          show: () => {
+            this.animateStepElement(this.tour?.getCurrentStep());
+          },
+        },
         popperOptions: {
           strategy: 'fixed',
           modifiers: [
@@ -220,7 +274,6 @@ export class OverviewTourService {
       },
     ];
 
-    // Only include steps whose target element is currently visible in the DOM (no 2.5s freezes!)
     const visibleSteps = allSteps.filter((step) => this.isElementVisible(step.attachTo));
     const stepsToUse = visibleSteps.length > 0 ? visibleSteps : allSteps;
     const totalSteps = stepsToUse.length;
@@ -267,8 +320,8 @@ export class OverviewTourService {
 
     if (!config.isFirst) {
       const backText = this.isRTL
-        ? `<i class="bi bi-arrow-right"></i> السابق`
-        : `<i class="bi bi-arrow-left"></i> Previous`;
+        ? `<i class="fa-solid fa-arrow-right"></i> السابق`
+        : `<i class="fa-solid fa-arrow-left"></i> Previous`;
 
       buttons.push({
         text: backText,
@@ -279,8 +332,8 @@ export class OverviewTourService {
 
     if (config.isLast) {
       const finishText = this.isRTL
-        ? `إنهاء <i class="bi bi-check-lg"></i>`
-        : `Finish <i class="bi bi-check-lg"></i>`;
+        ? `إنهاء <i class="fa-solid fa-check"></i>`
+        : `Finish <i class="fa-solid fa-check"></i>`;
       buttons.push({
         text: finishText,
         action: () => this.tour?.complete(),
@@ -288,8 +341,8 @@ export class OverviewTourService {
       });
     } else {
       const nextText = this.isRTL
-        ? `التالي <i class="bi bi-arrow-left"></i>`
-        : `Next <i class="bi bi-arrow-right"></i>`;
+        ? `التالي <i class="fa-solid fa-arrow-left"></i>`
+        : `Next <i class="fa-solid fa-arrow-right"></i>`;
       buttons.push({
         text: nextText,
         action: () => this.tour?.next(),

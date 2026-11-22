@@ -1,4 +1,5 @@
-﻿@import 'shepherd.js/dist/css/shepherd.css';
+@import 'shepherd.js/dist/css/shepherd.css';
+@import '@fortawesome/fontawesome-free/css/all.min.css';
 
 html,
 body {
@@ -296,14 +297,85 @@ body .page-header.page-header .page-subtitle.page-subtitle {
 
 .shepherd-modal-overlay-container.shepherd-modal-is-visible {
   background: rgba(16, 36, 59, 0.52) !important;
+  transition: opacity 240ms ease;
+}
+
+.shepherd-modal-overlay-container path {
+  transition: d 280ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Smooth Step-to-Step Popup Entrance Animation (All Tour Guides) */
+.np-shepherd-step.shepherd-element {
+  will-change: transform, opacity;
+}
+
+.np-shepherd-step.shepherd-enabled {
+  animation: npShepherdPopIn 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.np-shepherd-step.shepherd-enabled .shepherd-text {
+  animation: npShepherdTextFade 240ms ease-out 50ms both;
+}
+
+.np-shepherd-step.shepherd-enabled .shepherd-footer {
+  animation: npShepherdTextFade 220ms ease-out 80ms both;
+}
+
+@keyframes npShepherdPopIn {
+  from {
+    opacity: 0;
+    scale: 0.94;
+    translate: 0 10px;
+  }
+  to {
+    opacity: 1;
+    scale: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes npShepherdTextFade {
+  from {
+    opacity: 0;
+    translate: 0 5px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
 }
 
 .shepherd-enabled.shepherd-target {
   box-shadow:
-    0 0 0 3px rgba(210, 10, 36, 0.28),
+    0 0 0 3px rgba(210, 10, 36, 0.3),
     0 12px 28px rgba(16, 36, 59, 0.16);
   border-radius: 10px;
-  transition: box-shadow 180ms ease;
+  animation: npShepherdTargetPulse 1.8s ease-in-out infinite;
+  transition: box-shadow 220ms ease;
+}
+
+@keyframes npShepherdTargetPulse {
+  0%,
+  100% {
+    box-shadow:
+      0 0 0 3px rgba(210, 10, 36, 0.28),
+      0 12px 28px rgba(16, 36, 59, 0.16);
+  }
+  50% {
+    box-shadow:
+      0 0 0 6px rgba(210, 10, 36, 0.16),
+      0 14px 32px rgba(16, 36, 59, 0.2);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .np-shepherd-step.shepherd-enabled,
+  .np-shepherd-step.shepherd-enabled .shepherd-text,
+  .np-shepherd-step.shepherd-enabled .shepherd-footer,
+  .shepherd-enabled.shepherd-target {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 @media (max-width: 576px) {

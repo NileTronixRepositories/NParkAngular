@@ -1,4 +1,4 @@
-<div
+?<div
   class="command-center"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
@@ -22,11 +22,11 @@
     >
       <div class="notification-icon" aria-hidden="true">
         <i
-          class="bi"
+          class="fa-solid"
           [ngClass]="{
-            'bi-box-arrow-in-down': n.type === 'IN',
-            'bi-box-arrow-up': n.type === 'OUT',
-            'bi-cash-coin': n.type === 'COLLECTED',
+            'fa-arrow-right-to-bracket': n.type === 'IN',
+            'fa-arrow-right-from-bracket': n.type === 'OUT',
+            'fa-coins': n.type === 'COLLECTED',
           }"
         ></i>
       </div>
@@ -54,7 +54,7 @@
   <header class="overview-header command-header">
     <div class="command-header__identity">
       <div class="header-icon-badge" aria-hidden="true">
-        <i class="bi bi-speedometer2"></i>
+        <i class="fa-solid fa-gauge-high"></i>
       </div>
       <div class="command-header__titles">
         <div class="command-title-row">
@@ -85,7 +85,7 @@
             (click)="onSearchTickets()"
             [attr.aria-label]="lang.isRTL() ? 'بحث' : 'Search'"
           >
-            <i class="bi bi-search" aria-hidden="true"></i>
+            <i class="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
           </button>
 
           <input
@@ -108,7 +108,7 @@
             (click)="clearSearch()"
             [attr.aria-label]="'clearSearch' | t"
           >
-            <i class="bi bi-x-lg" aria-hidden="true"></i>
+            <i class="fa-solid fa-xmark" aria-hidden="true"></i>
           </button>
         </div>
 
@@ -125,7 +125,7 @@
             *ngFor="let t of searchResults"
             (click)="onTicketSelected(t)"
           >
-            <i class="bi bi-ticket-perforated" aria-hidden="true"></i>
+            <i class="fa-solid fa-ticket" aria-hidden="true"></i>
             <span>
               {{
                 t.ticketNumber ||
@@ -178,7 +178,7 @@
           (click)="loadDashboard()"
           [disabled]="loading() || refreshing()"
         >
-          <i class="bi bi-arrow-repeat" [class.spin-icon]="refreshing()" aria-hidden="true"></i>
+          <i class="fa-solid fa-arrows-rotate" [class.spin-icon]="refreshing()" aria-hidden="true"></i>
           <span>{{ 'applyDate' | t }}</span>
         </button>
       </div>
@@ -191,7 +191,7 @@
           (click)="toggleMobileFilters()"
           [attr.aria-expanded]="mobileFiltersOpen()"
         >
-          <i class="bi bi-calendar3" aria-hidden="true"></i>
+          <i class="fa-regular fa-calendar-days" aria-hidden="true"></i>
           <span>{{ 'filters' | t }}</span>
         </button>
 
@@ -200,7 +200,7 @@
           class="toolbar-btn toolbar-btn--ghost btn-help-tour-overview"
           (click)="startAdminTour()"
         >
-          <i class="bi bi-question-circle" aria-hidden="true"></i>
+          <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
           <span>{{ 'helpTour' | t }}</span>
         </button>
       </div>
@@ -238,14 +238,14 @@
        ========================== -->
   <div *ngIf="errorMessage() && !loading()" class="error-state-card" role="alert">
     <div class="error-state-icon" aria-hidden="true">
-      <i class="bi bi-exclamation-triangle-fill"></i>
+      <i class="fa-solid fa-triangle-exclamation"></i>
     </div>
     <div class="error-state-body">
       <h2>{{ 'error' | t }}</h2>
       <p>{{ errorMessage() }}</p>
     </div>
     <button type="button" class="retry-btn" (click)="loadDashboard()">
-      <i class="bi bi-arrow-clockwise" aria-hidden="true"></i>
+      <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
       <span>{{ 'retry' | t }}</span>
     </button>
   </div>
@@ -261,16 +261,16 @@
         [label]="'totalRevenue' | t"
         [value]="formatCurrency(totalRevenue())"
         [unit]="'egp' | t"
-        icon="bi bi-cash-stack"
+        icon="fa-solid fa-money-bill-wave"
         tone="navy"
       >
         <span class="meta-chip meta-chip--success">
-          <i class="bi bi-check-circle-fill" aria-hidden="true"></i>
+          <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
           {{ 'collected' | t }}:
           <strong dir="ltr">{{ formatCurrency(collectedRevenue()) }}</strong>
         </span>
         <span class="meta-chip meta-chip--warning">
-          <i class="bi bi-clock-fill" aria-hidden="true"></i>
+          <i class="fa-solid fa-clock" aria-hidden="true"></i>
           {{ 'pending' | t }}:
           <strong dir="ltr">{{ formatCurrency(pendingRevenue()) }}</strong>
         </span>
@@ -281,17 +281,17 @@
         class="occupancy-card"
         [label]="'occupancy' | t"
         [value]="(occupancyPercentage() | number: '1.0-1') + '%'"
-        icon="bi bi-car-front-fill"
+        icon="fa-solid fa-car"
         [tone]="occupancyTone()"
         [clickable]="true"
         (cardClick)="showOccupancyDetails()"
       >
         <span class="meta-chip">
-          <i class="bi bi-arrow-down-circle" aria-hidden="true"></i>
+          <i class="fa-solid fa-circle-arrow-down" aria-hidden="true"></i>
           {{ 'inside' | t }}: <strong dir="ltr">{{ currentVehiclesInside() }}</strong>
         </span>
         <span class="meta-chip">
-          <i class="bi bi-check2-square" aria-hidden="true"></i>
+          <i class="fa-regular fa-square-check" aria-hidden="true"></i>
           {{ 'free' | t }}: <strong dir="ltr">{{ estimatedFreeSlots() }}</strong>
         </span>
       </app-overview-kpi-card>
@@ -301,7 +301,7 @@
         class="tickets-today-card"
         [label]="'ticketsToday' | t"
         [value]="ticketFlowCount()"
-        icon="bi bi-ticket-perforated-fill"
+        icon="fa-solid fa-ticket"
         tone="blue"
       >
         <button
@@ -309,12 +309,12 @@
           class="meta-chip meta-chip--interactive"
           (click)="showTicketsTodayDetails('entry')"
         >
-          <i class="bi bi-box-arrow-in-down" aria-hidden="true"></i>
+          <i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i>
           {{ 'ticketEnterToday' | t }}: <strong dir="ltr">{{ ticketEnterToday() }}</strong>
         </button>
 
         <span class="meta-chip">
-          <i class="bi bi-hourglass-split" aria-hidden="true"></i>
+          <i class="fa-solid fa-hourglass-half" aria-hidden="true"></i>
           {{ 'ticketEnterNotTodayButNotExitYet' | t }}:
           <strong dir="ltr">{{ ticketEnterNotTodayButNotExitYet() }}</strong>
         </span>
@@ -324,7 +324,7 @@
           class="meta-chip meta-chip--interactive"
           (click)="showTicketsTodayDetails('exit')"
         >
-          <i class="bi bi-box-arrow-up" aria-hidden="true"></i>
+          <i class="fa-solid fa-arrow-right-from-bracket" aria-hidden="true"></i>
           {{ 'exitTicketsCount' | t }}: <strong dir="ltr">{{ exitTicketsCount() }}</strong>
         </button>
       </app-overview-kpi-card>
@@ -335,7 +335,7 @@
         [label]="'memberships' | t"
         [value]="activeSubscriptionCount()"
         [unit]="'/ ' + subscriptionCount()"
-        icon="bi bi-person-badge-fill"
+        icon="fa-solid fa-id-badge"
         tone="amber"
       >
         <button
@@ -360,7 +360,7 @@
           class="meta-chip meta-chip--warning meta-chip--interactive"
           (click)="openMembershipModal('expiring')"
         >
-          <i class="bi bi-exclamation-triangle-fill" aria-hidden="true"></i>
+          <i class="fa-solid fa-triangle-exclamation" aria-hidden="true"></i>
           {{ 'expiringNext7Days' | t }}:
           <strong dir="ltr">{{ membershipsExpiringNext7Days() }}</strong>
         </button>
@@ -716,11 +716,11 @@
                     <strong>{{ formatCurrency(gate.totalPrice) }}</strong>
                   </span>
                   <i
-                    class="bi"
+                    class="fa-solid"
                     [ngClass]="
                       expandedGateKey() === 'entry-' + gate.gateNumber
-                        ? 'bi-chevron-up'
-                        : 'bi-chevron-down'
+                        ? 'fa-chevron-up'
+                        : 'fa-chevron-down'
                     "
                     aria-hidden="true"
                   ></i>
@@ -854,11 +854,11 @@
                     <strong>{{ formatCurrency(gate.totalExceedAmount) }}</strong>
                   </span>
                   <i
-                    class="bi"
+                    class="fa-solid"
                     [ngClass]="
                       expandedGateKey() === 'exit-' + gate.gateNumber
-                        ? 'bi-chevron-up'
-                        : 'bi-chevron-down'
+                        ? 'fa-chevron-up'
+                        : 'fa-chevron-down'
                     "
                     aria-hidden="true"
                   ></i>
@@ -1078,7 +1078,7 @@
         <!-- Duration Metrics -->
         <div class="metric-cell overview-duration-card">
           <span class="metric-accent metric-accent--teal" aria-hidden="true">
-            <i class="bi bi-clock"></i>
+            <i class="fa-regular fa-clock"></i>
           </span>
           <div class="metric-cell__body">
             <span class="metric-cell__label">{{ 'avgDuration' | t }} / {{ 'maxDuration' | t }}</span>
@@ -1092,7 +1092,7 @@
         <!-- Busiest Gate -->
         <div class="metric-cell overview-top-performers-card">
           <span class="metric-accent metric-accent--navy" aria-hidden="true">
-            <i class="bi bi-trophy"></i>
+            <i class="fa-solid fa-trophy"></i>
           </span>
           <div class="metric-cell__body">
             <span class="metric-cell__label">{{ 'busiestGate' | t }}</span>
@@ -1106,7 +1106,7 @@
         <!-- Top Collector -->
         <div class="metric-cell">
           <span class="metric-accent metric-accent--blue" aria-hidden="true">
-            <i class="bi bi-person-check"></i>
+            <i class="fa-solid fa-user-check"></i>
           </span>
           <div class="metric-cell__body">
             <span class="metric-cell__label">{{ 'topCollector' | t }}</span>
@@ -1121,7 +1121,7 @@
         <!-- Top Exceed Supervisor -->
         <div class="metric-cell">
           <span class="metric-accent metric-accent--amber" aria-hidden="true">
-            <i class="bi bi-shield-check"></i>
+            <i class="fa-solid fa-shield-halved"></i>
           </span>
           <div class="metric-cell__body">
             <span class="metric-cell__label">{{ 'topExceedCollector' | t }}</span>
@@ -1136,7 +1136,7 @@
         <!-- Exceed / Fine Analytics -->
         <div class="metric-cell overview-exceed-analytics-card">
           <span class="metric-accent metric-accent--red" aria-hidden="true">
-            <i class="bi bi-exclamation-circle"></i>
+            <i class="fa-solid fa-circle-exclamation"></i>
           </span>
           <div class="metric-cell__body">
             <span class="metric-cell__label">{{ 'exceededTickets' | t }}</span>

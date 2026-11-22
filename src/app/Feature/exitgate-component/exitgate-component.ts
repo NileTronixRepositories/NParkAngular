@@ -993,6 +993,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.exitTour.cancelTour();
     this.hubSubscriptions.unsubscribe();
     this.dashboardHub.stop();
     this.scanHub.stop();

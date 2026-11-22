@@ -1,5 +1,6 @@
 import { Injectable, Injector, effect, inject } from '@angular/core';
 import Shepherd from 'shepherd.js';
+import { animateShepherdStep } from '../Shared/tour-animation.helper';
 import { LanguageService } from '../../Services/i18n/language-service';
 
 type Placement = 'top' | 'bottom' | 'left' | 'right';

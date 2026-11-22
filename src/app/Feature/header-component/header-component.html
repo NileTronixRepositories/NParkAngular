@@ -10,12 +10,12 @@
 
     <div class="header-actions">
       <button type="button" class="header-btn lang-btn" (click)="switchLang()">
-        <i class="bi bi-translate"></i>
+        <i class="fa-solid fa-language"></i>
         <span>{{ langLabel }}</span>
       </button>
 
       <button type="button" class="header-btn logout-btn" (click)="logout()">
-        <i class="bi" [ngClass]="lang.isRTL() ? 'bi-box-arrow-left' : 'bi-box-arrow-right'"></i>
+        <i class="fa-solid" [ngClass]="lang.isRTL() ? 'fa-right-from-bracket fa-flip-horizontal' : 'fa-right-from-bracket'"></i>
         <span>{{ logoutLabel }}</span>
       </button>
     </div>
