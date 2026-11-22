@@ -1,17 +1,17 @@
-<div class="users-theme container-fluid py-2" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
+<div class="users-theme container-fluid px-2 px-sm-3 py-2" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- Page Header -->
-  <div class="page-header users-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
+  <div class="page-header users-header mb-3 fade-in-down">
     <div
-      class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3"
+      class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2"
     >
-      <div class="d-flex align-items-center gap-3">
-        <div class="header-icon-wrapper rounded-3">
-          <i class="bi bi-people-fill header-icon fs-4"></i>
+      <div class="d-flex align-items-center gap-2 gap-sm-3 min-w-0">
+        <div class="header-icon-wrapper">
+          <i class="fa-solid fa-users header-icon"></i>
         </div>
-        <div>
+        <div class="min-w-0">
           <h1 class="page-title mb-0 fw-bold">{{ t('users') }}</h1>
-          <p class="page-subtitle mb-0 small opacity-75">
-            {{ t('users_management_subtitle') || 'Manage system users and their roles' }}
+          <p class="page-subtitle mb-0 text-truncate">
+            {{ t('users_management_subtitle') }}
           </p>
         </div>
       </div>
@@ -23,18 +23,18 @@
           class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour btn-help-tour-users flex-grow-1 flex-md-grow-0"
           (click)="startUsersTour()"
         >
-          <i class="bi bi-question-circle"></i>
+          <i class="fa-solid fa-circle-question"></i>
           <span>{{ 'helpTour' | t }}</span>
         </button>
 
         <!-- Add button -->
         <button
-          class="btn btn-light btn-sm rounded-pill d-flex align-items-center justify-content-center gap-2 px-3 shadow-sm btn-users-add flex-grow-1 flex-md-grow-0"
+          class="btn btn-users-add flex-grow-1 flex-md-grow-0"
           type="button"
           (click)="openAdd()"
         >
-          <i class="bi bi-person-plus-fill text-primary"></i>
-          <span class="fw-bold">{{ t('add_new') }}</span>
+          <i class="fa-solid fa-user-plus"></i>
+          <span>{{ t('add_new') }}</span>
         </button>
       </div>
     </div>
@@ -42,39 +42,39 @@
 
   <!-- Inline Form Card -->
   <div
-    class="card shadow-soft border-0 mb-3 bg-white fade-in-down users-form-card rounded-4"
+    class="card usr-card mb-3 fade-in-down users-form-card"
+    [class.users-form-card--edit]="isEdit"
     *ngIf="showForm"
   >
-    <div
-      class="card-header bg-white d-flex justify-content-between align-items-center py-2 px-3 border-bottom-0"
-    >
-      <h6 class="mb-0 fw-bold">
-        <i
-          class="bi"
-          [ngClass]="isEdit ? 'bi-pencil-square text-warning' : 'bi-plus-circle-fill text-success'"
-        ></i>
-        {{ isEdit ? t('edit_user') : t('add_user') }}
-      </h6>
+    <div class="card-header d-flex justify-content-between align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <span class="panel-icon" [ngClass]="isEdit ? 'panel-icon--amber' : 'panel-icon--emerald'">
+          <i class="fa-solid" [ngClass]="isEdit ? 'fa-user-pen' : 'fa-user-plus'"></i>
+        </span>
+        <h6 class="mb-0 fw-bold">
+          {{ isEdit ? t('edit_user') : t('add_user') }}
+        </h6>
+      </div>
       <button
-        class="btn btn-xs btn-outline-secondary rounded-circle"
+        class="btn btn-close-form"
         type="button"
         (click)="cancel()"
         [disabled]="saving"
         [title]="t('close')"
       >
-        <i class="bi bi-x-lg"></i>
+        <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
 
-    <div class="card-body p-3">
+    <div class="card-body">
       <form (ngSubmit)="save()">
-        <div class="row g-2">
-          <!-- Name area -->
-          <div class="col-md-4">
-            <label class="form-label small mb-1">{{ t('name') }}</label>
+        <div class="row g-3">
+          <!-- Name -->
+          <div class="col-12 col-md-4">
+            <label class="form-label field-label mb-1">{{ t('name') }}</label>
             <input
               type="text"
-              class="form-control form-control-sm"
+              class="form-control form-control-sm usr-input"
               [(ngModel)]="model.userName"
               name="userName"
               required
@@ -83,23 +83,24 @@
           </div>
 
           <!-- Email -->
-          <div class="col-md-4">
-            <label class="form-label small mb-1">{{ t('email') }}</label>
+          <div class="col-12 col-md-4">
+            <label class="form-label field-label mb-1">{{ t('email') }}</label>
             <input
               type="email"
-              class="form-control form-control-sm"
+              class="form-control form-control-sm usr-input"
               [(ngModel)]="model.email"
               name="email"
+              dir="ltr"
               required
               [disabled]="saving"
             />
           </div>
 
           <!-- Role -->
-          <div class="col-md-4">
-            <label class="form-label small mb-1">{{ t('role') }}</label>
+          <div class="col-12 col-md-4">
+            <label class="form-label field-label mb-1">{{ t('role') }}</label>
             <select
-              class="form-select form-select-sm users-role-select"
+              class="form-select form-select-sm usr-input users-role-select"
               [(ngModel)]="model.roleId"
               (ngModelChange)="onRoleChanged($event)"
               name="roleId"
@@ -115,8 +116,8 @@
           </div>
 
           <ng-container *ngIf="isCashierRoleSelected()">
-            <div class="col-md-3">
-              <label class="form-label small mb-1">
+            <div class="col-6 col-md-3">
+              <label class="form-label field-label mb-1">
                 {{ t('shiftStartTime') }} <span class="text-danger">*</span>
               </label>
               <input
@@ -125,16 +126,17 @@
                 maxlength="5"
                 pattern="^([01][0-9]|2[0-3]):[0-5][0-9]$"
                 placeholder="08:00"
-                class="form-control form-control-sm"
+                class="form-control form-control-sm usr-input mono"
                 [(ngModel)]="model.shiftStartTime"
                 name="shiftStartTime"
+                dir="ltr"
                 required
                 [disabled]="saving"
               />
             </div>
 
-            <div class="col-md-3">
-              <label class="form-label small mb-1">
+            <div class="col-6 col-md-3">
+              <label class="form-label field-label mb-1">
                 {{ t('shiftEndTime') }} <span class="text-danger">*</span>
               </label>
               <input
@@ -143,36 +145,36 @@
                 maxlength="5"
                 pattern="^([01][0-9]|2[0-3]):[0-5][0-9]$"
                 placeholder="16:00"
-                class="form-control form-control-sm"
+                class="form-control form-control-sm usr-input mono"
                 [(ngModel)]="model.shiftEndTime"
                 name="shiftEndTime"
+                dir="ltr"
                 required
                 [disabled]="saving"
               />
             </div>
           </ng-container>
 
-          <div class="col-md-12" *ngIf="isEdit && !changePasswordMode">
+          <div class="col-12" *ngIf="isEdit && !changePasswordMode">
             <button
               type="button"
-              class="btn btn-outline-primary btn-sm d-inline-flex align-items-center gap-2"
+              class="btn btn-change-pwd"
               (click)="toggleChangePassword()"
               [disabled]="saving"
             >
-              <i class="bi bi-key"></i>
+              <i class="fa-solid fa-key"></i>
               <span>{{ t('change_password') }}</span>
             </button>
           </div>
 
           <!-- Password -->
-          <div [class]="isEdit ? 'col-md-12' : 'col-md-6'" *ngIf="!isEdit || changePasswordMode">
-            <label class="form-label small mb-1">
-              {{ t('password') }}
-              <span class="text-danger">*</span>
+          <div [class]="isEdit ? 'col-12 col-md-6' : 'col-12 col-md-4'" *ngIf="!isEdit || changePasswordMode">
+            <label class="form-label field-label mb-1 d-flex align-items-center justify-content-between">
+              <span>{{ t('password') }} <span class="text-danger">*</span></span>
               <button
                 *ngIf="isEdit"
                 type="button"
-                class="btn btn-link btn-sm p-0 ms-2 text-decoration-none"
+                class="btn btn-link btn-sm p-0 text-decoration-none x-small"
                 (click)="toggleChangePassword()"
                 [disabled]="saving"
               >
@@ -182,43 +184,46 @@
             <div class="input-group input-group-sm">
               <input
                 [type]="showPassword ? 'text' : 'password'"
-                class="form-control"
+                class="form-control usr-input"
                 [(ngModel)]="model.password"
                 name="password"
+                dir="ltr"
                 required
                 [disabled]="saving"
               />
               <button
-                class="btn btn-outline-secondary"
+                class="btn btn-eye-toggle"
                 type="button"
                 (click)="showPassword = !showPassword"
                 [title]="showPassword ? t('hide_password') : t('show_password')"
               >
-                <i class="bi" [ngClass]="showPassword ? 'bi-eye-slash' : 'bi-eye'"></i>
+                <i class="fa-regular" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
               </button>
             </div>
           </div>
 
-          <!-- Second Row (only for New User) -->
+          <!-- Only for New User -->
           <ng-container *ngIf="!isEdit">
-            <div class="col-md-6">
-              <label class="form-label small mb-1">{{ t('phone') }}</label>
+            <div class="col-12 col-md-4">
+              <label class="form-label field-label mb-1">{{ t('phone') }}</label>
               <input
                 type="text"
-                class="form-control form-control-sm"
+                class="form-control form-control-sm usr-input mono"
                 [(ngModel)]="model.phoneNumber"
                 name="phoneNumber"
+                dir="ltr"
                 required
                 [disabled]="saving"
               />
             </div>
-            <div class="col-md-4">
-              <label class="form-label small mb-1">{{ t('nationalId') }}</label>
+            <div class="col-12 col-md-4">
+              <label class="form-label field-label mb-1">{{ t('nationalId') }}</label>
               <input
                 type="text"
-                class="form-control form-control-sm"
+                class="form-control form-control-sm usr-input mono"
                 [(ngModel)]="model.nationalId"
                 name="nationalId"
+                dir="ltr"
                 required
                 [disabled]="saving"
               />
@@ -226,9 +231,9 @@
           </ng-container>
         </div>
 
-        <div class="mt-3 d-flex align-items-center justify-content-end gap-2">
+        <div class="mt-3 pt-2 border-top d-flex align-items-center justify-content-end gap-2">
           <button
-            class="btn btn-outline-secondary btn-sm px-3"
+            class="btn btn-cancel-usr"
             type="button"
             (click)="cancel()"
             [disabled]="saving"
@@ -236,98 +241,166 @@
             {{ t('cancel') }}
           </button>
           <button
-            class="btn btn-primary btn-sm px-4 shadow-sm users-btn-save"
+            class="btn btn-save-usr users-btn-save"
             type="submit"
             [disabled]="saving"
           >
-            <i class="bi me-1" [ngClass]="isEdit ? 'bi-save' : 'bi-person-plus-fill'"></i>
-            {{ saving ? t('saving') : isEdit ? t('save') : t('create') }}
+            <i class="fa-solid" [ngClass]="isEdit ? 'fa-floppy-disk' : 'fa-user-plus'"></i>
+            <span>{{ saving ? t('saving') : isEdit ? t('save') : t('create') }}</span>
           </button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Table card -->
-  <div class="card shadow-soft border-0 users-table-card bg-white rounded-4 overflow-hidden">
-    <div
-      class="card-header py-2 px-3 d-flex align-items-center justify-content-between bg-white border-bottom"
-    >
-      <h6 class="mb-0 fw-bold">
-        <i class="bi bi-list-task me-1"></i> {{ t('users_list') || 'Users Registry' }}
-      </h6>
-      <span class="badge bg-light text-dark border small fw-normal"
-        >{{ users.length }} {{ t('total') }}</span
-      >
+  <!-- Users Table Card -->
+  <div class="card usr-card users-table-card">
+    <div class="card-header d-flex align-items-center justify-content-between gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <span class="panel-icon panel-icon--indigo">
+          <i class="fa-solid fa-users"></i>
+        </span>
+        <h6 class="mb-0 fw-bold">{{ t('users_list') }}</h6>
+      </div>
+      <span class="count-pill count-pill--indigo mono">{{ users.length }} {{ t('total') }}</span>
     </div>
 
     <div class="card-body p-0">
-      <div class="table-responsive">
-        <table class="table table-sm table-hover align-middle mb-0">
-          <thead class="table-light x-small">
+      <!-- Desktop Table (>= 768px) -->
+      <div class="table-responsive d-none d-md-block" *ngIf="!loading">
+        <table class="table table-hover align-middle mb-0 usr-table">
+          <thead>
             <tr>
               <th class="ps-3">{{ t('name') }}</th>
-              <th class="d-none d-md-table-cell">{{ t('email') }}</th>
-              <th class="col-role">{{ t('role') }}</th>
-              <th class="d-none d-lg-table-cell">{{ t('shift') }}</th>
+              <th>{{ t('email') }}</th>
+              <th>{{ t('role') }}</th>
+              <th>{{ t('shift') }}</th>
               <th class="text-end pe-3">{{ t('actions') }}</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let u of users; trackBy: trackById" class="small">
-              <td
-                class="ps-3 fw-semibold text-primary text-truncate"
-                style="max-width: 120px"
-                [title]="u.name"
-              >
-                {{ u.name }}
+            <tr *ngFor="let u of users; trackBy: trackById">
+              <td class="ps-3">
+                <div class="d-flex align-items-center gap-2">
+                  <span class="usr-avatar">
+                    <i class="fa-solid fa-user"></i>
+                  </span>
+                  <span class="fw-bold text-dark text-truncate" [title]="u.name">{{ u.name }}</span>
+                </div>
               </td>
-              <td class="mono x-small text-muted d-none d-md-table-cell">{{ u.email }}</td>
+              <td class="mono small text-muted" dir="ltr">{{ u.email }}</td>
               <td>
                 <span
-                  class="badge rounded-pill bg-warning-subtle text-warning-emphasis border x-small"
-                  *ngIf="u.roleName === 'Admin'"
+                  class="role-pill"
+                  [ngClass]="{
+                    'role-pill--admin': u.roleName === 'Admin',
+                    'role-pill--supervisor': u.roleName === 'Supervisor',
+                    'role-pill--entry': u.roleName === 'EntranceCashier',
+                    'role-pill--exit': u.roleName === 'ExitCashier',
+                    'role-pill--default':
+                      u.roleName !== 'Admin' &&
+                      u.roleName !== 'Supervisor' &&
+                      u.roleName !== 'EntranceCashier' &&
+                      u.roleName !== 'ExitCashier',
+                  }"
                 >
-                  {{ t('admin') }}
-                </span>
-                <span
-                  class="badge rounded-pill bg-info-subtle text-info-emphasis border x-small"
-                  *ngIf="u.roleName !== 'Admin'"
-                >
-                  {{ u.roleName }}
+                  {{ u.roleName === 'Admin' ? t('admin') : u.roleName }}
                 </span>
               </td>
-              <td class="mono x-small text-muted d-none d-lg-table-cell">
-                {{ formatShiftRange(u) }}
-              </td>
+              <td class="mono small text-muted">{{ formatShiftRange(u) }}</td>
               <td class="pe-3">
-                <div class="d-flex justify-content-end">
+                <div class="d-flex justify-content-end gap-1">
                   <button
-                    class="btn btn-sm btn-outline-primary"
+                    type="button"
+                    class="btn row-action-btn row-action-btn--edit"
                     (click)="openEdit(u)"
                     [title]="t('edit')"
                   >
-                    <i class="bi bi-pencil"></i>
+                    <i class="fa-regular fa-pen-to-square"></i>
                   </button>
                   <button
-                    class="btn btn-sm btn-outline-danger"
+                    type="button"
+                    class="btn row-action-btn row-action-btn--delete"
                     (click)="deleteUser(u)"
                     [title]="t('delete')"
                   >
-                    <i class="bi bi-trash"></i>
+                    <i class="fa-regular fa-trash-can"></i>
                   </button>
                 </div>
               </td>
             </tr>
 
-            <tr *ngIf="!users.length && !loading">
-              <td colspan="5" class="text-center text-muted py-5 x-small">
-                <i class="bi bi-person-exclamation fs-3 d-block mb-1"></i>
-                {{ t('no_users') }}
+            <tr *ngIf="!users.length">
+              <td colspan="5" class="text-center text-muted py-5">
+                <i class="fa-solid fa-users-slash fs-3 d-block mb-2 opacity-50"></i>
+                <span class="small fw-semibold">{{ t('no_users') }}</span>
               </td>
             </tr>
           </tbody>
         </table>
+      </div>
+
+      <!-- Mobile User Cards (< 768px) -->
+      <div class="mobile-users-list d-md-none p-2" *ngIf="!loading">
+        <div class="mobile-user-card" *ngFor="let u of users; trackBy: trackById">
+          <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+            <div class="d-flex align-items-center gap-2 min-w-0">
+              <span class="usr-avatar">
+                <i class="fa-solid fa-user"></i>
+              </span>
+              <span class="fw-bold text-dark text-truncate">{{ u.name }}</span>
+            </div>
+            <span
+              class="role-pill flex-shrink-0"
+              [ngClass]="{
+                'role-pill--admin': u.roleName === 'Admin',
+                'role-pill--supervisor': u.roleName === 'Supervisor',
+                'role-pill--entry': u.roleName === 'EntranceCashier',
+                'role-pill--exit': u.roleName === 'ExitCashier',
+                'role-pill--default':
+                  u.roleName !== 'Admin' &&
+                  u.roleName !== 'Supervisor' &&
+                  u.roleName !== 'EntranceCashier' &&
+                  u.roleName !== 'ExitCashier',
+              }"
+            >
+              {{ u.roleName === 'Admin' ? t('admin') : u.roleName }}
+            </span>
+          </div>
+
+          <div class="mobile-user-meta">
+            <div>
+              <span class="meta-k">{{ t('email') }}</span>
+              <strong class="mono text-break" dir="ltr">{{ u.email }}</strong>
+            </div>
+            <div>
+              <span class="meta-k">{{ t('shift') }}</span>
+              <strong class="mono">{{ formatShiftRange(u) }}</strong>
+            </div>
+          </div>
+
+          <div class="d-flex gap-2 mt-2 pt-2 border-top">
+            <button
+              type="button"
+              class="btn row-action-btn row-action-btn--edit flex-grow-1"
+              (click)="openEdit(u)"
+            >
+              <i class="fa-regular fa-pen-to-square me-1"></i>{{ t('edit') }}
+            </button>
+            <button
+              type="button"
+              class="btn row-action-btn row-action-btn--delete flex-grow-1"
+              (click)="deleteUser(u)"
+            >
+              <i class="fa-regular fa-trash-can me-1"></i>{{ t('delete') }}
+            </button>
+          </div>
+        </div>
+
+        <div *ngIf="!users.length" class="text-center text-muted py-4">
+          <i class="fa-solid fa-users-slash fs-3 d-block mb-2 opacity-50"></i>
+          <span class="small fw-semibold">{{ t('no_users') }}</span>
+        </div>
       </div>
 
       <div *ngIf="loading" class="p-4 text-center">

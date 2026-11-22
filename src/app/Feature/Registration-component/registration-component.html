@@ -1,21 +1,21 @@
 <div
-  class="registration-page container-fluid py-2"
+  class="registration-page container-fluid px-2 px-sm-3 py-2"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
   [class.page-ltr]="!lang.isRTL()"
 >
-  <!--  Page Header  -->
-  <div class="page-header registration-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
+  <!-- Page Header -->
+  <div class="page-header registration-header mb-3 fade-in-down">
     <div
-      class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3"
+      class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2"
     >
-      <div class="d-flex align-items-center gap-3">
-        <div class="header-icon-wrapper rounded-3">
-          <i class="bi bi-person-badge-fill header-icon fs-4"></i>
+      <div class="d-flex align-items-center gap-2 gap-sm-3 min-w-0">
+        <div class="header-icon-wrapper">
+          <i class="fa-solid fa-id-badge header-icon"></i>
         </div>
-        <div>
+        <div class="min-w-0">
           <h1 class="page-title mb-0 fw-bold">{{ 'registrationTitle' | t }}</h1>
-          <p class="page-subtitle mb-0 small opacity-75">
+          <p class="page-subtitle mb-0 text-truncate">
             {{ 'registrationSubtitle' | t }} — ({{ totalItems() }} {{ 'total' | t }})
           </p>
         </div>
@@ -23,20 +23,20 @@
 
       <div class="d-flex align-items-center gap-2 align-self-stretch align-self-md-auto">
         <div
-          class="header-badge-mini d-none d-sm-flex align-items-center gap-2 bg-white bg-opacity-10 px-3 py-1 rounded-pill"
+          class="header-badge-mini d-none d-sm-flex align-items-center gap-2"
           *ngIf="isEditing()"
         >
-          <span class="dot-edit bg-warning rounded-circle" style="width: 8px; height: 8px"></span>
-          <span class="small text-white">{{ 'updateSubscription' | t }}</span>
+          <span class="dot-edit"></span>
+          <span>{{ 'updateSubscription' | t }}</span>
         </div>
 
-        <!--  Help Tour Button -->
+        <!-- Help Tour Button -->
         <button
           type="button"
           class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour btn-help-tour-registration flex-grow-1 flex-md-grow-0"
           (click)="startRegistrationTour()"
         >
-          <i class="bi bi-question-circle"></i>
+          <i class="fa-solid fa-circle-question"></i>
           <span>{{ 'helpTour' | t }}</span>
         </button>
       </div>
@@ -45,297 +45,295 @@
 
   <!-- ===== 1) Form (Create / Edit Membership) ===== -->
   <form class="registration-form" [formGroup]="form" (ngSubmit)="save()" novalidate>
-    <div class="row g-2">
-      <!-- بطاقة بيانات المشترك -->
-      <div class="col-12 col-lg-4">
-        <div class="card shadow-soft border-0 h-100 bg-white reg-card-subscriber rounded-4">
-          <div
-            class="card-header py-2 px-3 d-flex align-items-center justify-content-between bg-white border-bottom-0"
-          >
-            <div class="d-flex align-items-center gap-2">
-              <i class="bi bi-person-vcard text-primary"></i>
-              <h6 class="mb-0 fw-bold">{{ 'subscriberCard' | t }}</h6>
-            </div>
-            <span
-              class="badge rounded-pill bg-info-subtle text-info-emphasis border small"
-              *ngIf="!isEditing()"
-            >
-              {{ 'newBadge' | t }}
+    <div class="reg-form-grid">
+      <!-- Card 1: Subscriber Info -->
+      <div class="card reg-card reg-card-subscriber">
+        <div class="card-header d-flex align-items-center justify-content-between gap-2">
+          <div class="d-flex align-items-center gap-2 min-w-0">
+            <span class="panel-icon panel-icon--indigo">
+              <i class="fa-solid fa-id-card"></i>
             </span>
-            <span
-              class="badge rounded-pill bg-warning-subtle text-warning-emphasis border small"
-              *ngIf="isEditing()"
-            >
-              {{ 'updateSubscription' | t }}
-            </span>
+            <h6 class="mb-0 fw-bold text-truncate">{{ 'subscriberCard' | t }}</h6>
           </div>
+          <span class="status-chip status-chip--new" *ngIf="!isEditing()">
+            {{ 'newBadge' | t }}
+          </span>
+          <span class="status-chip status-chip--edit" *ngIf="isEditing()">
+            {{ 'updateSubscription' | t }}
+          </span>
+        </div>
 
-          <div class="card-body p-2">
-            <div class="mb-2" formGroupName="plate">
-              <label class="form-label small mb-1">{{ 'plateNumber' | t }}</label>
+        <div class="card-body">
+          <div class="mb-2" formGroupName="plate">
+            <label class="form-label field-label mb-1">{{ 'plateNumber' | t }}</label>
 
-              <div class="plate-input-compact">
+            <div class="plate-input-compact">
+              <div class="plate-top-strip" dir="ltr">
+                <span>EGYPT</span>
+                <span>مصر</span>
+              </div>
+              <div class="plate-fields-row">
                 <input
                   maxlength="5"
-                  class="form-control form-control-sm text-center fw-bold"
+                  class="plate-field mono"
                   formControlName="p4"
                   inputmode="numeric"
                   pattern="[0-9]*"
                   [placeholder]="'plateExampleNumbers' | t"
                   dir="ltr"
                 />
-                <span class="text-muted mx-1">ـ</span>
+                <span class="plate-divider" aria-hidden="true"></span>
                 <input
                   maxlength="7"
-                  class="form-control form-control-sm text-center fw-bold"
+                  class="plate-field"
                   formControlName="p2"
                   (input)="formatLetters('p2')"
                   [placeholder]="'plateExampleLetters' | t"
                 />
               </div>
-
-              <div
-                class="invalid-feedback d-block x-small"
-                *ngIf="form.get('plate')?.touched && form.get('plate')?.invalid"
-              >
-                {{ 'plateIncomplete' | t }}
-              </div>
-            </div>
-
-            <div class="row g-2">
-              <div class="col-12">
-                <label class="form-label small mb-1">{{ 'subscriberName' | t }}</label>
-                <input
-                  class="form-control form-control-sm"
-                  formControlName="subscriberName"
-                  [placeholder]="'namePlaceholder' | t"
-                />
-                <div class="invalid-feedback d-block x-small" *ngIf="hasErr('subscriberName')">
-                  {{ 'nameRequired' | t }}
-                </div>
-              </div>
-
-              <div class="col-6">
-                <label class="form-label small mb-1">{{ 'phone' | t }}</label>
-                <input
-                  class="form-control form-control-sm"
-                  formControlName="phone"
-                  [placeholder]="'phonePlaceholder' | t"
-                  dir="ltr"
-                />
-                <div class="invalid-feedback d-block x-small" *ngIf="hasErr('phone')">
-                  {{ 'phoneInvalid' | t }}
-                </div>
-              </div>
-
-              <div class="col-6">
-                <label class="form-label small mb-1">{{ 'nationalId' | t }}</label>
-                <input
-                  class="form-control form-control-sm"
-                  formControlName="nationalId"
-                  [placeholder]="'nationalIdPlaceholder' | t"
-                  dir="ltr"
-                />
-                <div class="invalid-feedback d-block x-small" *ngIf="hasErr('nationalId')">
-                  {{ 'nationalIdInvalid' | t }}
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== 2) تفاصيل الاشتراك ===== -->
-      <div class="col-12 col-lg-4">
-        <div class="card shadow-soft border-0 h-100 bg-white reg-card-schema rounded-4">
-          <div
-            class="card-header py-2 px-3 d-flex align-items-center justify-content-between bg-white border-bottom-0"
-          >
-            <h6 class="mb-0 fw-bold">{{ 'subscriptionType' | t }}</h6>
-            <span
-              *ngIf="loadingSchemas()"
-              class="spinner-border spinner-border-sm text-muted"
-            ></span>
-          </div>
-
-          <div class="card-body p-2">
-            <div class="mb-3">
-              <label class="form-label small mb-1">{{ 'chooseSubscription' | t }}</label>
-              <select class="form-select form-select-sm" formControlName="pricingSchemaId">
-                <option [ngValue]="null" disabled>
-                  {{ 'chooseSubscriptionPlaceholder' | t }}
-                </option>
-                <option *ngFor="let s of schemas()" [value]="s.id">
-                  {{ s.name }}
-                </option>
-              </select>
-              <div
-                class="invalid-feedback d-block x-small"
-                *ngIf="form.get('pricingSchemaId')?.touched && form.get('pricingSchemaId')?.invalid"
-              >
-                {{ 'schemaRequired' | t }}
-              </div>
-            </div>
-
-            <hr class="my-2 border-light-subtle" />
-
-            <!-- بيانات الكارت -->
-            <h6 class="fw-bold small mb-2">
-              <i class="bi bi-credit-card-2-front me-1"></i> {{ 'cardData' | t }}
-            </h6>
-
-            <div class="mb-2">
-              <label class="form-label small mb-1">{{ 'cardNumber' | t }}</label>
-              <div class="input-group input-group-sm">
-                <input class="form-control" formControlName="cardNo" dir="ltr" />
-                <button
-                  class="btn btn-outline-primary reg-btn-read-card"
-                  type="button"
-                  (click)="readCard()"
-                  [disabled]="readingCard()"
-                  [title]="'readCardTitle' | t"
-                >
-                  <i class="bi bi-upc-scan"></i>
-                </button>
-              </div>
-              <div class="invalid-feedback d-block x-small" *ngIf="hasErr('cardNo')">
-                {{ 'cardInvalid' | t }}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- ===== 3) المستندات ===== -->
-      <div class="col-12 col-lg-4">
-        <div class="card shadow-soft border-0 h-100 bg-white reg-card-docs rounded-4">
-          <div
-            class="card-header py-2 px-3 d-flex align-items-center justify-content-between bg-white border-bottom-0"
-          >
-            <h6 class="mb-0 fw-bold">{{ 'documents' | t }}</h6>
-            <span
-              class="badge rounded-pill bg-secondary-subtle text-secondary-emphasis border small"
-            >
-              {{ documents().length }}
-            </span>
-          </div>
-
-          <div class="card-body p-2">
-            <div class="mb-2 d-flex gap-1 flex-wrap">
-              <div class="flex-grow-1">
-                <input
-                  type="file"
-                  multiple
-                  class="form-control form-control-sm"
-                  (change)="onPickDocuments($event)"
-                  accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
-                />
-              </div>
-
-              <button
-                type="button"
-                class="btn btn-light btn-sm border"
-                (click)="openScanner(camInput)"
-                [title]="'scanCamera' | t"
-              >
-                <i class="bi bi-camera"></i>
-              </button>
-
-              <input
-                #camInput
-                type="file"
-                capture="environment"
-                accept="image/*"
-                class="d-none"
-                (change)="onPickDocuments($event)"
-              />
             </div>
 
             <div
-              class="docs-grid-compact custom-scrollbar"
-              *ngIf="documents().length; else noDocs"
-              style="max-height: 150px; overflow-y: auto"
+              class="invalid-feedback d-block x-small"
+              *ngIf="form.get('plate')?.touched && form.get('plate')?.invalid"
             >
-              <div
-                class="doc-item-mini p-1 border rounded mb-1 d-flex align-items-center justify-content-between"
-                *ngFor="let d of documents(); let i = index"
-              >
-                <div
-                  class="d-flex align-items-center gap-2 overflow-hidden"
-                  (click)="openPreview(d)"
-                  style="cursor: pointer"
-                >
-                  <div class="doc-thumb-mini border">
-                    <ng-container *ngIf="d.isImage; else fileIcon">
-                      <img [src]="d.dataUrl" [alt]="d.name" />
-                    </ng-container>
-                    <ng-template #fileIcon>
-                      <i class="bi bi-file-earmark-text small"></i>
-                    </ng-template>
-                  </div>
-                  <div class="x-small text-truncate" [title]="d.name">{{ d.name }}</div>
-                </div>
-                <button
-                  type="button"
-                  class="btn btn-link btn-sm text-danger p-1"
-                  (click)="removeDocument(i)"
-                >
-                  <i class="bi bi-x-circle"></i>
-                </button>
+              {{ 'plateIncomplete' | t }}
+            </div>
+          </div>
+
+          <div class="row g-2">
+            <div class="col-12">
+              <label class="form-label field-label mb-1">{{ 'subscriberName' | t }}</label>
+              <input
+                class="form-control form-control-sm reg-input"
+                formControlName="subscriberName"
+                [placeholder]="'namePlaceholder' | t"
+              />
+              <div class="invalid-feedback d-block x-small" *ngIf="hasErr('subscriberName')">
+                {{ 'nameRequired' | t }}
               </div>
             </div>
-            <ng-template #noDocs>
-              <div class="text-muted small text-center py-4">{{ 'noDocs' | t }}</div>
-            </ng-template>
 
-            <!--  Premium Scanned Document Preview -->
-            <div class="scanned-card-premium mt-3 animate-fade-in" *ngIf="scannedFile()">
-              <div class="card-header-premium">
-                <i class="bi bi-file-earmark-check-fill"></i>
-                <span>{{ 'scanner_ready' | t }}</span>
+            <div class="col-12 col-sm-6">
+              <label class="form-label field-label mb-1">{{ 'phone' | t }}</label>
+              <input
+                class="form-control form-control-sm reg-input mono"
+                formControlName="phone"
+                [placeholder]="'phonePlaceholder' | t"
+                dir="ltr"
+              />
+              <div class="invalid-feedback d-block x-small" *ngIf="hasErr('phone')">
+                {{ 'phoneInvalid' | t }}
               </div>
-              <div class="card-body-premium">
-                <div class="preview-box">
-                  <!-- Image Preview -->
-                  <img
-                    *ngIf="scannedFile()!.type.startsWith('image/')"
-                    [src]="scannedFile()!.safeUrl"
-                    alt="Scan Preview"
-                  />
-                  <!-- PDF Viewer (iframe) -->
-                  <iframe
-                    *ngIf="scannedFile()!.type === 'application/pdf'"
-                    [src]="scannedFile()!.safeUrl"
-                    class="pdf-preview-frame"
-                  ></iframe>
+            </div>
 
-                  <!-- Generic Placeholder -->
-                  <div
-                    *ngIf="
-                      !scannedFile()!.type.startsWith('image/') &&
-                      scannedFile()!.type !== 'application/pdf'
-                    "
-                    class="pdf-placeholder"
-                  >
-                    <i class="bi bi-file-earmark-pdf-fill"></i>
-                    <div class="small fw-bold">
-                      {{ scannedFile()!.type.split('/')[1]?.toUpperCase() }}
-                    </div>
+            <div class="col-12 col-sm-6">
+              <label class="form-label field-label mb-1">{{ 'nationalId' | t }}</label>
+              <input
+                class="form-control form-control-sm reg-input mono"
+                formControlName="nationalId"
+                [placeholder]="'nationalIdPlaceholder' | t"
+                dir="ltr"
+              />
+              <div class="invalid-feedback d-block x-small" *ngIf="hasErr('nationalId')">
+                {{ 'nationalIdInvalid' | t }}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2: Subscription Type & Card Data -->
+      <div class="card reg-card reg-card-schema">
+        <div class="card-header d-flex align-items-center justify-content-between gap-2">
+          <div class="d-flex align-items-center gap-2 min-w-0">
+            <span class="panel-icon panel-icon--emerald">
+              <i class="fa-solid fa-tags"></i>
+            </span>
+            <h6 class="mb-0 fw-bold text-truncate">{{ 'subscriptionType' | t }}</h6>
+          </div>
+          <span
+            *ngIf="loadingSchemas()"
+            class="spinner-border spinner-border-sm text-secondary"
+          ></span>
+        </div>
+
+        <div class="card-body">
+          <div class="mb-3">
+            <label class="form-label field-label mb-1">{{ 'chooseSubscription' | t }}</label>
+            <select class="form-select form-select-sm reg-input" formControlName="pricingSchemaId">
+              <option [ngValue]="null" disabled>
+                {{ 'chooseSubscriptionPlaceholder' | t }}
+              </option>
+              <option *ngFor="let s of schemas()" [value]="s.id">
+                {{ s.name }}
+              </option>
+            </select>
+            <div
+              class="invalid-feedback d-block x-small"
+              *ngIf="form.get('pricingSchemaId')?.touched && form.get('pricingSchemaId')?.invalid"
+            >
+              {{ 'schemaRequired' | t }}
+            </div>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <!-- Card Data -->
+          <div class="sub-section-title mb-2">
+            <i class="fa-regular fa-credit-card"></i>
+            <span>{{ 'cardData' | t }}</span>
+          </div>
+
+          <div>
+            <label class="form-label field-label mb-1">{{ 'cardNumber' | t }}</label>
+            <div class="input-group input-group-sm">
+              <input class="form-control reg-input mono" formControlName="cardNo" dir="ltr" />
+              <button
+                class="btn btn-read-card reg-btn-read-card"
+                type="button"
+                (click)="readCard()"
+                [disabled]="readingCard()"
+                [title]="'readCardTitle' | t"
+              >
+                <i class="fa-solid fa-barcode" *ngIf="!readingCard()"></i>
+                <span class="spinner-border spinner-border-sm" *ngIf="readingCard()"></span>
+              </button>
+            </div>
+            <div class="invalid-feedback d-block x-small" *ngIf="hasErr('cardNo')">
+              {{ 'cardInvalid' | t }}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3: Documents -->
+      <div class="card reg-card reg-card-docs">
+        <div class="card-header d-flex align-items-center justify-content-between gap-2">
+          <div class="d-flex align-items-center gap-2 min-w-0">
+            <span class="panel-icon panel-icon--sky">
+              <i class="fa-solid fa-folder-open"></i>
+            </span>
+            <h6 class="mb-0 fw-bold text-truncate">{{ 'documents' | t }}</h6>
+          </div>
+          <span class="count-pill count-pill--sky mono">{{ documents().length }}</span>
+        </div>
+
+        <div class="card-body d-flex flex-column gap-2">
+          <div class="d-flex gap-2 align-items-center">
+            <div class="flex-grow-1 min-w-0">
+              <input
+                type="file"
+                multiple
+                class="form-control form-control-sm reg-input"
+                (change)="onPickDocuments($event)"
+                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+              />
+            </div>
+
+            <button
+              type="button"
+              class="btn btn-cam-scan flex-shrink-0"
+              (click)="openScanner(camInput)"
+              [title]="'scanCamera' | t"
+            >
+              <i class="fa-solid fa-camera"></i>
+            </button>
+
+            <input
+              #camInput
+              type="file"
+              capture="environment"
+              accept="image/*"
+              class="d-none"
+              (change)="onPickDocuments($event)"
+            />
+          </div>
+
+          <div
+            class="docs-grid-compact custom-scrollbar"
+            *ngIf="documents().length; else noDocs"
+          >
+            <div
+              class="doc-item-mini"
+              *ngFor="let d of documents(); let i = index"
+            >
+              <div
+                class="d-flex align-items-center gap-2 overflow-hidden flex-grow-1"
+                (click)="openPreview(d)"
+                style="cursor: pointer"
+              >
+                <div class="doc-thumb-mini">
+                  <ng-container *ngIf="d.isImage; else fileIcon">
+                    <img [src]="d.dataUrl" [alt]="d.name" />
+                  </ng-container>
+                  <ng-template #fileIcon>
+                    <i class="fa-regular fa-file-lines"></i>
+                  </ng-template>
+                </div>
+                <div class="x-small text-truncate fw-semibold" [title]="d.name">{{ d.name }}</div>
+              </div>
+              <button
+                type="button"
+                class="btn btn-remove-doc flex-shrink-0"
+                (click)="removeDocument(i)"
+                [attr.aria-label]="'deleteDoc' | t"
+              >
+                <i class="fa-solid fa-xmark"></i>
+              </button>
+            </div>
+          </div>
+
+          <ng-template #noDocs>
+            <div class="docs-empty-box">
+              <span class="docs-empty-icon">
+                <i class="fa-regular fa-file-lines"></i>
+              </span>
+              <span>{{ 'noDocs' | t }}</span>
+            </div>
+          </ng-template>
+
+          <!-- Scanned Document Preview -->
+          <div class="scanned-card-premium mt-1 animate-fade-in" *ngIf="scannedFile()">
+            <div class="card-header-premium">
+              <i class="fa-solid fa-file-circle-check"></i>
+              <span>{{ 'scanner_ready' | t }}</span>
+            </div>
+            <div class="card-body-premium">
+              <div class="preview-box">
+                <img
+                  *ngIf="scannedFile()!.type.startsWith('image/')"
+                  [src]="scannedFile()!.safeUrl"
+                  alt="Scan Preview"
+                />
+                <iframe
+                  *ngIf="scannedFile()!.type === 'application/pdf'"
+                  [src]="scannedFile()!.safeUrl"
+                  class="pdf-preview-frame"
+                ></iframe>
+                <div
+                  *ngIf="
+                    !scannedFile()!.type.startsWith('image/') &&
+                    scannedFile()!.type !== 'application/pdf'
+                  "
+                  class="pdf-placeholder"
+                >
+                  <i class="fa-solid fa-file-pdf"></i>
+                  <div class="small fw-bold">
+                    {{ scannedFile()!.type.split('/')[1]?.toUpperCase() }}
                   </div>
                 </div>
-                <div class="action-box">
-                  <div class="file-name-meta">{{ scannedFile()!.name }}</div>
-                  <div class="d-flex gap-2 w-100">
-                    <a
-                      [href]="scannedFile()!.url | safe: 'url'"
-                      [download]="scannedFile()!.name"
-                      class="btn-save-premium flex-grow-1"
-                    >
-                      <i class="bi bi-cloud-arrow-down-fill"></i>
-                      {{ 'save_to_pc' | t }}
-                    </a>
-                  </div>
-                </div>
+              </div>
+              <div class="action-box">
+                <div class="file-name-meta">{{ scannedFile()!.name }}</div>
+                <a
+                  [href]="scannedFile()!.url | safe: 'url'"
+                  [download]="scannedFile()!.name"
+                  class="btn-save-premium"
+                >
+                  <i class="fa-solid fa-cloud-arrow-down"></i>
+                  {{ 'save_to_pc' | t }}
+                </a>
               </div>
             </div>
           </div>
@@ -358,23 +356,23 @@
           (click)="forceClose()"
           [attr.aria-label]="'previewCloseAria' | t"
         >
-          <i class="bi bi-x-lg"></i>
+          <i class="fa-solid fa-xmark"></i>
         </button>
         <ng-container *ngIf="currentPreview(); let p">
           <div class="preview-head">
             <div class="name fw-bold" [title]="p.name">{{ p.name }}</div>
             <div class="sub small text-muted" dir="ltr">{{ p.mime }} • {{ humanSize(p.size) }}</div>
           </div>
-          <div class="preview-body mt-2">
+          <div class="preview-body">
             <ng-container *ngIf="p.isImage; else nonImage">
               <img class="img-fluid rounded border shadow-sm" [src]="p.dataUrl" [alt]="p.name" />
             </ng-container>
             <ng-template #nonImage>
-              <div class="file-preview-mini text-center py-4 bg-light rounded border">
-                <i class="bi bi-file-earmark-text fs-1 text-primary"></i>
+              <div class="file-preview-mini text-center">
+                <i class="fa-regular fa-file-lines fs-1 text-primary"></i>
                 <p class="mt-2 small">{{ 'notPreviewable' | t }}</p>
                 <a [href]="p.dataUrl" [download]="p.name" class="btn btn-primary btn-sm mt-1">
-                  <i class="bi bi-download"></i> {{ 'download' | t }}
+                  <i class="fa-solid fa-download me-1"></i>{{ 'download' | t }}
                 </a>
               </div>
             </ng-template>
@@ -383,45 +381,53 @@
       </div>
     </div>
 
-    <div class="d-flex gap-2 justify-content-end mt-2">
+    <!-- Form Submit Bar -->
+    <div class="form-submit-bar d-flex gap-2 justify-content-end mt-3">
       <button
         *ngIf="isEditing()"
         type="button"
-        class="btn btn-outline-secondary btn-sm"
+        class="btn btn-cancel-edit"
         (click)="cancelEdit()"
       >
-        {{ 'cancelEdit' | t }}
+        <i class="fa-solid fa-xmark me-1"></i>{{ 'cancelEdit' | t }}
       </button>
       <button
         type="submit"
-        class="btn btn-primary btn-sm shadow-sm px-4 reg-btn-submit"
+        class="btn btn-submit-sub reg-btn-submit"
         [disabled]="saving() || form.invalid"
       >
-        <i class="bi bi-plus-circle-fill me-1" *ngIf="!isEditing() && !saving()"></i>
-        <i class="bi bi-arrow-repeat me-1" *ngIf="isEditing() && !saving()"></i>
-        {{
-          saving()
-            ? ('saving' | t)
-            : isEditing()
-              ? ('updateSubscription' | t)
-              : ('saveSubscription' | t)
-        }}
+        <i class="fa-solid fa-circle-plus" *ngIf="!isEditing() && !saving()"></i>
+        <i class="fa-solid fa-rotate" *ngIf="isEditing() && !saving()"></i>
+        <span class="spinner-border spinner-border-sm" *ngIf="saving()"></span>
+        <span>
+          {{
+            saving()
+              ? ('saving' | t)
+              : isEditing()
+                ? ('updateSubscription' | t)
+                : ('saveSubscription' | t)
+          }}
+        </span>
       </button>
     </div>
   </form>
 
   <!-- ===== 2) List (Memberships) ===== -->
   <div class="memberships mt-3">
-    <div class="card shadow-soft border-0 bg-white reg-card-memberships rounded-4 overflow-hidden">
-      <div
-        class="card-header py-2 px-3 d-flex align-items-center justify-content-between bg-white border-bottom"
-      >
-        <h6 class="mb-0 fw-bold"><i class="bi bi-list-ul me-1"></i> {{ 'memberships' | t }}</h6>
+    <div class="card reg-card reg-card-memberships overflow-hidden">
+      <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
+        <div class="d-flex align-items-center gap-2 min-w-0">
+          <span class="panel-icon panel-icon--indigo">
+            <i class="fa-solid fa-users"></i>
+          </span>
+          <h6 class="mb-0 fw-bold">{{ 'memberships' | t }}</h6>
+          <span class="count-pill count-pill--indigo mono">{{ totalItems() }}</span>
+        </div>
 
         <div class="d-flex align-items-center gap-2">
-          <label class="m-0 x-small text-muted">{{ 'pageSize' | t }}</label>
+          <label class="m-0 x-small text-muted fw-semibold">{{ 'pageSize' | t }}</label>
           <select
-            class="form-select form-select-sm w-auto py-0 x-small reg-page-size-select"
+            class="form-select form-select-sm w-auto reg-page-size-select"
             [value]="pageSize()"
             (change)="changePageSize(+$any($event.target).value)"
           >
@@ -438,31 +444,33 @@
           <div class="spinner-border spinner-border-sm text-primary"></div>
         </div>
 
-        <div class="table-responsive" *ngIf="!loading()">
-          <table class="table table-sm table-hover align-middle mb-0">
-            <thead class="table-light">
-              <tr class="x-small">
+        <!-- Desktop Table (>= 768px) -->
+        <div class="table-responsive d-none d-md-block" *ngIf="!loading()">
+          <table class="table table-sm table-hover align-middle mb-0 reg-table">
+            <thead>
+              <tr>
                 <th class="ps-3">{{ 'nameCol' | t }}</th>
                 <th class="d-none d-lg-table-cell">{{ 'phoneCol' | t }}</th>
                 <th class="d-none d-lg-table-cell">{{ 'nidCol' | t }}</th>
                 <th>{{ 'vehicleNumberCol' | t }}</th>
                 <th>{{ 'cardNoCol' | t }}</th>
-                <th class="d-none d-lg-table-cell">{{ 'usageTimeCol' | t }}</th>
-                <th class="d-none d-lg-table-cell">{{ 'createdAtCol' | t }}</th>
-                <!-- <th>{{ 'endDateCol' | t }}</th> -->
+                <th class="d-none d-xl-table-cell">{{ 'usageTimeCol' | t }}</th>
+                <th class="d-none d-xl-table-cell">{{ 'createdAtCol' | t }}</th>
                 <th class="text-end pe-3">{{ 'actionsCol' | t }}</th>
               </tr>
             </thead>
             <tbody>
-              <tr *ngFor="let r of rows()" class="small">
-                <td class="ps-3 fw-semibold">{{ r.name }}</td>
-                <td dir="ltr" class="d-none d-lg-table-cell">{{ r.phone }}</td>
-                <td dir="ltr" class="d-none d-lg-table-cell">{{ r.nationalId }}</td>
+              <tr *ngFor="let r of rows()">
+                <td class="ps-3 fw-bold text-dark">{{ r.name }}</td>
+                <td dir="ltr" class="d-none d-lg-table-cell mono text-muted">{{ r.phone }}</td>
+                <td dir="ltr" class="d-none d-lg-table-cell mono text-muted">{{ r.nationalId }}</td>
                 <td>
-                  <span class="badge bg-light text-dark border">{{ r.vehicleNumber }}</span>
+                  <span class="plate-pill">{{ r.vehicleNumber }}</span>
                 </td>
-                <td dir="ltr">{{ r.cardNumber }}</td>
-                <td class="x-small d-none d-lg-table-cell">
+                <td>
+                  <span class="card-uid-pill mono" dir="ltr">{{ r.cardNumber }}</span>
+                </td>
+                <td class="x-small d-none d-xl-table-cell mono text-muted">
                   <ng-container *ngIf="r.startTime && r.endTime; else noTime">
                     {{ r.startTime }} – {{ r.endTime }}
                   </ng-container>
@@ -470,65 +478,151 @@
                     <span class="text-muted">—</span>
                   </ng-template>
                 </td>
-                <td class="x-small d-none d-lg-table-cell">
+                <td class="x-small d-none d-xl-table-cell mono text-muted">
                   {{ r.createdAt | date: 'yyyy/MM/dd HH:mm' }}
                 </td>
-                <!-- <td class="x-small">{{ r.endDate | date: 'yyyy/MM/dd HH:mm' }}</td> -->
                 <td class="pe-3">
                   <div class="d-flex justify-content-end gap-1">
                     <button
-                      class="btn btn-xs btn-outline-primary reg-row-actions"
+                      type="button"
+                      class="btn row-action-btn row-action-btn--edit reg-row-actions"
                       (click)="editMembership(r)"
                       [title]="'edit' | t"
                     >
-                      <i class="bi bi-pencil"></i>
+                      <i class="fa-regular fa-pen-to-square"></i>
                     </button>
                     <button
-                      class="btn btn-xs btn-outline-danger"
+                      type="button"
+                      class="btn row-action-btn row-action-btn--delete"
                       (click)="deleteMembership(r.id)"
                       [title]="'deleteAction' | t"
                     >
-                      <i class="bi bi-trash"></i>
+                      <i class="fa-regular fa-trash-can"></i>
                     </button>
                   </div>
                 </td>
               </tr>
 
               <tr *ngIf="!rows().length">
-                <td colspan="8" class="text-center text-muted py-5 x-small">
-                  <i class="bi bi-database-exclamation fs-3 d-block mb-1"></i>
-                  {{ 'noData' | t }}
+                <td colspan="8" class="text-center text-muted py-5">
+                  <i class="fa-solid fa-database fs-3 d-block mb-2 opacity-50"></i>
+                  <span class="small fw-semibold">{{ 'noData' | t }}</span>
                 </td>
               </tr>
             </tbody>
           </table>
         </div>
+
+        <!-- Mobile Subscriber Cards (< 768px) -->
+        <div class="mobile-members-list d-md-none p-2" *ngIf="!loading()">
+          <div class="mobile-member-card" *ngFor="let r of rows()">
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+              <div class="fw-bold text-dark text-truncate">{{ r.name }}</div>
+              <span class="plate-pill flex-shrink-0">{{ r.vehicleNumber }}</span>
+            </div>
+
+            <div class="mobile-member-meta">
+              <div *ngIf="r.cardNumber">
+                <span class="meta-k">{{ 'cardNoCol' | t }}</span>
+                <strong class="mono" dir="ltr">{{ r.cardNumber }}</strong>
+              </div>
+              <div *ngIf="r.phone">
+                <span class="meta-k">{{ 'phoneCol' | t }}</span>
+                <strong class="mono" dir="ltr">{{ r.phone }}</strong>
+              </div>
+              <div *ngIf="r.nationalId">
+                <span class="meta-k">{{ 'nidCol' | t }}</span>
+                <strong class="mono" dir="ltr">{{ r.nationalId }}</strong>
+              </div>
+              <div *ngIf="r.createdAt">
+                <span class="meta-k">{{ 'createdAtCol' | t }}</span>
+                <strong class="mono">{{ r.createdAt | date: 'yyyy/MM/dd' }}</strong>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-2 pt-2 border-top">
+              <button
+                type="button"
+                class="btn row-action-btn row-action-btn--edit flex-grow-1 reg-row-actions"
+                (click)="editMembership(r)"
+              >
+                <i class="fa-regular fa-pen-to-square me-1"></i>{{ 'edit' | t }}
+              </button>
+              <button
+                type="button"
+                class="btn row-action-btn row-action-btn--delete flex-grow-1"
+                (click)="deleteMembership(r.id)"
+              >
+                <i class="fa-regular fa-trash-can me-1"></i>{{ 'deleteAction' | t }}
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="!rows().length" class="text-center text-muted py-4">
+            <i class="fa-solid fa-database fs-3 d-block mb-2 opacity-50"></i>
+            <span class="small fw-semibold">{{ 'noData' | t }}</span>
+          </div>
+        </div>
       </div>
 
-      <!-- Pagination footer -->
+      <!-- Pagination Footer -->
       <div
-        class="card-footer py-2 px-3 d-flex flex-wrap gap-2 align-items-center justify-content-between bg-white border-top x-small reg-pagination-footer"
+        class="card-footer py-2 px-3 d-flex flex-wrap gap-2 align-items-center justify-content-between reg-pagination-footer"
       >
-        <div class="text-muted">
-          {{ 'total' | t }}: <b>{{ totalItems() }}</b> — {{ 'page' | t }} <b>{{ pageNumber() }}</b>
-          {{ 'of' | t }} <b>{{ totalPages() }}</b>
+        <div class="x-small text-muted fw-semibold">
+          {{ 'total' | t }}: <b class="text-dark">{{ totalItems() }}</b> — {{ 'page' | t }}
+          <b class="text-dark">{{ pageNumber() }}</b> {{ 'of' | t }}
+          <b class="text-dark">{{ totalPages() }}</b>
         </div>
 
         <nav aria-label="Page navigation">
-          <ul class="pagination pagination-sm mb-0">
-            <li class="page-item" [class.disabled]="pageNumber() === 1">
-              <button class="page-link" (click)="first()">{{ 'first' | t }}</button>
-            </li>
-            <li class="page-item" [class.disabled]="!hasPrev()">
-              <button class="page-link" (click)="prev()">{{ 'prev' | t }}</button>
-            </li>
-            <li class="page-item" [class.disabled]="!hasNext()">
-              <button class="page-link" (click)="next()">{{ 'next' | t }}</button>
-            </li>
-            <li class="page-item" [class.disabled]="pageNumber() === totalPages()">
-              <button class="page-link" (click)="last()">{{ 'last' | t }}</button>
-            </li>
-          </ul>
+          <div class="reg-pager">
+            <button
+              type="button"
+              class="reg-page-btn"
+              [disabled]="pageNumber() === 1"
+              (click)="first()"
+              [title]="'first' | t"
+            >
+              <i class="fa-solid fa-angles-right rtl-aware-icon"></i>
+              <span class="d-none d-sm-inline">{{ 'first' | t }}</span>
+            </button>
+            <button
+              type="button"
+              class="reg-page-btn"
+              [disabled]="!hasPrev()"
+              (click)="prev()"
+              [title]="'prev' | t"
+            >
+              <i class="fa-solid fa-chevron-right rtl-aware-icon"></i>
+              <span>{{ 'prev' | t }}</span>
+            </button>
+
+            <span class="reg-page-indicator mono">
+              {{ pageNumber() }} / {{ totalPages() }}
+            </span>
+
+            <button
+              type="button"
+              class="reg-page-btn"
+              [disabled]="!hasNext()"
+              (click)="next()"
+              [title]="'next' | t"
+            >
+              <span>{{ 'next' | t }}</span>
+              <i class="fa-solid fa-chevron-left rtl-aware-icon"></i>
+            </button>
+            <button
+              type="button"
+              class="reg-page-btn"
+              [disabled]="pageNumber() === totalPages()"
+              (click)="last()"
+              [title]="'last' | t"
+            >
+              <span class="d-none d-sm-inline">{{ 'last' | t }}</span>
+              <i class="fa-solid fa-angles-left rtl-aware-icon"></i>
+            </button>
+          </div>
         </nav>
       </div>
     </div>

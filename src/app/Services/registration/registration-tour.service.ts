@@ -3,28 +3,27 @@ import Shepherd from 'shepherd.js';
 import { animateShepherdStep } from '../Shared/tour-animation.helper';
 import { LanguageService } from '../../Services/i18n/language-service';
 
+type Placement = 'top' | 'bottom' | 'left' | 'right';
+
 @Injectable({
   providedIn: 'root',
 })
 export class RegistrationTourService {
   private tour: any | null = null;
-
   private readonly lang = inject(LanguageService);
   private readonly injector = inject(Injector);
 
   constructor() {
-    // إعادة بناء التور لو اللغة اتغيرت وهو شغال
     effect(
       () => {
         this.lang.currentSignal();
-
         if (this.tour && this.tour.isActive()) {
           const currentStepId = this.tour.getCurrentStep()?.id;
           this.tour.cancel();
           this.buildTour();
-          this.tour.start();
+          this.tour?.start();
           if (currentStepId) {
-            this.tour.show(currentStepId);
+            this.tour?.show(currentStepId);
           }
         }
       },
@@ -32,7 +31,6 @@ export class RegistrationTourService {
     );
   }
 
-  // ===== Helpers =====
   private get isRTL(): boolean {
     return this.lang.isRTL();
   }
@@ -41,25 +39,38 @@ export class RegistrationTourService {
     return this.isRTL ? ar : en;
   }
 
-  private pos(base: 'top' | 'bottom' | 'left' | 'right'): 'top' | 'bottom' | 'left' | 'right' {
-    // نستخدم bottom في المنتصف دايماً عشان محاذاة أدق في العربي والإنجليزي
-    if (base === 'top' || base === 'bottom') return 'bottom' as any;
-
-    if (!this.isRTL) return base;
-
-    if (base === 'left') return 'right';
-    if (base === 'right') return 'left';
-
-    return base;
+  private isMobile(): boolean {
+    return typeof window !== 'undefined' && window.innerWidth < 992;
   }
 
-  // ===== API =====
-  startTour(): void {
-    if (this.tour && this.tour.isActive()) {
-      this.tour.cancel();
+  private resolvePlacement(base: Placement): Placement {
+    if (this.isMobile()) {
+      return base === 'top' ? 'top' : 'bottom';
     }
+    if (base === 'top' || base === 'bottom') {
+      return base;
+    }
+    if (!this.isRTL) {
+      return base;
+    }
+    return base === 'left' ? 'right' : 'left';
+  }
 
-    // نضمن إن الـ DOM جاهز
+  private isElementVisible(selector: string): boolean {
+    const el = document.querySelector(selector) as HTMLElement | null;
+    if (!el) return false;
+    const rect = el.getBoundingClientRect();
+    const style = window.getComputedStyle(el);
+    return (
+      rect.width > 0 &&
+      rect.height > 0 &&
+      style.display !== 'none' &&
+      style.visibility !== 'hidden'
+    );
+  }
+
+  startTour(): void {
+    this.cancelTour();
     setTimeout(() => {
       this.buildTour();
       this.tour?.start();
@@ -67,19 +78,22 @@ export class RegistrationTourService {
   }
 
   cancelTour(): void {
-    this.tour?.cancel();
+    if (this.tour && this.tour.isActive()) {
+      this.tour.cancel();
+    }
+    this.tour = null;
   }
 
-  // ===== Build Steps =====
   private buildTour(): void {
     const stepClass = this.isRTL ? 'np-shepherd-step np-shepherd-rtl' : 'np-shepherd-step';
 
     this.tour = new Shepherd.Tour({
       useModalOverlay: true,
+      keyboardNavigation: true,
       defaultStepOptions: {
         arrow: true,
-        modalOverlayOpeningPadding: 6,
-        modalOverlayOpeningRadius: 6,
+        modalOverlayOpeningPadding: 8,
+        modalOverlayOpeningRadius: 12,
         scrollTo: { behavior: 'smooth', block: 'center' },
         cancelIcon: { enabled: true },
         canClickTarget: false,
@@ -88,222 +102,152 @@ export class RegistrationTourService {
         popperOptions: {
           strategy: 'fixed',
           modifiers: [
-            {
-              name: 'computeStyles',
-              options: { gpuAcceleration: false },
-            },
-            {
-              name: 'preventOverflow',
-              options: { boundary: 'viewport', padding: 8 },
-            },
-            {
-              name: 'flip',
-              options: { padding: 8 },
-            },
+            { name: 'computeStyles', options: { gpuAcceleration: false } },
+            { name: 'preventOverflow', options: { boundary: 'viewport', padding: 12 } },
+            { name: 'flip', options: { padding: 12 } },
           ],
         },
       },
     } as any);
 
-    this.addStep({
-      id: 'reg-header',
-      titleAr: 'شاشة إدارة الاشتراكات',
-      titleEn: 'Membership management screen',
-      textAr:
-        'هذه الشاشة مخصصة لإضافة اشتراك جديد أو تعديل اشتراك قائم، بالإضافة إلى استعراض جميع الاشتراكات المسجلة.',
-      textEn:
-        'This screen is dedicated to creating new memberships, editing existing ones, and reviewing the full memberships list.',
-      attachTo: '.btn-help-tour-registration',
-      position: 'bottom',
-      hasBack: false,
-    });
-
-    this.addStep({
-      id: 'reg-help',
-      titleAr: 'زر شرح الشاشة',
-      titleEn: 'Help & guided tour button',
-      textAr:
-        'من هذا الزر يمكنك تشغيل شرح تفاعلي للشاشة في أي وقت لشرح خطوات التسجيل واستعراض البيانات.',
-      textEn:
-        'From this help button you can start an interactive guided tour explaining how to register and manage memberships.',
-      attachTo: '.registration-header',
-      position: 'bottom',
-      hasBack: false,
-    });
-
-    this.addStep({
-      id: 'reg-subscriber-card',
-      titleAr: 'بيانات المشترك',
-      titleEn: 'Subscriber details',
-      textAr:
-        'هنا تُسجَّل بيانات صاحب الاشتراك: لوحة المركبة، الاسم، رقم الهاتف، والرقم القومي. تأكد من استكمال اللوحة بشكل صحيح لتحقيق الربط مع حركة التذاكر.',
-      textEn:
-        'Here you enter the subscriber data: vehicle plate, name, phone number, and national ID. Make sure the plate is completed correctly to link with tickets.',
-      attachTo: '.reg-card-subscriber',
-      position: 'top',
-    });
-
-    this.addStep({
-      id: 'reg-schema-card',
-      titleAr: 'نوع الاشتراك',
-      titleEn: 'Subscription type',
-      textAr:
-        'من هذا القسم تختار نوع الاشتراك المربوط بنظام التسعير (Pricing Schema)، مثل اشتراك شهري أو ساعات محددة. هذا الاختيار يؤثر على سعر الاشتراك وفترة الصلاحية.',
-      textEn:
-        'In this section you choose the subscription type linked to a Pricing Schema, e.g. monthly or hourly. This affects the price and validity period.',
-      attachTo: '.reg-card-schema',
-      position: 'top',
-    });
-
-    this.addStep({
-      id: 'reg-card-read',
-      titleAr: 'قراءة الكارت (NFC)',
-      titleEn: 'Read card (NFC)',
-      textAr:
-        'بالضغط على زر "قراءة الكارت" يتم قراءة رقم الكارت من قارئ الـ NFC تلقائيًا وتعبئته في الحقل المخصص. استخدمه لتجنب الأخطاء اليدوية.',
-      textEn:
-        'Clicking "Read card" reads the card UID from the NFC reader and auto-fills the field, which helps to avoid manual input errors.',
-      attachTo: '.reg-btn-read-card',
-      position: 'bottom',
-    });
-
-    this.addStep({
-      id: 'reg-docs-card',
-      titleAr: 'المستندات المرفقة',
-      titleEn: 'Attached documents',
-      textAr:
-        'يمكنك هنا رفع المستندات المتعلقة باشتراك المركبة (مثل رخصة السيارة أو البطاقة) من الملفات أو بالكاميرا، مع إمكانية معاينتها وحذف أي مستند قبل الحفظ.',
-      textEn:
-        'Here you can upload documents related to the membership (e.g. vehicle license or ID), either from files or camera, preview them, and delete any file before saving.',
-      attachTo: '.reg-card-docs',
-      position: 'top',
-    });
-
-    this.addStep({
-      id: 'reg-save',
-      titleAr: 'حفظ أو تحديث الاشتراك',
-      titleEn: 'Save or update membership',
-      textAr:
-        'بعد استكمال البيانات واختيار نوع الاشتراك وربط الكارت والمستندات، اضغط على هذا الزر لحفظ اشتراك جديد أو تحديث اشتراك قائم. في وضع التعديل يظهر زر إضافي لإلغاء التعديل والرجوع.',
-      textEn:
-        'Once you complete the data, choose the subscription type, link the card, and attach docs, click here to save a new membership or update an existing one. In edit mode a cancel button appears to discard changes.',
-      attachTo: '.reg-btn-submit',
-      position: 'top',
-    });
-
-    this.addStep({
-      id: 'reg-list',
-      titleAr: 'قائمة الاشتراكات',
-      titleEn: 'Memberships list',
-      textAr:
-        'أسفل النموذج تجد جدولًا يعرض كل الاشتراكات الحالية مع أهم البيانات: الاسم، الهاتف، الرقم القومي، رقم المركبة، رقم الكارت، وتواريخ الإنشاء والانتهاء.',
-      textEn:
-        'Below the form, the table shows all existing memberships with key data: name, phone, national ID, vehicle number, card number, and creation/end dates.',
-      attachTo: '.reg-card-memberships',
-      position: 'top',
-    });
-
-    this.addStep({
-      id: 'reg-row-actions',
-      titleAr: 'إجراءات التعديل والحذف',
-      titleEn: 'Edit & delete actions',
-      textAr:
-        'من هذه الأزرار يمكن تعديل اشتراك موجود أو حذفه. زر التعديل ينقل بيانات السطر إلى النموذج بالأعلى، وزر الحذف يطلب تأكيد قبل إزالة الاشتراك.',
-      textEn:
-        'These buttons let you edit or delete an existing membership. Edit will load the row data into the form above; delete will ask for confirmation before removing it.',
-      attachTo: '.reg-row-actions',
-      position: this.pos('left'),
-    });
-
-    this.addStep({
-      id: 'reg-page-size',
-      titleAr: 'حجم الصفحة',
-      titleEn: 'Page size',
-      textAr:
-        'يمكنك تغيير عدد الاشتراكات المعروضة في الصفحة من هنا (5، 10، 25، 50). عند تغيير القيمة يتم إعادة تحميل البيانات تلقائيًا.',
-      textEn:
-        'You can change how many memberships are shown per page here (5, 10, 25, 50). Changing this will reload the data automatically.',
-      attachTo: '.reg-page-size-select',
-      position: this.pos('left'),
-    });
-
-    this.addStep({
-      id: 'reg-pagination',
-      titleAr: 'التنقل بين الصفحات',
-      titleEn: 'Pagination controls',
-      textAr:
-        'في أسفل الجدول تستطيع التنقل بين الصفحات (الأولى، السابقة، التالية، الأخيرة) مع عرض إجمالي عدد الاشتراكات ورقم الصفحة الحالية.',
-      textEn:
-        'At the bottom of the table you can navigate between pages (first, previous, next, last) while seeing the total memberships count and current page.',
-      attachTo: '.reg-pagination-footer',
-      position: 'top',
-      isLast: true,
-    });
-  }
-
-  private addStep(config: {
-    id: string;
-    titleAr: string;
-    titleEn: string;
-    textAr: string;
-    textEn: string;
-    attachTo: string;
-    position: 'top' | 'bottom' | 'left' | 'right';
-    hasBack?: boolean;
-    isLast?: boolean;
-  }) {
-    const buttons: { text: string; action: () => void }[] = [];
-
-    if (config.hasBack !== false) {
-      buttons.push({
-        text: this.t('السابق', 'Previous'),
-        action: () => this.tour?.back(),
-      });
-    }
-
-    if (config.isLast) {
-      buttons.push({
-        text: this.t('إنهاء', 'Finish'),
-        action: () => this.tour?.complete(),
-      });
-    } else {
-      buttons.push({
-        text: this.t('التالي', 'Next'),
-        action: () => this.tour?.next(),
-      });
-    }
-
-    this.tour?.addStep({
-      id: config.id,
-      title: this.t(config.titleAr, config.titleEn),
-      text: this.t(config.textAr, config.textEn),
-      attachTo: {
-        element: config.attachTo,
-        on: this.pos(config.position),
+    const rawSteps: Array<{
+      id: string;
+      titleAr: string;
+      titleEn: string;
+      textAr: string;
+      textEn: string;
+      attachTo: string;
+      position: Placement;
+    }> = [
+      {
+        id: 'reg-subscriber-card',
+        titleAr: 'بيانات المشترك',
+        titleEn: 'Subscriber Details',
+        textAr:
+          'سجّل بيانات صاحب الاشتراك: لوحة المركبة، الاسم، رقم الهاتف، والرقم القومي.',
+        textEn:
+          'Enter the subscriber details: vehicle plate, name, phone number, and national ID.',
+        attachTo: '.reg-card-subscriber',
+        position: 'bottom',
       },
-      buttons,
-      beforeShowPromise: () => this.waitForElement(config.attachTo).catch(() => undefined),
+      {
+        id: 'reg-schema-card',
+        titleAr: 'نوع الاشتراك والكارت',
+        titleEn: 'Subscription & Card',
+        textAr:
+          'اختر شريحة الاشتراك المناسبة، واستخدم زر قراءة الكارت (NFC) لربط الكارت تلقائياً.',
+        textEn:
+          'Choose the pricing schema and use the NFC reader button to auto-fill the card UID.',
+        attachTo: '.reg-card-schema',
+        position: 'bottom',
+      },
+      {
+        id: 'reg-docs-card',
+        titleAr: 'المستندات المرفقة',
+        titleEn: 'Attached Documents',
+        textAr:
+          'ارفع مستندات المركبة من الملفات أو بالكاميرا مع إمكانية المعاينة أو الحذف قبل الحفظ.',
+        textEn:
+          'Upload vehicle documents from files or camera, preview them, or remove before saving.',
+        attachTo: '.reg-card-docs',
+        position: 'bottom',
+      },
+      {
+        id: 'reg-save',
+        titleAr: 'حفظ الاشتراك',
+        titleEn: 'Save Membership',
+        textAr: 'بعد استكمال البيانات اضغط هنا لحفظ الاشتراك الجديد أو تحديث الاشتراك الحالي.',
+        textEn: 'Once complete, click here to save the new membership or update an existing one.',
+        attachTo: '.reg-btn-submit',
+        position: 'top',
+      },
+      {
+        id: 'reg-list',
+        titleAr: 'قائمة الاشتراكات',
+        titleEn: 'Memberships List',
+        textAr:
+          'تستطيع استعراض جميع الاشتراكات المسجلة وتعديلها أو حذفها والتحكم في عدد الصفوف والتنقل بين الصفحات.',
+        textEn:
+          'Review all registered memberships, edit or delete records, change page size, and paginate.',
+        attachTo: '.reg-card-memberships',
+        position: 'top',
+      },
+    ];
+
+    const activeSteps = rawSteps.filter((s) => this.isElementVisible(s.attachTo));
+    const total = activeSteps.length;
+
+    activeSteps.forEach((step, idx) => {
+      const stepNum = idx + 1;
+      const isFirst = idx === 0;
+      const isLast = idx === total - 1;
+      const badge = `<span class="step-badge">${stepNum} / ${total}</span>`;
+
+      const buttons: any[] = [];
+
+      if (!isLast) {
+        buttons.push({
+          text: this.t('تخطي', 'Skip'),
+          classes: 'shepherd-button-skip',
+          action: () => this.tour?.cancel(),
+        });
+      }
+
+      if (!isFirst) {
+        buttons.push({
+          text: this.isRTL
+            ? `<i class="fa-solid fa-arrow-right"></i> السابق`
+            : `<i class="fa-solid fa-arrow-left"></i> Previous`,
+          classes: 'shepherd-button-secondary',
+          action: () => this.tour?.back(),
+        });
+      }
+
+      if (isLast) {
+        buttons.push({
+          text: this.isRTL
+            ? `إنهاء <i class="fa-solid fa-check"></i>`
+            : `Finish <i class="fa-solid fa-check"></i>`,
+          classes: 'shepherd-button-finish',
+          action: () => this.tour?.complete(),
+        });
+      } else {
+        buttons.push({
+          text: this.isRTL
+            ? `التالي <i class="fa-solid fa-arrow-left"></i>`
+            : `Next <i class="fa-solid fa-arrow-right"></i>`,
+          action: () => this.tour?.next(),
+        });
+      }
+
+      this.tour?.addStep({
+        id: step.id,
+        title: `${this.t(step.titleAr, step.titleEn)} ${badge}`,
+        text: this.t(step.textAr, step.textEn),
+        attachTo: {
+          element: step.attachTo,
+          on: this.resolvePlacement(step.position),
+        },
+        buttons,
+        beforeShowPromise: () => this.waitForElement(step.attachTo).catch(() => undefined),
+      });
     });
   }
 
-  private waitForElement(selector: string, timeoutMs = 2500): Promise<void> {
+  private waitForElement(selector: string, timeoutMs = 2000): Promise<void> {
     return new Promise((resolve, reject) => {
       const start = performance.now();
-
       const tick = () => {
-        if (document.querySelector(selector)) {
+        if (this.isElementVisible(selector)) {
           resolve();
           return;
         }
-
         if (performance.now() - start > timeoutMs) {
           reject(new Error(`Shepherd target not found: ${selector}`));
           return;
         }
-
         requestAnimationFrame(tick);
       };
-
       tick();
     });
   }

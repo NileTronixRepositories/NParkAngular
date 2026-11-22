@@ -296,15 +296,15 @@ export class UsersByRoleReport implements OnInit, OnDestroy {
   roleIconClass(user: UserByRoleResponse): string {
     switch (this.roleKey(user)) {
       case 'admin':
-        return 'bi-shield-lock-fill';
+        return 'fa-shield-halved';
       case 'entrancecashier':
-        return 'bi-box-arrow-in-right';
+        return 'fa-right-to-bracket';
       case 'exitcashier':
-        return 'bi-box-arrow-right';
+        return 'fa-right-from-bracket';
       case 'supervisor':
-        return 'bi-person-check-fill';
+        return 'fa-user-check';
       default:
-        return 'bi-person-fill';
+        return 'fa-user';
     }
   }
 

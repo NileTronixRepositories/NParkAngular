@@ -32,6 +32,12 @@ export class SupervisorModalBlockComponent {
   @Output() collect = new EventEmitter<void>();
   @Output() close = new EventEmitter<void>();
 
+  showPassword = false;
+
+  togglePassword(): void {
+    this.showPassword = !this.showPassword;
+  }
+
   private readonly dict: Record<string, Record<string, string>> = {
     ar: {
       supervisor_login: 'دخول المشرف',

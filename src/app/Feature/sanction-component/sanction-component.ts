@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { SanctionService } from '../../Services/Sanction/sanction.service';
@@ -63,7 +63,7 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
     },
   ],
 })
-export class SanctionComponent implements OnInit {
+export class SanctionComponent implements OnInit, OnDestroy {
   private sanctionService = inject(SanctionService);
   private toast = inject(ToastServices);
   private sanctionTour = inject(SanctionTourService);
@@ -92,6 +92,7 @@ export class SanctionComponent implements OnInit {
   isEditMode = signal(false);
   showDeleteModal = signal(false);
   selectedId = signal<string | null>(null);
+  selectedName = signal<string>('');
 
   // Form model
   form = signal<SanctionAddDto>({ name: '', description: '', amount: 0 });
@@ -112,6 +113,10 @@ export class SanctionComponent implements OnInit {
     this.load();
   }
 
+  ngOnDestroy() {
+    this.sanctionTour.cancelTour();
+  }
+
   // ===== API calls =====
   load() {
     this.loading.set(true);
@@ -120,7 +125,7 @@ export class SanctionComponent implements OnInit {
         this.sanctions.set(res ?? []);
         this.loading.set(false);
       },
-      error: (err) => {
+      error: () => {
         this.loading.set(false);
       },
     });
@@ -143,7 +148,7 @@ export class SanctionComponent implements OnInit {
           this.closeModal();
           this.load();
         },
-        error: (err) => {
+        error: () => {
           this.saving.set(false);
         },
       });
@@ -155,7 +160,7 @@ export class SanctionComponent implements OnInit {
           this.closeModal();
           this.load();
         },
-        error: (err) => {
+        error: () => {
           this.saving.set(false);
         },
       });
@@ -173,7 +178,7 @@ export class SanctionComponent implements OnInit {
         this.closeDeleteModal();
         this.load();
       },
-      error: (err) => {
+      error: () => {
         this.deleting.set(false);
       },
     });
@@ -200,12 +205,14 @@ export class SanctionComponent implements OnInit {
 
   openDeleteModal(item: SanctionDto) {
     this.selectedId.set(item.id);
+    this.selectedName.set(item.name);
     this.showDeleteModal.set(true);
   }
 
   closeDeleteModal() {
     this.showDeleteModal.set(false);
     this.selectedId.set(null);
+    this.selectedName.set('');
   }
 
   // ===== Form binding helpers =====

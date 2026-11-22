@@ -11,14 +11,11 @@
     >
       <div class="d-flex align-items-center gap-2 gap-md-3">
         <div class="header-icon-wrapper rounded-3">
-          <i class="bi bi-gear-fill header-icon fs-4"></i>
+          <i class="fa-solid fa-gear header-icon fs-4"></i>
         </div>
         <div>
           <h1 class="page-title mb-0 fw-bold">{{ 'configuration' | t }}</h1>
-          <p class="page-subtitle mb-0 opacity-75 d-none d-sm-block">
-            {{ 'configurationSubtitle' | t }}
-          </p>
-          <p class="page-subtitle mb-0 opacity-75 d-block d-sm-none small">
+          <p class="page-subtitle mb-0 opacity-75">
             {{ 'configurationSubtitle' | t }}
           </p>
         </div>
@@ -30,7 +27,7 @@
           class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour flex-grow-1 flex-sm-grow-0"
           (click)="startConfigTour()"
         >
-          <i class="bi bi-question-circle"></i>
+          <i class="fa-solid fa-circle-question"></i>
           <span>{{ 'helpTour' | t }}</span>
         </button>
       </div>
@@ -41,127 +38,274 @@
     <!-- ===================== WIZARD (MAIN CONTENT) ===================== -->
     <div class="col-12 col-xl-9 order-1 order-xl-1 config-main-col">
       <div class="card border-0 shadow-soft rounded-4 overflow-hidden mb-3 config-main-card">
+        <!-- Refined Architectural Stepper Header -->
+        <nav class="np-stepper-bar" aria-label="Configuration steps">
+          <button
+            type="button"
+            class="np-stepper-step"
+            [class.is-active]="stepIndex === 0"
+            [class.is-done]="stepIndex > 0"
+            (click)="stepIndex > 0 && goBack()"
+          >
+            <span class="np-step-badge">
+              <i class="fa-solid fa-check" *ngIf="stepIndex > 0"></i>
+              <span *ngIf="stepIndex === 0">01</span>
+            </span>
+            <span class="np-step-text">
+              <span class="np-step-eyebrow">{{ lang.isRTL() ? 'الخطوة الأولى' : 'Step 1' }}</span>
+              <span class="np-step-title">{{ 'basics' | t }}</span>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="np-stepper-step"
+            [class.is-active]="stepIndex === 1"
+            [disabled]="step1Form.invalid"
+            (click)="stepIndex === 0 && goNext()"
+          >
+            <span class="np-step-badge">02</span>
+            <span class="np-step-text">
+              <span class="np-step-eyebrow">{{ lang.isRTL() ? 'الخطوة الثانية' : 'Step 2' }}</span>
+              <span class="np-step-title">{{ 'modeAndSettings' | t }}</span>
+            </span>
+          </button>
+        </nav>
+
         <mat-horizontal-stepper
           [linear]="true"
           [selectedIndex]="stepIndex"
           (selectionChange)="stepIndex = $event.selectedIndex"
-          class="bg-white"
+          class="bg-white np-stepper-host"
         >
           <!-- ===================== STEP 1 ===================== -->
           <mat-step [stepControl]="step1Form" [label]="'basics' | t">
-            <form [formGroup]="step1Form" class="p-2 config-step1-form">
-              <div class="row g-2">
-                <div class="col-12 col-md-6">
-                  <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>{{ 'entryGatesCount' | t }}</mat-label>
-                    <input
-                      matInput
-                      type="number"
-                      formControlName="entryGatesCount"
-                      min="1"
-                      required
-                    />
-                    <mat-error *ngIf="step1Form.get('entryGatesCount')?.invalid">≥ 1</mat-error>
-                  </mat-form-field>
+            <form [formGroup]="step1Form" class="config-step1-form">
+              <div class="config-step1-grid">
+                <!-- Entry Gates Count -->
+                <div class="config-field-card">
+                  <div class="config-field-head">
+                    <span class="field-icon-chip chip-indigo">
+                      <i class="fa-solid fa-door-open"></i>
+                    </span>
+                    <label class="config-field-label" for="cfg-entry-gates">
+                      {{ 'entryGatesCount' | t }} <span class="req-star">*</span>
+                    </label>
+                  </div>
+                  <input
+                    id="cfg-entry-gates"
+                    class="form-control npark-input"
+                    [class.is-invalid]="
+                      step1Form.get('entryGatesCount')?.invalid &&
+                      step1Form.get('entryGatesCount')?.touched
+                    "
+                    type="number"
+                    formControlName="entryGatesCount"
+                    min="1"
+                    required
+                  />
+                  <div
+                    class="field-error"
+                    *ngIf="
+                      step1Form.get('entryGatesCount')?.invalid &&
+                      step1Form.get('entryGatesCount')?.touched
+                    "
+                  >
+                    <i class="fa-solid fa-circle-exclamation"></i> ≥ 1
+                  </div>
                 </div>
 
-                <div class="col-12 col-md-6">
-                  <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>{{ 'exitGatesCount' | t }}</mat-label>
-                    <input
-                      matInput
-                      type="number"
-                      formControlName="exitGatesCount"
-                      min="1"
-                      required
-                    />
-                    <mat-error *ngIf="step1Form.get('exitGatesCount')?.invalid">≥ 1</mat-error>
-                  </mat-form-field>
+                <!-- Exit Gates Count -->
+                <div class="config-field-card">
+                  <div class="config-field-head">
+                    <span class="field-icon-chip chip-sky">
+                      <i class="fa-solid fa-door-closed"></i>
+                    </span>
+                    <label class="config-field-label" for="cfg-exit-gates">
+                      {{ 'exitGatesCount' | t }} <span class="req-star">*</span>
+                    </label>
+                  </div>
+                  <input
+                    id="cfg-exit-gates"
+                    class="form-control npark-input"
+                    [class.is-invalid]="
+                      step1Form.get('exitGatesCount')?.invalid &&
+                      step1Form.get('exitGatesCount')?.touched
+                    "
+                    type="number"
+                    formControlName="exitGatesCount"
+                    min="1"
+                    required
+                  />
+                  <div
+                    class="field-error"
+                    *ngIf="
+                      step1Form.get('exitGatesCount')?.invalid &&
+                      step1Form.get('exitGatesCount')?.touched
+                    "
+                  >
+                    <i class="fa-solid fa-circle-exclamation"></i> ≥ 1
+                  </div>
                 </div>
 
-                <div class="col-12 col-md-6">
-                  <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>{{ 'allowedParkingSlots' | t }}</mat-label>
-                    <input
-                      matInput
-                      type="number"
-                      formControlName="allowedParkingSlots"
-                      min="1"
-                      required
-                    />
-                    <mat-error *ngIf="step1Form.get('allowedParkingSlots')?.invalid">≥ 1</mat-error>
-                  </mat-form-field>
+                <!-- Allowed Parking Slots -->
+                <div class="config-field-card">
+                  <div class="config-field-head">
+                    <span class="field-icon-chip chip-emerald">
+                      <i class="fa-solid fa-car"></i>
+                    </span>
+                    <label class="config-field-label" for="cfg-slots">
+                      {{ 'allowedParkingSlots' | t }} <span class="req-star">*</span>
+                    </label>
+                  </div>
+                  <input
+                    id="cfg-slots"
+                    class="form-control npark-input"
+                    [class.is-invalid]="
+                      step1Form.get('allowedParkingSlots')?.invalid &&
+                      step1Form.get('allowedParkingSlots')?.touched
+                    "
+                    type="number"
+                    formControlName="allowedParkingSlots"
+                    min="1"
+                    required
+                  />
+                  <div
+                    class="field-error"
+                    *ngIf="
+                      step1Form.get('allowedParkingSlots')?.invalid &&
+                      step1Form.get('allowedParkingSlots')?.touched
+                    "
+                  >
+                    <i class="fa-solid fa-circle-exclamation"></i> ≥ 1
+                  </div>
                 </div>
 
-                <div class="col-12 col-md-6">
-                  <mat-form-field appearance="outline" class="w-100">
-                    <mat-label>{{ 'gracePeriodMinutes' | t }}</mat-label>
-                    <input
-                      matInput
-                      type="number"
-                      formControlName="gracePeriodMinutes"
-                      min="0"
-                      required
-                    />
-                  </mat-form-field>
+                <!-- Grace Period Minutes -->
+                <div class="config-field-card">
+                  <div class="config-field-head">
+                    <span class="field-icon-chip chip-amber">
+                      <i class="fa-regular fa-clock"></i>
+                    </span>
+                    <label class="config-field-label" for="cfg-grace">
+                      {{ 'gracePeriodMinutes' | t }} <span class="req-star">*</span>
+                    </label>
+                  </div>
+                  <input
+                    id="cfg-grace"
+                    class="form-control npark-input"
+                    [class.is-invalid]="
+                      step1Form.get('gracePeriodMinutes')?.invalid &&
+                      step1Form.get('gracePeriodMinutes')?.touched
+                    "
+                    type="number"
+                    formControlName="gracePeriodMinutes"
+                    min="0"
+                    required
+                  />
+                  <div
+                    class="field-error"
+                    *ngIf="
+                      step1Form.get('gracePeriodMinutes')?.invalid &&
+                      step1Form.get('gracePeriodMinutes')?.touched
+                    "
+                  >
+                    <i class="fa-solid fa-circle-exclamation"></i> ≥ 0
+                  </div>
                 </div>
               </div>
 
-              <div class="d-flex justify-content-end mt-2 pt-1 border-top config-step-actions">
-                <div class="d-grid d-sm-block">
-                  <button
-                    mat-flat-button
-                    color="primary"
-                    type="button"
-                    (click)="goNext()"
-                    [disabled]="step1Form.invalid"
-                    class="px-4"
-                  >
-                    {{ 'next' | t }}
-                  </button>
-                </div>
+              <div class="config-step-actions">
+                <button
+                  type="button"
+                  class="btn-config-primary"
+                  (click)="goNext()"
+                  [disabled]="step1Form.invalid"
+                >
+                  <span>{{ 'next' | t }}</span>
+                  <i
+                    class="fa-solid"
+                    [ngClass]="lang.isRTL() ? 'fa-arrow-left' : 'fa-arrow-right'"
+                  ></i>
+                </button>
               </div>
             </form>
           </mat-step>
 
           <!-- ===================== STEP 2 ===================== -->
           <mat-step [stepControl]="step2Form" [label]="'modeAndSettings' | t">
-            <form [formGroup]="step2Form" class="p-2">
-              <!-- ===== Settings (Mode / Capture / Print / Options / Pricing) ===== -->
-              <section class="config-operations-panel mb-2">
-                <div class="config-operations-section config-collection-section">
-                  <div class="config-section-title">
-                    <i class="bi bi-currency-exchange"></i>
-                    <span>{{ 'Due_collection' | t }}</span>
-                  </div>
-                  <div class="config-segmented-control">
-                    <button
-                      type="button"
-                      class="config-segment"
-                      [class.is-active]="modeCtrl.value === 'entry'"
-                      (click)="modeCtrl.setValue('entry')"
-                    >
-                      <i class="bi bi-box-arrow-in-down"></i>
-                      <span>{{ 'entry' | t }}</span>
-                    </button>
-                    <button
-                      type="button"
-                      class="config-segment"
-                      [class.is-active]="modeCtrl.value === 'exit'"
-                      (click)="modeCtrl.setValue('exit')"
-                    >
-                      <i class="bi bi-box-arrow-up"></i>
-                      <span>{{ 'exit' | t }}</span>
-                    </button>
+            <form [formGroup]="step2Form" class="config-step2-form">
+              <!-- ===== Compact Grid Operations Strip ===== -->
+              <section class="config-operations-panel">
+                <!-- Cell 1: Collection Point (+ Pricing inline when entry) -->
+                <div class="ops-cell ops-collection">
+                  <div class="ops-collection-grid" [class.has-pricing]="modeCtrl.value === 'entry'">
+                    <div class="ops-group">
+                      <div class="ops-label">
+                        <i class="fa-solid fa-coins text-indigo"></i>
+                        <span>{{ 'Due_collection' | t }}</span>
+                      </div>
+                      <div class="config-segmented-control">
+                        <button
+                          type="button"
+                          class="config-segment"
+                          [class.is-active]="modeCtrl.value === 'entry'"
+                          (click)="modeCtrl.setValue('entry')"
+                        >
+                          <i class="fa-solid fa-right-to-bracket"></i>
+                          <span>{{ 'entry' | t }}</span>
+                        </button>
+                        <button
+                          type="button"
+                          class="config-segment"
+                          [class.is-active]="modeCtrl.value === 'exit'"
+                          (click)="modeCtrl.setValue('exit')"
+                        >
+                          <i class="fa-solid fa-right-from-bracket"></i>
+                          <span>{{ 'exit' | t }}</span>
+                        </button>
+                      </div>
+                    </div>
+
+                    <div class="ops-group" *ngIf="modeCtrl.value === 'entry'">
+                      <div class="ops-label">
+                        <i class="fa-solid fa-tags text-emerald"></i>
+                        <span>{{ 'pricingSchema' | t }} <span class="req-star">*</span></span>
+                      </div>
+                      <select
+                        class="form-select npark-select"
+                        formControlName="pricingSchemaId"
+                        [class.is-invalid]="
+                          step2Form.get('pricingSchemaId')?.invalid &&
+                          step2Form.get('pricingSchemaId')?.touched
+                        "
+                      >
+                        <option value="">— {{ 'pricingSchema' | t }} —</option>
+                        <option *ngFor="let s of pricingSchemas" [value]="s.id">
+                          {{ s.name }}
+                        </option>
+                      </select>
+                      <div
+                        class="field-error mt-1"
+                        *ngIf="
+                          step2Form.get('pricingSchemaId')?.hasError('required') &&
+                          step2Form.get('pricingSchemaId')?.touched
+                        "
+                      >
+                        <i class="fa-solid fa-circle-exclamation"></i>
+                        {{ 'pricingSchemaRequired' | t }}
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <div class="config-operations-section config-capture-section">
-                  <div class="config-section-title">
-                    <i class="bi bi-camera-video"></i>
+                <!-- Cell 2: Vehicle Capture Mode (Horizontal Inline Row) -->
+                <div class="ops-cell ops-capture">
+                  <div class="ops-label">
+                    <i class="fa-solid fa-video text-sky"></i>
                     <span>{{ 'Image_Capture_Mode' | t }}</span>
                   </div>
-                  <mat-radio-group formControlName="captureMode" class="config-choice-list">
+                  <mat-radio-group formControlName="captureMode" class="config-inline-choices">
                     <mat-radio-button value="VEHICLE_PLATE" color="primary">
                       <span>{{ 'vehiclePlate' | t }}</span>
                     </mat-radio-button>
@@ -174,12 +318,13 @@
                   </mat-radio-group>
                 </div>
 
-                <div class="config-operations-section config-ticket-section">
-                  <div class="config-section-title">
-                    <i class="bi bi-ticket-perforated"></i>
+                <!-- Cell 3: Ticket Content (Horizontal Inline Row) -->
+                <div class="ops-cell ops-ticket">
+                  <div class="ops-label">
+                    <i class="fa-solid fa-ticket text-amber"></i>
                     <span>{{ 'ticketOptions' | t }}</span>
                   </div>
-                  <div class="config-ticket-chips">
+                  <div class="config-inline-choices">
                     <mat-checkbox formControlName="dateTimeFlag" color="primary">
                       {{ 'ticketDateTime' | t }}
                     </mat-checkbox>
@@ -191,483 +336,553 @@
                     </mat-checkbox>
                   </div>
                 </div>
-
-                <div class="config-operations-section config-pricing-section" *ngIf="modeCtrl.value === 'entry'">
-                  <div class="config-section-title">
-                    <i class="bi bi-tags"></i>
-                    <span>{{ 'pricingSchema' | t }}</span>
-                  </div>
-                  <mat-form-field appearance="outline" class="w-100 config-pricing-field">
-                    <mat-label>{{ 'pricingSchema' | t }}</mat-label>
-                    <mat-select formControlName="pricingSchemaId">
-                      <mat-option *ngFor="let s of pricingSchemas" [value]="s.id">
-                        {{ s.name }}
-                      </mat-option>
-                    </mat-select>
-                    <mat-error *ngIf="step2Form.get('pricingSchemaId')?.hasError('required')">
-                      {{ 'pricingSchemaRequired' | t }}
-                    </mat-error>
-                  </mat-form-field>
-                </div>
               </section>
 
               <!-- ===== Tabs for Entry / Exit Gates ===== -->
-              <mat-tab-group class="mb-2 config-gates-tabs" animationDuration="0ms">
+              <mat-tab-group class="config-gates-tabs" animationDuration="0ms">
                 <!-- ========== Entry Gates TAB ========== -->
-                <mat-tab [label]="'entryGates' | t">
-                  <div class="pt-2">
-                    <mat-expansion-panel
-                      class="border-0 shadow-none bg-transparent"
-                      [expanded]="true"
-                      [disabled]="true"
-                      hideToggle
-                    >
-                      <mat-expansion-panel-header class="bg-light rounded-3 mb-2 border">
-                        <mat-panel-title class="d-flex align-items-center gap-2 fw-bold text-dark">
-                          <mat-icon class="text-primary">door_front</mat-icon>
-                          {{ 'entryGates' | t }}
-                        </mat-panel-title>
-                        <span class="badge bg-primary rounded-pill">{{
-                          entryGatesControls.length
-                        }}</span>
-                      </mat-expansion-panel-header>
+                <mat-tab>
+                  <ng-template mat-tab-label>
+                    <span class="tab-label-inner">
+                      <i class="fa-solid fa-door-open"></i>
+                      <span>{{ 'entryGates' | t }}</span>
+                      <span class="tab-count-pill pill-indigo">{{ entryGatesControls.length }}</span>
+                    </span>
+                  </ng-template>
 
-                      <div class="row g-2" formArrayName="entryGates">
-                        <div
-                          class="col-12 col-xxl-6"
-                          *ngFor="let g of entryGatesControls; let i = index"
-                          [formGroupName]="i"
-                        >
-                          <mat-expansion-panel class="card border mb-0 shadow-sm">
-                            <mat-expansion-panel-header class="bg-white rounded-3">
-                              <mat-panel-title class="d-flex align-items-center gap-2 fw-bold">
-                                <mat-icon class="text-primary">door_front</mat-icon>
-                                {{ 'gate' | t }} {{ g.get('gateNumber')?.value }}
-                              </mat-panel-title>
-                            </mat-expansion-panel-header>
+                  <div class="gates-tab-content" formArrayName="entryGates">
+                    <div class="gates-list">
+                      <mat-expansion-panel
+                        class="gate-panel"
+                        *ngFor="let g of entryGatesControls; let i = index"
+                        [formGroupName]="i"
+                        [expanded]="i === 0"
+                      >
+                        <mat-expansion-panel-header class="gate-panel-header">
+                          <mat-panel-title class="gate-panel-title">
+                            <span class="gate-icon-chip chip-indigo">
+                              <i class="fa-solid fa-door-open"></i>
+                            </span>
+                            <span class="gate-name">
+                              {{ 'gate' | t }} {{ g.get('gateNumber')?.value }}
+                            </span>
+                            <span
+                              class="gate-meta-pill"
+                              *ngIf="g.get('pcIp')?.value"
+                              dir="ltr"
+                            >
+                              <i class="fa-solid fa-network-wired"></i>
+                              {{ g.get('pcIp')?.value }}
+                            </span>
+                            <span
+                              class="gate-meta-pill pill-assigned"
+                              *ngIf="g.get('isAssigned')?.value"
+                            >
+                              <i class="fa-solid fa-user-check"></i>
+                              {{ 'assignTo' | t }}
+                            </span>
+                          </mat-panel-title>
+                        </mat-expansion-panel-header>
 
-                            <div class="pt-2">
-                              <div class="d-flex flex-column gap-2">
-                                <div
-                                  class="d-flex align-items-center gap-2 text-muted small fw-bold"
+                        <div class="gate-panel-body">
+                          <!-- 1. Network & Controller -->
+                          <div class="gate-subgrid-3">
+                            <div class="gate-field">
+                              <label class="gate-field-label">
+                                <i class="fa-solid fa-desktop"></i>
+                                {{ 'pcIpLabel' | t }}
+                              </label>
+                              <input
+                                class="form-control npark-input font-monospace"
+                                dir="ltr"
+                                [class.is-invalid]="
+                                  g.get('pcIp')?.invalid && g.get('pcIp')?.touched
+                                "
+                                type="text"
+                                formControlName="pcIp"
+                                [placeholder]="'ipPlaceholder' | t"
+                              />
+                              <div class="invalid-feedback">Invalid IP address</div>
+                            </div>
+
+                            <div class="gate-field">
+                              <label class="gate-field-label">
+                                <i class="fa-solid fa-camera"></i>
+                                {{ 'deviceIpLabel' | t }}
+                              </label>
+                              <input
+                                class="form-control npark-input font-monospace"
+                                dir="ltr"
+                                [class.is-invalid]="
+                                  g.get('deviceIp')?.invalid && g.get('deviceIp')?.touched
+                                "
+                                type="text"
+                                formControlName="deviceIp"
+                                [placeholder]="'ipPlaceholder' | t"
+                              />
+                              <div class="invalid-feedback">Invalid or duplicated LPR IP</div>
+                            </div>
+
+                            <div class="gate-field">
+                              <label class="gate-field-label">
+                                <i class="fa-solid fa-microchip"></i>
+                                {{ 'controlIpLabel' | t }} <span class="req-star">*</span>
+                              </label>
+                              <input
+                                class="form-control npark-input font-monospace"
+                                dir="ltr"
+                                [class.is-invalid]="
+                                  g.get('controlIp')?.invalid && g.get('controlIp')?.touched
+                                "
+                                type="text"
+                                formControlName="controlIp"
+                                [placeholder]="'controlIdPlaceholder' | t"
+                              />
+                              <div class="invalid-feedback">Required or duplicated Control ID</div>
+                            </div>
+                          </div>
+
+                          <!-- 2. Devices, Printers & Cashier (Clean 2-Col Grid, No Nested Boxes) -->
+                          <div class="gate-divider-section">
+                            <div class="gate-features-grid">
+                              <!-- QR Printer -->
+                              <div class="gate-toggle-col">
+                                <mat-checkbox formControlName="hasQrPrinterName" color="primary">
+                                  {{ 'hasQrPrinterName' | t }}
+                                </mat-checkbox>
+                                <div class="mt-1" *ngIf="g.get('hasQrPrinterName')?.value">
+                                  <input
+                                    class="form-control npark-input"
+                                    [class.is-invalid]="
+                                      g.get('qrPrinterName')?.invalid &&
+                                      g.get('qrPrinterName')?.touched
+                                    "
+                                    type="text"
+                                    formControlName="qrPrinterName"
+                                    [placeholder]="'qrPrinterName' | t"
+                                    maxlength="100"
+                                  />
+                                  <div class="invalid-feedback">Printer name is required</div>
+                                </div>
+                              </div>
+
+                              <!-- Receipt Printer -->
+                              <div class="gate-toggle-col">
+                                <mat-checkbox
+                                  formControlName="hasReceiptPrinterName"
+                                  color="primary"
                                 >
-                                  <mat-icon class="icon-sm">numbers</mat-icon>
-                                  {{ 'gate' | t }}: {{ g.get('gateNumber')?.value }}
-                                </div>
-
-                                <div>
-                                  <label
-                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                    >{{ 'pcIpLabel' | t }}</label
-                                  >
+                                  {{ 'hasReceiptPrinterName' | t }}
+                                </mat-checkbox>
+                                <div class="mt-1" *ngIf="g.get('hasReceiptPrinterName')?.value">
                                   <input
-                                    class="form-control form-control-sm font-monospace"
+                                    class="form-control npark-input"
                                     [class.is-invalid]="
-                                      g.get('pcIp')?.invalid && g.get('pcIp')?.touched
+                                      g.get('receiptPrinterName')?.invalid &&
+                                      g.get('receiptPrinterName')?.touched
                                     "
                                     type="text"
-                                    formControlName="pcIp"
-                                    [placeholder]="'ipPlaceholder' | t"
+                                    formControlName="receiptPrinterName"
+                                    [placeholder]="'receiptPrinterName' | t"
+                                    maxlength="100"
                                   />
-                                  <div class="invalid-feedback">Invalid IP address</div>
+                                  <div class="invalid-feedback">Printer name is required</div>
                                 </div>
+                              </div>
 
-                                <div>
-                                  <label
-                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                    >{{ 'deviceIpLabel' | t }}</label
+                              <!-- Scanner + Cashier Assignment -->
+                              <div class="gate-toggle-col gate-scanner-assign">
+                                <mat-checkbox formControlName="hasScanner" color="primary">
+                                  {{ 'hasScanner' | t }}
+                                </mat-checkbox>
+                                <mat-checkbox formControlName="isAssigned" color="primary">
+                                  {{ 'assignTo' | t }}
+                                </mat-checkbox>
+                                <div class="mt-1" *ngIf="g.get('isAssigned')?.value">
+                                  <select
+                                    class="form-select npark-select"
+                                    formControlName="assignedTo"
                                   >
-                                  <input
-                                    class="form-control form-control-sm font-monospace"
-                                    [class.is-invalid]="
-                                      g.get('deviceIp')?.invalid && g.get('deviceIp')?.touched
-                                    "
-                                    type="text"
-                                    formControlName="deviceIp"
-                                    [placeholder]="'ipPlaceholder' | t"
-                                  />
-                                  <div class="invalid-feedback">Invalid or duplicated LPR IP</div>
-                                </div>
-
-                                <div>
-                                  <label
-                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                    >{{ 'controlIpLabel' | t }}</label
-                                  >
-                                  <input
-                                    class="form-control form-control-sm font-monospace"
-                                    [class.is-invalid]="
-                                      g.get('controlIp')?.invalid && g.get('controlIp')?.touched
-                                    "
-                                    type="text"
-                                    formControlName="controlIp"
-                                    [placeholder]="'controlIdPlaceholder' | t"
-                                  />
-                                  <div class="invalid-feedback">
-                                    Required or duplicated Control ID
-                                  </div>
-                                </div>
-
-                                <div class="d-flex flex-column gap-2">
-                                  <mat-checkbox formControlName="hasScanner" color="primary">
-                                    {{ 'hasScanner' | t }}
-                                  </mat-checkbox>
-
-                                  <mat-checkbox formControlName="hasQrPrinterName" color="primary">
-                                    {{ 'hasQrPrinterName' | t }}
-                                  </mat-checkbox>
-                                  <div *ngIf="g.get('hasQrPrinterName')?.value">
-                                    <label
-                                      class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                      >{{ 'qrPrinterName' | t }}</label
-                                    >
-                                    <input
-                                      class="form-control form-control-sm"
-                                      [class.is-invalid]="
-                                        g.get('qrPrinterName')?.invalid &&
-                                        g.get('qrPrinterName')?.touched
-                                      "
-                                      type="text"
-                                      formControlName="qrPrinterName"
-                                      maxlength="100"
-                                    />
-                                    <div class="invalid-feedback">Printer name is required</div>
-                                  </div>
-
-                                  <mat-checkbox
-                                    formControlName="hasReceiptPrinterName"
-                                    color="primary"
-                                  >
-                                    {{ 'hasReceiptPrinterName' | t }}
-                                  </mat-checkbox>
-                                  <div *ngIf="g.get('hasReceiptPrinterName')?.value">
-                                    <label
-                                      class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                      >{{ 'receiptPrinterName' | t }}</label
-                                    >
-                                    <input
-                                      class="form-control form-control-sm"
-                                      [class.is-invalid]="
-                                        g.get('receiptPrinterName')?.invalid &&
-                                        g.get('receiptPrinterName')?.touched
-                                      "
-                                      type="text"
-                                      formControlName="receiptPrinterName"
-                                      maxlength="100"
-                                    />
-                                    <div class="invalid-feedback">Printer name is required</div>
-                                  </div>
-                                </div>
-
-                                <div
-                                  class="d-flex flex-column gap-2 mt-2 pt-2 border-top"
-                                  formGroupName="onvifCameraSetting"
-                                >
-                                  <label
-                                    class="form-label small fw-bold text-muted text-uppercase mb-0"
-                                  >
-                                    {{ 'onvifCameraSettings' | t }}
-                                  </label>
-                                  <input
-                                    class="form-control form-control-sm"
-                                    [class.is-invalid]="
-                                      g.get('onvifCameraSetting')?.invalid &&
-                                      g.get('onvifCameraSetting')?.touched
-                                    "
-                                    type="text"
-                                    formControlName="urlRequest"
-                                    [placeholder]="'onvifUrlRequest' | t"
-                                  />
-                                  <input
-                                    class="form-control form-control-sm"
-                                    [class.is-invalid]="
-                                      g.get('onvifCameraSetting')?.invalid &&
-                                      g.get('onvifCameraSetting')?.touched
-                                    "
-                                    type="text"
-                                    formControlName="userName"
-                                    [placeholder]="'onvifUsername' | t"
-                                  />
-                                  <input
-                                    class="form-control form-control-sm"
-                                    [class.is-invalid]="
-                                      g.get('onvifCameraSetting')?.invalid &&
-                                      g.get('onvifCameraSetting')?.touched
-                                    "
-                                    type="password"
-                                    formControlName="password"
-                                    [placeholder]="'onvifPassword' | t"
-                                  />
-                                  <div
-                                    class="text-danger small"
-                                    *ngIf="
-                                      g.get('onvifCameraSetting')?.invalid &&
-                                      g.get('onvifCameraSetting')?.touched
-                                    "
-                                  >
-                                    Fill URL, username, and password or leave all ONVIF fields empty
-                                  </div>
-                                </div>
-
-                                <div class="d-flex flex-column gap-2 mt-2 pt-2 border-top">
-                                  <mat-checkbox formControlName="isAssigned" color="primary">
-                                    {{ 'assignTo' | t }}
-                                  </mat-checkbox>
-
-                                  <mat-form-field
-                                    appearance="outline"
-                                    class="w-100"
-                                    *ngIf="g.get('isAssigned')?.value"
-                                  >
-                                    <mat-label>{{ 'cashier' | t }}</mat-label>
-                                    <mat-select formControlName="assignedTo">
-                                      <mat-option *ngFor="let c of cashiersEntrance" [value]="c.id">
-                                        {{ c.name }}
-                                      </mat-option>
-                                    </mat-select>
-                                  </mat-form-field>
+                                    <option [ngValue]="null">— {{ 'cashier' | t }} —</option>
+                                    <option *ngFor="let c of cashiersEntrance" [value]="c.id">
+                                      {{ c.name }}
+                                    </option>
+                                  </select>
                                 </div>
                               </div>
                             </div>
-                          </mat-expansion-panel>
+                          </div>
+
+                          <!-- 3. ONVIF Camera Settings (Clean Inline Divider Section) -->
+                          <div class="gate-divider-section" formGroupName="onvifCameraSetting">
+                            <div class="gate-subpanel-title">
+                              <i class="fa-solid fa-video"></i>
+                              <span>{{ 'onvifCameraSettings' | t }}</span>
+                            </div>
+                            <div class="gate-onvif-grid">
+                              <div class="gate-field">
+                                <label class="gate-field-label">{{ 'onvifUrlRequest' | t }}</label>
+                                <input
+                                  class="form-control npark-input font-monospace"
+                                  dir="ltr"
+                                  [class.is-invalid]="
+                                    g.get('onvifCameraSetting')?.invalid &&
+                                    g.get('onvifCameraSetting')?.touched
+                                  "
+                                  type="text"
+                                  formControlName="urlRequest"
+                                  [placeholder]="'onvifUrlRequest' | t"
+                                />
+                              </div>
+
+                              <div class="gate-field">
+                                <label class="gate-field-label">{{ 'onvifUsername' | t }}</label>
+                                <input
+                                  class="form-control npark-input"
+                                  dir="ltr"
+                                  [class.is-invalid]="
+                                    g.get('onvifCameraSetting')?.invalid &&
+                                    g.get('onvifCameraSetting')?.touched
+                                  "
+                                  type="text"
+                                  formControlName="userName"
+                                  [placeholder]="'onvifUsername' | t"
+                                />
+                              </div>
+
+                              <div class="gate-field">
+                                <label class="gate-field-label">{{ 'onvifPassword' | t }}</label>
+                                <div class="password-input-wrap">
+                                  <input
+                                    class="form-control npark-input password-input-field"
+                                    dir="ltr"
+                                    [class.is-invalid]="
+                                      g.get('onvifCameraSetting')?.invalid &&
+                                      g.get('onvifCameraSetting')?.touched
+                                    "
+                                    [type]="isPasswordVisible('entry-' + i) ? 'text' : 'password'"
+                                    formControlName="password"
+                                    [placeholder]="'onvifPassword' | t"
+                                  />
+                                  <button
+                                    type="button"
+                                    class="btn-toggle-password"
+                                    (click)="togglePassword('entry-' + i)"
+                                    [attr.aria-label]="
+                                      isPasswordVisible('entry-' + i)
+                                        ? 'Hide password'
+                                        : 'Show password'
+                                    "
+                                  >
+                                    <i
+                                      class="fa-solid"
+                                      [ngClass]="
+                                        isPasswordVisible('entry-' + i)
+                                          ? 'fa-eye-slash'
+                                          : 'fa-eye'
+                                      "
+                                    ></i>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              class="field-error mt-2"
+                              *ngIf="
+                                g.get('onvifCameraSetting')?.invalid &&
+                                g.get('onvifCameraSetting')?.touched
+                              "
+                            >
+                              <i class="fa-solid fa-circle-exclamation"></i>
+                              Fill URL, username, and password or leave all ONVIF fields empty
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </mat-expansion-panel>
+                      </mat-expansion-panel>
+                    </div>
                   </div>
                 </mat-tab>
 
                 <!-- ========== Exit Gates TAB ========== -->
-                <mat-tab [label]="'exitGates' | t">
-                  <div class="pt-2">
-                    <mat-expansion-panel
-                      class="border-0 shadow-none bg-transparent"
-                      [expanded]="true"
-                      [disabled]="true"
-                      hideToggle
-                    >
-                      <mat-expansion-panel-header class="bg-light rounded-3 mb-3 border">
-                        <mat-panel-title class="d-flex align-items-center gap-2 fw-bold text-dark">
-                          <mat-icon class="text-primary">exit_to_app</mat-icon>
-                          {{ 'exitGates' | t }}
-                        </mat-panel-title>
-                        <span class="badge bg-primary rounded-pill">{{
-                          exitGatesControls.length
-                        }}</span>
-                      </mat-expansion-panel-header>
+                <mat-tab>
+                  <ng-template mat-tab-label>
+                    <span class="tab-label-inner">
+                      <i class="fa-solid fa-door-closed"></i>
+                      <span>{{ 'exitGates' | t }}</span>
+                      <span class="tab-count-pill pill-sky">{{ exitGatesControls.length }}</span>
+                    </span>
+                  </ng-template>
 
-                      <div class="row g-2" formArrayName="exitGates">
-                        <div
-                          class="col-12 col-xxl-6"
-                          *ngFor="let g of exitGatesControls; let i = index"
-                          [formGroupName]="i"
-                        >
-                          <mat-expansion-panel class="card border mb-0 shadow-sm">
-                            <mat-expansion-panel-header class="bg-white rounded-3">
-                              <mat-panel-title class="d-flex align-items-center gap-2 fw-bold">
-                                <mat-icon class="text-primary">exit_to_app</mat-icon>
-                                {{ 'gate' | t }} {{ g.get('gateNumber')?.value }}
-                              </mat-panel-title>
-                            </mat-expansion-panel-header>
+                  <div class="gates-tab-content" formArrayName="exitGates">
+                    <div class="gates-list">
+                      <mat-expansion-panel
+                        class="gate-panel"
+                        *ngFor="let g of exitGatesControls; let i = index"
+                        [formGroupName]="i"
+                        [expanded]="i === 0"
+                      >
+                        <mat-expansion-panel-header class="gate-panel-header">
+                          <mat-panel-title class="gate-panel-title">
+                            <span class="gate-icon-chip chip-sky">
+                              <i class="fa-solid fa-door-closed"></i>
+                            </span>
+                            <span class="gate-name">
+                              {{ 'gate' | t }} {{ g.get('gateNumber')?.value }}
+                            </span>
+                            <span
+                              class="gate-meta-pill"
+                              *ngIf="g.get('pcIp')?.value"
+                              dir="ltr"
+                            >
+                              <i class="fa-solid fa-network-wired"></i>
+                              {{ g.get('pcIp')?.value }}
+                            </span>
+                            <span
+                              class="gate-meta-pill pill-assigned"
+                              *ngIf="g.get('isAssigned')?.value"
+                            >
+                              <i class="fa-solid fa-user-check"></i>
+                              {{ 'assignTo' | t }}
+                            </span>
+                          </mat-panel-title>
+                        </mat-expansion-panel-header>
 
-                            <div class="pt-3">
-                              <div class="d-flex flex-column gap-3">
-                                <div
-                                  class="d-flex align-items-center gap-2 text-muted small fw-bold"
+                        <div class="gate-panel-body">
+                          <!-- 1. Network & Controller -->
+                          <div class="gate-subgrid-3">
+                            <div class="gate-field">
+                              <label class="gate-field-label">
+                                <i class="fa-solid fa-desktop"></i>
+                                {{ 'pcIpLabel' | t }}
+                              </label>
+                              <input
+                                class="form-control npark-input font-monospace"
+                                dir="ltr"
+                                [class.is-invalid]="
+                                  g.get('pcIp')?.invalid && g.get('pcIp')?.touched
+                                "
+                                type="text"
+                                formControlName="pcIp"
+                                [placeholder]="'ipPlaceholder' | t"
+                              />
+                              <div class="invalid-feedback">Invalid IP address</div>
+                            </div>
+
+                            <div class="gate-field">
+                              <label class="gate-field-label">
+                                <i class="fa-solid fa-camera"></i>
+                                {{ 'deviceIpLabel' | t }}
+                              </label>
+                              <input
+                                class="form-control npark-input font-monospace"
+                                dir="ltr"
+                                [class.is-invalid]="
+                                  g.get('deviceIp')?.invalid && g.get('deviceIp')?.touched
+                                "
+                                type="text"
+                                formControlName="deviceIp"
+                                [placeholder]="'ipPlaceholder' | t"
+                              />
+                              <div class="invalid-feedback">Invalid or duplicated LPR IP</div>
+                            </div>
+
+                            <div class="gate-field">
+                              <label class="gate-field-label">
+                                <i class="fa-solid fa-microchip"></i>
+                                {{ 'controlIpLabel' | t }} <span class="req-star">*</span>
+                              </label>
+                              <input
+                                class="form-control npark-input font-monospace"
+                                dir="ltr"
+                                [class.is-invalid]="
+                                  g.get('controlIp')?.invalid && g.get('controlIp')?.touched
+                                "
+                                type="text"
+                                formControlName="controlIp"
+                                [placeholder]="'controlIdPlaceholder' | t"
+                              />
+                              <div class="invalid-feedback">Required or duplicated Control ID</div>
+                            </div>
+                          </div>
+
+                          <!-- 2. Devices, Printers & Cashier (Clean 2-Col Grid, No Nested Boxes) -->
+                          <div class="gate-divider-section">
+                            <div class="gate-features-grid">
+                              <!-- QR Printer -->
+                              <div class="gate-toggle-col">
+                                <mat-checkbox formControlName="hasQrPrinterName" color="primary">
+                                  {{ 'hasQrPrinterName' | t }}
+                                </mat-checkbox>
+                                <div class="mt-1" *ngIf="g.get('hasQrPrinterName')?.value">
+                                  <input
+                                    class="form-control npark-input"
+                                    [class.is-invalid]="
+                                      g.get('qrPrinterName')?.invalid &&
+                                      g.get('qrPrinterName')?.touched
+                                    "
+                                    type="text"
+                                    formControlName="qrPrinterName"
+                                    [placeholder]="'qrPrinterName' | t"
+                                    maxlength="100"
+                                  />
+                                  <div class="invalid-feedback">Printer name is required</div>
+                                </div>
+                              </div>
+
+                              <!-- Receipt Printer -->
+                              <div class="gate-toggle-col">
+                                <mat-checkbox
+                                  formControlName="hasReceiptPrinterName"
+                                  color="primary"
                                 >
-                                  <mat-icon class="icon-sm">numbers</mat-icon>
-                                  {{ 'gate' | t }}: {{ g.get('gateNumber')?.value }}
-                                </div>
-
-                                <div>
-                                  <label
-                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                    >{{ 'pcIpLabel' | t }}</label
-                                  >
+                                  {{ 'hasReceiptPrinterName' | t }}
+                                </mat-checkbox>
+                                <div class="mt-1" *ngIf="g.get('hasReceiptPrinterName')?.value">
                                   <input
-                                    class="form-control form-control-sm font-monospace"
+                                    class="form-control npark-input"
                                     [class.is-invalid]="
-                                      g.get('pcIp')?.invalid && g.get('pcIp')?.touched
+                                      g.get('receiptPrinterName')?.invalid &&
+                                      g.get('receiptPrinterName')?.touched
                                     "
                                     type="text"
-                                    formControlName="pcIp"
-                                    [placeholder]="'ipPlaceholder' | t"
+                                    formControlName="receiptPrinterName"
+                                    [placeholder]="'receiptPrinterName' | t"
+                                    maxlength="100"
                                   />
-                                  <div class="invalid-feedback">Invalid IP address</div>
+                                  <div class="invalid-feedback">Printer name is required</div>
                                 </div>
+                              </div>
 
-                                <div>
-                                  <label
-                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                    >{{ 'deviceIpLabel' | t }}</label
+                              <!-- Scanner + Cashier Assignment -->
+                              <div class="gate-toggle-col gate-scanner-assign">
+                                <mat-checkbox formControlName="hasScanner" color="primary">
+                                  {{ 'hasScanner' | t }}
+                                </mat-checkbox>
+                                <mat-checkbox formControlName="isAssigned" color="primary">
+                                  {{ 'assignTo' | t }}
+                                </mat-checkbox>
+                                <div class="mt-1" *ngIf="g.get('isAssigned')?.value">
+                                  <select
+                                    class="form-select npark-select"
+                                    formControlName="assignedTo"
                                   >
-                                  <input
-                                    class="form-control form-control-sm font-monospace"
-                                    [class.is-invalid]="
-                                      g.get('deviceIp')?.invalid && g.get('deviceIp')?.touched
-                                    "
-                                    type="text"
-                                    formControlName="deviceIp"
-                                    [placeholder]="'ipPlaceholder' | t"
-                                  />
-                                  <div class="invalid-feedback">Invalid or duplicated LPR IP</div>
-                                </div>
-
-                                <div>
-                                  <label
-                                    class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                    >{{ 'controlIpLabel' | t }}</label
-                                  >
-                                  <input
-                                    class="form-control form-control-sm font-monospace"
-                                    [class.is-invalid]="
-                                      g.get('controlIp')?.invalid && g.get('controlIp')?.touched
-                                    "
-                                    type="text"
-                                    formControlName="controlIp"
-                                    [placeholder]="'controlIdPlaceholder' | t"
-                                  />
-                                  <div class="invalid-feedback">
-                                    Required or duplicated Control ID
-                                  </div>
-                                </div>
-
-                                <div class="d-flex flex-column gap-2">
-                                  <mat-checkbox formControlName="hasScanner" color="primary">
-                                    {{ 'hasScanner' | t }}
-                                  </mat-checkbox>
-
-                                  <mat-checkbox formControlName="hasQrPrinterName" color="primary">
-                                    {{ 'hasQrPrinterName' | t }}
-                                  </mat-checkbox>
-                                  <div *ngIf="g.get('hasQrPrinterName')?.value">
-                                    <label
-                                      class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                      >{{ 'qrPrinterName' | t }}</label
-                                    >
-                                    <input
-                                      class="form-control form-control-sm"
-                                      [class.is-invalid]="
-                                        g.get('qrPrinterName')?.invalid &&
-                                        g.get('qrPrinterName')?.touched
-                                      "
-                                      type="text"
-                                      formControlName="qrPrinterName"
-                                      maxlength="100"
-                                    />
-                                    <div class="invalid-feedback">Printer name is required</div>
-                                  </div>
-
-                                  <mat-checkbox
-                                    formControlName="hasReceiptPrinterName"
-                                    color="primary"
-                                  >
-                                    {{ 'hasReceiptPrinterName' | t }}
-                                  </mat-checkbox>
-                                  <div *ngIf="g.get('hasReceiptPrinterName')?.value">
-                                    <label
-                                      class="form-label small fw-bold text-muted text-uppercase mb-1"
-                                      >{{ 'receiptPrinterName' | t }}</label
-                                    >
-                                    <input
-                                      class="form-control form-control-sm"
-                                      [class.is-invalid]="
-                                        g.get('receiptPrinterName')?.invalid &&
-                                        g.get('receiptPrinterName')?.touched
-                                      "
-                                      type="text"
-                                      formControlName="receiptPrinterName"
-                                      maxlength="100"
-                                    />
-                                    <div class="invalid-feedback">Printer name is required</div>
-                                  </div>
-                                </div>
-
-                                <div
-                                  class="d-flex flex-column gap-2 mt-2 pt-2 border-top"
-                                  formGroupName="onvifCameraSetting"
-                                >
-                                  <label
-                                    class="form-label small fw-bold text-muted text-uppercase mb-0"
-                                  >
-                                    {{ 'onvifCameraSettings' | t }}
-                                  </label>
-                                  <input
-                                    class="form-control form-control-sm"
-                                    [class.is-invalid]="
-                                      g.get('onvifCameraSetting')?.invalid &&
-                                      g.get('onvifCameraSetting')?.touched
-                                    "
-                                    type="text"
-                                    formControlName="urlRequest"
-                                    [placeholder]="'onvifUrlRequest' | t"
-                                  />
-                                  <input
-                                    class="form-control form-control-sm"
-                                    [class.is-invalid]="
-                                      g.get('onvifCameraSetting')?.invalid &&
-                                      g.get('onvifCameraSetting')?.touched
-                                    "
-                                    type="text"
-                                    formControlName="userName"
-                                    [placeholder]="'onvifUsername' | t"
-                                  />
-                                  <input
-                                    class="form-control form-control-sm"
-                                    [class.is-invalid]="
-                                      g.get('onvifCameraSetting')?.invalid &&
-                                      g.get('onvifCameraSetting')?.touched
-                                    "
-                                    type="password"
-                                    formControlName="password"
-                                    [placeholder]="'onvifPassword' | t"
-                                  />
-                                  <div
-                                    class="text-danger small"
-                                    *ngIf="
-                                      g.get('onvifCameraSetting')?.invalid &&
-                                      g.get('onvifCameraSetting')?.touched
-                                    "
-                                  >
-                                    Fill URL, username, and password or leave all ONVIF fields empty
-                                  </div>
-                                </div>
-
-                                <div class="d-flex flex-column gap-2 mt-2 pt-2 border-top">
-                                  <mat-checkbox formControlName="isAssigned" color="primary">
-                                    {{ 'assignTo' | t }}
-                                  </mat-checkbox>
-
-                                  <mat-form-field
-                                    appearance="outline"
-                                    class="w-100"
-                                    *ngIf="g.get('isAssigned')?.value"
-                                  >
-                                    <mat-label>{{ 'cashier' | t }}</mat-label>
-                                    <mat-select formControlName="assignedTo">
-                                      <mat-option *ngFor="let c of cashiersExit" [value]="c.id">
-                                        {{ c.name }}
-                                      </mat-option>
-                                    </mat-select>
-                                  </mat-form-field>
+                                    <option [ngValue]="null">— {{ 'cashier' | t }} —</option>
+                                    <option *ngFor="let c of cashiersExit" [value]="c.id">
+                                      {{ c.name }}
+                                    </option>
+                                  </select>
                                 </div>
                               </div>
                             </div>
-                          </mat-expansion-panel>
+                          </div>
+
+                          <!-- 3. ONVIF Camera Settings (Clean Inline Divider Section) -->
+                          <div class="gate-divider-section" formGroupName="onvifCameraSetting">
+                            <div class="gate-subpanel-title">
+                              <i class="fa-solid fa-video"></i>
+                              <span>{{ 'onvifCameraSettings' | t }}</span>
+                            </div>
+                            <div class="gate-onvif-grid">
+                              <div class="gate-field">
+                                <label class="gate-field-label">{{ 'onvifUrlRequest' | t }}</label>
+                                <input
+                                  class="form-control npark-input font-monospace"
+                                  dir="ltr"
+                                  [class.is-invalid]="
+                                    g.get('onvifCameraSetting')?.invalid &&
+                                    g.get('onvifCameraSetting')?.touched
+                                  "
+                                  type="text"
+                                  formControlName="urlRequest"
+                                  [placeholder]="'onvifUrlRequest' | t"
+                                />
+                              </div>
+
+                              <div class="gate-field">
+                                <label class="gate-field-label">{{ 'onvifUsername' | t }}</label>
+                                <input
+                                  class="form-control npark-input"
+                                  dir="ltr"
+                                  [class.is-invalid]="
+                                    g.get('onvifCameraSetting')?.invalid &&
+                                    g.get('onvifCameraSetting')?.touched
+                                  "
+                                  type="text"
+                                  formControlName="userName"
+                                  [placeholder]="'onvifUsername' | t"
+                                />
+                              </div>
+
+                              <div class="gate-field">
+                                <label class="gate-field-label">{{ 'onvifPassword' | t }}</label>
+                                <div class="password-input-wrap">
+                                  <input
+                                    class="form-control npark-input password-input-field"
+                                    dir="ltr"
+                                    [class.is-invalid]="
+                                      g.get('onvifCameraSetting')?.invalid &&
+                                      g.get('onvifCameraSetting')?.touched
+                                    "
+                                    [type]="isPasswordVisible('exit-' + i) ? 'text' : 'password'"
+                                    formControlName="password"
+                                    [placeholder]="'onvifPassword' | t"
+                                  />
+                                  <button
+                                    type="button"
+                                    class="btn-toggle-password"
+                                    (click)="togglePassword('exit-' + i)"
+                                    [attr.aria-label]="
+                                      isPasswordVisible('exit-' + i)
+                                        ? 'Hide password'
+                                        : 'Show password'
+                                    "
+                                  >
+                                    <i
+                                      class="fa-solid"
+                                      [ngClass]="
+                                        isPasswordVisible('exit-' + i)
+                                          ? 'fa-eye-slash'
+                                          : 'fa-eye'
+                                      "
+                                    ></i>
+                                  </button>
+                                </div>
+                              </div>
+                            </div>
+                            <div
+                              class="field-error mt-2"
+                              *ngIf="
+                                g.get('onvifCameraSetting')?.invalid &&
+                                g.get('onvifCameraSetting')?.touched
+                              "
+                            >
+                              <i class="fa-solid fa-circle-exclamation"></i>
+                              Fill URL, username, and password or leave all ONVIF fields empty
+                            </div>
+                          </div>
                         </div>
-                      </div>
-                    </mat-expansion-panel>
+                      </mat-expansion-panel>
+                    </div>
                   </div>
                 </mat-tab>
               </mat-tab-group>
 
-              <div
-                class="d-flex flex-column flex-sm-row justify-content-between gap-2 mt-2 pt-1 border-top config-action-bar"
-              >
-                <button mat-stroked-button type="button" (click)="goBack()" class="px-4">
-                  {{ 'back' | t }}
+              <div class="config-action-bar">
+                <button type="button" class="btn-config-secondary" (click)="goBack()">
+                  <i
+                    class="fa-solid"
+                    [ngClass]="lang.isRTL() ? 'fa-arrow-right' : 'fa-arrow-left'"
+                  ></i>
+                  <span>{{ 'back' | t }}</span>
                 </button>
-                <button mat-flat-button color="primary" type="button" (click)="save()" class="px-5">
-                  {{ 'save' | t }}
+                <button
+                  type="button"
+                  class="btn-config-save"
+                  (click)="save()"
+                  [disabled]="saving"
+                >
+                  <i class="fa-solid fa-floppy-disk"></i>
+                  <span>{{ 'save' | t }}</span>
                 </button>
               </div>
             </form>
@@ -678,178 +893,122 @@
 
     <!-- ===================== SUMMARY SIDEBAR ===================== -->
     <div class="col-12 col-xl-3 order-2 order-xl-2 config-summary-col">
-      <div class="d-flex flex-column gap-2 sticky-top config-sidebar-sticky">
-        <!-- Summary Card -->
+      <div class="d-flex flex-column gap-2 config-sidebar-sticky">
         <div class="card border-0 shadow-soft rounded-4 config-summary-card overflow-hidden">
-          <div class="card-header bg-light border-bottom p-2 d-flex align-items-center gap-2">
-            <i class="bi bi-clipboard-data text-primary fs-5"></i>
-            <h6 class="mb-0 fw-bold text-primary">{{ 'summary' | t }}</h6>
+          <div class="card-header d-flex align-items-center gap-2">
+            <span class="summary-header-icon">
+              <i class="fa-solid fa-clipboard-list"></i>
+            </span>
+            <h6 class="mb-0 fw-bold">{{ 'summary' | t }}</h6>
           </div>
 
           <div class="card-body p-0">
-            <div class="d-flex flex-column">
-              <!-- Grid rows for summary items -->
-              <div
-                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
-              >
-                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
-                  <i class="bi bi-door-open"></i>
+            <div class="summary-rows">
+              <div class="summary-row">
+                <div class="summary-label">
+                  <span class="summary-ico chip-indigo"><i class="fa-solid fa-door-open"></i></span>
                   <span>{{ 'entryGatesCount' | t }}</span>
                 </div>
-                <span
-                  class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-2"
-                  >{{ summaryForView.entryGatesCount }}</span
-                >
+                <span class="summary-pill pill-indigo">{{ summaryForView.entryGatesCount }}</span>
               </div>
 
-              <div
-                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
-              >
-                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
-                  <i class="bi bi-door-closed"></i>
+              <div class="summary-row">
+                <div class="summary-label">
+                  <span class="summary-ico chip-sky"><i class="fa-solid fa-door-closed"></i></span>
                   <span>{{ 'exitGatesCount' | t }}</span>
                 </div>
-                <span
-                  class="badge rounded-pill bg-primary bg-opacity-10 text-primary border border-primary border-opacity-10 px-2"
-                  >{{ summaryForView.exitGatesCount }}</span
-                >
+                <span class="summary-pill pill-sky">{{ summaryForView.exitGatesCount }}</span>
               </div>
 
-              <div
-                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
-              >
-                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
-                  <i class="bi bi-car-front"></i>
+              <div class="summary-row">
+                <div class="summary-label">
+                  <span class="summary-ico chip-emerald"><i class="fa-solid fa-car"></i></span>
                   <span>{{ 'allowedParkingSlots' | t }}</span>
                 </div>
-                <span
-                  class="badge rounded-pill bg-success bg-opacity-10 text-success border border-success border-opacity-10 px-2"
-                  >{{ summaryForView.allowedParkingSlots }}</span
-                >
+                <span class="summary-pill pill-emerald">
+                  {{ summaryForView.allowedParkingSlots }}
+                </span>
               </div>
 
-              <div
-                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
-              >
-                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
-                  <i class="bi bi-clock-history"></i>
+              <div class="summary-row">
+                <div class="summary-label">
+                  <span class="summary-ico chip-amber"><i class="fa-regular fa-clock"></i></span>
                   <span>{{ 'gracePeriodMinutes' | t }}</span>
                 </div>
-                <span
-                  class="badge rounded-pill bg-warning bg-opacity-10 text-warning border border-warning border-opacity-10 px-2"
-                >
+                <span class="summary-pill pill-amber">
                   {{ summaryForView.gracePeriodMinutes }} min
                 </span>
               </div>
 
-              <div class="p-2 bg-light border-bottom border-top"></div>
+              <div class="summary-divider"></div>
 
-              <div
-                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
-              >
-                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
-                  <i class="bi bi-currency-dollar"></i>
+              <div class="summary-row">
+                <div class="summary-label">
+                  <span class="summary-ico chip-indigo"><i class="fa-solid fa-coins"></i></span>
                   <span>{{ 'FeesType' | t }}</span>
                 </div>
-                <span
-                  class="badge rounded-pill bg-info bg-opacity-10 text-info border border-info border-opacity-10 px-2"
-                >
+                <span class="summary-pill pill-sky">
                   {{ summaryForView.mode === 'entry' ? ('entry' | t) : ('exit' | t) }}
                 </span>
               </div>
 
-              <div
-                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
-              >
-                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
-                  <i class="bi bi-camera"></i>
+              <div class="summary-row">
+                <div class="summary-label">
+                  <span class="summary-ico chip-sky"><i class="fa-solid fa-video"></i></span>
                   <span>{{ 'captureMode' | t }}</span>
                 </div>
-                <span class="fw-bold text-dark small">{{ summaryForView.captureMode }}</span>
+                <span class="summary-val">
+                  {{
+                    summaryForView.captureMode === 'BOTH'
+                      ? ('both' | t)
+                      : summaryForView.captureMode === 'SCANNER'
+                        ? ('scanner' | t)
+                        : ('vehiclePlate' | t)
+                  }}
+                </span>
               </div>
 
-              <div
-                class="d-flex justify-content-between align-items-center p-2 border-bottom border-light"
-                *ngIf="summaryForView.pricingSchemaName"
-              >
-                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
-                  <i class="bi bi-tags"></i>
+              <div class="summary-row" *ngIf="summaryForView.pricingSchemaName">
+                <div class="summary-label">
+                  <span class="summary-ico chip-emerald"><i class="fa-solid fa-tags"></i></span>
                   <span>{{ 'pricingSchema' | t }}</span>
                 </div>
-                <span class="fw-bold text-dark small">{{ summaryForView.pricingSchemaName }}</span>
+                <span class="summary-val">{{ summaryForView.pricingSchemaName }}</span>
               </div>
 
-              <div class="d-flex justify-content-between align-items-center p-2">
-                <div class="d-flex align-items-center gap-2 text-muted small fw-bold">
-                  <i class="bi bi-calendar-event"></i>
+              <div class="summary-row">
+                <div class="summary-label">
+                  <span class="summary-ico chip-slate">
+                    <i class="fa-regular fa-calendar"></i>
+                  </span>
                   <span>{{ 'startDate' | t }}</span>
                 </div>
-                <span class="fw-bold text-dark small">
+                <span class="summary-val font-monospace" dir="ltr">
                   {{ summaryForView.ticketCard.startDate | date: 'yyyy-MM-dd' }}
                 </span>
               </div>
             </div>
           </div>
 
-          <!-- Step Progress -->
-          <!-- Step Progress -->
-          <div class="card-footer bg-light p-2 border-top">
-            <div class="d-flex align-items-center justify-content-between position-relative">
-              <!-- Line Background -->
-              <div
-                class="position-absolute top-50 start-0 w-100 bg-secondary bg-opacity-25 step-progress-line-bg"
-              ></div>
-
-              <!-- Active Progress Line -->
-              <div
-                class="position-absolute top-50 bg-success transition-all step-progress-line-active"
-                [style.width.%]="progressPercentage"
-              ></div>
-
-              <!-- Step 1 -->
-              <div
-                class="d-flex flex-column align-items-center position-relative step-indicator-wrapper"
-              >
-                <div
-                  class="rounded-circle d-flex align-items-center justify-content-center mb-1 transition-all step-indicator-circle"
-                  [class.bg-success]="isStepActive(0)"
-                  [class.text-white]="isStepActive(0)"
-                  [class.bg-secondary]="!isStepActive(0)"
-                  [class.bg-opacity-50]="!isStepActive(0)"
-                >
-                  <i class="bi bi-check-lg" *ngIf="isStepCompleted(0)"></i>
-                  <span *ngIf="!isStepCompleted(0)" class="small fw-bold">1</span>
-                </div>
-                <span
-                  class="small fw-bold transition-all"
-                  [class.text-success]="isStepActive(0)"
-                  [class.text-muted]="!isStepActive(0)"
-                  >{{ 'basics' | t }}</span
-                >
+          <!-- Step Progress Footer -->
+          <div class="card-footer summary-progress-footer">
+            <div class="summary-steps">
+              <div class="summary-step-item" [class.is-active]="stepIndex === 0" [class.is-done]="isStepCompleted(0)">
+                <span class="step-dot">
+                  <i class="fa-solid fa-check" *ngIf="isStepCompleted(0)"></i>
+                  <span *ngIf="!isStepCompleted(0)">1</span>
+                </span>
+                <span class="step-caption">{{ 'basics' | t }}</span>
               </div>
 
-              <!-- Step 2 -->
-              <div
-                class="d-flex flex-column align-items-center position-relative step-indicator-wrapper"
-              >
-                <div
-                  class="rounded-circle d-flex align-items-center justify-content-center mb-1 transition-all step-indicator-circle"
-                  [class.bg-success]="isStepActive(1)"
-                  [class.text-white]="isStepActive(1)"
-                  [class.bg-secondary]="!isStepActive(1)"
-                  [class.text-white]="!isStepActive(1)"
-                  [ngClass]="{ 'bg-opacity-50': !isStepActive(1), 'bg-primary': stepIndex === 1 }"
-                >
-                  <i class="bi bi-check-lg" *ngIf="isStepCompleted(1)"></i>
-                  <span *ngIf="!isStepCompleted(1)" class="small fw-bold">2</span>
-                </div>
-                <span
-                  class="small fw-bold transition-all"
-                  [class.text-success]="isStepActive(1)"
-                  [class.text-primary]="stepIndex === 1"
-                  [class.text-muted]="!isStepActive(1)"
-                  >{{ 'modeAndSettings' | t }}</span
-                >
+              <div class="summary-step-connector" [class.is-done]="isStepCompleted(0)"></div>
+
+              <div class="summary-step-item" [class.is-active]="stepIndex === 1" [class.is-done]="isStepCompleted(1)">
+                <span class="step-dot">
+                  <i class="fa-solid fa-check" *ngIf="isStepCompleted(1)"></i>
+                  <span *ngIf="!isStepCompleted(1)">2</span>
+                </span>
+                <span class="step-caption">{{ 'modeAndSettings' | t }}</span>
               </div>
             </div>
           </div>

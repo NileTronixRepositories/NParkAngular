@@ -1,4 +1,4 @@
-?<div
+<div
   class="command-center"
   [attr.dir]="lang.dir()"
   [class.page-rtl]="lang.isRTL()"
@@ -178,7 +178,11 @@
           (click)="loadDashboard()"
           [disabled]="loading() || refreshing()"
         >
-          <i class="fa-solid fa-arrows-rotate" [class.spin-icon]="refreshing()" aria-hidden="true"></i>
+          <i
+            class="fa-solid fa-arrows-rotate"
+            [class.spin-icon]="refreshing()"
+            aria-hidden="true"
+          ></i>
           <span>{{ 'applyDate' | t }}</span>
         </button>
       </div>
@@ -924,9 +928,7 @@
       <article class="panel-card overview-revenue-card">
         <div class="panel-header">
           <h2 class="panel-title">{{ 'customersAndSubscriptions' | t }}</h2>
-          <span class="panel-counter" dir="ltr">
-            {{ subscriptionCount() }} {{ 'total' | t }}
-          </span>
+          <span class="panel-counter" dir="ltr"> {{ subscriptionCount() }} {{ 'total' | t }} </span>
         </div>
 
         <div class="panel-body customers-body">
@@ -936,7 +938,12 @@
             <div class="customer-split">
               <div class="mini-donut-wrap">
                 <svg viewBox="0 0 120 120" class="mini-donut" aria-hidden="true">
-                  <circle cx="60" cy="60" [attr.r]="customerDonutRadius" class="gauge-track"></circle>
+                  <circle
+                    cx="60"
+                    cy="60"
+                    [attr.r]="customerDonutRadius"
+                    class="gauge-track"
+                  ></circle>
                   <circle
                     cx="60"
                     cy="60"
@@ -969,7 +976,9 @@
                     {{ 'membershipRevenue' | t }}
                   </span>
                   <div class="customer-type-val" dir="ltr">
-                    <strong>{{ formatCurrency(membershipRelatedRevenue()) }} {{ 'egp' | t }}</strong>
+                    <strong
+                      >{{ formatCurrency(membershipRelatedRevenue()) }} {{ 'egp' | t }}</strong
+                    >
                     <span>{{ membershipTicketsCount() }} {{ 'tickets' | t }}</span>
                   </div>
                 </div>
@@ -1001,11 +1010,7 @@
                 <strong dir="ltr">{{ activeSubscriptionCount() }}</strong>
               </button>
 
-              <button
-                type="button"
-                class="sub-pill"
-                (click)="openMembershipModal('inactive')"
-              >
+              <button type="button" class="sub-pill" (click)="openMembershipModal('inactive')">
                 <span>{{ 'inactive' | t }}</span>
                 <strong dir="ltr">{{ inactiveSubscriptionCount() }}</strong>
               </button>
@@ -1081,7 +1086,9 @@
             <i class="fa-regular fa-clock"></i>
           </span>
           <div class="metric-cell__body">
-            <span class="metric-cell__label">{{ 'avgDuration' | t }} / {{ 'maxDuration' | t }}</span>
+            <span class="metric-cell__label"
+              >{{ 'avgDuration' | t }} / {{ 'maxDuration' | t }}</span
+            >
             <strong class="metric-cell__value" dir="ltr">
               {{ formatDuration(averageDurationMinutes()) }}
               <span class="muted-inline">/ {{ formatDuration(maxDurationMinutes()) }}</span>
@@ -1098,7 +1105,9 @@
             <span class="metric-cell__label">{{ 'busiestGate' | t }}</span>
             <strong class="metric-cell__value" dir="ltr">
               Gate {{ busiestGateNumber() }}
-              <span class="muted-inline">· {{ busiestGateTicketsCount() }} {{ 'tickets' | t }}</span>
+              <span class="muted-inline"
+                >· {{ busiestGateTicketsCount() }} {{ 'tickets' | t }}</span
+              >
             </strong>
           </div>
         </div>

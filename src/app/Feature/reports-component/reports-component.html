@@ -1,272 +1,426 @@
 <div
-  class="reports-theme container-fluid py-4"
+  class="reports-theme container-fluid px-2 px-sm-3 py-2"
   [class.page-rtl]="lang.isRTL()"
   [attr.dir]="lang.dir()"
 >
   <!-- Page Header -->
-  <div class="page-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
+  <div class="page-header mb-3 fade-in-down">
     <div
-      class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3"
+      class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-2"
     >
-      <div class="d-flex align-items-center gap-3">
-        <div class="header-icon-wrapper d-flex align-items-center justify-content-center rounded-3">
-          <i class="bi bi-file-earmark-bar-graph header-icon fs-4"></i>
+      <div class="d-flex align-items-center gap-2 gap-sm-3 min-w-0">
+        <div class="header-icon-wrapper d-flex align-items-center justify-content-center">
+          <i class="fa-solid fa-chart-column header-icon"></i>
         </div>
-        <div>
+        <div class="min-w-0">
           <h1 class="page-title mb-0 fw-bold">{{ 'reports' | t }}</h1>
-          <p class="page-subtitle mb-0 text-muted small">View and filter ticket transactions</p>
+          <p class="page-subtitle mb-0 text-truncate">
+            {{
+              lang.isRTL()
+                ? 'عرض وتصفية حركات التذاكر والغرامات وتصديرها'
+                : 'View, filter, and export ticket transactions'
+            }}
+          </p>
         </div>
       </div>
 
       <!-- Action Buttons -->
-      <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
-        <!-- Help Tour Button -->
+      <div class="d-flex align-items-center gap-2 flex-wrap header-actions-wrap">
         <button
           class="btn btn-outline-light btn-sm rounded-pill fw-semibold d-flex align-items-center gap-2 btn-help-tour"
           (click)="startTour()"
           type="button"
         >
-          <i class="bi bi-question-circle fs-6"></i>
+          <i class="fa-solid fa-circle-question"></i>
           <span>{{ 'helpTour' | t }}</span>
         </button>
 
         <button
-          class="btn btn-outline-danger btn-sm rounded-pill fw-semibold d-flex align-items-center gap-2 px-3 py-2 btn-export-pdf"
+          type="button"
+          class="btn btn-export-pill btn-export-pdf"
           (click)="previewPdf()"
           [disabled]="loading() || reports().length === 0"
         >
-          <i class="bi bi-file-earmark-pdf fs-6"></i>
-          <span class="d-none d-sm-inline">{{ 'exportPdf' | t }}</span>
+          <i class="fa-solid fa-file-pdf"></i>
+          <span>{{ 'exportPdf' | t }}</span>
         </button>
+
         <button
-          class="btn btn-outline-success btn-sm rounded-pill fw-semibold d-flex align-items-center gap-2 px-3 py-2 btn-export-excel"
+          type="button"
+          class="btn btn-export-pill btn-export-excel"
           (click)="exportExcel()"
           [disabled]="loading() || reports().length === 0"
         >
-          <i class="bi bi-file-earmark-excel fs-6"></i>
-          <span class="d-none d-sm-inline">{{ 'exportExcel' | t }}</span>
+          <i class="fa-solid fa-file-excel"></i>
+          <span>{{ 'exportExcel' | t }}</span>
         </button>
       </div>
     </div>
   </div>
 
   <!-- Filters Section -->
-  <div class="card shadow-soft mb-4 border-0 rounded-4 overflow-hidden reports-filters-card">
-    <div class="card-header bg-white py-3 border-bottom">
-      <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
-        <i class="bi bi-filter-right fs-5 text-primary"></i>
-        {{ 'filters' | t }}
-      </h6>
+  <div class="card rep-card mb-3 reports-filters-card">
+    <div class="card-header d-flex align-items-center justify-content-between gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <span class="panel-icon panel-icon--indigo">
+          <i class="fa-solid fa-sliders"></i>
+        </span>
+        <h6 class="mb-0 fw-bold">{{ 'filters' | t }}</h6>
+      </div>
     </div>
-    <div class="card-body p-4">
-      <div class="row g-3 align-items-end">
-        <div class="col-12 col-sm-6 col-md-3 reports-date-from">
-          <label class="form-label small fw-semibold text-muted">{{ 'dateFrom' | t }}</label>
+
+    <div class="card-body">
+      <div class="filters-grid">
+        <div class="reports-date-from">
+          <label class="form-label field-label mb-1">{{ 'dateFrom' | t }}</label>
           <input
             type="date"
-            class="form-control form-control-sm border-2 rounded-3"
+            class="form-control form-control-sm rep-input"
             [(ngModel)]="dateFrom"
           />
         </div>
-        <div class="col-12 col-sm-6 col-md-3 reports-date-to">
-          <label class="form-label small fw-semibold text-muted">{{ 'dateTo' | t }}</label>
+
+        <div class="reports-date-to">
+          <label class="form-label field-label mb-1">{{ 'dateTo' | t }}</label>
           <input
             type="date"
-            class="form-control form-control-sm border-2 rounded-3"
+            class="form-control form-control-sm rep-input"
             [(ngModel)]="dateTo"
           />
         </div>
-        <div class="col-12 col-sm-8 col-md-3 reports-search-box">
-          <label class="form-label small fw-semibold text-muted">{{ 'search' | t }}</label>
-          <div class="input-group input-group-sm">
-            <span class="input-group-text bg-white border-2 border-end-0 rounded-start-3"
-              ><i class="bi bi-search text-muted"></i
-            ></span>
+
+        <div class="reports-search-box">
+          <label class="form-label field-label mb-1">{{ 'search' | t }}</label>
+          <div class="rep-search-wrap">
+            <i class="fa-solid fa-magnifying-glass rep-search-icon"></i>
             <input
               type="text"
-              class="form-control border-2 border-start-0 rounded-end-3"
+              class="form-control form-control-sm rep-input rep-search-input"
               [placeholder]="'searchPlaceholder' | t"
               [(ngModel)]="filterSearchTerm"
+              (keydown.enter)="onSearch()"
             />
           </div>
         </div>
-        <div class="col-12 col-sm-4 col-md-3">
-          <div class="d-flex gap-2 reports-action-btns">
-            <button
-              class="btn btn-sm w-25 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2 btn-danger text-white"
-              (click)="onClear()"
-              [disabled]="loading()"
-            >
-              <i class="bi bi-x-circle"></i>
-              <!-- {{ 'clear' | t }} -->
-            </button>
-            <button
-              class="btn btn-primary btn-sm w-25 rounded-3 fw-bold d-flex align-items-center justify-content-center gap-2 py-2"
-              (click)="onSearch()"
-              [disabled]="loading()"
-            >
-              @if (loading()) {
-                <span
-                  class="spinner-border spinner-border-sm"
-                  role="status"
-                  aria-hidden="true"
-                ></span>
-              } @else {
-                <i class="bi bi-search"></i>
-              }
-              <!-- {{ 'search' | t }} -->
-            </button>
-          </div>
+
+        <div class="reports-action-btns">
+          <button
+            type="button"
+            class="btn btn-rep-search"
+            (click)="onSearch()"
+            [disabled]="loading()"
+          >
+            @if (loading()) {
+              <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+            } @else {
+              <i class="fa-solid fa-magnifying-glass"></i>
+            }
+            <span>{{ 'search' | t }}</span>
+          </button>
+
+          <button
+            type="button"
+            class="btn btn-rep-clear"
+            (click)="onClear()"
+            [disabled]="loading()"
+            [title]="'clear' | t"
+          >
+            <i class="fa-solid fa-rotate-left"></i>
+          </button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Reports Table -->
-  <div
-    id="reports-table-to-export"
-    class="card shadow-soft border-0 rounded-4 overflow-hidden p-2 bg-white"
-  >
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="bg-light text-muted small text-uppercase fw-bold">
-          <tr>
-            <th class="ps-4 py-3">{{ 'ticketNumber' | t }}</th>
-            <th class="py-3">{{ 'vehicleNumber' | t }}</th>
-            <th class="py-3">{{ 'enterDate' | t }}</th>
-            <th class="py-3">{{ 'exitDate' | t }}</th>
-            <th class="py-3">{{ 'ticketStatus' | t }}</th>
-            <th class="py-3">{{ 'entryGateNumber' | t }}</th>
-            <th class="py-3">{{ 'exitGateNumber' | t }}</th>
-            <th class="py-3 text-center">{{ 'isSubscribed' | t }}</th>
-            <th class="py-3">{{ 'collectorName' | t }}</th>
-            <th class="py-3 text-end">{{ 'price' | t }}</th>
-            <th class="py-3 text-end pe-4">{{ 'exceedPrice' | t }}</th>
-          </tr>
-        </thead>
-        <tbody class="border-top-0">
-          @if (loading()) {
+  <!-- Reports Table Card -->
+  <div id="reports-table-to-export" class="card rep-card rep-table-card">
+    <div class="card-header d-flex align-items-center justify-content-between gap-2 flex-wrap">
+      <div class="d-flex align-items-center gap-2">
+        <span class="panel-icon panel-icon--emerald">
+          <i class="fa-solid fa-table-list"></i>
+        </span>
+        <h6 class="mb-0 fw-bold">{{ 'reports' | t }}</h6>
+        <span class="count-pill count-pill--indigo mono">{{ reports().length }}</span>
+      </div>
+
+      <div class="d-flex align-items-center gap-2" *ngIf="reports().length > 0">
+        <label class="m-0 x-small text-muted fw-semibold">
+          {{ lang.isRTL() ? 'عدد الصفوف' : 'Rows' }}
+        </label>
+        <select
+          class="form-select form-select-sm w-auto rep-page-size-select"
+          [value]="pageSize()"
+          (change)="changePageSize(+$any($event.target).value)"
+        >
+          <option [value]="10">10</option>
+          <option [value]="25">25</option>
+          <option [value]="50">50</option>
+          <option [value]="100">100</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="card-body p-0">
+      <!-- Desktop Table (>= 768px) -->
+      <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover align-middle mb-0 rep-table">
+          <thead>
             <tr>
-              <td colspan="11" class="text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                  <span class="visually-hidden">Loading...</span>
-                </div>
-              </td>
+              <th class="ps-3">{{ 'ticketNumber' | t }}</th>
+              <th>{{ 'vehicleNumber' | t }}</th>
+              <th>{{ 'enterDate' | t }}</th>
+              <th>{{ 'exitDate' | t }}</th>
+              <th>{{ 'ticketStatus' | t }}</th>
+              <th>{{ 'entryGateNumber' | t }}</th>
+              <th>{{ 'exitGateNumber' | t }}</th>
+              <th class="text-center">{{ 'isSubscribed' | t }}</th>
+              <th>{{ 'collectorName' | t }}</th>
+              <th class="text-end">{{ 'price' | t }}</th>
+              <th class="text-end pe-3">{{ 'exceedPrice' | t }}</th>
             </tr>
-          } @else {
-            @for (r of reports(); track r.ticketId) {
-              <tr
-                class="fade-in report-row"
-                role="button"
-                tabindex="0"
-                (click)="openTicketDetails(r)"
-                (keydown)="onTicketRowKeydown($event, r)"
-              >
-                <td class="ps-4">
-                  <span class="fw-bold text-dark mono">#{{ ticketNumberLabel(r) }}</span>
-                </td>
-                <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <i class="bi bi-car-front fs-5 text-muted"></i>
-                    <span class="fw-semibold">{{ vehicleNumberLabel(r) }}</span>
-                  </div>
-                </td>
-                <td>
-                  <div class="d-flex flex-column">
-                    <span class="small fw-semibold">{{ r.enterDate | date: 'shortDate' }}</span>
-                    <span class="x-small text-muted">{{ r.enterDate | date: 'shortTime' }}</span>
-                  </div>
-                </td>
-                <td>
-                  <div class="d-flex flex-column">
-                    @if (r.exitDate) {
-                      <span class="small fw-semibold">{{ r.exitDate | date: 'shortDate' }}</span>
-                      <span class="x-small text-muted">{{ r.exitDate | date: 'shortTime' }}</span>
-                    } @else {
-                      <span class="small fw-semibold text-muted">{{ notExitedYetLabel() }}</span>
-                    }
-                  </div>
-                </td>
-                <td>
-                  <span
-                    class="badge rounded-pill px-3 py-1"
-                    [ngClass]="
-                      r.isInsideParking
-                        ? 'bg-success-soft text-success'
-                        : 'bg-secondary-subtle text-secondary'
-                    "
-                  >
-                    {{ statusLabel(r) }}
-                  </span>
-                </td>
-                <td>
-                  <span class="badge bg-light text-dark border">
-                    {{ entryGateLabel(r) }}
-                  </span>
-                </td>
-                <td>
-                  <span class="badge bg-light text-dark border">
-                    {{ exitGateLabel(r) }}
-                  </span>
-                </td>
-                <td class="text-center">
-                  <span
-                    class="badge rounded-pill px-3 py-1"
-                    [ngClass]="
-                      r.isSubscribed ? 'bg-success-soft text-success' : 'bg-info-soft text-info'
-                    "
-                  >
-                    {{ (r.isSubscribed ? 'subscriber' : 'visitor') | t }}
-                  </span>
-                </td>
-                <td>
-                  <div class="d-flex align-items-center gap-2">
-                    <div
-                      class="avatar-sm rounded-circle bg-light d-flex align-items-center justify-content-center"
-                    >
-                      <i class="bi bi-person text-secondary"></i>
-                    </div>
-                    <span class="small fw-medium">{{ collectorNameLabel(r) }}</span>
-                  </div>
-                </td>
-                <td class="text-end">
-                  <div class="d-flex flex-column align-items-end">
-                    <span class="fw-bold text-primary fs-6"
-                      >{{ moneyLabel(r.price) }}</span
-                    >
-                  </div>
-                </td>
-                <td class="text-end pe-4">
-                  <span class="fw-bold text-danger">
-                    {{ moneyLabel(r.exceedPrice) }}
-                  </span>
-                </td>
-              </tr>
-            } @empty {
+          </thead>
+          <tbody>
+            @if (loading()) {
               <tr>
                 <td colspan="11" class="text-center py-5">
-                  <div class="py-4">
-                    <i class="bi bi-inbox fs-1 text-muted opacity-25"></i>
-                    <p class="mt-2 text-muted">{{ 'noReports' | t }}</p>
+                  <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
                   </div>
                 </td>
               </tr>
+            } @else {
+              @for (r of pagedReports(); track r.ticketId) {
+                <tr
+                  class="fade-in report-row"
+                  role="button"
+                  tabindex="0"
+                  (click)="openTicketDetails(r)"
+                  (keydown)="onTicketRowKeydown($event, r)"
+                >
+                  <td class="ps-3">
+                    <span class="fw-bold text-dark mono">#{{ ticketNumberLabel(r) }}</span>
+                  </td>
+                  <td>
+                    <span class="plate-pill">
+                      <i class="fa-solid fa-car me-1 opacity-75"></i>{{ vehicleNumberLabel(r) }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="d-flex flex-column">
+                      <span class="small fw-semibold">{{ r.enterDate | date: 'shortDate' }}</span>
+                      <span class="x-small text-muted mono">{{ r.enterDate | date: 'shortTime' }}</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="d-flex flex-column">
+                      @if (r.exitDate) {
+                        <span class="small fw-semibold">{{ r.exitDate | date: 'shortDate' }}</span>
+                        <span class="x-small text-muted mono">{{ r.exitDate | date: 'shortTime' }}</span>
+                      } @else {
+                        <span class="small fw-semibold text-muted">{{ notExitedYetLabel() }}</span>
+                      }
+                    </div>
+                  </td>
+                  <td>
+                    <span
+                      class="status-pill"
+                      [ngClass]="r.isInsideParking ? 'status-pill--inside' : 'status-pill--exited'"
+                    >
+                      {{ statusLabel(r) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span class="gate-mini-pill mono">{{ entryGateLabel(r) }}</span>
+                  </td>
+                  <td>
+                    <span class="gate-mini-pill mono">{{ exitGateLabel(r) }}</span>
+                  </td>
+                  <td class="text-center">
+                    <span
+                      class="status-pill"
+                      [ngClass]="r.isSubscribed ? 'status-pill--sub' : 'status-pill--visitor'"
+                    >
+                      {{ (r.isSubscribed ? 'subscriber' : 'visitor') | t }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="d-flex align-items-center gap-2">
+                      <span class="avatar-sm">
+                        <i class="fa-regular fa-user"></i>
+                      </span>
+                      <span class="small fw-semibold">{{ collectorNameLabel(r) }}</span>
+                    </div>
+                  </td>
+                  <td class="text-end">
+                    <span class="price-pill mono">{{ moneyLabel(r.price) }}</span>
+                  </td>
+                  <td class="text-end pe-3">
+                    <span class="exceed-pill mono">{{ moneyLabel(r.exceedPrice) }}</span>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="11" class="text-center py-5">
+                    <div class="rep-empty-state">
+                      <span class="rep-empty-icon">
+                        <i class="fa-solid fa-inbox"></i>
+                      </span>
+                      <p class="mb-0">{{ 'noReports' | t }}</p>
+                    </div>
+                  </td>
+                </tr>
+              }
             }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile Report Cards (< 768px) -->
+      <div class="mobile-reports-list d-md-none p-2">
+        @if (loading()) {
+          <div class="text-center py-4">
+            <div class="spinner-border spinner-border-sm text-primary"></div>
+          </div>
+        } @else {
+          @for (r of pagedReports(); track r.ticketId) {
+            <div
+              class="mobile-report-card"
+              role="button"
+              tabindex="0"
+              (click)="openTicketDetails(r)"
+              (keydown)="onTicketRowKeydown($event, r)"
+            >
+              <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                <span class="fw-bold text-dark mono">#{{ ticketNumberLabel(r) }}</span>
+                <span
+                  class="status-pill"
+                  [ngClass]="r.isInsideParking ? 'status-pill--inside' : 'status-pill--exited'"
+                >
+                  {{ statusLabel(r) }}
+                </span>
+              </div>
+
+              <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+                <span class="plate-pill">
+                  <i class="fa-solid fa-car me-1"></i>{{ vehicleNumberLabel(r) }}
+                </span>
+                <span
+                  class="status-pill"
+                  [ngClass]="r.isSubscribed ? 'status-pill--sub' : 'status-pill--visitor'"
+                >
+                  {{ (r.isSubscribed ? 'subscriber' : 'visitor') | t }}
+                </span>
+              </div>
+
+              <div class="mobile-report-meta">
+                <div>
+                  <span class="meta-k">{{ 'enterDate' | t }}</span>
+                  <strong class="mono">{{ r.enterDate | date: 'short' }}</strong>
+                </div>
+                <div>
+                  <span class="meta-k">{{ 'exitDate' | t }}</span>
+                  <strong class="mono">
+                    {{ r.exitDate ? (r.exitDate | date: 'short') : notExitedYetLabel() }}
+                  </strong>
+                </div>
+                <div>
+                  <span class="meta-k">{{ 'price' | t }}</span>
+                  <strong class="mono text-emerald">{{ moneyLabel(r.price) }}</strong>
+                </div>
+                <div>
+                  <span class="meta-k">{{ 'exceedPrice' | t }}</span>
+                  <strong class="mono text-rose">{{ moneyLabel(r.exceedPrice) }}</strong>
+                </div>
+              </div>
+            </div>
+          } @empty {
+            <div class="rep-empty-state py-4">
+              <span class="rep-empty-icon">
+                <i class="fa-solid fa-inbox"></i>
+              </span>
+              <p class="mb-0">{{ 'noReports' | t }}</p>
+            </div>
           }
-        </tbody>
-      </table>
+        }
+      </div>
     </div>
+
+    <!-- Pagination Footer -->
+    @if (reports().length > 0 && !loading()) {
+      <div class="card-footer rep-card-footer d-flex flex-wrap gap-2 align-items-center justify-content-between">
+        <div class="x-small text-muted fw-semibold">
+          {{ lang.isRTL() ? 'عرض' : 'Showing' }}
+          <b class="text-dark mono">{{ rangeStart() }}–{{ rangeEnd() }}</b>
+          {{ lang.isRTL() ? 'من' : 'of' }}
+          <b class="text-dark mono">{{ reports().length }}</b>
+        </div>
+
+        <nav aria-label="Reports pagination">
+          <div class="rep-pager">
+            <button
+              type="button"
+              class="rep-page-btn"
+              [disabled]="!hasPrev()"
+              (click)="firstPage()"
+              [title]="lang.isRTL() ? 'الأولى' : 'First'"
+            >
+              <i class="fa-solid fa-angles-right rtl-aware-icon"></i>
+              <span class="d-none d-sm-inline">{{ lang.isRTL() ? 'الأولى' : 'First' }}</span>
+            </button>
+            <button
+              type="button"
+              class="rep-page-btn"
+              [disabled]="!hasPrev()"
+              (click)="prevPage()"
+            >
+              <i class="fa-solid fa-chevron-right rtl-aware-icon"></i>
+              <span>{{ lang.isRTL() ? 'السابق' : 'Prev' }}</span>
+            </button>
+
+            <span class="rep-page-indicator mono">
+              {{ pageNumber() }} / {{ totalPages() }}
+            </span>
+
+            <button
+              type="button"
+              class="rep-page-btn"
+              [disabled]="!hasNext()"
+              (click)="nextPage()"
+            >
+              <span>{{ lang.isRTL() ? 'التالي' : 'Next' }}</span>
+              <i class="fa-solid fa-chevron-left rtl-aware-icon"></i>
+            </button>
+            <button
+              type="button"
+              class="rep-page-btn"
+              [disabled]="!hasNext()"
+              (click)="lastPage()"
+              [title]="lang.isRTL() ? 'الأخيرة' : 'Last'"
+            >
+              <span class="d-none d-sm-inline">{{ lang.isRTL() ? 'الأخيرة' : 'Last' }}</span>
+              <i class="fa-solid fa-angles-left rtl-aware-icon"></i>
+            </button>
+          </div>
+        </nav>
+      </div>
+    }
   </div>
 </div>
 
+<!-- Ticket Details Modal (Clean Light Header) -->
 @if (selectedTicket(); as ticket) {
   <div class="report-details-backdrop" (click)="closeTicketDetails()">
     <section class="report-details-modal" (click)="$event.stopPropagation()">
       <header class="report-details-header">
-        <div class="min-w-0">
-          <div class="report-details-title">{{ 'ticketDetails' | t }}</div>
-          <div class="report-details-ticket mono">
-            #{{ ticket.ticketNumber || ticket.ticketId }}
+        <div class="d-flex align-items-center gap-2 min-w-0">
+          <span class="panel-icon panel-icon--indigo">
+            <i class="fa-solid fa-ticket"></i>
+          </span>
+          <div class="min-w-0">
+            <div class="report-details-title">{{ 'ticketDetails' | t }}</div>
+            <div class="report-details-ticket mono">
+              #{{ ticket.ticketNumber || ticket.ticketId }}
+            </div>
           </div>
         </div>
         <button
@@ -275,7 +429,7 @@
           [attr.aria-label]="'close' | t"
           (click)="closeTicketDetails()"
         >
-          <i class="bi bi-x-lg"></i>
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </header>
 
@@ -287,11 +441,13 @@
           </div>
           <div class="summary-item">
             <span>{{ 'enterDate' | t }}</span>
-            <strong>{{ ticket.enterDate | date: 'short' }}</strong>
+            <strong class="mono">{{ ticket.enterDate | date: 'short' }}</strong>
           </div>
           <div class="summary-item">
             <span>{{ 'exitDate' | t }}</span>
-            <strong>{{ ticket.exitDate ? (ticket.exitDate | date: 'short') : notExitedYetLabel() }}</strong>
+            <strong class="mono">
+              {{ ticket.exitDate ? (ticket.exitDate | date: 'short') : notExitedYetLabel() }}
+            </strong>
           </div>
           <div class="summary-item">
             <span>{{ 'ticketStatus' | t }}</span>
@@ -299,11 +455,11 @@
           </div>
           <div class="summary-item">
             <span>{{ 'entryGateNumber' | t }}</span>
-            <strong>{{ entryGateLabel(ticket) }}</strong>
+            <strong class="mono">{{ entryGateLabel(ticket) }}</strong>
           </div>
           <div class="summary-item">
             <span>{{ 'exitGateNumber' | t }}</span>
-            <strong>{{ exitGateLabel(ticket) }}</strong>
+            <strong class="mono">{{ exitGateLabel(ticket) }}</strong>
           </div>
           <div class="summary-item">
             <span>{{ 'isSubscribed' | t }}</span>
@@ -317,19 +473,19 @@
             <span>{{ 'createdByUserName' | t }}</span>
             <strong>{{ createdByUserNameLabel(ticket) }}</strong>
           </div>
-          <div class="summary-item">
+          <div class="summary-item summary-item--price">
             <span>{{ 'price' | t }}</span>
-            <strong>{{ moneyLabel(ticket.price) }}</strong>
+            <strong class="mono">{{ moneyLabel(ticket.price) }}</strong>
           </div>
-          <div class="summary-item">
+          <div class="summary-item summary-item--exceed">
             <span>{{ 'exceedPrice' | t }}</span>
-            <strong>{{ moneyLabel(ticket.exceedPrice) }}</strong>
+            <strong class="mono">{{ moneyLabel(ticket.exceedPrice) }}</strong>
           </div>
         </div>
 
         <div class="attachments-header">
           <span>{{ 'attachments' | t }}</span>
-          <span class="attachments-count">{{ ticket.attachments.length }}</span>
+          <span class="attachments-count mono">{{ ticket.attachments.length }}</span>
         </div>
 
         @if (ticket.attachments.length) {
@@ -361,7 +517,7 @@
           </div>
         } @else {
           <div class="no-attachments">
-            <i class="bi bi-paperclip"></i>
+            <i class="fa-solid fa-paperclip"></i>
             <span>{{ 'noAttachments' | t }}</span>
           </div>
         }

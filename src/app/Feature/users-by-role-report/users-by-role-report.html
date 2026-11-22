@@ -1,227 +1,329 @@
-<div class="users-role-report container-fluid py-4" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
-  <div class="page-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
+<div class="users-role-report container-fluid px-2 px-sm-3 py-2" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
+  <!-- Page Header -->
+  <div class="page-header mb-3 fade-in-down">
     <div
-      class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3"
+      class="d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-2"
     >
-      <div class="d-flex align-items-center gap-3 min-w-0">
-        <div class="header-icon-wrapper d-flex align-items-center justify-content-center rounded-3">
-          <i class="bi bi-person-lines-fill header-icon fs-4"></i>
+      <div class="d-flex align-items-center gap-2 gap-sm-3 min-w-0">
+        <div class="header-icon-wrapper d-flex align-items-center justify-content-center">
+          <i class="fa-solid fa-users-gear header-icon"></i>
         </div>
         <div class="min-w-0">
           <h1 class="page-title mb-0 fw-bold text-truncate">{{ pageTitle }}</h1>
-          <p class="page-subtitle mb-0 small">{{ t('subtitle') }}</p>
+          <p class="page-subtitle mb-0 text-truncate">{{ t('subtitle') }}</p>
         </div>
       </div>
 
       <div class="role-picker d-flex flex-column flex-sm-row align-items-stretch gap-2">
         <label class="visually-hidden" for="usersRoleReportRole">{{ t('chooseRole') }}</label>
-        <select
-          id="usersRoleReportRole"
-          class="form-select form-select-sm"
-          [(ngModel)]="selectedRoleId"
-          (ngModelChange)="onRoleChange($event)"
-        >
-          <option value="" disabled>{{ t('selectRole') }}</option>
-          <option *ngFor="let role of roleOptions" [value]="role.id">{{ role.name }}</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
-  <div class="filters-panel bg-white border rounded-3 shadow-soft mb-3">
-    <div class="row g-3 align-items-end p-3">
-      <div class="col-12 col-lg-7">
-        <label class="form-label small fw-semibold text-muted">{{ t('search') }}</label>
-        <div class="input-group input-group-sm">
-          <span class="input-group-text bg-white">
-            <i class="bi bi-search text-muted"></i>
-          </span>
-          <input
-            type="search"
-            class="form-control"
-            [placeholder]="t('searchPlaceholder')"
-            [(ngModel)]="searchText"
-            (ngModelChange)="onSearchTextChange($event)"
-          />
-          <button
-            class="btn btn-outline-secondary"
-            type="button"
-            (click)="clearSearch()"
-            [disabled]="!searchText"
-            [title]="t('clear')"
+        <div class="role-select-wrap">
+          <i class="fa-solid fa-user-shield role-select-icon"></i>
+          <select
+            id="usersRoleReportRole"
+            class="form-select form-select-sm role-select-input"
+            [(ngModel)]="selectedRoleId"
+            (ngModelChange)="onRoleChange($event)"
           >
-            <i class="bi bi-x-lg"></i>
-          </button>
-        </div>
-      </div>
-
-      <div class="col-6 col-lg-2">
-        <label class="form-label small fw-semibold text-muted">{{ t('rows') }}</label>
-        <select
-          class="form-select form-select-sm"
-          [ngModel]="pageSize"
-          (ngModelChange)="changePageSize($event)"
-        >
-          <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
-        </select>
-      </div>
-
-      <div class="col-6 col-lg-3">
-        <div class="summary-pill">
-          <span>{{ t('total') }}</span>
-          <strong>{{ totalItems }}</strong>
+            <option value="" disabled>{{ t('selectRole') }}</option>
+            <option *ngFor="let role of roleOptions" [value]="role.id">{{ role.name }}</option>
+          </select>
         </div>
       </div>
     </div>
   </div>
 
-  <div *ngIf="errorMessage" class="alert alert-danger d-flex align-items-start gap-2" role="alert">
-    <i class="bi bi-exclamation-triangle-fill"></i>
+  <!-- Filters Card -->
+  <div class="card ubr-card ubr-filters-card mb-3">
+    <div class="card-header d-flex align-items-center justify-content-between gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <span class="panel-icon panel-icon--indigo">
+          <i class="fa-solid fa-sliders"></i>
+        </span>
+        <h6 class="mb-0 fw-bold">{{ t('search') }}</h6>
+      </div>
+      <div class="summary-chip">
+        <span>{{ t('total') }}</span>
+        <strong class="mono">{{ totalItems }}</strong>
+      </div>
+    </div>
+
+    <div class="card-body">
+      <div class="filters-grid">
+        <div class="ubr-search-col">
+          <label class="form-label field-label mb-1">{{ t('search') }}</label>
+          <div class="ubr-search-wrap">
+            <i class="fa-solid fa-magnifying-glass ubr-search-icon"></i>
+            <input
+              type="search"
+              class="form-control form-control-sm ubr-input ubr-search-input"
+              [placeholder]="t('searchPlaceholder')"
+              [(ngModel)]="searchText"
+              (ngModelChange)="onSearchTextChange($event)"
+            />
+            <button
+              *ngIf="searchText"
+              class="ubr-clear-btn"
+              type="button"
+              (click)="clearSearch()"
+              [title]="t('clear')"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        </div>
+
+        <div class="ubr-rows-col">
+          <label class="form-label field-label mb-1">{{ t('rows') }}</label>
+          <select
+            class="form-select form-select-sm ubr-input"
+            [ngModel]="pageSize"
+            (ngModelChange)="changePageSize($event)"
+          >
+            <option *ngFor="let size of pageSizeOptions" [ngValue]="size">{{ size }}</option>
+          </select>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div *ngIf="errorMessage" class="alert ubr-alert-danger d-flex align-items-center gap-2 mb-3" role="alert">
+    <i class="fa-solid fa-triangle-exclamation"></i>
     <div>{{ errorMessage }}</div>
   </div>
 
+  <!-- No Role Selected Empty State -->
   <div
     *ngIf="!hasRoleSelected && !errorMessage"
-    class="empty-state bg-white border rounded-3 shadow-soft"
+    class="card ubr-card empty-state-card"
   >
-    <i class="bi bi-person-badge text-muted"></i>
-    <p class="mb-0 text-muted">{{ t('noRoleSelected') }}</p>
+    <span class="empty-icon-circle">
+      <i class="fa-solid fa-user-tag"></i>
+    </span>
+    <p class="mb-0 empty-text">{{ t('noRoleSelected') }}</p>
   </div>
 
-  <div *ngIf="hasRoleSelected" class="table-shell bg-white border rounded-3 shadow-soft">
-    <div class="table-meta px-3 py-2 border-bottom d-flex flex-wrap align-items-center gap-2">
-      <!-- <span class="badge bg-light text-dark border">{{ t('roleId') }}: {{ roleId }}</span> -->
-      <span class="text-muted small" *ngIf="totalItems">
-        {{ t('showing') }} {{ showingFrom }}-{{ showingTo }} {{ t('of') }} {{ totalItems }}
+  <!-- Users Table Card -->
+  <div *ngIf="hasRoleSelected" class="card ubr-card ubr-table-card">
+    <div class="card-header d-flex flex-wrap align-items-center justify-content-between gap-2">
+      <div class="d-flex align-items-center gap-2">
+        <span class="panel-icon panel-icon--emerald">
+          <i class="fa-solid fa-users"></i>
+        </span>
+        <h6 class="mb-0 fw-bold">{{ pageTitle }}</h6>
+        <span class="count-pill count-pill--indigo mono">{{ totalItems }}</span>
+      </div>
+      <span class="text-muted x-small fw-semibold" *ngIf="totalItems">
+        {{ t('showing') }} <b class="text-dark mono">{{ showingFrom }}-{{ showingTo }}</b>
+        {{ t('of') }} <b class="text-dark mono">{{ totalItems }}</b>
       </span>
     </div>
 
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-          <tr>
-            <th class="ps-3">{{ t('name') }}</th>
-            <th>{{ t('username') }}</th>
-            <th>{{ t('email') }}</th>
-            <th>{{ t('phoneNumber') }}</th>
-            <th>{{ t('nationalId') }}</th>
-            <th>{{ t('role') }}</th>
-            <th>{{ t('shiftStart') }}</th>
-            <th>{{ t('shiftEnd') }}</th>
-            <th class="pe-3 text-end">{{ t('actions') }}</th>
-          </tr>
-        </thead>
-        <tbody>
-          <ng-container *ngIf="loading">
-            <tr *ngFor="let row of [1, 2, 3, 4, 5]">
-              <td colspan="9" class="px-3 py-2">
-                <div class="skeleton-row"></div>
-              </td>
+    <div class="card-body p-0">
+      <!-- Desktop Table (>= 768px) -->
+      <div class="table-responsive d-none d-md-block">
+        <table class="table table-hover align-middle mb-0 ubr-table">
+          <thead>
+            <tr>
+              <th class="ps-3">{{ t('name') }}</th>
+              <th>{{ t('username') }}</th>
+              <th class="d-none d-xl-table-cell">{{ t('email') }}</th>
+              <th>{{ t('phoneNumber') }}</th>
+              <th class="d-none d-lg-table-cell">{{ t('nationalId') }}</th>
+              <th>{{ t('role') }}</th>
+              <th class="d-none d-xl-table-cell">{{ t('shiftStart') }}</th>
+              <th class="d-none d-xl-table-cell">{{ t('shiftEnd') }}</th>
+              <th class="pe-3 text-end">{{ t('actions') }}</th>
             </tr>
-          </ng-container>
+          </thead>
+          <tbody>
+            <ng-container *ngIf="loading">
+              <tr *ngFor="let row of [1, 2, 3, 4, 5]">
+                <td colspan="9" class="px-3 py-2">
+                  <div class="skeleton-row"></div>
+                </td>
+              </tr>
+            </ng-container>
 
-          <ng-container *ngIf="!loading">
-            <tr *ngFor="let user of users; trackBy: trackByUserId">
-              <td class="ps-3 fw-semibold text-dark">{{ user.name }}</td>
-              <td class="mono small">{{ user.username }}</td>
-              <td class="small text-break">{{ user.email }}</td>
-              <td class="mono small">{{ user.phoneNumber }}</td>
-              <td class="mono small">{{ user.nationalId }}</td>
-              <td>
-                <span class="role-badge" [ngClass]="roleBadgeClass(user)" [title]="roleLabel(user)">
-                  <i class="bi" [ngClass]="roleIconClass(user)"></i>
-                  {{ roleLabel(user) }}
-                </span>
-              </td>
-              <td class="mono small">{{ formatTime(user.shiftStartTime) }}</td>
-              <td class="mono small">{{ formatTime(user.shiftEndTime) }}</td>
-              <td class="pe-3 text-end">
-                <button
-                  *ngIf="canOpenTicketsReport(user)"
-                  type="button"
-                  class="btn btn-outline-primary btn-sm user-report-btn"
-                  (click)="openTicketsReport(user)"
-                >
-                  <i class="bi bi-ticket-perforated"></i>
-                  <span>{{ t('ticketsReport') }}</span>
-                </button>
-                <button
-                  *ngIf="canOpenCollectionsReport(user)"
-                  type="button"
-                  class="btn btn-outline-success btn-sm user-report-btn"
-                  (click)="openCollectionsReport(user)"
-                >
-                  <i class="bi bi-cash-coin"></i>
-                  <span>{{ t('collectionsReport') }}</span>
-                </button>
-              </td>
-            </tr>
+            <ng-container *ngIf="!loading">
+              <tr *ngFor="let user of users; trackBy: trackByUserId">
+                <td class="ps-3 fw-bold text-dark">{{ user.name }}</td>
+                <td class="mono small text-muted">{{ user.username }}</td>
+                <td class="small text-break d-none d-xl-table-cell text-muted">{{ user.email }}</td>
+                <td class="mono small" dir="ltr">{{ user.phoneNumber }}</td>
+                <td class="mono small d-none d-lg-table-cell text-muted" dir="ltr">{{ user.nationalId }}</td>
+                <td>
+                  <span class="role-badge" [ngClass]="roleBadgeClass(user)" [title]="roleLabel(user)">
+                    <i class="fa-solid" [ngClass]="roleIconClass(user)"></i>
+                    <span>{{ roleLabel(user) }}</span>
+                  </span>
+                </td>
+                <td class="mono small d-none d-xl-table-cell text-muted">{{ formatTime(user.shiftStartTime) }}</td>
+                <td class="mono small d-none d-xl-table-cell text-muted">{{ formatTime(user.shiftEndTime) }}</td>
+                <td class="pe-3 text-end">
+                  <button
+                    *ngIf="canOpenTicketsReport(user)"
+                    type="button"
+                    class="btn btn-report-indigo user-report-btn"
+                    (click)="openTicketsReport(user)"
+                  >
+                    <i class="fa-solid fa-ticket"></i>
+                    <span>{{ t('ticketsReport') }}</span>
+                  </button>
+                  <button
+                    *ngIf="canOpenCollectionsReport(user)"
+                    type="button"
+                    class="btn btn-report-emerald user-report-btn"
+                    (click)="openCollectionsReport(user)"
+                  >
+                    <i class="fa-solid fa-coins"></i>
+                    <span>{{ t('collectionsReport') }}</span>
+                  </button>
+                </td>
+              </tr>
 
-            <tr *ngIf="users.length === 0 && !errorMessage">
-              <td colspan="9" class="text-center py-5">
-                <div class="empty-table">
-                  <i class="bi bi-inbox text-muted"></i>
-                  <p class="mb-0 text-muted">{{ t('noUsers') }}</p>
-                </div>
-              </td>
-            </tr>
-          </ng-container>
-        </tbody>
-      </table>
+              <tr *ngIf="users.length === 0 && !errorMessage">
+                <td colspan="9" class="text-center py-5">
+                  <div class="empty-table">
+                    <span class="empty-icon-circle">
+                      <i class="fa-solid fa-inbox"></i>
+                    </span>
+                    <p class="mb-0 empty-text">{{ t('noUsers') }}</p>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile User Cards (< 768px) -->
+      <div class="mobile-users-list d-md-none p-2">
+        <ng-container *ngIf="loading">
+          <div class="skeleton-row mb-2" *ngFor="let row of [1, 2, 3]"></div>
+        </ng-container>
+
+        <ng-container *ngIf="!loading">
+          <div class="mobile-user-card" *ngFor="let user of users; trackBy: trackByUserId">
+            <div class="d-flex align-items-center justify-content-between gap-2 mb-2">
+              <div class="fw-bold text-dark text-truncate">{{ user.name }}</div>
+              <span class="role-badge flex-shrink-0" [ngClass]="roleBadgeClass(user)">
+                <i class="fa-solid" [ngClass]="roleIconClass(user)"></i>
+                <span>{{ roleLabel(user) }}</span>
+              </span>
+            </div>
+
+            <div class="mobile-user-meta">
+              <div>
+                <span class="meta-k">{{ t('username') }}</span>
+                <strong class="mono">{{ user.username }}</strong>
+              </div>
+              <div>
+                <span class="meta-k">{{ t('phoneNumber') }}</span>
+                <strong class="mono" dir="ltr">{{ user.phoneNumber }}</strong>
+              </div>
+              <div>
+                <span class="meta-k">{{ t('shiftStart') }}</span>
+                <strong class="mono">{{ formatTime(user.shiftStartTime) }}</strong>
+              </div>
+              <div>
+                <span class="meta-k">{{ t('shiftEnd') }}</span>
+                <strong class="mono">{{ formatTime(user.shiftEndTime) }}</strong>
+              </div>
+            </div>
+
+            <div class="d-flex gap-2 mt-2 pt-2 border-top" *ngIf="canOpenTicketsReport(user) || canOpenCollectionsReport(user)">
+              <button
+                *ngIf="canOpenTicketsReport(user)"
+                type="button"
+                class="btn btn-report-indigo user-report-btn flex-grow-1"
+                (click)="openTicketsReport(user)"
+              >
+                <i class="fa-solid fa-ticket"></i>
+                <span>{{ t('ticketsReport') }}</span>
+              </button>
+              <button
+                *ngIf="canOpenCollectionsReport(user)"
+                type="button"
+                class="btn btn-report-emerald user-report-btn flex-grow-1"
+                (click)="openCollectionsReport(user)"
+              >
+                <i class="fa-solid fa-coins"></i>
+                <span>{{ t('collectionsReport') }}</span>
+              </button>
+            </div>
+          </div>
+
+          <div *ngIf="users.length === 0 && !errorMessage" class="empty-table py-4 w-100">
+            <span class="empty-icon-circle">
+              <i class="fa-solid fa-inbox"></i>
+            </span>
+            <p class="mb-0 empty-text">{{ t('noUsers') }}</p>
+          </div>
+        </ng-container>
+      </div>
     </div>
 
+    <!-- Modern Pill Pagination Footer -->
     <div
-      class="pagination-bar border-top px-3 py-2 d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2"
+      class="card-footer pagination-bar d-flex flex-wrap align-items-center justify-content-between gap-2"
     >
-      <span class="small text-muted">
-        {{ t('page') }} {{ pageNumber || 1 }} {{ t('of') }} {{ totalPages || 1 }}
+      <span class="x-small text-muted fw-semibold">
+        {{ t('page') }} <b class="text-dark mono">{{ pageNumber || 1 }}</b>
+        {{ t('of') }} <b class="text-dark mono">{{ totalPages || 1 }}</b>
       </span>
 
-      <div class="btn-group btn-group-sm" role="group" [attr.aria-label]="t('page')">
+      <div class="ubr-pager" role="group" [attr.aria-label]="t('page')">
         <button
           type="button"
-          class="btn btn-outline-secondary"
+          class="ubr-page-btn"
           (click)="goToPage(pageNumber - 1)"
           [disabled]="!canGoPrevious"
         >
-          <i class="bi bi-chevron-left"></i>
+          <i class="fa-solid fa-chevron-right rtl-aware-icon"></i>
           <span class="d-none d-sm-inline">{{ t('previous') }}</span>
         </button>
+
         <button
           *ngFor="let page of pages()"
           type="button"
-          class="btn"
-          [class.btn-primary]="page === pageNumber"
-          [class.btn-outline-secondary]="page !== pageNumber"
+          class="ubr-page-btn ubr-page-num mono"
+          [class.is-active]="page === pageNumber"
           (click)="goToPage(page)"
           [disabled]="loading"
         >
           {{ page }}
         </button>
+
         <button
           type="button"
-          class="btn btn-outline-secondary"
+          class="ubr-page-btn"
           (click)="goToPage(pageNumber + 1)"
           [disabled]="!canGoNext"
         >
           <span class="d-none d-sm-inline">{{ t('next') }}</span>
-          <i class="bi bi-chevron-right"></i>
+          <i class="fa-solid fa-chevron-left rtl-aware-icon"></i>
         </button>
       </div>
     </div>
   </div>
 
+  <!-- Embedded Cashier Report -->
   <section
     *ngIf="selectedCashierReportUser as cashier"
-    class="embedded-cashier-report bg-white border rounded-3 shadow-soft mt-3"
+    class="card ubr-card embedded-cashier-report mt-3"
   >
-    <div class="embedded-report-header border-bottom">
-      <div class="min-w-0">
-        <strong>{{ t('ticketsReport') }}</strong>
-        <span>{{ cashier.name }} - {{ cashier.username }}</span>
+    <div class="embedded-report-header">
+      <div class="d-flex align-items-center gap-2 min-w-0">
+        <span class="panel-icon panel-icon--indigo">
+          <i class="fa-solid fa-ticket"></i>
+        </span>
+        <div class="min-w-0">
+          <strong>{{ t('ticketsReport') }}</strong>
+          <span>{{ cashier.name }} - {{ cashier.username }}</span>
+        </div>
       </div>
-      <button type="button" class="btn btn-outline-secondary btn-sm" (click)="closeTicketsReport()">
-        <i class="bi bi-x-lg"></i>
+      <button type="button" class="btn btn-close-embedded" (click)="closeTicketsReport()">
+        <i class="fa-solid fa-xmark"></i>
         <span>{{ t('closeReport') }}</span>
       </button>
     </div>
@@ -233,21 +335,23 @@
     ></app-entrance-cashier-tickets-report>
   </section>
 
+  <!-- Embedded Supervisor Collections Report -->
   <section
     *ngIf="selectedSupervisorReportUser as supervisor"
-    class="embedded-cashier-report bg-white border rounded-3 shadow-soft mt-3"
+    class="card ubr-card embedded-cashier-report mt-3"
   >
-    <div class="embedded-report-header border-bottom">
-      <div class="min-w-0">
-        <strong>{{ t('collectionsReport') }}</strong>
-        <span>{{ supervisor.name }} - {{ supervisor.username }}</span>
+    <div class="embedded-report-header">
+      <div class="d-flex align-items-center gap-2 min-w-0">
+        <span class="panel-icon panel-icon--emerald">
+          <i class="fa-solid fa-coins"></i>
+        </span>
+        <div class="min-w-0">
+          <strong>{{ t('collectionsReport') }}</strong>
+          <span>{{ supervisor.name }} - {{ supervisor.username }}</span>
+        </div>
       </div>
-      <button
-        type="button"
-        class="btn btn-outline-secondary btn-sm"
-        (click)="closeCollectionsReport()"
-      >
-        <i class="bi bi-x-lg"></i>
+      <button type="button" class="btn btn-close-embedded" (click)="closeCollectionsReport()">
+        <i class="fa-solid fa-xmark"></i>
         <span>{{ t('closeReport') }}</span>
       </button>
     </div>

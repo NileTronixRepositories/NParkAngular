@@ -1,91 +1,144 @@
 <div class="modal d-block modal-backdrop-custom" tabindex="-1" *ngIf="show">
   <div
-    class="modal-dialog modal-sm modal-dialog-centered"
+    class="modal-dialog modal-dialog-centered supervisor-dialog"
     [class.summary-dialog]="summary || exceedSummary || readyToCollect"
     role="document"
   >
-    <div class="modal-content supervisor-modal-content glass">
-      <div class="modal-header border-0 pb-0 d-flex justify-content-between align-items-center">
-        <h5 class="modal-title d-flex align-items-center gap-2 mb-0">
-          <i class="bi bi-shield-lock-fill text-primary"></i>
-          <span>{{
-            summary || exceedSummary || readyToCollect ? t('collection_summary') : t('supervisor_login')
-          }}</span>
-        </h5>
+    <div class="modal-content supervisor-modal-content">
+      <!-- Centered Auth Emblem Header (Login State) -->
+      <div
+        class="auth-emblem-header"
+        *ngIf="!summary && !exceedSummary && !readyToCollect"
+      >
         <button
-          *ngIf="!summary && !exceedSummary && !readyToCollect"
           type="button"
-          class="btn-close m-0"
-          [attr.aria-label]="summary ? t('logout') : t('cancel')"
+          class="modal-close-btn"
+          [attr.aria-label]="t('cancel')"
           (click)="onClose()"
           [disabled]="loading"
-        ></button>
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+
+        <div class="auth-emblem-circle">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h5 class="auth-emblem-title mb-1">{{ t('supervisor_login') }}</h5>
+        <p class="auth-emblem-subtitle mb-0">{{ t('pleaseLoginToProceed') }}</p>
       </div>
 
-      <div class="modal-body pt-4" *ngIf="!summary && !exceedSummary && !readyToCollect">
+      <!-- Clean Light Header (Summary State) -->
+      <div
+        class="modal-header summary-light-header"
+        *ngIf="summary || exceedSummary || readyToCollect"
+      >
+        <div class="d-flex align-items-center gap-2 min-w-0">
+          <span class="summary-header-icon">
+            <i class="fa-solid fa-receipt"></i>
+          </span>
+          <h5 class="modal-title mb-0 text-truncate">
+            {{ t('collection_summary') }}
+          </h5>
+        </div>
+      </div>
+
+      <!-- Login Body -->
+      <div class="modal-body supervisor-login-body" *ngIf="!summary && !exceedSummary && !readyToCollect">
         <form (ngSubmit)="onSubmit()" class="supervisor-form">
-          <div class="mb-4 text-center">
-            <p class="text-muted x-small mb-4">
-              {{ t('pleaseLoginToProceed') }}
-            </p>
-
-            <div class="gate-context-grid mb-3" *ngIf="showGateContext">
-              <div class="gate-context-item">
-                <span>{{ t('gate_number') }}</span>
-                <strong class="mono">{{ gateNumberLabel }}</strong>
-              </div>
-              <div class="gate-context-item">
-                <span>{{ t('gate_type') }}</span>
-                <strong>{{ gateTypeLabel }}</strong>
-              </div>
+          <div class="gate-context-grid mb-3" *ngIf="showGateContext">
+            <div class="gate-context-item gate-context-num">
+              <span class="gate-ctx-label">
+                <i class="fa-solid fa-hashtag"></i>
+                {{ t('gate_number') }}
+              </span>
+              <strong class="mono">{{ gateNumberLabel }}</strong>
             </div>
+            <div class="gate-context-item gate-context-type">
+              <span class="gate-ctx-label">
+                <i class="fa-solid fa-door-open"></i>
+                {{ t('gate_type') }}
+              </span>
+              <strong>{{ gateTypeLabel }}</strong>
+            </div>
+          </div>
 
-            <div class="form-floating mb-3">
+          <!-- Supervisor Username -->
+          <div class="np-field-group mb-3">
+            <label class="np-field-label" for="supervisorUserUnique">
+              {{ t('supervisor_username') }}
+            </label>
+            <div class="np-input-shell">
+              <span class="np-input-icon">
+                <i class="fa-solid fa-user"></i>
+              </span>
               <input
                 type="text"
-                class="form-control custom-input"
+                class="np-field-input"
                 id="supervisorUserUnique"
                 [placeholder]="t('supervisor_username')"
                 [ngModel]="username"
                 (ngModelChange)="onUsernameChange($event)"
                 name="username"
                 autocomplete="off"
+                dir="ltr"
                 required
               />
-              <label for="supervisorUserUnique">{{ t('supervisor_username') }}</label>
             </div>
+          </div>
 
-            <div class="form-floating">
+          <!-- Supervisor Password -->
+          <div class="np-field-group mb-3">
+            <label class="np-field-label" for="supervisorPassUnique">
+              {{ t('supervisor_password') }}
+            </label>
+            <div class="np-input-shell">
+              <span class="np-input-icon">
+                <i class="fa-solid fa-lock"></i>
+              </span>
               <input
-                type="password"
-                class="form-control custom-input"
+                [type]="showPassword ? 'text' : 'password'"
+                class="np-field-input"
                 id="supervisorPassUnique"
                 [placeholder]="t('supervisor_password')"
                 [ngModel]="password"
                 (ngModelChange)="onPasswordChange($event)"
                 name="password"
+                dir="ltr"
                 required
               />
-              <label for="supervisorPassUnique">{{ t('supervisor_password') }}</label>
+              <button
+                type="button"
+                class="np-eye-btn"
+                (click)="togglePassword()"
+                tabindex="-1"
+                [attr.aria-label]="showPassword ? 'Hide password' : 'Show password'"
+              >
+                <i
+                  class="fa-regular"
+                  [class.fa-eye]="!showPassword"
+                  [class.fa-eye-slash]="showPassword"
+                ></i>
+              </button>
             </div>
           </div>
 
-          <div *ngIf="error" class="alert alert-danger-custom d-flex align-items-center gap-2 mb-4">
-            <i class="bi bi-exclamation-triangle-fill"></i>
+          <div *ngIf="error" class="alert alert-danger-custom d-flex align-items-center gap-2 mb-3">
+            <i class="fa-solid fa-triangle-exclamation"></i>
             <span class="x-small">{{ error }}</span>
           </div>
 
-          <div class="d-grid gap-2 mt-4 pt-2">
-            <button type="submit" class="btn btn-primary btn-confirm py-2" [disabled]="loading">
-              <span *ngIf="!loading" class="fw-bold">
-                {{ t('confirm') }}
+          <div class="supervisor-actions mt-3">
+            <button type="submit" class="btn btn-confirm" [disabled]="loading">
+              <span *ngIf="!loading" class="d-inline-flex align-items-center justify-content-center gap-2">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>{{ t('confirm') }}</span>
               </span>
               <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
             </button>
 
             <button
               type="button"
-              class="btn btn-link text-muted text-decoration-none btn-sm x-small"
+              class="btn btn-cancel-ghost"
               (click)="onClose()"
               [disabled]="loading"
             >
@@ -95,7 +148,8 @@
         </form>
       </div>
 
-      <div class="modal-body modal-body-summary pt-3" *ngIf="summary || exceedSummary || readyToCollect">
+      <!-- Summary Body -->
+      <div class="modal-body modal-body-summary" *ngIf="summary || exceedSummary || readyToCollect">
         <div class="supervisor-summary" dir="auto">
           <div class="summary-stats-grid" *ngIf="readyToCollect && !summary && !exceedSummary">
             <div class="summary-stat summary-stat-main">
@@ -112,12 +166,12 @@
           <div class="summary-stats-grid" *ngIf="summary">
             <div class="summary-stat summary-stat-main">
               <span>{{ t('total_amount') }}</span>
-              <strong>{{ summary.totalPriceCollected | number: '1.0-2' }} {{ t('currency') }}</strong>
+              <strong class="mono">{{ summary.totalPriceCollected | number: '1.0-2' }} {{ t('currency') }}</strong>
             </div>
 
             <div class="summary-stat">
               <span>{{ t('total_tickets') }}</span>
-              <strong>{{ summary.totalTicketsCollected }}</strong>
+              <strong class="mono">{{ summary.totalTicketsCollected }}</strong>
             </div>
 
             <div class="summary-stat" *ngIf="showGateContext">
@@ -155,14 +209,14 @@
           </div>
 
           <div class="summary-empty" *ngIf="summary && !summary.ticketCollectDetails?.length">
-            <i class="bi bi-inbox"></i>
+            <i class="fa-solid fa-inbox"></i>
             <span>{{ t('no_tickets_to_collect') }}</span>
           </div>
 
           <div class="summary-stats-grid" *ngIf="exceedSummary">
             <div class="summary-stat summary-stat-main">
               <span>{{ t('total_exceed') }}</span>
-              <strong>
+              <strong class="mono">
                 {{ exceedSummary.totalExceedAmountCollected | number: '1.0-2' }}
                 {{ t('currency') }}
               </strong>
@@ -170,7 +224,7 @@
 
             <div class="summary-stat">
               <span>{{ t('total_transactions') }}</span>
-              <strong>{{ exceedSummary.totalTransactionsCollected }}</strong>
+              <strong class="mono">{{ exceedSummary.totalTransactionsCollected }}</strong>
             </div>
 
             <div class="summary-stat" *ngIf="showGateContext">
@@ -247,40 +301,47 @@
             </div>
           </div>
 
-          <div *ngIf="error" class="alert alert-danger-custom d-flex align-items-center gap-2 mt-3">
-            <i class="bi bi-exclamation-triangle-fill"></i>
+          <div *ngIf="error" class="alert alert-danger-custom d-flex align-items-center gap-2 mt-2">
+            <i class="fa-solid fa-triangle-exclamation"></i>
             <span class="x-small">{{ error }}</span>
           </div>
 
-          <div class="summary-actions d-grid gap-2 mt-3">
+          <div class="summary-actions d-grid gap-2 mt-2">
             <button
               type="button"
-              class="btn btn-success btn-confirm py-2"
+              class="btn btn-collect-confirm"
               (click)="onCollect()"
               [disabled]="loading"
               *ngIf="readyToCollect && !summary && !exceedSummary"
             >
-              <span *ngIf="!loading" class="fw-bold">{{ t('collect_now') }}</span>
+              <span *ngIf="!loading" class="d-inline-flex align-items-center justify-content-center gap-2">
+                <i class="fa-solid fa-sack-dollar"></i>
+                <span>{{ t('collect_now') }}</span>
+              </span>
               <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
             </button>
 
             <button
               type="button"
-              class="btn btn-success btn-confirm py-2"
+              class="btn btn-collect-confirm"
               (click)="onCollect()"
               [disabled]="loading || !summary.totalTicketsCollected"
               *ngIf="summary"
             >
-              <span *ngIf="!loading" class="fw-bold">{{ t('collect_now') }}</span>
+              <span *ngIf="!loading" class="d-inline-flex align-items-center justify-content-center gap-2">
+                <i class="fa-solid fa-sack-dollar"></i>
+                <span>{{ t('collect_now') }}</span>
+              </span>
               <span *ngIf="loading" class="spinner-border spinner-border-sm"></span>
             </button>
 
             <button
               type="button"
-              class="btn btn-outline-secondary btn-sm"
+              class="btn btn-cancel-ghost"
               (click)="onClose()"
               [disabled]="loading"
             >
+              <i class="fa-solid fa-right-from-bracket me-1"></i>
               {{ t('logout') }}
             </button>
           </div>

@@ -27,6 +27,9 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
       useValue: <I18nDict>(<unknown>{
         ar: {
           users: 'المستخدمون',
+      users_management_subtitle: 'إدارة مستخدمي النظام والأدوار والصلاحيات',
+      users_list: 'قائمة المستخدمين',
+      total: 'إجمالي',
           add_new: 'إضافة',
           id: '#',
           name: 'الاسم',
@@ -79,6 +82,9 @@ import { I18N_DICT, I18nDict } from '../../Services/i18n/i18n.tokens';
         },
         en: {
           users: 'Users',
+      users_management_subtitle: 'Manage system users, roles, and permissions',
+      users_list: 'Users List',
+      total: 'Total',
           add_new: 'Add New',
           id: '#',
           name: 'Name',
@@ -143,6 +149,9 @@ export class Users {
   private dict: Record<AppLang, Record<string, string>> = {
     ar: {
       users: 'المستخدمون',
+      users_management_subtitle: 'إدارة مستخدمي النظام والأدوار والصلاحيات',
+      users_list: 'قائمة المستخدمين',
+      total: 'إجمالي',
       add_new: 'إضافة',
       id: '#',
       name: 'الاسم',
@@ -194,6 +203,9 @@ export class Users {
     },
     en: {
       users: 'Users',
+      users_management_subtitle: 'Manage system users, roles, and permissions',
+      users_list: 'Users List',
+      total: 'Total',
       add_new: 'Add New',
       id: '#',
       name: 'Name',

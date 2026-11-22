@@ -1,10 +1,12 @@
 <div class="sanction-page container-fluid" [class.page-rtl]="isRTL()" [attr.dir]="dir()">
   <!-- ===== Page Header ===== -->
   <div class="page-header mb-4 fade-in-down p-3 rounded-4 shadow-sm">
-    <div class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3">
+    <div
+      class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3"
+    >
       <div class="d-flex align-items-center gap-3">
         <div class="header-icon-wrapper rounded-3">
-          <i class="bi bi-shield-exclamation header-icon fs-4"></i>
+          <i class="fa-solid fa-shield-halved header-icon"></i>
         </div>
         <div>
           <h1 class="page-title mb-0 fw-bold">
@@ -13,8 +15,8 @@
           <p class="page-subtitle mb-0 small opacity-75">
             {{
               i18n.current === 'ar'
-                ? 'إضافة وتعديل وحذف الغرامات'
-                : 'Add, Edit and Delete Fines'
+                ? 'إضافة وتعديل وحذف الغرامات وتحديد قيمتها'
+                : 'Add, edit, and manage parking fines and amounts'
             }}
           </p>
         </div>
@@ -26,233 +28,337 @@
           class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour flex-grow-1 flex-md-grow-0"
           (click)="startTour()"
         >
-          <i class="bi bi-question-circle"></i>
+          <i class="fa-solid fa-circle-question"></i>
           <span>{{ 'helpTour' | t }}</span>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- ===== Toolbar ===== -->
-  <div class="d-flex align-items-center justify-content-between flex-wrap gap-2 mb-3">
-    <!-- Search -->
-    <div class="sanction-search position-relative" style="min-width: 240px">
-      <i
-        class="bi bi-search position-absolute top-50 translate-middle-y opacity-50"
-        style="inset-inline-start: 0.75rem"
-      ></i>
-      <input
-        type="text"
-        class="form-control form-control-sm rounded-pill bg-light border-0"
-        style="padding-inline-start: 2.2rem; padding-inline-end: 1rem"
-        [placeholder]="i18n.current === 'ar' ? 'بحث...' : 'Search...'"
-        [value]="searchTerm()"
-        (input)="searchTerm.set($any($event.target).value)"
-      />
-    </div>
-
-    <!-- Add Button -->
-    <button
-      class="btn btn-primary btn-sm px-3 rounded-pill btn-add-sanction"
-      (click)="openAddModal()"
-    >
-      <i class="bi bi-plus-lg me-1"></i>
-      {{ i18n.current === 'ar' ? 'إضافة غرامة' : 'Add Fine' }}
-    </button>
-  </div>
-
-  <!-- ===== Loading ===== -->
-  @if (loading()) {
-    <div class="text-center py-5">
-      <div class="spinner-border text-primary" role="status"></div>
-      <p class="mt-2 text-muted small">
-        {{ i18n.current === 'ar' ? 'جاري التحميل...' : 'Loading...' }}
-      </p>
-    </div>
-  }
-
-  <!-- ===== Table ===== -->
-  @if (!loading()) {
-    <div class="card border-0 shadow-soft rounded-4 overflow-hidden sanction-table-wrapper">
-      <div class="card-body p-0">
-        <table class="table table-hover align-middle mb-0 table-striped">
-          <thead class="table-light sticky-top">
-            <tr class="small text-uppercase text-muted">
-              <th class="text-center py-2 px-3">#</th>
-              <th class="py-2">{{ i18n.current === 'ar' ? 'الاسم' : 'Name' }}</th>
-              <th class="py-2 d-none d-md-table-cell">
-                {{ i18n.current === 'ar' ? 'الوصف' : 'Description' }}
-              </th>
-              <th class="py-2">{{ i18n.current === 'ar' ? 'المبلغ' : 'Amount' }}</th>
-              <th class="text-center py-2 px-3">
-                {{ i18n.current === 'ar' ? 'الإجراءات' : 'Actions' }}
-              </th>
-            </tr>
-          </thead>
-          <tbody class="border-top-0">
-            @for (item of filtered(); track item.id; let i = $index) {
-              <tr>
-                <td class="text-center text-muted small px-3">{{ i + 1 }}</td>
-                <td class="fw-semibold text-dark">{{ item.name }}</td>
-                <td class="text-muted small d-none d-md-table-cell">
-                  {{ item.description || '—' }}
-                </td>
-                <td>
-                  <span
-                    class="badge rounded-pill bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25 px-2 py-1 fw-bold"
-                  >
-                    {{ item.amount | number }} {{ i18n.current === 'ar' ? 'ج.م' : 'EGP' }}
-                  </span>
-                </td>
-                <td class="text-center px-3">
-                  <div class="btn-group shadow-none border rounded-3 overflow-hidden">
-                    <button
-                      class="btn btn-sm btn-white border-0 text-primary px-2"
-                      (click)="openEditModal(item)"
-                      [title]="i18n.current === 'ar' ? 'تعديل' : 'Edit'"
-                    >
-                      <i class="bi bi-pencil-square"></i>
-                    </button>
-                    <button
-                      class="btn btn-sm btn-white border-0 text-danger px-2 border-start"
-                      (click)="openDeleteModal(item)"
-                      [title]="i18n.current === 'ar' ? 'حذف' : 'Delete'"
-                    >
-                      <i class="bi bi-trash3"></i>
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            }
-            <!-- Empty State -->
-            @if (filtered().length === 0) {
-              <tr>
-                <td colspan="5" class="text-center text-muted py-5">
-                  <div class="d-flex flex-column align-items-center">
-                    <i class="bi bi-inbox fs-2 opacity-25 mb-2"></i>
-                    <p class="mb-0 small">
-                      {{ i18n.current === 'ar' ? 'لا توجد غرامات' : 'No fines found' }}
-                    </p>
-                  </div>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    </div>
-  }
-</div>
-
-<!-- ===== Add / Edit Modal ===== -->
-@if (showModal()) {
-  <div class="modal-backdrop-custom" (click)="closeModal()"></div>
-  <div class="modal-dialog-custom" [attr.dir]="dir()">
-    <div class="modal-box">
-      <div class="modal-box-header">
-        <h5 class="mb-0">
-          <i class="bi {{ isEditMode() ? 'bi-pencil-square' : 'bi-plus-circle' }} me-2"></i>
-          {{
-            isEditMode()
-              ? i18n.current === 'ar'
-                ? 'تعديل الغرامة'
-                : 'Edit Fine'
-              : i18n.current === 'ar'
-                ? 'إضافة غرامة جديدة'
-                : 'Add New Fine'
-          }}
-        </h5>
-        <button class="btn-close" (click)="closeModal()"></button>
-      </div>
-      <div class="modal-box-body">
-        <!-- Name -->
-        <div class="mb-3">
-          <label class="form-label fw-bold text-muted small text-uppercase mb-1">
-            {{ i18n.current === 'ar' ? 'الاسم' : 'Name' }}
-            <span class="text-danger">*</span>
-          </label>
-          <input
-            type="text"
-            class="form-control rounded-3"
-            [value]="form().name"
-            (input)="setName($any($event.target).value)"
-            [placeholder]="i18n.current === 'ar' ? 'اسم الغرامة' : 'Fine name'"
-          />
+  <!-- ===== Inline Compact Add / Edit Block (Above Table) ===== -->
+  @if (showModal()) {
+    <div class="sanction-form-card mb-3" [class.is-edit-mode]="isEditMode()">
+      <div class="sanction-form-header">
+        <div class="modal-title-wrap">
+          <span class="modal-icon-chip" [ngClass]="isEditMode() ? 'chip-amber' : 'chip-indigo'">
+            <i class="fa-solid" [ngClass]="isEditMode() ? 'fa-pen-to-square' : 'fa-plus'"></i>
+          </span>
+          <h5 class="mb-0 modal-title-text">
+            {{
+              isEditMode()
+                ? i18n.current === 'ar'
+                  ? 'تعديل الغرامة'
+                  : 'Edit Fine'
+                : i18n.current === 'ar'
+                  ? 'إضافة غرامة جديدة'
+                  : 'Add New Fine'
+            }}
+          </h5>
         </div>
-        <!-- Description -->
-        <div class="mb-3">
-          <label class="form-label fw-bold text-muted small text-uppercase mb-1">
-            {{ i18n.current === 'ar' ? 'الوصف' : 'Description' }}
-          </label>
-          <textarea
-            class="form-control rounded-3"
-            rows="3"
-            [value]="form().description"
-            (input)="setDescription($any($event.target).value)"
-            [placeholder]="i18n.current === 'ar' ? 'وصف الغرامة' : 'Fine description'"
-          ></textarea>
-        </div>
-        <!-- Amount -->
-        <div class="mb-3">
-          <label class="form-label fw-bold text-muted small text-uppercase mb-1">
-            {{ i18n.current === 'ar' ? 'المبلغ (ج.م)' : 'Amount (EGP)' }}
-          </label>
-          <div class="input-group shadow-sm rounded-3 overflow-hidden">
-            <span class="input-group-text bg-white border-end-0 border-0 ps-3">
-              <i class="bi bi-cash-stack text-success"></i>
-            </span>
+
+        <button
+          type="button"
+          class="modal-close-btn"
+          (click)="closeModal()"
+          [attr.aria-label]="i18n.current === 'ar' ? 'إغلاق' : 'Close'"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div class="sanction-form-body">
+        <div class="sanction-form-grid">
+          <!-- Name -->
+          <div class="form-col-name">
+            <label class="np-field-label">
+              {{ i18n.current === 'ar' ? 'اسم الغرامة' : 'Fine Name' }}
+              <span class="text-danger">*</span>
+            </label>
             <input
-              type="number"
-              class="form-control border-0 bg-white"
-              min="0"
-              [value]="form().amount"
-              (input)="setAmount(+$any($event.target).value)"
-              placeholder="0"
+              type="text"
+              class="form-control np-input"
+              [value]="form().name"
+              (input)="setName($any($event.target).value)"
+              [placeholder]="i18n.current === 'ar' ? 'مثال: فقدان كارت الدخول' : 'e.g. Lost entry card'"
             />
+          </div>
+
+          <!-- Amount -->
+          <div class="form-col-amount">
+            <label class="np-field-label">
+              {{ i18n.current === 'ar' ? 'المبلغ (ج.م)' : 'Amount (EGP)' }}
+            </label>
+            <div class="amount-input-wrap">
+              <span class="amount-input-ico">
+                <i class="fa-solid fa-coins"></i>
+              </span>
+              <input
+                type="number"
+                class="form-control np-input amount-input-field"
+                min="0"
+                [value]="form().amount"
+                (input)="setAmount(+$any($event.target).value)"
+                placeholder="0"
+              />
+            </div>
+          </div>
+
+          <!-- Description -->
+          <div class="form-col-desc">
+            <label class="np-field-label">
+              {{ i18n.current === 'ar' ? 'الوصف' : 'Description' }}
+            </label>
+            <input
+              type="text"
+              class="form-control np-input"
+              [value]="form().description"
+              (input)="setDescription($any($event.target).value)"
+              [placeholder]="i18n.current === 'ar' ? 'وصف مختصر للغرامة...' : 'Short description...'"
+            />
+          </div>
+
+          <!-- Inline Actions -->
+          <div class="form-col-actions">
+            <button
+              type="button"
+              class="btn-modal-primary"
+              (click)="save()"
+              [disabled]="saving()"
+            >
+              @if (saving()) {
+                <span class="spinner-border spinner-border-sm"></span>
+              } @else {
+                <i class="fa-solid" [ngClass]="isEditMode() ? 'fa-floppy-disk' : 'fa-plus'"></i>
+              }
+              <span>
+                {{
+                  isEditMode()
+                    ? i18n.current === 'ar'
+                      ? 'حفظ'
+                      : 'Save'
+                    : i18n.current === 'ar'
+                      ? 'إضافة'
+                      : 'Add'
+                }}
+              </span>
+            </button>
+            <button type="button" class="btn-modal-cancel" (click)="closeModal()">
+              {{ i18n.current === 'ar' ? 'إلغاء' : 'Cancel' }}
+            </button>
           </div>
         </div>
       </div>
-      <div class="modal-box-footer">
-        <button class="btn btn-light rounded-pill px-3 btn-sm" (click)="closeModal()">
-          {{ i18n.current === 'ar' ? 'إلغاء' : 'Cancel' }}
-        </button>
-        <button
-          class="btn btn-primary rounded-pill px-4 btn-sm fw-bold"
-          (click)="save()"
-          [disabled]="saving()"
-        >
-          @if (saving()) {
-            <span class="spinner-border spinner-border-sm me-1"></span>
+    </div>
+  }
+
+  <!-- ===== Main Sanctions Card ===== -->
+  <div class="sanction-card sanction-table-wrapper">
+    <!-- Integrated Card Toolbar Header -->
+    <div class="sanction-card-header">
+      <div class="sanction-card-title-wrap">
+        <span class="sanction-title-icon">
+          <i class="fa-solid fa-gavel"></i>
+        </span>
+        <h2 class="sanction-card-title">
+          {{ i18n.current === 'ar' ? 'قائمة الغرامات' : 'Fines List' }}
+        </h2>
+        <span class="sanction-count-pill">{{ filtered().length }}</span>
+      </div>
+
+      <div class="sanction-toolbar-actions">
+        <!-- Search -->
+        <div class="sanction-search">
+          <i class="fa-solid fa-magnifying-glass search-ico"></i>
+          <input
+            type="text"
+            class="form-control sanction-search-input"
+            [placeholder]="
+              i18n.current === 'ar'
+                ? 'ابحث بالاسم أو الوصف أو المبلغ...'
+                : 'Search by name, description, or amount...'
+            "
+            [value]="searchTerm()"
+            (input)="searchTerm.set($any($event.target).value)"
+          />
+          @if (searchTerm()) {
+            <button
+              type="button"
+              class="search-clear-btn"
+              (click)="searchTerm.set('')"
+              [attr.aria-label]="i18n.current === 'ar' ? 'مسح البحث' : 'Clear search'"
+            >
+              <i class="fa-solid fa-xmark"></i>
+            </button>
           }
-          {{
-            isEditMode()
-              ? i18n.current === 'ar'
-                ? 'حفظ التعديلات'
-                : 'Save Changes'
-              : i18n.current === 'ar'
-                ? 'إضافة'
-                : 'Add'
-          }}
+        </div>
+
+        <!-- Add Button -->
+        <button type="button" class="btn-add-sanction" (click)="openAddModal()">
+          <i class="fa-solid fa-plus"></i>
+          <span>{{ i18n.current === 'ar' ? 'إضافة غرامة' : 'Add Fine' }}</span>
         </button>
       </div>
     </div>
+
+    <!-- ===== Loading ===== -->
+    @if (loading()) {
+      <div class="sanction-state-box">
+        <div class="spinner-border text-indigo" role="status"></div>
+        <p class="mt-2 mb-0 text-muted small fw-semibold">
+          {{ i18n.current === 'ar' ? 'جاري تحميل الغرامات...' : 'Loading fines...' }}
+        </p>
+      </div>
+    }
+
+    <!-- ===== Content ===== -->
+    @if (!loading()) {
+      @if (filtered().length === 0) {
+        <div class="sanction-state-box">
+          <span class="empty-icon-chip">
+            <i class="fa-solid fa-gavel"></i>
+          </span>
+          <p class="mb-0 fw-bold text-slate">
+            {{ i18n.current === 'ar' ? 'لا توجد غرامات مطابقة' : 'No fines found' }}
+          </p>
+          <p class="mb-0 small text-muted">
+            {{
+              i18n.current === 'ar'
+                ? 'يمكنك إضافة غرامة جديدة من الزر بالأعلى'
+                : 'You can add a new fine using the button above'
+            }}
+          </p>
+        </div>
+      } @else {
+        <!-- Desktop Table -->
+        <div class="table-responsive d-none d-md-block">
+          <table class="table sanction-table align-middle mb-0">
+            <thead>
+              <tr>
+                <th class="text-center" style="width: 64px">#</th>
+                <th>{{ i18n.current === 'ar' ? 'الاسم' : 'Name' }}</th>
+                <th>{{ i18n.current === 'ar' ? 'الوصف' : 'Description' }}</th>
+                <th style="width: 160px">{{ i18n.current === 'ar' ? 'المبلغ' : 'Amount' }}</th>
+                <th class="text-center" style="width: 130px">
+                  {{ i18n.current === 'ar' ? 'الإجراءات' : 'Actions' }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of filtered(); track item.id; let i = $index) {
+                <tr [class.is-editing-row]="showModal() && isEditMode() && selectedId() === item.id">
+                  <td class="text-center">
+                    <span class="row-index-chip">{{ i + 1 }}</span>
+                  </td>
+                  <td>
+                    <span class="sanction-name">{{ item.name }}</span>
+                  </td>
+                  <td>
+                    <span class="sanction-desc">{{ item.description || '—' }}</span>
+                  </td>
+                  <td>
+                    <span class="amount-pill">
+                      {{ item.amount | number }}
+                      <small>{{ i18n.current === 'ar' ? 'ج.م' : 'EGP' }}</small>
+                    </span>
+                  </td>
+                  <td class="text-center">
+                    <div class="action-btn-group">
+                      <button
+                        type="button"
+                        class="btn-row-action btn-edit"
+                        (click)="openEditModal(item)"
+                        [title]="i18n.current === 'ar' ? 'تعديل' : 'Edit'"
+                      >
+                        <i class="fa-solid fa-pen-to-square"></i>
+                      </button>
+                      <button
+                        type="button"
+                        class="btn-row-action btn-delete"
+                        (click)="openDeleteModal(item)"
+                        [title]="i18n.current === 'ar' ? 'حذف' : 'Delete'"
+                      >
+                        <i class="fa-solid fa-trash-can"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Mobile Cards (< 768px) -->
+        <div class="sanction-mobile-list d-md-none">
+          @for (item of filtered(); track item.id; let i = $index) {
+            <div class="sanction-mobile-card">
+              <div class="mobile-card-top">
+                <div class="d-flex align-items-center gap-2 min-w-0">
+                  <span class="row-index-chip">{{ i + 1 }}</span>
+                  <span class="sanction-name text-truncate">{{ item.name }}</span>
+                </div>
+                <span class="amount-pill">
+                  {{ item.amount | number }}
+                  <small>{{ i18n.current === 'ar' ? 'ج.م' : 'EGP' }}</small>
+                </span>
+              </div>
+
+              @if (item.description) {
+                <p class="mobile-card-desc">{{ item.description }}</p>
+              }
+
+              <div class="mobile-card-actions">
+                <button
+                  type="button"
+                  class="btn-mobile-action btn-edit"
+                  (click)="openEditModal(item)"
+                >
+                  <i class="fa-solid fa-pen-to-square"></i>
+                  <span>{{ i18n.current === 'ar' ? 'تعديل' : 'Edit' }}</span>
+                </button>
+                <button
+                  type="button"
+                  class="btn-mobile-action btn-delete"
+                  (click)="openDeleteModal(item)"
+                >
+                  <i class="fa-solid fa-trash-can"></i>
+                  <span>{{ i18n.current === 'ar' ? 'حذف' : 'Delete' }}</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    }
   </div>
-}
+</div>
 
 <!-- ===== Delete Confirm Modal ===== -->
 @if (showDeleteModal()) {
   <div class="modal-backdrop-custom" (click)="closeDeleteModal()"></div>
   <div class="modal-dialog-custom" [attr.dir]="dir()">
-    <div class="modal-box">
+    <div class="modal-box modal-box-sm">
       <div class="modal-box-header">
-        <h5 class="mb-0 text-danger">
-          <i class="bi bi-exclamation-triangle-fill me-2"></i>
-          {{ i18n.current === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete' }}
-        </h5>
-        <button class="btn-close" (click)="closeDeleteModal()"></button>
+        <div class="modal-title-wrap">
+          <span class="modal-icon-chip chip-rose">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </span>
+          <h5 class="mb-0 modal-title-text text-rose">
+            {{ i18n.current === 'ar' ? 'تأكيد الحذف' : 'Confirm Delete' }}
+          </h5>
+        </div>
+        <button
+          type="button"
+          class="modal-close-btn"
+          (click)="closeDeleteModal()"
+          aria-label="Close"
+        >
+          <i class="fa-solid fa-xmark"></i>
+        </button>
       </div>
+
       <div class="modal-box-body">
-        <p class="text-muted mb-0">
+        <p class="mb-2 fw-bold text-slate" *ngIf="selectedName()">"{{ selectedName() }}"</p>
+        <p class="text-muted small mb-0">
           {{
             i18n.current === 'ar'
               ? 'هل أنت متأكد من حذف هذه الغرامة؟ لا يمكن التراجع عن هذا الإجراء.'
@@ -260,19 +366,23 @@
           }}
         </p>
       </div>
+
       <div class="modal-box-footer">
-        <button class="btn btn-light rounded-pill px-3 btn-sm" (click)="closeDeleteModal()">
+        <button type="button" class="btn-modal-cancel" (click)="closeDeleteModal()">
           {{ i18n.current === 'ar' ? 'إلغاء' : 'Cancel' }}
         </button>
         <button
-          class="btn btn-danger rounded-pill px-4 btn-sm fw-bold"
+          type="button"
+          class="btn-modal-danger"
           (click)="confirmDelete()"
           [disabled]="deleting()"
         >
           @if (deleting()) {
-            <span class="spinner-border spinner-border-sm me-1"></span>
+            <span class="spinner-border spinner-border-sm"></span>
+          } @else {
+            <i class="fa-solid fa-trash-can"></i>
           }
-          {{ i18n.current === 'ar' ? 'حذف' : 'Delete' }}
+          <span>{{ i18n.current === 'ar' ? 'حذف' : 'Delete' }}</span>
         </button>
       </div>
     </div>

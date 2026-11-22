@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Output, OnInit } from '@angular/core';
+import { Component, EventEmitter, Output, OnInit, OnDestroy } from '@angular/core';
 import { NgIf, NgFor, NgClass, CommonModule } from '@angular/common';
 import {
   FormArray,
@@ -216,7 +216,7 @@ function completeOnvifValidator(control: AbstractControl): ValidationErrors | nu
     },
   ],
 })
-export class ConfigurationComponent implements OnInit {
+export class ConfigurationComponent implements OnInit, OnDestroy {
   @Output() submitted = new EventEmitter<ParkingConfigurationUpdateCommand>();
 
   pricingSchemas: PricingSchemaDto[] = [];
@@ -231,6 +231,19 @@ export class ConfigurationComponent implements OnInit {
   step2Form!: FormGroup;
   saving = false;
   loading = false;
+  visiblePasswords = new Set<string>();
+
+  togglePassword(key: string): void {
+    if (this.visiblePasswords.has(key)) {
+      this.visiblePasswords.delete(key);
+    } else {
+      this.visiblePasswords.add(key);
+    }
+  }
+
+  isPasswordVisible(key: string): boolean {
+    return this.visiblePasswords.has(key);
+  }
 
   readonly TOTAL_STEPS = 2;
 
@@ -295,6 +308,10 @@ export class ConfigurationComponent implements OnInit {
     this.loadCashiers();
     this.syncGateArrays();
     this.loadExistingConfigAndPatch();
+  }
+
+  ngOnDestroy() {
+    this.configTour.cancelTour();
   }
 
   // ======= Data loading =======

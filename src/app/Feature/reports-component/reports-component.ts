@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -114,7 +114,7 @@ import html2canvas from 'html2canvas';
     },
   ],
 })
-export class ReportsComponent implements OnInit {
+export class ReportsComponent implements OnInit, OnDestroy {
   private readonly reportsService = inject(ReportsService);
   public readonly lang = inject(LanguageService);
   private readonly dict = inject(I18N_DICT);
@@ -127,6 +127,21 @@ export class ReportsComponent implements OnInit {
   loading = signal<boolean>(false);
   selectedTicket = signal<ReportTicketsResponse | null>(null);
 
+  // Client-side Pagination
+  pageNumber = signal<number>(1);
+  pageSize = signal<number>(10);
+  totalPages = computed(() => Math.max(1, Math.ceil(this.reports().length / this.pageSize())));
+  pagedReports = computed(() => {
+    const start = (this.pageNumber() - 1) * this.pageSize();
+    return this.reports().slice(start, start + this.pageSize());
+  });
+  rangeStart = computed(() =>
+    this.reports().length ? (this.pageNumber() - 1) * this.pageSize() + 1 : 0,
+  );
+  rangeEnd = computed(() => Math.min(this.pageNumber() * this.pageSize(), this.reports().length));
+  hasPrev = computed(() => this.pageNumber() > 1);
+  hasNext = computed(() => this.pageNumber() < this.totalPages());
+
   // Filters
   dateFrom = '';
   dateTo = '';
@@ -134,6 +149,31 @@ export class ReportsComponent implements OnInit {
 
   ngOnInit(): void {
     // Optionally load today's reports or leave empty until search
+  }
+
+  ngOnDestroy(): void {
+    this.tourService.cancelTour();
+  }
+
+  changePageSize(size: number): void {
+    this.pageSize.set(size);
+    this.pageNumber.set(1);
+  }
+
+  firstPage(): void {
+    this.pageNumber.set(1);
+  }
+
+  prevPage(): void {
+    if (this.hasPrev()) this.pageNumber.update((p) => p - 1);
+  }
+
+  nextPage(): void {
+    if (this.hasNext()) this.pageNumber.update((p) => p + 1);
+  }
+
+  lastPage(): void {
+    this.pageNumber.set(this.totalPages());
   }
 
   startTour(): void {
@@ -154,6 +194,7 @@ export class ReportsComponent implements OnInit {
     this.reportsService.getReport(this.dateFrom, this.dateTo, this.filterSearchTerm).subscribe({
       next: (data) => {
         this.reports.set(data);
+        this.pageNumber.set(1);
         this.loading.set(false);
 
         if (data.length > 0) {
@@ -180,6 +221,7 @@ export class ReportsComponent implements OnInit {
     this.dateTo = '';
     this.filterSearchTerm = '';
     this.reports.set([]);
+    this.pageNumber.set(1);
     this.closeTicketDetails();
   }
 

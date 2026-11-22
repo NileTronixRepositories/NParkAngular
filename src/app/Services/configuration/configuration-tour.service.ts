@@ -3,19 +3,7 @@ import Shepherd from 'shepherd.js';
 import { animateShepherdStep } from '../Shared/tour-animation.helper';
 import { LanguageService } from '../i18n/language-service';
 
-type Placement =
-  | 'top'
-  | 'top-start'
-  | 'top-end'
-  | 'bottom'
-  | 'bottom-start'
-  | 'bottom-end'
-  | 'left'
-  | 'left-start'
-  | 'left-end'
-  | 'right'
-  | 'right-start'
-  | 'right-end';
+type Placement = 'top' | 'bottom' | 'left' | 'right';
 
 interface ConfigTourOptions {
   ensureStep1?: () => void;
@@ -26,24 +14,21 @@ interface ConfigTourOptions {
 @Injectable({ providedIn: 'root' })
 export class ConfigurationTourService {
   private tour: any | null = null;
-
   private readonly lang = inject(LanguageService);
   private readonly injector = inject(Injector);
-
   private options: ConfigTourOptions = {};
 
   constructor() {
     effect(
       () => {
         this.lang.currentSignal();
-
         if (this.tour && this.tour.isActive()) {
           const currentId = this.tour.getCurrentStep()?.id;
           this.tour.cancel();
           this.buildTour();
-          this.tour.start();
+          this.tour?.start();
           if (currentId) {
-            this.tour.show(currentId);
+            this.tour?.show(currentId);
           }
         }
       },
@@ -51,7 +36,6 @@ export class ConfigurationTourService {
     );
   }
 
-  // ===== Helpers =====
   private get isRTL(): boolean {
     return this.lang.isRTL();
   }
@@ -60,261 +44,179 @@ export class ConfigurationTourService {
     return this.isRTL ? ar : en;
   }
 
-  private pos(base: Placement): Placement {
+  private resolvePlacement(base: Placement): Placement {
+    if (typeof window !== 'undefined' && window.innerWidth < 992) {
+      return base === 'top' ? 'top' : 'bottom';
+    }
+    if (base === 'top' || base === 'bottom') return base;
     if (!this.isRTL) return base;
-
-    if (base.startsWith('top') || base.startsWith('bottom')) return 'bottom' as Placement;
-    if (base.startsWith('left')) return base.replace('left', 'right') as Placement;
-    if (base.startsWith('right')) return base.replace('right', 'left') as Placement;
-
-    return base;
+    return base === 'left' ? 'right' : 'left';
   }
 
-  // ===== Public API =====
   startTour(options?: ConfigTourOptions): void {
     this.options = options ?? {};
-
-    if (this.tour && this.tour.isActive()) {
-      this.tour.cancel();
-    }
-
+    this.cancelTour();
     this.buildTour();
     this.tour?.start();
   }
 
   cancelTour(): void {
-    this.tour?.cancel();
+    if (this.tour && this.tour.isActive()) {
+      this.tour.cancel();
+    }
+    this.tour = null;
   }
 
-  // ===== Build tour =====
   private buildTour(): void {
     const stepClasses = this.isRTL ? 'np-shepherd-step np-shepherd-rtl' : 'np-shepherd-step';
 
     this.tour = new Shepherd.Tour({
       useModalOverlay: true,
+      keyboardNavigation: true,
       defaultStepOptions: {
         arrow: true,
-        modalOverlayOpeningPadding: 6,
+        modalOverlayOpeningPadding: 8,
+        modalOverlayOpeningRadius: 12,
         scrollTo: { behavior: 'smooth', block: 'center' },
         cancelIcon: { enabled: true },
         canClickTarget: false,
         classes: stepClasses,
+        when: { show: () => animateShepherdStep(this.tour?.getCurrentStep()) },
         popperOptions: {
           strategy: 'fixed',
           modifiers: [
-            {
-              name: 'computeStyles',
-              options: { gpuAcceleration: false },
-            },
-            {
-              name: 'preventOverflow',
-              options: { boundary: 'viewport', padding: 8 },
-            },
-            {
-              name: 'flip',
-              options: { padding: 8 },
-            },
+            { name: 'computeStyles', options: { gpuAcceleration: false } },
+            { name: 'preventOverflow', options: { boundary: 'viewport', padding: 12 } },
+            { name: 'flip', options: { padding: 12 } },
           ],
         },
       },
     } as any);
 
-    // 1) header page(Summary header)
-    this.addStep({
-      id: 'config-header',
-      titleAr: 'إعدادات النظام',
-      titleEn: 'Configuration screen',
-      textAr: 'من هذه الشاشة تقوم بضبط إعدادات نظام المواقف بالكامل.',
-      textEn: 'On this screen you configure the entire parking system behavior.',
-      attachTo: '.config-title-group',
-      position: 'bottom-end',
-      hasBack: false,
-    });
-
-    // 2) The Wizard
-    this.addStep({
-      id: 'config-wizard',
-      titleAr: 'معالج الإعدادات',
-      titleEn: 'Configuration wizard',
-      textAr:
-        'المعالج مكوَّن من خطوتين: الأساسيات، ثم وضع التسعير والإعدادات التفصيلية. يمكنك التنقل من الأعلى.',
-      textEn:
-        'The wizard has two steps: basics, then pricing mode and detailed settings. You can switch using the stepper above.',
-      attachTo: '.config-main-card',
-      position: 'top',
-    });
-
-    // 3) Basics – Step 1
-    this.addStep({
-      id: 'config-basics',
-      titleAr: 'الأساسيات',
-      titleEn: 'Basics',
-      textAr:
-        'هنا تحدد عدد بوابات الدخول والخروج، وعدد الباكيّات المسموح، وفترة السماح قبل احتساب الرسوم.',
-      textEn:
-        'Here you set the number of entry and exit gates, allowed parking slots, and grace period before fees apply.',
-      attachTo: '.config-step1-form',
-      position: 'top',
-      beforeShow: () => {
-        this.options.ensureStep1?.();
+    const steps: Array<{
+      id: string;
+      titleAr: string;
+      titleEn: string;
+      textAr: string;
+      textEn: string;
+      attachTo: string;
+      position: Placement;
+      beforeShow?: () => void;
+      waitForSelector?: string;
+    }> = [
+      {
+        id: 'config-basics',
+        titleAr: 'البيانات الأساسية',
+        titleEn: 'Basic Settings',
+        textAr: 'حدد عدد بوابات الدخول والخروج، والسعة المتاحة، وفترة السماح بالدقائق.',
+        textEn: 'Set the number of entry/exit gates, parking capacity, and grace period in minutes.',
+        attachTo: '.config-step1-form',
+        position: 'bottom',
+        beforeShow: () => this.options.ensureStep1?.(),
+        waitForSelector: '.config-step1-form',
       },
-      waitForSelector: '.config-step1-form',
-    });
-
-    // 4) Price type (Entry / Exit)
-    this.addStep({
-      id: 'config-mode',
-      titleAr: 'نوع التسعير',
-      titleEn: 'Price type',
-      textAr:
-        'اختَر ما إذا كان احتساب الرسوم عند الدخول أو عند الخروج. هذا يحدد كامل منطق التسعير في النظام.',
-      textEn:
-        'Choose whether fees are calculated on entry or on exit. This controls the pricing logic in the whole system.',
-      attachTo: '.config-mode-group',
-      position: 'top',
-      beforeShow: () => {
-        this.options.ensureStep2?.();
+      {
+        id: 'config-mode',
+        titleAr: 'مكان التحصيل وطريقة القراءة',
+        titleEn: 'Collection & Capture Mode',
+        textAr: 'اختر مكان التحصيل (عند الدخول أو الخروج) وطريقة قراءة المركبة ومحتوى التذكرة.',
+        textEn: 'Choose collection point (entry or exit), vehicle capture mode, and ticket print options.',
+        attachTo: '.config-operations-panel',
+        position: 'bottom',
+        beforeShow: () => this.options.ensureStep2?.(),
+        waitForSelector: '.config-operations-panel',
       },
-      waitForSelector: '.config-mode-group',
-    });
-
-    // 5) Capture mode
-    this.addStep({
-      id: 'config-capture',
-      titleAr: 'طريقة الالتقاط',
-      titleEn: 'Capture mode',
-      textAr:
-        'حدّد إذا كان النظام يعتمد على كاميرات LPR، أو كاميرا السكنر، أو كلاهما معًا لقراءة لوحات المركبات.',
-      textEn:
-        'Select whether the system uses LPR cameras, scanner cameras, or both for reading vehicle plates.',
-      attachTo: '.config-capture-group',
-      position: 'top',
-      waitForSelector: '.config-capture-group',
-    });
-
-    // 6) Pricing schema (entry only)
-    this.addStep({
-      id: 'config-pricing',
-      titleAr: 'نظام التسعير',
-      titleEn: 'Pricing schema',
-      textAr:
-        'من هنا تختار مخطط التسعير الذي تم تعريفه مسبقًا، مثل أول ساعة مجانًا ثم تسعير تدريجي.',
-      textEn:
-        'Here you choose the predefined pricing schema, such as first hour free then progressive fees.',
-      attachTo: '.config-pricing-group',
-      position: 'top',
-      beforeShow: () => {
-        this.options.ensureStep2?.();
-        this.options.ensureModeEntry?.();
+      {
+        id: 'config-gates',
+        titleAr: 'إعدادات البوابات والأجهزة',
+        titleEn: 'Gate Hardware Settings',
+        textAr: 'اضبط عناوين IP لأجهزة البوابات والطابعات وكاميرات ONVIF وتعيين المحصلين.',
+        textEn: 'Configure gate PC/LPR IPs, printers, ONVIF cameras, and cashier assignments.',
+        attachTo: '.config-gates-tabs',
+        position: 'top',
+        waitForSelector: '.config-gates-tabs',
       },
-      waitForSelector: '.config-pricing-group',
-    });
+      {
+        id: 'config-summary',
+        titleAr: 'ملخص الإعدادات',
+        titleEn: 'Configuration Summary',
+        textAr: 'يعرض هذا الكارت ملخصاً فورياً لكل الإعدادات الحالية وتقدم الخطوات.',
+        textEn: 'This sticky card gives a live summary of your current configuration and step progress.',
+        attachTo: '.config-summary-card',
+        position: 'right',
+        waitForSelector: '.config-summary-card',
+      },
+    ];
 
-    // 7) Entry / Exit gates
-    this.addStep({
-      id: 'config-gates',
-      titleAr: 'بوابات الدخول والخروج',
-      titleEn: 'Entry / Exit gates',
-      textAr:
-        'في كل تبويب تقوم بتحديد عنوان IP لجهاز الـ PC وجهاز الكاميرا لكل بوابة، لتسهيل الربط بين النظام والأجهزة.',
-      textEn:
-        'In each tab you configure the PC IP and camera/device IP for every gate to link hardware with the system.',
-      attachTo: '.config-gates-tabs',
-      position: 'top',
-      waitForSelector: '.config-gates-tabs',
-    });
+    const total = steps.length;
 
-    // 8) Configuration summary
-    this.addStep({
-      id: 'config-summary',
-      titleAr: 'ملخَّص الإعدادات',
-      titleEn: 'Configuration summary',
-      textAr:
-        'في هذا الجزء ترى ملخّص الإعدادات الحالية، وعدد البوابات، ونوع التسعير، وطريقة الالتقاط، وتاريخ بداية التطبيق.',
-      textEn:
-        'This panel shows a summary of your current configuration: number of gates, pricing mode, capture mode, and start date.',
-      attachTo: '.config-summary-card',
-      position: this.pos('left'),
-      isLast: true,
-      waitForSelector: '.config-summary-card',
-    });
-  }
+    steps.forEach((step, idx) => {
+      const stepNum = idx + 1;
+      const isFirst = idx === 0;
+      const isLast = idx === total - 1;
+      const badge = `<span class="step-badge" dir="ltr">${stepNum} / ${total}</span>`;
 
-  // ===== Helper to add steps =====
-  private addStep(config: {
-    id: string;
-    titleAr: string;
-    titleEn: string;
-    textAr: string;
-    textEn: string;
-    attachTo: string;
-    position: Placement;
-    hasBack?: boolean;
-    isLast?: boolean;
-    beforeShow?: () => void;
-    waitForSelector?: string;
-  }) {
-    const buttons: any[] = [];
+      const buttons: any[] = [];
 
-    if (config.hasBack !== false) {
-      buttons.push({
-        text: this.t('السابق', 'Previous'),
-        action: () => this.tour?.back(),
-        classes: 'shepherd-button-secondary',
-      });
-    }
-
-    if (config.isLast) {
-      buttons.push({
-        text: this.t('إنهاء', 'Finish'),
-        action: () => this.tour?.complete(),
-      });
-    } else {
-      buttons.push({
-        text: this.t('التالي', 'Next'),
-        action: () => this.tour?.next(),
-      });
-    }
-
-    const beforeShowPromise = () => {
-      if (config.beforeShow) {
-        config.beforeShow();
+      if (!isLast) {
+        buttons.push({
+          text: this.t('تخطي', 'Skip'),
+          classes: 'shepherd-button-skip',
+          action: () => this.tour?.cancel(),
+        });
       }
 
-      if (!config.waitForSelector) {
-        return new Promise<void>((resolve) => setTimeout(resolve, 80));
+      if (!isFirst) {
+        buttons.push({
+          text: this.isRTL
+            ? `<i class="fa-solid fa-arrow-right"></i> السابق`
+            : `<i class="fa-solid fa-arrow-left"></i> Previous`,
+          classes: 'shepherd-button-secondary',
+          action: () => this.tour?.back(),
+        });
       }
 
-      return new Promise<void>((resolve) => {
-        const selector = config.waitForSelector!;
-        const start = performance.now();
+      if (isLast) {
+        buttons.push({
+          text: this.isRTL
+            ? `إنهاء <i class="fa-solid fa-check"></i>`
+            : `Finish <i class="fa-solid fa-check"></i>`,
+          classes: 'shepherd-button-finish',
+          action: () => this.tour?.complete(),
+        });
+      } else {
+        buttons.push({
+          text: this.isRTL
+            ? `التالي <i class="fa-solid fa-arrow-left"></i>`
+            : `Next <i class="fa-solid fa-arrow-right"></i>`,
+          action: () => this.tour?.next(),
+        });
+      }
 
-        const check = () => {
-          if (document.querySelector(selector)) {
-            resolve();
-            return;
-          }
-          if (performance.now() - start > 1500) {
-            resolve();
-            return;
-          }
-          requestAnimationFrame(check);
-        };
+      const beforeShowPromise = () => {
+        if (step.beforeShow) step.beforeShow();
+        if (!step.waitForSelector) {
+          return new Promise<void>((resolve) => setTimeout(resolve, 60));
+        }
+        return new Promise<void>((resolve) => {
+          const started = performance.now();
+          const check = () => {
+            if (document.querySelector(step.waitForSelector!)) return resolve();
+            if (performance.now() - started > 2000) return resolve();
+            requestAnimationFrame(check);
+          };
+          check();
+        });
+      };
 
-        check();
+      this.tour?.addStep({
+        id: step.id,
+        title: `${this.t(step.titleAr, step.titleEn)} ${badge}`,
+        text: this.t(step.textAr, step.textEn),
+        attachTo: { element: step.attachTo, on: this.resolvePlacement(step.position) },
+        buttons,
+        beforeShowPromise,
       });
-    };
-
-    this.tour?.addStep({
-      id: config.id,
-      title: this.t(config.titleAr, config.titleEn),
-      text: this.t(config.textAr, config.textEn),
-      attachTo: {
-        element: config.attachTo,
-        on: this.pos(config.position),
-      },
-      buttons,
-      beforeShowPromise,
-    } as any);
+    });
   }
 }

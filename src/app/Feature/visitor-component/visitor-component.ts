@@ -1,4 +1,4 @@
-import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { CdkDropList, CdkDrag, CdkDragDrop, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -18,7 +18,7 @@ import { ToastServices } from '../../Services/Toster/toast-services';
   templateUrl: './visitor-component.html',
   styleUrls: ['./visitor-component.css'],
 })
-export class VisitorComponent implements OnInit {
+export class VisitorComponent implements OnInit, OnDestroy {
   // ===== DI =====
   private visitorServices = inject(VisitorServices);
   private toast = inject(ToastServices);
@@ -304,5 +304,9 @@ export class VisitorComponent implements OnInit {
     this.picked.set([]);
     this.qty.set({});
     this.active.set(null);
+  }
+
+  ngOnDestroy(): void {
+    this.visitorTour.cancelTour();
   }
 }
