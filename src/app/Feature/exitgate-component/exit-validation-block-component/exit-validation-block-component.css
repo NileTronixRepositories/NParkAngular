@@ -138,3 +138,110 @@ textarea[dir='ltr'] {
     max-width: 100%;
   }
 }
+
+/* === NPark Theme Overrides === */
+.glass {
+  background: #ffffff;
+  backdrop-filter: none;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+}
+
+.card-header-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: rgba(16, 36, 59, 0.08);
+  color: #10243b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+}
+
+.validation-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #10243b;
+  border-radius: 10px;
+  border-color: #cbd5e1;
+  background: #f8fafc;
+}
+
+.validation-input:focus {
+  background: #ffffff;
+  border-color: #10243b;
+  box-shadow: 0 0 0 3px rgba(16, 36, 59, 0.1);
+}
+
+.auto-validation-hint {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #475569;
+  font-weight: 600;
+}
+
+.auto-validation-hint i {
+  color: #10243b;
+}
+
+/* === Cheerful Eye-Friendly Accents === */
+.glass {
+  border-color: #bae6fd !important;
+  box-shadow: 0 4px 16px rgba(2, 132, 199, 0.06) !important;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #f0f9ff 0%, #f8fafc 100%) !important;
+  border-bottom-color: #bae6fd !important;
+}
+
+.card-header-icon {
+  background: #e0f2fe !important;
+  color: #0284c7 !important;
+}
+
+.auto-validation-hint {
+  border-color: #bae6fd !important;
+  background: linear-gradient(135deg, #f0f9ff 0%, #ffffff 100%) !important;
+  color: #0369a1 !important;
+}
+
+.auto-validation-hint i {
+  color: #0284c7 !important;
+}
+
+/* === Compact Clean Layout & Vibrant Header Tint === */
+:host .card.glass {
+  height: auto !important;
+  border-color: #bae6fd !important;
+}
+
+:host .card-header {
+  background: linear-gradient(135deg, #e0f2fe 0%, #f8fafc 100%) !important;
+  border-bottom: 1px solid #bae6fd !important;
+  padding: 0.48rem 0.7rem !important;
+}
+
+:host .card-header-icon {
+  background: #bae6fd !important;
+  color: #0284c7 !important;
+}
+
+:host textarea.form-control {
+  min-height: 46px !important;
+}
+
+:host .auto-validation-hint {
+  padding: 0.36rem 0.55rem !important;
+  font-size: 0.7rem !important;
+}
+
+/* Clip card-header cleanly inside rounded border */
+:host .card.glass {
+  overflow: hidden !important;
+  border-radius: 14px !important;
+}

@@ -669,3 +669,66 @@
     grid-row: 2;
   }
 }
+
+/* === NPark Theme Overrides === */
+.card-header-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: rgba(16, 36, 59, 0.08);
+  color: #10243b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  flex-shrink: 0;
+}
+
+.text-navy {
+  color: #10243b;
+}
+
+.ticket-header-title {
+  font-size: 0.82rem;
+}
+
+.date-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  background: #10243b;
+  color: #ffffff;
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+/* === Cheerful Eye-Friendly Accents === */
+:host-context(.tickets-theme) .tickets-card {
+  border-color: #cffafe !important;
+  box-shadow: 0 4px 16px rgba(8, 145, 178, 0.06) !important;
+}
+
+:host-context(.tickets-theme) .tickets-card .card-header {
+  background: linear-gradient(135deg, #ecfeff 0%, #f8fafc 100%) !important;
+  border-bottom-color: #cffafe !important;
+}
+
+.card-header-icon {
+  background: #cffafe !important;
+  color: #0891b2 !important;
+}
+
+.date-pill {
+  background: linear-gradient(135deg, #10243b 0%, #1e3a5f 100%) !important;
+}
+
+.tickets-empty-state {
+  background: linear-gradient(180deg, #f8feff 0%, #f0fdfa 100%);
+  border-color: #99f6e4 !important;
+}
+
+.tickets-empty-state i {
+  color: #0d9488;
+}

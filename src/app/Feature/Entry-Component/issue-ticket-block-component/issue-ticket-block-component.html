@@ -1,10 +1,11 @@
-<div class="card h-100 shadow-soft border-0 glass-entry overflow-hidden">
-  <div
-    class="card-header bg-transparent border-bottom p-2 px-3 d-flex justify-content-between align-items-center"
-  >
+<div class="card h-100 shadow-soft issue-ticket-card overflow-hidden">
+  <div class="card-header d-flex justify-content-between align-items-center">
     <div class="min-w-0 d-flex flex-column gap-1">
       <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
-        <i class="bi bi-door-open text-primary"></i> {{ t('issue_ticket') }}
+        <span class="card-header-icon">
+          <i class="fa-solid fa-ticket"></i>
+        </span>
+        <span>{{ t('issue_ticket') }}</span>
       </h6>
       <div
         class="header-identifier d-flex align-items-center gap-1 min-w-0"
@@ -14,66 +15,55 @@
         <span class="header-identifier-value mono text-truncate">{{ headerIdentifier }}</span>
       </div>
     </div>
-    <span class="badge rounded-pill theme-green x-small flex-shrink-0">{{ t('chip_entry') }}</span>
+    <span class="badge rounded-pill theme-green x-small flex-shrink-0">
+      <i class="fa-solid fa-circle-dot me-1"></i>{{ t('chip_entry') }}
+    </span>
   </div>
 
-  <div class="card-body p-2 d-flex flex-column align-items-center">
-    <!-- <div class="qr-preview border rounded bg-light mb-2">
-      <ng-container *ngIf="currentIssuedQr; else noQr">
-        <img
-          *ngIf="currentIssuedQrType === 'image' || !currentIssuedQrType"
-          [src]="currentIssuedQr"
-          alt="QR"
-          class="img-fluid"
-        />
-        <div *ngIf="currentIssuedQrType === 'text'" class="ticket-text-preview">
-          <i class="bi bi-ticket-detailed text-primary"></i>
-          <span class="mono">{{ currentIssuedQr }}</span>
-        </div>
-      </ng-container>
-      <ng-template #noQr>
-        <div class="text-muted text-center py-5">
-          <i class="bi bi-qr-code text-secondary d-block fs-3 mb-1"></i>
-          <div class="x-small">{{ t('no_ticket_yet') }}</div>
-        </div>
-      </ng-template>
-    </div> -->
-
+  <div class="card-body d-flex flex-column align-items-center gap-2">
     <div
-      class="w-100 mb-2"
+      class="w-100"
       *ngIf="
         lprVehicleNumber || lprMembershipStatus === 'checking' || lprMembershipStatus === 'error'
       "
     >
-      <div class="lpr-flow-card p-2 border rounded-2 bg-white shadow-sm">
+      <div class="lpr-flow-card p-2 border rounded-3 bg-white">
         <div class="x-small status-pill status-checking" *ngIf="lprMembershipStatus === 'checking'">
-          <i class="bi bi-arrow-repeat me-1"></i>{{ t('lpr_status_checking') }}
+          <i class="fa-solid fa-rotate fa-spin me-1"></i>{{ t('lpr_status_checking') }}
         </div>
 
         <div
           class="x-small status-pill status-subscriber"
           *ngIf="lprMembershipStatus === 'subscriber'"
         >
-          <i class="bi bi-patch-check me-1"></i>{{ t('lpr_status_subscriber') }}
+          <i class="fa-solid fa-circle-check me-1"></i>{{ t('lpr_status_subscriber') }}
         </div>
 
         <div
           class="x-small status-pill status-non-subscriber"
           *ngIf="lprMembershipStatus === 'non-subscriber'"
         >
-          <i class="bi bi-person-x me-1"></i>{{ t('lpr_status_non_subscriber') }}
+          <i class="fa-solid fa-user-xmark me-1"></i>{{ t('lpr_status_non_subscriber') }}
         </div>
 
         <div class="x-small status-pill status-error" *ngIf="lprMembershipStatus === 'error'">
-          <i class="bi bi-exclamation-triangle me-1"></i>{{ t('lpr_status_error') }}
+          <i class="fa-solid fa-triangle-exclamation me-1"></i>{{ t('lpr_status_error') }}
         </div>
       </div>
     </div>
 
-    <div class="w-100 mb-2" *ngIf="!cardSummary">
-      <label class="form-label x-small fw-bold text-muted text-uppercase mb-1 px-1">{{
-        t('pricing_schema')
-      }}</label>
+    <div class="w-100" *ngIf="!cardSummary">
+      <div class="d-flex align-items-center justify-content-between mb-2">
+        <label class="form-label x-small fw-bold text-muted text-uppercase mb-0 d-flex align-items-center gap-1">
+          <i class="fa-solid fa-tags"></i>
+          <span>{{ t('pricing_schema') }}</span>
+        </label>
+        <span class="x-small text-muted">
+          <i class="fa-solid" [class.fa-circle-check]="hasVehicleImages" [class.text-success]="hasVehicleImages" [class.fa-image]="!hasVehicleImages"></i>
+          {{ hasVehicleImages ? t('vehicle_images_attached') : t('vehicle_images_optional') }}
+        </span>
+      </div>
+
       <div class="pricing-schema-grid" *ngIf="pricingSchemas.length; else noPricingSchemas">
         <button
           type="button"
@@ -84,60 +74,63 @@
           [disabled]="pricingSchemasLoading || adding"
           (click)="onPricingSchemaChange(schema.id)"
         >
-          <span class="schema-dot"></span>
-          <span class="schema-name text-truncate">
-            {{ schema.name }}
-            <ng-container *ngIf="schema.salary !== null && schema.salary !== undefined">
-              - {{ schema.salary | number: '1.0-2' }} {{ t('currency') }}
-            </ng-container>
-          </span>
+          <div class="schema-top">
+            <span class="schema-dot"></span>
+            <span class="schema-name">{{ schema.name }}</span>
+          </div>
+          <div
+            class="schema-price mono"
+            *ngIf="schema.salary !== null && schema.salary !== undefined"
+          >
+            {{ schema.salary | number: '1.0-2' }}
+            <span class="schema-currency">{{ t('currency') }}</span>
+          </div>
         </button>
       </div>
+
       <ng-template #noPricingSchemas>
-        <div class="empty-pricing-state x-small text-muted border rounded-2 bg-white px-2 py-1">
-          {{ t('no_enter_price_schemas') }}
+        <div class="empty-pricing-state x-small text-muted border rounded-3 bg-light px-3 py-2 text-center">
+          <i class="fa-solid fa-tag me-1 opacity-50"></i>{{ t('no_enter_price_schemas') }}
         </div>
       </ng-template>
-      <div class="x-small text-muted mt-1" *ngIf="pricingSchemasLoading">
-        {{ t('lpr_status_checking') }}
-      </div>
-      <div class="x-small text-muted mt-1">
-        {{ hasVehicleImages ? t('vehicle_images_attached') : t('vehicle_images_optional') }}
+
+      <div class="x-small text-muted mt-2" *ngIf="pricingSchemasLoading">
+        <span class="spinner-border spinner-border-sm me-1"></span>{{ t('lpr_status_checking') }}
       </div>
     </div>
 
     <div class="w-100" *ngIf="cardSummary">
-      <div class="subscriber-card p-2 border rounded-2 position-relative bg-white shadow-sm">
+      <div class="subscriber-card p-3 border rounded-3 position-relative bg-white">
         <button
           type="button"
-          class="btn btn-danger btn-xs position-absolute top-0 end-0 m-1 px-1 py-0 shadow-sm"
+          class="btn btn-danger btn-xs position-absolute top-0 end-0 m-2"
           (click)="onClearCardSummary($event)"
         >
-          <i class="bi bi-x-lg"></i>
+          <i class="fa-solid fa-xmark"></i>
         </button>
 
-        <div class="d-flex flex-column gap-1 pe-3">
-          <div class="d-flex justify-content-between gap-2 border-bottom pb-1 mb-1">
-            <span class="x-small fw-bold text-primary">{{ t('customer_name') }}</span>
+        <div class="d-flex flex-column gap-2 pe-4">
+          <div class="d-flex justify-content-between gap-2 border-bottom pb-1">
+            <span class="x-small fw-bold text-navy">{{ t('customer_name') }}</span>
             <span class="x-small fw-bold text-truncate text-end">{{ cardSummary.name }}</span>
           </div>
-          <div class="d-flex justify-content-between gap-2 border-bottom pb-1 mb-1">
+          <div class="d-flex justify-content-between gap-2 border-bottom pb-1">
             <span class="x-small text-muted">{{ t('cardNumber') }}</span>
-            <span class="x-small mono">{{ cardSummary.cardNumber }}</span>
+            <span class="x-small mono fw-bold">{{ cardSummary.cardNumber }}</span>
           </div>
           <div class="d-flex justify-content-between gap-2 x-small">
             <span class="text-muted">{{ t('expiryDate') }}</span>
-            <span class="mono">{{ cardSummary.endDate | date: 'dd/MM/yy' }}</span>
+            <span class="mono fw-semibold">{{ cardSummary.endDate | date: 'dd/MM/yy' }}</span>
           </div>
         </div>
       </div>
     </div>
 
-    <div *ngIf="lastIssuedTicketId" class="w-100 mt-1">
-      <div class="p-2 border rounded-2 bg-light shadow-sm d-flex flex-column gap-1">
+    <div *ngIf="lastIssuedTicketId" class="w-100">
+      <div class="last-issued-card p-2 border rounded-3 d-flex flex-column gap-1">
         <div class="d-flex justify-content-between x-small" *ngIf="lastIssuedTicketInfo">
           <span class="text-muted">{{ t('ticket_number') }}</span>
-          <span class="mono fw-bold">{{ lastIssuedTicketInfo }}</span>
+          <span class="mono fw-bold text-navy">{{ lastIssuedTicketInfo }}</span>
         </div>
         <div class="d-flex justify-content-between x-small" *ngIf="lastIssuedVehicleNumber">
           <span class="text-muted">{{ t('vehicle_number') }}</span>
@@ -145,23 +138,17 @@
         </div>
         <div class="d-flex justify-content-between x-small" *ngIf="lastIssuedPrice !== null">
           <span class="text-muted">{{ t('price') }}</span>
-          <span class="mono fw-bold">{{ lastIssuedPrice }} {{ t('currency') }}</span>
+          <span class="mono fw-bold text-success">{{ lastIssuedPrice }} {{ t('currency') }}</span>
         </div>
         <div class="d-flex justify-content-between x-small" *ngIf="lastIssuedCreatedAt">
           <span class="text-muted">{{ t('created_at') }}</span>
           <span class="mono fw-bold">{{ lastIssuedCreatedAt | date: 'short' }}</span>
         </div>
-        <!-- <div
-          class="btn btn-success btn-xs w-100 mt-1 fw-bold disabled d-flex align-items-center justify-content-center"
-        >
-          <i class="bi bi-cash-coin me-1"></i>
-          {{ t('cashier_collected_yes') }}
-        </div> -->
       </div>
     </div>
 
     <div
-      class="x-small text-center py-2 empty-entry-hint"
+      class="empty-entry-hint-box"
       *ngIf="
         !cardSummary &&
         !lastIssuedTicketId &&
@@ -170,7 +157,8 @@
         !shouldShowMissingLprVehicleHint
       "
     >
-      {{ t('no_card_summary') }}
+      <i class="fa-regular fa-id-card"></i>
+      <span>{{ t('no_card_summary') }}</span>
     </div>
 
     <div
@@ -178,7 +166,7 @@
       *ngIf="shouldShowMissingLprVehicleHint"
     >
       <div class="missing-vehicle-message">
-        <i class="bi bi-exclamation-triangle"></i>
+        <i class="fa-solid fa-triangle-exclamation"></i>
         <span>{{ t('enter_plate_first') }}</span>
       </div>
     </div>

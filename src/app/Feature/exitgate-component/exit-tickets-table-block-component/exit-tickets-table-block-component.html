@@ -1,9 +1,15 @@
 <div class="card h-100 shadow-soft glass">
-  <div class="card-header d-flex justify-content-between align-items-center">
-    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2">
-      <i class="bi bi-list-ol"></i> {{ 'ticketsExit' | t }}
+  <div class="card-header d-flex justify-content-between align-items-center gap-2">
+    <h5 class="mb-0 fw-bold d-flex align-items-center gap-2 min-w-0">
+      <span class="card-header-icon">
+        <i class="fa-solid fa-receipt"></i>
+      </span>
+      <span class="text-truncate">{{ 'ticketsExit' | t }}</span>
     </h5>
-    <span class="badge bg-secondary">{{ currentDate | date: 'dd/MM/yyyy' }}</span>
+    <span class="date-pill flex-shrink-0">
+      <i class="fa-regular fa-calendar"></i>
+      <span class="mono">{{ currentDate | date: 'dd/MM/yyyy' }}</span>
+    </span>
   </div>
 
   <div class="card-body p-0 d-flex flex-column">
@@ -19,12 +25,12 @@
 
         <tbody>
           <tr *ngFor="let t of pageItems">
-            <td class="mono">
+            <td class="mono fw-semibold">
               {{ t.info || t.plate || t.ticketNumber }}
             </td>
             <td>{{ t.time | date: 'shortTime' }}</td>
             <td>
-              <span class="mono">
+              <span class="mono fw-bold">
                 {{ t.price ?? 0 | number: '1.0-2' }}
               </span>
               <span *ngIf="t.isCollectedByCashier" class="badge bg-success ms-1">
@@ -34,9 +40,9 @@
           </tr>
 
           <tr *ngIf="!pageItems.length && !loading">
-            <td colspan="3" class="text-center text-muted py-3">
+            <td colspan="3" class="text-center text-muted py-4">
               <div class="d-flex flex-column align-items-center gap-2">
-                <i class="bi bi-inbox fs-4 text-muted opacity-50"></i>
+                <i class="fa-solid fa-inbox fs-4 text-muted opacity-50"></i>
                 <span>{{ 'noTickets' | t }}</span>
               </div>
             </td>
@@ -48,7 +54,7 @@
     <!-- Collect today + summary -->
     <div class="p-2 d-flex flex-column gap-2 border-top bg-soft">
       <button
-        class="btn btn-success btn-collect-today"
+        class="btn btn-collect-today"
         type="button"
         (click)="onCollectClick()"
         [disabled]="collectLoading || supervisorCollectLoading"
@@ -56,10 +62,10 @@
       >
         <span
           *ngIf="!collectLoading && !supervisorCollectLoading"
-          class="d-flex align-items-center gap-2"
+          class="d-flex align-items-center justify-content-center gap-2"
         >
-          <i class="bi bi-cash-stack"></i>
-          {{ 'collectAllToday' | t }}
+          <i class="fa-solid fa-sack-dollar"></i>
+          <span>{{ 'collectAllToday' | t }}</span>
         </span>
         <span
           *ngIf="collectLoading || supervisorCollectLoading"
@@ -74,21 +80,18 @@
       >
         <div class="d-flex justify-content-between align-items-center mb-2">
           <h6 class="mb-0 fw-bold d-flex align-items-center gap-2 text-success">
-            <i class="bi bi-check-circle-fill"></i> {{ 'collect_summary' | t }}
+            <i class="fa-solid fa-circle-check"></i> {{ 'collect_summary' | t }}
           </h6>
           <button
             type="button"
             class="btn btn-sm btn-outline-secondary border-0"
             (click)="onCollectSummaryClose()"
           >
-            <i class="bi bi-x-lg"></i>
+            <i class="fa-solid fa-xmark"></i>
           </button>
         </div>
 
-        <div
-          class="summary-gate-context-inline p-2 mb-2"
-          *ngIf="showGateContext"
-        >
+        <div class="summary-gate-context-inline p-2 mb-2" *ngIf="showGateContext">
           <span>
             {{ 'gate_number' | t }}:
             <strong class="mono">{{ gateNumber }}</strong>
@@ -102,7 +105,7 @@
         <div class="summary-stats-inline p-2 mb-2" *ngIf="collectSummary">
           <div class="d-flex justify-content-between align-items-center mb-2">
             <span class="text-muted small">{{ 'total_collected_amount' | t }}</span>
-            <span class="fw-bold text-primary mono">
+            <span class="fw-bold text-navy mono">
               {{ collectSummary.totalPriceCollected | number: '1.0-2' }}
             </span>
           </div>
@@ -122,7 +125,7 @@
 
           <div class="d-flex justify-content-between align-items-center mb-2">
             <span class="text-muted small">{{ 'total_exceed_collected_amount' | t }}</span>
-            <span class="fw-bold text-primary mono">
+            <span class="fw-bold text-navy mono">
               {{ exceedCollectSummary.totalExceedAmountCollected | number: '1.0-2' }}
             </span>
           </div>
@@ -196,7 +199,7 @@
           class="btn btn-success btn-sm w-100 fw-bold py-1"
           (click)="onFinishSupervisorCollect()"
         >
-          <i class="bi bi-check2-all me-1"></i>
+          <i class="fa-solid fa-check-double me-1"></i>
           {{ 'save' | t }}
         </button>
       </div>
@@ -206,8 +209,8 @@
     <div class="exit-table-footer">
       <div class="footer-stat footer-stat-range">
         <span class="footer-label">
-        {{ 'showing' | t }}
-        {{ rangeStart }}–{{ rangeEnd }} {{ 'of' | t }} {{ tickets.length }}
+          {{ 'showing' | t }}
+          {{ rangeStart }}–{{ rangeEnd }} {{ 'of' | t }} {{ tickets.length }}
         </span>
       </div>
 
@@ -223,7 +226,7 @@
           (click)="onPrev()"
           type="button"
         >
-          <i class="bi bi-chevron-left"></i>
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
         <span class="footer-page-count">{{ page }} / {{ pagesCount }}</span>
         <button
@@ -232,7 +235,7 @@
           (click)="onNext()"
           type="button"
         >
-          <i class="bi bi-chevron-right"></i>
+          <i class="fa-solid fa-chevron-right"></i>
         </button>
       </div>
     </div>

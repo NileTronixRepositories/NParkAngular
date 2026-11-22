@@ -1,8 +1,10 @@
 <div class="card h-100 shadow-soft glass sanctions-card" data-scanner-focus-stop="true">
-  <div class="card-header py-2 px-3">
+  <div class="card-header">
     <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
-      <i class="bi bi-exclamation-triangle-fill text-danger"></i>
-      {{ 'ticket_lookup_sanctions' | t }}
+      <span class="card-header-icon card-header-icon-red">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+      </span>
+      <span>{{ 'ticket_lookup_sanctions' | t }}</span>
     </h6>
   </div>
 
@@ -25,8 +27,8 @@
               <span class="mono fw-bold ticket-code">{{ ticket.uniqueCode }}</span>
               <span
                 class="badge ticket-type"
-                [class.bg-info]="ticket.isSubscribe"
-                [class.bg-secondary]="!ticket.isSubscribe"
+                [class.badge-subscriber]="ticket.isSubscribe"
+                [class.badge-normal]="!ticket.isSubscribe"
               >
                 {{ getTicketType(ticket) | t }}
               </span>
@@ -37,21 +39,35 @@
             </div>
           </button>
 
-          <div class="empty-sanctions small text-muted" *ngIf="tickets.length === 0">
+          <div class="empty-sanctions small text-muted text-center" *ngIf="tickets.length === 0">
             {{ 'no_tickets_found' | t }}
           </div>
         </ng-container>
       </div>
 
       <div class="d-flex align-items-center justify-content-between gap-2 mt-2">
-        <button class="btn btn-outline-secondary btn-sm" type="button" (click)="prevPage()" [disabled]="pageNumber <= 1 || isLoading">
+        <button
+          class="btn btn-outline-secondary btn-sm"
+          type="button"
+          (click)="prevPage()"
+          [disabled]="pageNumber <= 1 || isLoading"
+        >
           {{ 'prev' | t }}
         </button>
-        <div class="x-small text-muted">{{ 'page' | t }} {{ pageNumber }}</div>
-        <button class="btn btn-outline-secondary btn-sm" type="button" (click)="nextPage()" [disabled]="isLoading || tickets.length < pageSize">
+        <div class="x-small text-muted fw-semibold">{{ 'page' | t }} {{ pageNumber }}</div>
+        <button
+          class="btn btn-outline-secondary btn-sm"
+          type="button"
+          (click)="nextPage()"
+          [disabled]="isLoading || tickets.length < pageSize"
+        >
           {{ 'next' | t }}
         </button>
-        <select class="form-select form-select-sm page-size" [ngModel]="pageSize" (ngModelChange)="onPageSizeChange($event)">
+        <select
+          class="form-select form-select-sm page-size"
+          [ngModel]="pageSize"
+          (ngModelChange)="onPageSizeChange($event)"
+        >
           <option value="5">5</option>
           <option value="10">10</option>
           <option value="20">20</option>
@@ -62,15 +78,15 @@
     <div class="selected-ticket mt-3" *ngIf="selectedTicket">
       <div class="x-small text-muted">{{ 'selected_ticket' | t }}</div>
       <div class="d-flex justify-content-between gap-2">
-        <span class="mono fw-bold">{{ selectedTicket.uniqueCode }}</span>
+        <span class="mono fw-bold text-navy">{{ selectedTicket.uniqueCode }}</span>
         <span>{{ selectedTicket.vehicleNumber || selectedTicket.cardNumber || '-' }}</span>
       </div>
     </div>
 
-    <hr class="my-3" />
+    <hr class="my-3 opacity-25" />
 
     <div *ngIf="allSanctions.length > 0; else noSanctions">
-      <label class="form-label small fw-semibold text-danger mb-2">
+      <label class="form-label x-small fw-bold text-np-red mb-1">
         {{ 'select_sanction_placeholder' | t }}
       </label>
 
@@ -100,34 +116,34 @@
         >
           <span class="tag-name">{{ sanction.name }}</span>
           <span class="tag-price">({{ sanction.amount | number: '1.2-2' }})</span>
-          <i class="bi bi-x-circle-fill tag-remove"></i>
+          <i class="fa-solid fa-circle-xmark tag-remove"></i>
         </button>
       </div>
 
       <div class="exceed-preview mt-3 x-small d-flex justify-content-between align-items-center">
-        <span class="fw-semibold">{{ 'total_exceed_amount' | t }}</span>
-        <span class="mono fw-bold">{{ selectedSanctionsTotal | number: '1.2-2' }} {{ 'egp' | t }}</span>
+        <span class="fw-semibold text-navy">{{ 'total_exceed_amount' | t }}</span>
+        <span class="mono fw-bold text-np-red">{{ selectedSanctionsTotal | number: '1.2-2' }} {{ 'egp' | t }}</span>
       </div>
 
       <button
         type="button"
-        class="btn btn-danger btn-sm w-100 mt-3 d-flex align-items-center justify-content-center gap-2"
+        class="btn btn-np-red w-100 mt-3 d-flex align-items-center justify-content-center gap-2"
         (click)="onRegisterExceed()"
         [disabled]="disableRegisterExceed"
       >
         <span *ngIf="!registeringExceed" class="d-inline-flex align-items-center gap-2">
-          <i class="bi bi-receipt-cutoff"></i>
-          {{ 'register_exceed' | t }}
+          <i class="fa-solid fa-receipt"></i>
+          <span>{{ 'register_exceed' | t }}</span>
         </span>
         <span *ngIf="registeringExceed" class="spinner-border spinner-border-sm"></span>
       </button>
 
-      <div class="x-small text-muted mt-2" *ngIf="!selectedTicket">
+      <div class="x-small text-muted mt-2 text-center" *ngIf="!selectedTicket">
         {{ 'please_select_ticket' | t }}
       </div>
 
       <div class="exceed-success mt-2 x-small text-success fw-bold" *ngIf="isExceedRegistered">
-        <i class="bi bi-check-circle-fill me-1"></i>
+        <i class="fa-solid fa-circle-check me-1"></i>
         {{ 'exceed_registered_success' | t }}
         <span class="mono">
           {{ exceedAmount | number: '1.2-2' }} / {{ totalPriceAfterExceed | number: '1.2-2' }}
@@ -135,13 +151,13 @@
       </div>
 
       <div class="exceed-warning mt-2 x-small text-warning-emphasis fw-bold" *ngIf="isExceedAlreadyExists">
-        <i class="bi bi-exclamation-circle-fill me-1"></i>
+        <i class="fa-solid fa-circle-exclamation me-1"></i>
         {{ 'exceed_already_exists' | t }}
       </div>
 
       <div class="summary-panel mt-3" *ngIf="summary">
         <div class="summary-title d-flex align-items-center gap-2">
-          <i class="bi bi-card-checklist"></i>
+          <i class="fa-solid fa-clipboard-check"></i>
           <span>{{ 'summary' | t }}</span>
         </div>
         <div class="summary-grid x-small mt-2">
@@ -158,25 +174,10 @@
           <strong *ngIf="summaryCreatedAt" class="mono">{{ summaryCreatedAt | date: 'short' }}</strong>
         </div>
       </div>
-
-      <!--
-      <button
-        type="button"
-        class="btn btn-success btn-sm w-100 mt-3 d-flex align-items-center justify-content-center gap-2"
-        (click)="onExitTicket()"
-        [disabled]="!canExit"
-      >
-        <span *ngIf="!exitLoading" class="d-inline-flex align-items-center gap-2">
-          <i class="bi bi-box-arrow-right"></i>
-          {{ 'EXIT' | t }}
-        </span>
-        <span *ngIf="exitLoading" class="spinner-border spinner-border-sm"></span>
-      </button>
-      -->
     </div>
 
     <ng-template #noSanctions>
-      <div class="empty-sanctions small text-muted">
+      <div class="empty-sanctions small text-muted text-center">
         {{ 'no_search_results' | t }}
       </div>
     </ng-template>

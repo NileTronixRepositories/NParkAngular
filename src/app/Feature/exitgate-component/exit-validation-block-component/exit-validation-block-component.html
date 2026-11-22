@@ -1,88 +1,53 @@
 <div class="card h-100 shadow-soft glass">
-  <div class="card-header py-2 px-3">
+  <div class="card-header">
     <h6 class="mb-0 fw-bold d-flex align-items-center gap-2">
-      <i class="bi bi-shield-check"></i> {{ 'validation_result' | t }}
+      <span class="card-header-icon">
+        <i class="fa-solid fa-shield-halved"></i>
+      </span>
+      <span>{{ 'validation_result' | t }}</span>
     </h6>
   </div>
 
-  <div class="card-body">
-    <div class="validation-section mb-2">
-      <h6 class="section-title small text-primary fw-bold mb-1">
-        <!-- <i class="bi bi-keyboard"></i> {{ 'manual_validation' | t }} -->
-      </h6>
+  <div class="card-body d-flex flex-column gap-2">
+    <div class="validation-section">
       <div class="mb-2">
         <textarea
           #manualTextArea
-          class="form-control form-control-sm x-small"
+          class="form-control form-control-sm validation-input"
           rows="2"
           maxlength="200"
-        [ngModel]="manualText"
-        (ngModelChange)="onManualTextChange($event)"
-        [disabled]="isTextDisabled"
-        (keydown.enter)="onTextEnter($event)"
-        (blur)="onTextBlur($event)"
-        dir="ltr"
-        [placeholder]="'scan_or_enter_exit_text_placeholder' | t"
-      ></textarea>
-        <div class="invalid-feedback d-block small mt-1" *ngIf="textFieldError || validationError">
-          {{ textFieldError || validationError }}
+          [ngModel]="manualText"
+          (ngModelChange)="onManualTextChange($event)"
+          [disabled]="isTextDisabled"
+          (keydown.enter)="onTextEnter($event)"
+          (blur)="onTextBlur($event)"
+          dir="ltr"
+          [placeholder]="'scan_or_enter_exit_text_placeholder' | t"
+        ></textarea>
+        <div class="invalid-feedback d-block x-small mt-1" *ngIf="textFieldError || validationError">
+          <i class="fa-solid fa-circle-exclamation me-1"></i>{{ textFieldError || validationError }}
         </div>
       </div>
-      <div class="auto-validation-hint x-small text-muted d-flex align-items-center gap-1">
-        <i class="bi bi-lightning-charge text-primary"></i>
+
+      <div class="auto-validation-hint x-small d-flex align-items-center gap-2">
+        <i class="fa-solid fa-bolt"></i>
         <span>{{ 'auto_validation_hint' | t }}</span>
       </div>
-      <!-- <div
-        class="lpr-detection-card mt-2"
-        [class.lpr-error]="!!lprError"
-        [class.lpr-ready]="lprListening && !lprError"
-      >
-        <div class="d-flex align-items-center justify-content-between gap-2">
-          <div class="d-flex align-items-center gap-2 min-w-0">
-            <i
-              class="bi"
-              [class.bi-camera-video]="!lprError"
-              [class.bi-exclamation-triangle]="!!lprError"
-              [class.text-primary]="!lprError"
-              [class.text-danger]="!!lprError"
-            ></i>
-            <span class="x-small fw-bold">{{ 'lpr_detection' | t }}</span>
-          </div>
-          <span class="spinner-border spinner-border-sm text-primary" *ngIf="vehicleValidationLoading"></span>
-          <span class="lpr-status-pill" *ngIf="!vehicleValidationLoading && lprListening && !lprError">
-            {{ 'listening' | t }}
-          </span>
-        </div>
-        <div class="x-small mt-1" *ngIf="lprError; else lprStatus">
-          {{ lprError }}
-        </div>
-        <ng-template #lprStatus>
-          <div class="x-small text-muted mt-1" *ngIf="!detectedVehicleNumber">
-            {{ 'waiting_lpr_vehicle' | t }}
-          </div>
-        </ng-template>
-        <div class="d-flex align-items-center justify-content-between gap-2 mt-1" *ngIf="detectedVehicleNumber">
-          <span class="x-small text-muted">{{ 'detected_vehicle_number' | t }}</span>
-          <span class="mono fw-bold text-truncate">{{ detectedVehicleNumber }}</span>
-        </div>
-      </div> -->
+
       <div
-        class="last-submitted-text x-small d-flex align-items-center justify-content-between gap-2 mt-1"
+        class="last-submitted-text x-small d-flex align-items-center justify-content-between gap-2 mt-2"
         *ngIf="submittedText"
       >
         <span class="text-muted">{{ 'last_validation_input' | t }}</span>
         <span class="mono scanner-token fw-bold text-truncate">{{ submittedText }}</span>
       </div>
-      <!-- <div class="small text-muted mt-2" *ngIf="!gateConnectionReady">
-        <i class="bi bi-router me-1"></i>{{ 'gate_connection_required' | t }}
-      </div> -->
     </div>
 
     <div
       *ngIf="validationMessage && !validationError"
-      class="alert py-1 px-2 x-small mb-2 validation-message"
+      class="alert py-2 px-2 x-small mb-0 validation-message"
     >
-      <i class="bi bi-info-circle me-1"></i>{{ validationMessage }}
+      <i class="fa-solid fa-circle-info me-1"></i>{{ validationMessage }}
     </div>
 
     <div
@@ -92,10 +57,10 @@
       <span class="spinner-border spinner-border-sm me-2"></span>{{ 'searching' | t }}
     </div>
 
-    <!-- Section 3: Result Card -->
+    <!-- Result Card -->
     <div
       *ngIf="hasResult"
-      class="result-card mt-2 p-2 rounded-3 border animate-fade-in"
+      class="result-card p-2 rounded-3 border animate-fade-in"
       [class.border-success]="isValid"
       [class.bg-success-subtle]="isValid"
       [class.border-danger]="!isValid"
@@ -103,10 +68,10 @@
     >
       <div class="d-flex align-items-center gap-2 mb-2">
         <i
-          class="bi"
-          [class.bi-check-circle-fill]="isValid"
+          class="fa-solid"
+          [class.fa-circle-check]="isValid"
           [class.text-success]="isValid"
-          [class.bi-x-circle-fill]="!isValid"
+          [class.fa-circle-xmark]="!isValid"
           [class.text-danger]="!isValid"
         ></i>
         <h6 class="mb-0 fw-bold" [class.text-success]="isValid" [class.text-danger]="!isValid">
@@ -146,7 +111,7 @@
           <span class="spinner-border spinner-border-sm me-1"></span>{{ 'opening_gate' | t }}
         </span>
         <span *ngIf="!openGateLoading">
-          <i class="bi bi-check-circle me-1"></i>{{ 'allowed_for_exit' | t }}
+          <i class="fa-solid fa-circle-check me-1"></i>{{ 'allowed_for_exit' | t }}
         </span>
       </div>
 
@@ -154,7 +119,7 @@
         class="mt-2 x-small text-danger fw-bold text-center"
         *ngIf="!isValid && !anyResult.ticketId"
       >
-        <i class="bi bi-info-circle me-1"></i> {{ 'no_matching_ticket' | t }}
+        <i class="fa-solid fa-circle-info me-1"></i>{{ 'no_matching_ticket' | t }}
       </div>
     </div>
   </div>

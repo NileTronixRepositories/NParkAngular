@@ -1,12 +1,14 @@
-<div class="card h-100 shadow-soft border-0 tickets-card overflow-hidden">
+<div class="card h-100 shadow-soft tickets-card overflow-hidden">
   <!-- Header -->
-  <div class="card-header bg-transparent border-bottom p-2 px-3">
-    <div class="d-flex justify-content-between align-items-center">
-      <div class="d-flex align-items-center gap-2">
-        <i class="bi bi-list-ol text-primary"></i>
-        <div class="lh-1">
-          <div class="x-small fw-bold">{{ t('ticket_number') }}</div>
-          <div class="x-small text-muted" style="font-size: 9px !important">
+  <div class="card-header">
+    <div class="d-flex justify-content-between align-items-center gap-2">
+      <div class="d-flex align-items-center gap-2 min-w-0">
+        <span class="card-header-icon">
+          <i class="fa-solid fa-list-ul"></i>
+        </span>
+        <div class="lh-sm min-w-0">
+          <div class="fw-bold text-navy ticket-header-title">{{ t('ticket_number') }}</div>
+          <div class="x-small text-muted">
             {{ tickets.length ? (page - 1) * pageSize + 1 : 0 }}–{{
               tickets.length ? Math.min(page * pageSize, tickets.length) : 0
             }}
@@ -14,11 +16,9 @@
           </div>
         </div>
       </div>
-      <div
-        class="badge rounded-pill bg-light text-dark x-small px-2 border d-flex align-items-center gap-1"
-      >
-        <i class="bi bi-calendar2 x-small"></i>
-        <span>{{ today | date: 'dd/MM/yyyy' }}</span>
+      <div class="date-pill flex-shrink-0">
+        <i class="fa-regular fa-calendar"></i>
+        <span class="mono">{{ today | date: 'dd/MM/yyyy' }}</span>
       </div>
     </div>
   </div>
@@ -44,7 +44,7 @@
       >
         <div class="ticket-row-inline">
           <div class="ticket-code-line min-w-0">
-            <i class="bi bi-ticket-perforated text-primary"></i>
+            <i class="fa-solid fa-ticket text-navy"></i>
             <span class="ticket-code mono text-truncate">{{
               ticket.ticketNumber || ticket.id
             }}</span>
@@ -55,22 +55,22 @@
           </span>
 
           <span class="ticket-meta-pill">
-            <i class="bi bi-clock"></i>
+            <i class="fa-regular fa-clock"></i>
             {{ ticket.time | date: 'HH:mm' }}
           </span>
           <span class="ticket-meta-pill ticket-plate-cell">
-            <i class="bi bi-car-front"></i>
+            <i class="fa-solid fa-car"></i>
             <span class="text-truncate">{{ ticket.plateNumber || ticket.plate || '--' }}</span>
           </span>
           <span class="ticket-meta-pill ticket-card-cell">
-            <i class="bi bi-credit-card"></i>
+            <i class="fa-regular fa-credit-card"></i>
             <span class="text-truncate">{{ ticket.cardNumber || '--' }}</span>
           </span>
           <span
             class="ticket-meta-pill ticket-status-cell"
             [class.ticket-meta-pill-success]="ticket.isCollectedByCashier"
           >
-            <i class="bi bi-check-circle-fill"></i>
+            <i class="fa-solid fa-circle-check"></i>
             {{
               ticket.isCollectedByCashier ? t('cashier_collected_short') : t('cashier_collected_no')
             }}
@@ -84,11 +84,11 @@
       </button>
 
       <div *ngIf="loading" class="tickets-empty-state">
-        <span class="spinner-border spinner-border-sm"></span>
+        <span class="spinner-border spinner-border-sm text-secondary"></span>
       </div>
 
       <div *ngIf="!pageItems.length && !loading" class="tickets-empty-state">
-        <i class="bi bi-ticket-perforated"></i>
+        <i class="fa-solid fa-ticket"></i>
         <span>{{ t('no_tickets') }}</span>
       </div>
     </div>
@@ -111,7 +111,7 @@
 
       <div class="footer-pager" dir="ltr">
         <button class="footer-page-btn" [disabled]="page <= 1" (click)="prevPage()" type="button">
-          <i class="bi bi-chevron-left"></i>
+          <i class="fa-solid fa-chevron-left"></i>
         </button>
         <span class="footer-page-count">{{ page }} / {{ pagesCount }}</span>
         <button
@@ -120,7 +120,7 @@
           (click)="nextPage()"
           type="button"
         >
-          <i class="bi bi-chevron-right"></i>
+          <i class="fa-solid fa-chevron-right"></i>
         </button>
       </div>
     </div>

@@ -373,10 +373,11 @@
   position: relative;
   display: flex;
   align-items: center;
-  height: 52px;
+  height: 50px;
   background: var(--np-input-bg);
   border: 1.5px solid var(--np-border);
   border-radius: var(--np-radius-input);
+  overflow: hidden;
   transition:
     border-color var(--np-transition),
     background-color var(--np-transition),
@@ -389,8 +390,8 @@
 
 .input-shell:focus-within {
   background: var(--np-surface);
-  border-color: var(--np-red);
-  box-shadow: 0 0 0 3.5px rgba(210, 10, 36, 0.12);
+  border-color: var(--np-navy);
+  box-shadow: 0 0 0 3.5px rgba(16, 36, 59, 0.12);
 }
 
 .input-shell.is-invalid {
@@ -399,6 +400,7 @@
 }
 
 .input-shell.is-invalid:focus-within {
+  border-color: var(--np-danger);
   box-shadow: 0 0 0 3.5px rgba(200, 30, 30, 0.14);
 }
 
@@ -427,9 +429,27 @@
   outline: none;
   background: transparent;
   color: var(--np-text-primary);
-  font-size: 0.96rem;
+  font-size: 0.94rem;
   font-weight: 500;
-  padding-inline: 0.15rem 0.9rem;
+  padding-inline: 0.25rem 0.85rem;
+}
+
+/* Remove harsh Chrome/Edge blue autofill rectangle */
+.field-input:-webkit-autofill,
+.field-input:-webkit-autofill:hover,
+.field-input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px var(--np-input-bg) inset !important;
+  box-shadow: 0 0 0 1000px var(--np-input-bg) inset !important;
+  -webkit-text-fill-color: var(--np-text-primary) !important;
+  caret-color: var(--np-text-primary);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
+.input-shell:focus-within .field-input:-webkit-autofill,
+.field-input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--np-surface) inset !important;
+  box-shadow: 0 0 0 1000px var(--np-surface) inset !important;
+  -webkit-text-fill-color: var(--np-text-primary) !important;
 }
 
 .page-rtl .field-input {

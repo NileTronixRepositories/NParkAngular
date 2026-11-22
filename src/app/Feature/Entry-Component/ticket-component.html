@@ -4,17 +4,17 @@
   [attr.dir]="dir()"
 >
   <!-- Page Header -->
-  <div class="page-header mb-3 fade-in-down p-2 px-3">
+  <div class="page-header mb-3 fade-in-down">
     <div
       class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3"
     >
       <div class="d-flex align-items-center gap-2 gap-sm-3 min-w-0">
         <div class="header-icon-wrapper d-flex align-items-center justify-content-center">
-          <i class="bi bi-box-arrow-in-right header-icon fs-4"></i>
+          <i class="fa-solid fa-right-to-bracket header-icon"></i>
         </div>
         <div class="min-w-0">
-          <h1 class="page-title fs-5 mb-0 fw-bold d-flex align-items-center gap-2 flex-wrap">
-            {{ t('entry') }}
+          <h1 class="page-title mb-0 fw-bold d-flex align-items-center gap-2 flex-wrap">
+            <span>{{ t('entry') }}</span>
             <span
               class="gate-badge x-small px-2 py-0 rounded-pill"
               *ngIf="gatePeripheral?.gateNumber"
@@ -22,11 +22,11 @@
               <span class="gate-label text-uppercase fw-bold">{{ t('gate') }}</span>
               <span class="gate-value fw-bold">{{ gatePeripheral?.gateNumber }}</span>
             </span>
-            <span class="badge bg-warning text-dark ms-2" *ngIf="isSupervisor">
-              <i class="bi bi-shield-check me-1"></i>{{ t('supervisor_mode') }}
+            <span class="badge bg-warning text-dark" *ngIf="isSupervisor">
+              <i class="fa-solid fa-shield-halved me-1"></i>{{ t('supervisor_mode') }}
             </span>
           </h1>
-          <p class="page-subtitle x-small text-muted mb-0 text-truncate">
+          <p class="page-subtitle mb-0 text-truncate">
             {{ t('tickets_entry_title') }}
           </p>
         </div>
@@ -51,31 +51,39 @@
           class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour flex-grow-1 flex-md-grow-0"
           (click)="startTour()"
         >
-          <i class="bi bi-question-circle"></i>
+          <i class="fa-solid fa-circle-question"></i>
           <span>{{ 'helpTour' | t }}</span>
         </button>
       </div>
     </div>
   </div>
 
-  <div class="gate-flow-panel mb-2" *ngIf="!isSupervisor">
-    <div class="gate-quick-strip shadow-soft">
+  <div class="gate-flow-panel mb-3" *ngIf="!isSupervisor">
+    <div class="gate-quick-strip">
       <div class="gate-strip-section gate-strip-info">
         <div class="gate-connection-line">
-          <h6 class="mb-0 fw-bold d-flex align-items-center gap-2 gate-connection-title">
-            <i class="bi bi-router text-primary"></i> {{ t('gate_info') }}
+          <span class="gate-strip-icon">
+            <i class="fa-solid fa-network-wired"></i>
+          </span>
+          <h6 class="mb-0 fw-bold gate-connection-title">
+            {{ t('gate_info') }}
           </h6>
-          <span class="spinner-border spinner-border-sm" *ngIf="gateConnectionLoading"></span>
+          <span class="spinner-border spinner-border-sm text-secondary" *ngIf="gateConnectionLoading"></span>
         </div>
-        <div class="alert alert-danger py-1 px-2 x-small mb-0" *ngIf="gateConnectionError">
-          {{ gateConnectionError }}
+
+        <div class="gate-error-pill" *ngIf="gateConnectionError">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ gateConnectionError }}</span>
         </div>
+
         <div class="gate-info-grid" *ngIf="gateConnectionInfo as info">
           <div class="gate-info-item">
+            <i class="fa-solid fa-desktop"></i>
             <span>{{ t('pc_device') }}</span>
             <strong class="mono">{{ info.pcIp || '--' }}</strong>
           </div>
           <div class="gate-info-item">
+            <i class="fa-solid fa-video"></i>
             <span>{{ t('lpr_device') }}</span>
             <strong class="mono">{{ info.lprIp || '--' }}</strong>
           </div>
@@ -84,6 +92,7 @@
             [class.printer-on]="info.hasQrPrinterName"
             [class.printer-off]="!info.hasQrPrinterName"
           >
+            <i class="fa-solid fa-qrcode"></i>
             <span>{{ t('print_qr') }}</span>
             <strong class="text-truncate">{{
               info.hasQrPrinterName ? info.qrPrinterName || '--' : '--'
@@ -95,24 +104,26 @@
             [class.printer-on]="info.hasReceiptPrinterName"
             [class.printer-off]="!info.hasReceiptPrinterName"
           >
+            <i class="fa-solid fa-print"></i>
             <span>{{ t('print_receipt') }}</span>
             <strong class="text-truncate">{{
               info.hasReceiptPrinterName ? info.receiptPrinterName || '--' : '--'
             }}</strong>
           </div>
+
           <span class="badge bg-success" *ngIf="lastOpenGateResponse && !openGateError">
-            {{ t('open_gate_success') }}
+            <i class="fa-solid fa-circle-check me-1"></i>{{ t('open_gate_success') }}
           </span>
           <span class="badge bg-danger" *ngIf="openGateError">{{ openGateError }}</span>
           <span class="spinner-border spinner-border-sm" *ngIf="openGateLoading"></span>
           <button
             type="button"
-            class="btn btn-outline-primary btn-xs"
+            class="btn btn-outline-dark btn-xs"
             *ngIf="openGateError"
             (click)="retryOpenGate()"
             [disabled]="openGateLoading"
           >
-            <i class="bi bi-arrow-clockwise"></i>
+            <i class="fa-solid fa-rotate-right"></i>
           </button>
         </div>
       </div>
@@ -200,13 +211,17 @@
 
       <div class="mt-2 d-flex flex-column gap-2 collect-action-area">
         <button
-          class="btn btn-sm btn-success collect-today-btn"
+          class="btn collect-today-btn"
           type="button"
           (click)="onCollectClick()"
           [disabled]="loading || collectLoading || supervisorCollectLoading"
         >
-          <span *ngIf="!loading && !collectLoading && !supervisorCollectLoading">
-            {{ t('collectAllToday') }}
+          <span
+            *ngIf="!loading && !collectLoading && !supervisorCollectLoading"
+            class="d-inline-flex align-items-center justify-content-center gap-2"
+          >
+            <i class="fa-solid fa-sack-dollar"></i>
+            <span>{{ t('collectAllToday') }}</span>
           </span>
           <span
             *ngIf="loading || collectLoading || supervisorCollectLoading"
@@ -218,7 +233,7 @@
           <div class="collect-receipt-header">
             <div class="d-flex align-items-center gap-2 min-w-0">
               <span class="collect-receipt-icon">
-                <i class="bi bi-receipt-cutoff"></i>
+                <i class="fa-solid fa-receipt"></i>
               </span>
               <div class="min-w-0">
                 <h6 class="mb-0 fw-bold text-truncate">{{ t('collect_summary') }}</h6>
@@ -241,7 +256,7 @@
               (click)="collectSummary = null"
               aria-label="Close collection receipt"
             >
-              <i class="bi bi-x-lg"></i>
+              <i class="fa-solid fa-xmark"></i>
             </button>
           </div>
 

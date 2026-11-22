@@ -5,23 +5,23 @@
   [class.page-ltr]="!lang.isRTL()"
 >
   <!-- Page Header -->
-  <div class="page-header mb-3 fade-in-down p-2 px-3 rounded-3 shadow-sm">
+  <div class="page-header mb-3 fade-in-down">
     <div
       class="d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3"
     >
       <div class="d-flex align-items-center gap-2 gap-sm-3 min-w-0">
-        <div class="header-icon-wrapper d-flex align-items-center justify-content-center rounded-3">
-          <i class="bi bi-box-arrow-left header-icon fs-5"></i>
+        <div class="header-icon-wrapper d-flex align-items-center justify-content-center">
+          <i class="fa-solid fa-right-from-bracket header-icon"></i>
         </div>
         <div class="min-w-0">
           <h1 class="page-title mb-0 flex-wrap">
-            {{ t('exitTicket') }}
+            <span>{{ t('exitTicket') }}</span>
             <span class="gate-badge ms-2" *ngIf="gatePeripheral?.gateNumber">
               <span class="gate-label">{{ t('gate') }}</span>
               <span class="gate-value">{{ gatePeripheral?.gateNumber }}</span>
             </span>
             <span class="badge bg-warning text-dark ms-2" *ngIf="isSupervisor">
-              <i class="bi bi-shield-check me-1"></i>{{ t('supervisor_mode') }}
+              <i class="fa-solid fa-shield-halved me-1"></i>{{ t('supervisor_mode') }}
             </span>
           </h1>
           <p class="page-subtitle mb-0 text-truncate">{{ t('ticketsExit') }}</p>
@@ -46,34 +46,40 @@
           class="btn btn-outline-light rounded-pill btn-sm d-flex align-items-center justify-content-center gap-2 btn-help-tour flex-grow-1 flex-md-grow-0"
           (click)="startTour()"
         >
-          <i class="bi bi-question-circle"></i>
+          <i class="fa-solid fa-circle-question"></i>
           <span>{{ 'helpTour' | t }}</span>
         </button>
       </div>
     </div>
   </div>
 
-  <div class="gate-flow-panel mb-2">
-    <div class="gate-quick-strip shadow-soft">
+  <div class="gate-flow-panel mb-3">
+    <div class="gate-quick-strip">
       <div class="gate-strip-section gate-strip-info">
         <div class="gate-connection-line">
-          <h6 class="mb-0 fw-bold d-flex align-items-center gap-2 gate-connection-title">
-            <i class="bi bi-router text-primary"></i> {{ t('gate_info') }}
+          <span class="gate-strip-icon">
+            <i class="fa-solid fa-network-wired"></i>
+          </span>
+          <h6 class="mb-0 fw-bold gate-connection-title">
+            {{ t('gate_info') }}
           </h6>
-          <span class="spinner-border spinner-border-sm" *ngIf="gateConnectionLoading"></span>
+          <span class="spinner-border spinner-border-sm text-secondary" *ngIf="gateConnectionLoading"></span>
         </div>
 
-        <div class="alert alert-danger py-1 px-2 x-small mb-0" *ngIf="gateConnectionError">
-          {{ gateConnectionError }}
+        <div class="gate-error-pill" *ngIf="gateConnectionError">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+          <span>{{ gateConnectionError }}</span>
         </div>
 
         <div class="gate-info-grid" *ngIf="gateConnectionInfo as info">
           <div class="gate-info-item">
+            <i class="fa-solid fa-desktop"></i>
             <span>{{ t('pc_device') }}</span>
             <strong class="mono">{{ info.pcIp || '--' }}</strong>
           </div>
 
           <div class="gate-info-item">
+            <i class="fa-solid fa-video"></i>
             <span>{{ t('lpr_device') }}</span>
             <strong class="mono">{{ info.lprIp || '--' }}</strong>
           </div>
@@ -83,6 +89,7 @@
             [class.printer-on]="info.hasQrPrinterName"
             [class.printer-off]="!info.hasQrPrinterName"
           >
+            <i class="fa-solid fa-qrcode"></i>
             <span>{{ t('print_qr') }}</span>
             <strong class="text-truncate">{{
               info.hasQrPrinterName ? info.qrPrinterName || '--' : '--'
@@ -94,6 +101,7 @@
             [class.printer-on]="info.hasReceiptPrinterName"
             [class.printer-off]="!info.hasReceiptPrinterName"
           >
+            <i class="fa-solid fa-print"></i>
             <span>{{ t('print_receipt') }}</span>
             <strong class="text-truncate">{{
               info.hasReceiptPrinterName ? info.receiptPrinterName || '--' : '--'

@@ -3,7 +3,7 @@
   <div class="card-header search-card__header">
     <div class="search-card__title">
       <div class="search-card__icon">
-        <i class="bi bi-search fs-6"></i>
+        <i class="fa-solid fa-magnifying-glass"></i>
       </div>
       <div class="search-card__text">
         <div class="search-card__title-main fs-6">{{ t('quick_search') }}</div>
@@ -18,7 +18,7 @@
     <div class="search-input-wrapper mb-3">
       <div class="input-group input-group-lg">
         <span class="input-group-text bg-white border-end-0 text-muted">
-          <i class="bi bi-search"></i>
+          <i class="fa-solid fa-magnifying-glass"></i>
         </span>
 
         <input
@@ -37,7 +37,7 @@
           type="button"
           (click)="clearSearch()"
         >
-          <i class="bi bi-x-lg"></i>
+          <i class="fa-solid fa-xmark"></i>
         </button>
       </div>
 
@@ -59,7 +59,7 @@
           <div class="result-content">
             <div class="result-header">
               <span class="result-id mono">
-                <i class="bi bi-ticket-perforated me-1"></i>
+                <i class="fa-solid fa-ticket me-1"></i>
                 {{ ticket.ticketNumber || ticket.id }}
               </span>
 
@@ -74,11 +74,11 @@
 
             <div class="result-details">
               <span class="detail-item">
-                <i class="bi bi-clock"></i>
+                <i class="fa-regular fa-clock"></i>
                 {{ ticket.time | date: 'short' }}
               </span>
               <span class="detail-item" *ngIf="ticket.info">
-                <i class="bi bi-info-circle"></i>
+                <i class="fa-solid fa-circle-info"></i>
                 {{ ticket.info }}
               </span>
             </div>
@@ -94,7 +94,7 @@
       <ng-template #emptyState>
         <div class="empty-state">
           <div class="empty-icon">
-            <i class="bi bi-search"></i>
+            <i class="fa-solid fa-magnifying-glass"></i>
           </div>
           <div class="empty-text">{{ t('no_results') }}</div>
         </div>
@@ -107,7 +107,7 @@
 <div *ngIf="isCompact" class="search-compact-wrapper position-relative">
   <div class="search-input-group-compact">
     <span class="search-icon-compact">
-      <i class="bi bi-search"></i>
+      <i class="fa-solid fa-magnifying-glass"></i>
     </span>
     <input
       type="text"
@@ -124,7 +124,7 @@
       type="button"
       (click)="clearSearch()"
     >
-      <i class="bi bi-x"></i>
+      <i class="fa-solid fa-xmark"></i>
     </button>
   </div>
 
@@ -144,7 +144,7 @@
         <!-- Row 1: Ticket Number + Collection Status -->
         <div class="d-flex align-items-center justify-content-between mb-1">
           <span class="result-ticket-num">
-            <i class="bi bi-ticket-perforated me-1 opacity-50"></i>
+            <i class="fa-solid fa-ticket me-1 opacity-50"></i>
             {{ ticket.ticketNumber || ticket.id }}
           </span>
           <span
@@ -152,7 +152,11 @@
             [class.result-badge--collected]="ticket.isCollectedByCashier"
             [class.result-badge--pending]="!ticket.isCollectedByCashier"
           >
-            <i class="bi" [class.bi-check-circle-fill]="ticket.isCollectedByCashier" [class.bi-clock-history]="!ticket.isCollectedByCashier"></i>
+            <i
+              class="fa-solid"
+              [class.fa-circle-check]="ticket.isCollectedByCashier"
+              [class.fa-clock-rotate-left]="!ticket.isCollectedByCashier"
+            ></i>
             {{ ticket.isCollectedByCashier ? t('collected') : t('not_collected') }}
           </span>
         </div>
@@ -160,7 +164,7 @@
         <!-- Row 2: Time + Price -->
         <div class="d-flex align-items-center justify-content-between">
           <span class="result-meta">
-            <i class="bi bi-calendar3 me-1"></i>
+            <i class="fa-regular fa-calendar me-1"></i>
             {{ ticket.time | date: 'dd/MM · h:mm a' }}
           </span>
           <span class="result-price" *ngIf="ticket.price !== undefined">
@@ -171,7 +175,7 @@
 
         <!-- Row 3: Extra Info -->
         <div *ngIf="ticket.info" class="result-meta mt-1">
-          <i class="bi bi-info-circle me-1"></i>{{ ticket.info }}
+          <i class="fa-solid fa-circle-info me-1"></i>{{ ticket.info }}
         </div>
       </div>
     </ng-container>
