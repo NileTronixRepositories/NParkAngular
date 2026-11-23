@@ -16,7 +16,10 @@ import {
   ValidateExitByTextResponse,
   SearchTicketRequest,
   SearchTicketResponse,
+  TicketDetailsFilterRequest,
+  TicketDetailsItemDto,
 } from '../../Domain/tickets/tickets.model';
+import { PagedResult } from '../../Domain/PageResult/PagedResult';
 import { environment } from '../../Shared/environment/environment';
 
 export interface TicketsForGateResult {
@@ -50,26 +53,6 @@ export class TicketCoreService {
   private normalizeDateTime(value: unknown): string {
     if (typeof value === 'string') return value;
     return new Date(value as any).toISOString();
-  }
-
-  // ========= Basic list =========
-
-  getAll(): Observable<TicketDto[]> {
-    return this.http.get<any[]>(this.ticketUrl).pipe(
-      map((rows) =>
-        (rows ?? []).map((r) => ({
-          id: r.id ?? r.Id,
-          plate: r.plate ?? r.Plate ?? '',
-          action: (r.action ?? r.Action ?? '') as TicketDto['action'],
-          time: (r.time ?? r.Time ?? r.dateTime ?? r.DateTime) as string,
-          gate: r.gate ?? r.Gate ?? '',
-        })),
-      ),
-      catchError((err) => {
-        this.logError('GET /Ticket', err);
-        return of([]);
-      }),
-    );
   }
 
   // ========= Scan Ticket (New Flow) =========
@@ -493,20 +476,6 @@ export class TicketCoreService {
     );
   }
 
-  // ========= Manual LPR capture =========
-
-  captureManualPlate(plate: string): Observable<boolean> {
-    const params = new HttpParams().set('VehicleNumber', plate.trim().toUpperCase());
-
-    return this.http.post<any>(this.endpoint('CaptureManualPlate'), null, { params }).pipe(
-      map(() => true),
-      catchError((err) => {
-        this.logError('POST /Ticket/CaptureManualPlate', err);
-        return throwError(() => err);
-      }),
-    );
-  }
-
   // ========= Search Tickets =========
 
   searchTicketLookup(request: SearchTicketRequest): Observable<SearchTicketResponse[]> {
@@ -620,6 +589,41 @@ export class TicketCoreService {
       .pipe(
         catchError((err) => {
           this.logError('POST /Ticket/validate-exit-by-text', err);
+          return throwError(() => err);
+        }),
+      );
+  }
+
+  // ========= Paginated Ticket Details =========
+
+  getTicketDetails(
+    filter: TicketDetailsFilterRequest = {},
+  ): Observable<PagedResult<TicketDetailsItemDto>> {
+    const pageNumber = Math.max(1, Number(filter.pageNumber ?? 1));
+    const pageSize = Math.min(100, Math.max(1, Number(filter.pageSize ?? 10)));
+
+    let params = new HttpParams()
+      .set('PageNumber', String(pageNumber))
+      .set('PageSize', String(pageSize))
+      .set('OrderSort', filter.orderSort ?? 'Newest');
+
+    const searchText = this.normalizeTicketSearchText(filter.searchText);
+    if (searchText) params = params.set('SearchText', searchText);
+    if (filter.fromDate) params = params.set('FromDate', filter.fromDate);
+    if (filter.toDate) params = params.set('ToDate', filter.toDate);
+    if (filter.gateId) params = params.set('GateId', filter.gateId);
+    if (typeof filter.isCollected === 'boolean') {
+      params = params.set('IsCollected', String(filter.isCollected));
+    }
+    if (typeof filter.isSubscriber === 'boolean') {
+      params = params.set('IsSubscriber', String(filter.isSubscriber));
+    }
+
+    return this.http
+      .get<PagedResult<TicketDetailsItemDto>>(this.endpoint('GetDetails'), { params })
+      .pipe(
+        catchError((err) => {
+          this.logError('GET /Ticket/GetDetails', err);
           return throwError(() => err);
         }),
       );

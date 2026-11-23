@@ -16,7 +16,10 @@ import {
   ValidateExitByTextResponse,
   SearchTicketRequest,
   SearchTicketResponse,
+  TicketDetailsFilterRequest,
+  TicketDetailsItemDto,
 } from '../../Domain/tickets/tickets.model';
+import { PagedResult } from '../../Domain/PageResult/PagedResult';
 
 import {
   TicketCoreService,
@@ -47,10 +50,6 @@ export class TicketsServices {
   }
 
   // ========= Same public API as before =========
-
-  getAll(): Observable<TicketDto[]> {
-    return this.core.getAll();
-  }
 
   getTicketsForEntry(
     startDate: string,
@@ -173,13 +172,6 @@ export class TicketsServices {
     return this.salary.calculateSubscriberSalary(cardNumber, sanctionIds);
   }
 
-  calculateSalaryByTicketNumber(
-    ticketNumber: string,
-    sanctionIds?: string[],
-  ): Observable<CalculateSalaryResponse | null> {
-    return this.salary.calculateSalaryByTicketNumber(ticketNumber, sanctionIds);
-  }
-
   // --- Collect / Exit ---
 
   collect(id: number | string): Observable<boolean> {
@@ -226,12 +218,6 @@ export class TicketsServices {
     return this.core.collectEnterTickets();
   }
 
-  // --- Manual plate capture ---
-
-  captureManualPlate(plate: string): Observable<boolean> {
-    return this.core.captureManualPlate(plate);
-  }
-
   collectEnterTicketsAsSupervisor(credentials: {
     userName: string;
     password: string;
@@ -273,11 +259,19 @@ export class TicketsServices {
     return this.core.searchTicketLookup(request);
   }
 
-  validateExitByVehicleNumber(vehicleNumber: string): Observable<ValidateExitByVehicleNumberResponse> {
+  validateExitByVehicleNumber(
+    vehicleNumber: string,
+  ): Observable<ValidateExitByVehicleNumberResponse> {
     return this.core.validateExitByVehicleNumber(vehicleNumber);
   }
 
   validateExitByText(body: ValidateExitByTextRequest): Observable<ValidateExitByTextResponse> {
     return this.core.validateExitByText(body);
+  }
+
+  getTicketDetails(
+    filter: TicketDetailsFilterRequest = {},
+  ): Observable<PagedResult<TicketDetailsItemDto>> {
+    return this.core.getTicketDetails(filter);
   }
 }

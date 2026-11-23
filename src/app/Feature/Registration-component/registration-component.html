@@ -491,14 +491,6 @@
                     >
                       <i class="fa-regular fa-pen-to-square"></i>
                     </button>
-                    <button
-                      type="button"
-                      class="btn row-action-btn row-action-btn--delete"
-                      (click)="deleteMembership(r.id)"
-                      [title]="'deleteAction' | t"
-                    >
-                      <i class="fa-regular fa-trash-can"></i>
-                    </button>
                   </div>
                 </td>
               </tr>
@@ -547,13 +539,6 @@
                 (click)="editMembership(r)"
               >
                 <i class="fa-regular fa-pen-to-square me-1"></i>{{ 'edit' | t }}
-              </button>
-              <button
-                type="button"
-                class="btn row-action-btn row-action-btn--delete flex-grow-1"
-                (click)="deleteMembership(r.id)"
-              >
-                <i class="fa-regular fa-trash-can me-1"></i>{{ 'deleteAction' | t }}
               </button>
             </div>
           </div>

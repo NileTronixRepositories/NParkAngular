@@ -114,18 +114,11 @@ export class MembershipCardService {
       return of({ isExist: false });
     }
 
-    const fixedUrl = `${this.isMembershipUrl}?VehicleNumber=${encodeURIComponent(trimmed)}`;
-    const fallbackParams = new HttpParams().set('VehicleNumber', trimmed);
+    const params = new HttpParams().set('VehicleNumber', trimmed);
 
-    return this.http.get<any>(fixedUrl).pipe(
+    return this.http.get<any>(this.isMembershipUrl, { params }).pipe(
       map((res: any) => this.mapMembershipResponse(res, trimmed)),
       catchError((err) => {
-        if (err?.status === 0) {
-          return this.http
-            .get<any>(`${this.membershipsUrl}/IsMemberShip`, { params: fallbackParams })
-            .pipe(map((res: any) => this.mapMembershipResponse(res, trimmed)));
-        }
-
         this.logError('GET /ParkingMemberships/IsMemberShip', err);
         return throwError(() => err);
       }),

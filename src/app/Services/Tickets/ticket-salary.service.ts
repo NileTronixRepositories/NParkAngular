@@ -49,58 +49,18 @@ export class TicketSalaryService {
   /** Subscriber card salary */
   calculateSubscriberSalary(
     cardNumber: string,
-    sanctionIds?: string[],
+    _sanctionIds?: string[],
   ): Observable<CalculateSalaryResponse | null> {
     const trimmed = cardNumber?.trim();
     if (!trimmed) return of(null);
 
-    const body: any = { CardNumber: trimmed };
-    if (sanctionIds && sanctionIds.length > 0) {
-      body.SanctionIds = sanctionIds;
-    } else {
-      body.SanctionIds = [];
-    }
+    const body = { CardNumber: trimmed };
 
     return this.http
       .post<CalculateSalaryResponse>(this.endpoint('CalculateSalaryForSubscriberCommand'), body)
       .pipe(
         catchError((err) => {
           this.logError('POST /Ticket/CalculateSalaryForSubscriberCommand', err);
-          return throwError(() => err);
-        }),
-      );
-  }
-
-  /** Calculate salary by ticket number (uses QR code endpoint but passes ticket number) */
-  calculateSalaryByTicketNumber(
-    ticketNumber: string,
-    sanctionIds?: string[],
-  ): Observable<CalculateSalaryResponse | null> {
-    const trimmed = ticketNumber?.trim();
-    if (!trimmed) return of(null);
-
-    // Try with ticketNumber parameter
-    const body: any = { TicketNumber: trimmed };
-    if (sanctionIds && sanctionIds.length > 0) {
-      body.SanctionIds = sanctionIds;
-    } else {
-      body.SanctionIds = [];
-    }
-
-    return this.http
-      .post<CalculateSalaryResponse>(this.endpoint('CalculateTicketNumberSalary'), body)
-      .pipe(
-        catchError((err) => {
-          this.logError('POST /Ticket/CalculateTicketNumberSalary', err);
-
-          const isGuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(
-            trimmed,
-          );
-
-          if (isGuid) {
-            return this.calculateTicketSalary(trimmed, sanctionIds);
-          }
-
           return throwError(() => err);
         }),
       );

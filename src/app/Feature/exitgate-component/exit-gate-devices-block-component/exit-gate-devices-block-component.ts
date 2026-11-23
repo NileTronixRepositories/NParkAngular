@@ -18,6 +18,7 @@ import { TicketsServices } from '../../../Services/Tickets/tickets-services';
 import { ToastServices } from '../../../Services/Toster/toast-services';
 import { TicketDto } from '../../../Domain/tickets/tickets.model';
 import { Subject } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { debounceTime, distinctUntilChanged } from 'rxjs/operators';
 
 @Component({
@@ -74,7 +75,9 @@ export class ExitGateDevicesBlockComponent {
     private readonly cdr: ChangeDetectorRef,
   ) {
     // Debounce search like Quick Search
-    this.searchSubject.pipe(debounceTime(300), distinctUntilChanged()).subscribe((query) => {
+    this.searchSubject
+      .pipe(debounceTime(300), distinctUntilChanged(), takeUntilDestroyed())
+      .subscribe((query) => {
       this.performSearch(query);
     });
   }

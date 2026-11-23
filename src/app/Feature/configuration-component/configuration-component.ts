@@ -1,4 +1,5 @@
-import { Component, EventEmitter, Output, OnInit, OnDestroy } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Output, OnInit, OnDestroy, inject } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { NgIf, NgFor, NgClass, CommonModule } from '@angular/common';
 import {
   FormArray,
@@ -217,6 +218,7 @@ function completeOnvifValidator(control: AbstractControl): ValidationErrors | nu
   ],
 })
 export class ConfigurationComponent implements OnInit, OnDestroy {
+  private readonly destroyRef = inject(DestroyRef);
   @Output() submitted = new EventEmitter<ParkingConfigurationUpdateCommand>();
 
   pricingSchemas: PricingSchemaDto[] = [];
@@ -280,10 +282,10 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
       exitGates: this.fb.array([]),
     });
 
-    this.step1Form.get('entryGatesCount')?.valueChanges.subscribe(() => this.syncGateArrays());
-    this.step1Form.get('exitGatesCount')?.valueChanges.subscribe(() => this.syncGateArrays());
+    this.step1Form.get('entryGatesCount')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.syncGateArrays());
+    this.step1Form.get('exitGatesCount')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => this.syncGateArrays());
 
-    this.modeCtrl.valueChanges.subscribe((mode: Mode) => {
+    this.modeCtrl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((mode: Mode) => {
       this.updatePricingSchemaValidator(mode);
     });
 
@@ -446,7 +448,7 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
       hasScanner: [false],
     });
 
-    group.get('isAssigned')?.valueChanges.subscribe((val) => {
+    group.get('isAssigned')?.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe((val) => {
       const ctrl = group.get('assignedTo');
       if (val) {
         ctrl?.setValidators([Validators.required]);
@@ -473,7 +475,7 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
     if (!flagCtrl || !printerCtrl) return;
 
     this.applyPrinterNameToggle(group, flagControlName, printerControlName, false);
-    flagCtrl.valueChanges.subscribe(() => {
+    flagCtrl.valueChanges.pipe(takeUntilDestroyed(this.destroyRef)).subscribe(() => {
       this.applyPrinterNameToggle(group, flagControlName, printerControlName, true);
     });
   }

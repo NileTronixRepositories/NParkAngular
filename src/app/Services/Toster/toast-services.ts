@@ -10,6 +10,7 @@ export class ToastServices {
   private toastr = inject(ToastrService);
   private lang = inject(LanguageService);
   private errorExtractor = inject(ErrorExtractorService);
+  private readonly handledErrors = new WeakSet<object>();
 
   constructor() {}
 
@@ -67,6 +68,13 @@ export class ToastServices {
     if (!err) {
       this.error(t.unexpected, t.error);
       return;
+    }
+
+    if (typeof err === 'object') {
+      if (this.handledErrors.has(err)) {
+        return;
+      }
+      this.handledErrors.add(err);
     }
 
     const status = err?.status;

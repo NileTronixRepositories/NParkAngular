@@ -1,7 +1,8 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpErrorResponse } from '@angular/common/http';
 import { firstValueFrom } from 'rxjs';
 import { environment } from '../../Shared/environment/environment';
+import { SKIP_ERROR_TOAST } from '../../interceptors/Auth/error.interceptor';
 
 type ApiOk = { message?: string; data?: string };
 type ApiErr = { message?: string; error?: string };
@@ -13,11 +14,14 @@ export class NfcReaderService {
   constructor(private http: HttpClient) {}
 
   async readUID(): Promise<string> {
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
     try {
       const res = await firstValueFrom(
-        this.http.get<{ message?: string; data?: string }>(this.url, { observe: 'response' })
+        this.http.get<{ message?: string; data?: string }>(this.url, {
+          observe: 'response',
+          context,
+        }),
       );
-      console.log('NFC response', res.status, res.body);
       const uid = res.body?.data?.toString().trim();
       if (uid) return uid.toUpperCase();
       throw new Error('لم يتم استلام UID صالح من قارئ الـ NFC.');
@@ -45,7 +49,9 @@ export class NfcReaderService {
       }
 
       try {
-        const asText = await firstValueFrom(this.http.get(this.url, { responseType: 'text' }));
+        const asText = await firstValueFrom(
+          this.http.get(this.url, { responseType: 'text', context }),
+        );
         const uid = this.extractFromText(asText);
         if (uid) return uid;
       } catch {}

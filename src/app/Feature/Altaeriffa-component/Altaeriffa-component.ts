@@ -1,4 +1,5 @@
-import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { Component, DestroyRef, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, FormControl, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule, NgIf, NgFor, NgClass } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -212,6 +213,7 @@ type EnterPriceFormShape = {
 })
 export class AltaeriffaComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
+  private destroyRef = inject(DestroyRef);
   private api = inject(SubscriptionType);
   private toast = inject(ToastServices);
   private AltaeriffaTourService = inject(AltaeriffaTourService);
@@ -654,12 +656,16 @@ export class AltaeriffaComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.loadRows();
 
-    this.form.controls.durationType.valueChanges.subscribe(() => {
-      this.updateTimeAndModeRules();
-    });
-    this.form.controls.isRepeated.valueChanges.subscribe(() => {
-      this.updateTimeAndModeRules();
-    });
+    this.form.controls.durationType.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.updateTimeAndModeRules();
+      });
+    this.form.controls.isRepeated.valueChanges
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => {
+        this.updateTimeAndModeRules();
+      });
 
     this.updateTimeAndModeRules();
   }

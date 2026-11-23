@@ -1,7 +1,8 @@
-import { Injectable } from '@angular/core';
+import { Injectable, inject } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { environment } from '../../Shared/environment/environment';
 import { Subject, Observable } from 'rxjs';
+import { AuthService } from '../Auth/auth-service';
 import {
   TicketAddedNotification,
   TicketExitedNotification,
@@ -10,6 +11,7 @@ import {
 
 @Injectable({ providedIn: 'root' })
 export class DashboardHubService {
+  private readonly auth = inject(AuthService);
   private hub?: signalR.HubConnection;
 
   private readonly ticketAddedSubject = new Subject<TicketAddedNotification>();
@@ -27,26 +29,19 @@ export class DashboardHubService {
 
     this.hub = new signalR.HubConnectionBuilder()
       .withUrl(environment.hubUrl, {
-        withCredentials: true,
-        accessTokenFactory: () => localStorage.getItem('token') || '',
+        withCredentials: false,
+        accessTokenFactory: () => this.auth.token ?? '',
       })
       .withAutomaticReconnect()
       .build();
 
-    // SignalR
+    // SignalR events emitted by backend NotificationsHub / RealtimeNotifier
     this.hub.on('TicketAdded', (data: TicketAddedNotification) => {
-      console.log('SignalR: TICKET ADDED', data);
       this.ticketAddedSubject.next(data);
     });
 
     this.hub.on('TicketExited', (data: TicketExitedNotification) => {
-      console.log('SignalR: TICKET EXITED', data);
       this.ticketExitedSubject.next(data);
-    });
-
-    this.hub.on('TicketCollected', (data: TicketCollectedNotification) => {
-      console.log('SignalR: TICKET COLLECTED', data);
-      this.ticketCollectedSubject.next(data);
     });
   }
 

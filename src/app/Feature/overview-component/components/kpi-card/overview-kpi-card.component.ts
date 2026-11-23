@@ -47,8 +47,8 @@ export type KpiTone = 'navy' | 'green' | 'blue' | 'amber' | 'red';
         display: flex;
         flex-direction: column;
         justify-content: space-between;
-        gap: 10px;
-        padding: 18px 20px;
+        gap: 6px;
+        padding: 10px 14px;
         background: transparent;
         transition: background-color 160ms ease;
       }
@@ -70,24 +70,24 @@ export type KpiTone = 'navy' | 'green' | 'blue' | 'amber' | 'red';
         display: flex;
         align-items: center;
         justify-content: space-between;
-        gap: 8px;
+        gap: 6px;
       }
 
       .kpi-label {
-        font-size: 14px;
+        font-size: 12.5px;
         font-weight: 700;
         color: #64748b;
-        line-height: 1.35;
+        line-height: 1.25;
       }
 
       .kpi-icon {
-        width: 36px;
-        height: 36px;
-        border-radius: 10px;
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        font-size: 1.05rem;
+        font-size: 0.85rem;
         flex-shrink: 0;
       }
 
@@ -119,21 +119,21 @@ export type KpiTone = 'navy' | 'green' | 'blue' | 'amber' | 'red';
       .kpi-metric-row {
         display: flex;
         align-items: baseline;
-        gap: 6px;
+        gap: 5px;
         flex-wrap: wrap;
       }
 
       .kpi-value {
-        font-size: clamp(26px, 2vw, 30px);
+        font-size: clamp(20px, 1.6vw, 24px);
         font-weight: 800;
-        line-height: 1.15;
+        line-height: 1.1;
         color: #142238;
         letter-spacing: -0.02em;
         font-variant-numeric: tabular-nums;
       }
 
       .kpi-unit {
-        font-size: 14px;
+        font-size: 12px;
         font-weight: 700;
         color: #64748b;
       }
@@ -142,27 +142,27 @@ export type KpiTone = 'navy' | 'green' | 'blue' | 'amber' | 'red';
         display: flex;
         flex-wrap: wrap;
         align-items: center;
-        gap: 6px 10px;
-        padding-top: 8px;
+        gap: 4px 8px;
+        padding-top: 6px;
         border-top: 1px solid #f1f5f9;
-        font-size: 12.5px;
+        font-size: 11.5px;
         color: #64748b;
       }
 
       @media (max-width: 575.98px) {
         .kpi-surface {
-          padding: 14px 16px;
-          gap: 8px;
+          padding: 10px 12px;
+          gap: 5px;
         }
 
         .kpi-icon {
-          width: 32px;
-          height: 32px;
-          font-size: 0.95rem;
+          width: 26px;
+          height: 26px;
+          font-size: 0.8rem;
         }
 
         .kpi-value {
-          font-size: 24px;
+          font-size: 20px;
         }
       }
     `,

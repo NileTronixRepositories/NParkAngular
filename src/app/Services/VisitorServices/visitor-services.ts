@@ -31,16 +31,6 @@ export class VisitorServices {
     );
   }
 
-  /** optional helpers for future use */
-  getById(id: string): Observable<RepeatedPricingDto> {
-    return this.http.get<RepeatedPricingDto>(`${this.baseUrl}/GetById/${id}`).pipe(
-      catchError((err) => {
-        console.error('Error loading item:', err);
-        return throwError(() => err);
-      })
-    );
-  }
-
   addOrder(orderSchema: { pricingSchemaId: string; count: number }[]) {
     const url = `${environment.baseUrl}/PricingSchema/AddOrder`;
     return this.http.post(url, { orderSchema });

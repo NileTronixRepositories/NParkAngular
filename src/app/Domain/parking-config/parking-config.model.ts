@@ -11,7 +11,8 @@ export enum VehiclePassengerData {
 
 export enum PrintType {
   QrCode = 0,
-  Receipt = 1,
+  RFID = 1,
+  Both = 2,
 }
 
 export interface OnvifCameraSettingDto {

@@ -27,15 +27,7 @@ export class Configurationervices {
   }
 
   updateConfig(dto: ParkingConfigurationUpdateCommand): Observable<any> {
-    return this.http.post(`${this.base}/Update`, dto).pipe(
-      catchError((err) => {
-        if (err?.status === 405) {
-          return this.http.post(`${this.base}/Update`, dto);
-        }
-
-        return throwError(() => err);
-      }),
-    );
+    return this.http.post(`${this.base}/Update`, dto);
   }
 
   getPricingSchemas(): Observable<PricingSchemaDto[]> {

@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
-import { catchError, map, Observable, throwError } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../Shared/environment/environment';
 import {
   DurationType,
@@ -22,12 +22,14 @@ export class SubscriptionType {
   constructor(private http: HttpClient) {}
 
   list(page = 1, pageSize = 10, q = ''): Observable<PagedResult<PricingSchemaRow>> {
-    const params = new HttpParams()
-      .set('pageNumber', String(page))
-      .set('pageSize', String(pageSize))
-      .set('currentPage', String(page))
-      .set('q', q ?? '')
-      .set('_', Date.now().toString());
+    let params = new HttpParams()
+      .set('PageNumber', String(page))
+      .set('PageSize', String(pageSize));
+
+    const searchText = (q ?? '').trim();
+    if (searchText) {
+      params = params.set('SearchText', searchText);
+    }
 
     return this.http
       .get<ApiListResponse<PricingSchemaRow> | any>(`${this.base}/GetAll`, {
@@ -50,14 +52,6 @@ export class SubscriptionType {
           } as PagedResult<PricingSchemaRow>;
         }),
       );
-  }
-
-  getById(id: string): Observable<PricingSchemaRow> {
-    return this.http
-      .get<PricingSchemaRow>(`${this.base}/GetById/${encodeURIComponent(id)}`, {
-        headers: { 'Cache-Control': 'no-cache' },
-      })
-      .pipe(map((res: any) => this.normalizeRow(res)));
   }
 
   private toHms(t?: string | null): string | null {
@@ -170,45 +164,8 @@ export class SubscriptionType {
 
   delete(id: string): Observable<void> {
     const sid = String(id).trim();
-    const tryPostBody = () => this.http.post<void>(`${this.base}/Delete`, { id: sid });
-    const tryDeleteQuery = () =>
-      this.http.delete<void>(`${this.base}/Delete`, { params: new HttpParams().set('id', sid) });
-    const tryDeletePath = () =>
-      this.http.delete<void>(`${this.base}/Delete/${encodeURIComponent(sid)}`);
-    const tryPostQuery = () =>
-      this.http.post<void>(`${this.base}/Delete`, null, {
-        params: new HttpParams().set('id', sid),
-      });
-    const tryPostPath = () =>
-      this.http.post<void>(`${this.base}/Delete/${encodeURIComponent(sid)}`, {});
-    return tryPostBody().pipe(
-      catchError((e1) => {
-        if (e1?.status === 404 || e1?.status === 405 || e1?.status === 422) {
-          return tryDeleteQuery().pipe(
-            catchError((e2) => {
-              if (e2?.status === 404 || e2?.status === 405) {
-                return tryDeletePath().pipe(
-                  catchError((e3) => {
-                    if (e3?.status === 404 || e3?.status === 405) {
-                      return tryPostQuery().pipe(
-                        catchError((e4) => {
-                          if (e4?.status === 404 || e4?.status === 405) {
-                            return tryPostPath();
-                          }
-                          return throwError(() => e4);
-                        }),
-                      );
-                    }
-                    return throwError(() => e3);
-                  }),
-                );
-              }
-              return throwError(() => e2);
-            }),
-          );
-        }
-        return throwError(() => e1);
-      }),
-    );
+    return this.http.delete<void>(`${this.base}/Delete`, {
+      params: new HttpParams().set('Id', sid),
+    });
   }
 }

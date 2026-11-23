@@ -1,4 +1,4 @@
-import { inject, Injectable } from '@angular/core';
+import { inject, Injectable, Injector } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
 import { Observable, catchError, of, tap } from 'rxjs';
 import {
@@ -32,6 +32,7 @@ export interface AuthResponse {
 export class AuthService {
   private http = inject(HttpClient);
   private toast = inject(ToastServices);
+  private injector = inject(Injector);
   // private ticketsService = inject(TicketsServices);
   private gateData: GateDevicePeripheral | null = null;
   private collectLoading = false;
@@ -61,7 +62,19 @@ export class AuthService {
   }
 
   isLoggedIn(): boolean {
-    return !!this.token;
+    const token = this.token;
+    if (!token) return false;
+
+    const payload = this.decodeJwtPayload(token);
+    if (payload && typeof payload.exp === 'number') {
+      const nowSeconds = Math.floor(Date.now() / 1000);
+      if (payload.exp <= nowSeconds) {
+        this.clearUserData();
+        return false;
+      }
+    }
+
+    return true;
   }
 
   // ================== LOGIN ==================
@@ -295,7 +308,9 @@ export class AuthService {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,
+        'Content-Type': 'application/json',
       },
+      body: JSON.stringify({}),
       keepalive: true,
     }).catch(() => void 0);
   }
@@ -355,7 +370,7 @@ export class AuthService {
     this.collectLoading = true;
 
     // ✅ نحقن TicketsServices هنا بس → ما فيش Circular DI
-    const ticketsService = inject(TicketsServices);
+    const ticketsService = this.injector.get(TicketsServices);
 
     ticketsService.collectEnterTickets().subscribe({
       next: (res: any) => {

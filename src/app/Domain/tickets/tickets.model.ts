@@ -267,3 +267,42 @@ export interface ValidateExitByTextResponse {
   endDate: string | null;
   isValidForExit: boolean;
 }
+
+export interface TicketDetailsFilterRequest {
+  pageNumber?: number;
+  pageSize?: number;
+  orderSort?: 'Newest' | 'Oldest';
+  searchText?: string;
+  fromDate?: string;
+  toDate?: string;
+  gateId?: string;
+  isCollected?: boolean;
+  isSubscriber?: boolean;
+}
+
+export interface TicketAttachmentDetailsDto {
+  attachmentId: string;
+  filePath: string;
+}
+
+export interface TicketDetailsItemDto {
+  ticketId: string;
+  startDate: string;
+  endDate: string | null;
+  price: number;
+  exceedPrice: number;
+  totalPrice: number;
+  vehicleNumber: string | null;
+  isCollected: boolean;
+  collectedBy: string | null;
+  collectedDate: string | null;
+  uniqueCode: string;
+  gateId: string;
+  exitGateId: string | null;
+  userId: string;
+  isCashierCollected: boolean;
+  isSubscriber: boolean;
+  subscriberNationalId: string | null;
+  cardNumber: string | null;
+  attachments: TicketAttachmentDetailsDto[];
+}

@@ -69,12 +69,6 @@ export class LprSignalRService {
 
     this.conn.off('lprVehicleDetected');
     this.conn.on('lprVehicleDetected', (payload: LprVehicleDetectedEvent | any) => {
-      console.log('[RAW LPR SignalR Payload]', payload);
-      console.log(
-        '[RAW LPR SignalR VehicleNumber]',
-        payload?.vehicleNumber ?? payload?.VehicleNumber,
-      );
-
       const event: LprVehicleDetectedEvent = {
         gateId: payload?.gateId ?? payload?.GateId ?? '',
         vehicleNumber: payload?.vehicleNumber ?? payload?.VehicleNumber ?? '',
@@ -86,8 +80,6 @@ export class LprSignalRService {
 
     this.conn.off('mqttCaptureDetected');
     this.conn.on('mqttCaptureDetected', (payload: MqttCaptureDetectedEvent | any) => {
-      console.log('[RAW MQTT Capture SignalR Payload]', payload);
-
       const event: MqttCaptureDetectedEvent = {
         deviceId: String(payload?.deviceId ?? payload?.DeviceId ?? '').trim(),
         captureId: this.toBoolean(payload?.captureId ?? payload?.CaptureId),

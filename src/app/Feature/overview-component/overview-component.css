@@ -437,10 +437,11 @@
 .meta-chip {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   color: var(--np-muted);
-  font-size: 12.5px;
+  font-size: 11.5px;
   font-weight: 600;
+  line-height: 1.25;
   border: 0;
   background: transparent;
   padding: 0;
@@ -462,8 +463,8 @@
 }
 
 .meta-chip--interactive {
-  padding: 3px 8px;
-  border-radius: 6px;
+  padding: 2px 6px;
+  border-radius: 5px;
   background: var(--np-bg);
   cursor: pointer;
   transition: background-color 150ms ease;
