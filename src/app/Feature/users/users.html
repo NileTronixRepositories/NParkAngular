@@ -68,10 +68,13 @@
 
     <div class="card-body">
       <form (ngSubmit)="save()">
-        <div class="row g-3">
+        <div class="row g-2 align-items-end">
           <!-- Name -->
-          <div class="col-12 col-md-4">
-            <label class="form-label field-label mb-1">{{ t('name') }}</label>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <label class="form-label field-label">
+              <i class="fa-solid fa-user field-icon"></i>
+              <span>{{ t('name') }}</span>
+            </label>
             <input
               type="text"
               class="form-control form-control-sm usr-input"
@@ -83,8 +86,11 @@
           </div>
 
           <!-- Email -->
-          <div class="col-12 col-md-4">
-            <label class="form-label field-label mb-1">{{ t('email') }}</label>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <label class="form-label field-label">
+              <i class="fa-solid fa-envelope field-icon"></i>
+              <span>{{ t('email') }}</span>
+            </label>
             <input
               type="email"
               class="form-control form-control-sm usr-input"
@@ -97,8 +103,11 @@
           </div>
 
           <!-- Role -->
-          <div class="col-12 col-md-4">
-            <label class="form-label field-label mb-1">{{ t('role') }}</label>
+          <div class="col-12 col-sm-6 col-lg-3">
+            <label class="form-label field-label">
+              <i class="fa-solid fa-user-shield field-icon"></i>
+              <span>{{ t('role') }}</span>
+            </label>
             <select
               class="form-select form-select-sm usr-input users-role-select"
               [(ngModel)]="model.roleId"
@@ -115,62 +124,13 @@
             </select>
           </div>
 
-          <ng-container *ngIf="isCashierRoleSelected()">
-            <div class="col-6 col-md-3">
-              <label class="form-label field-label mb-1">
-                {{ t('shiftStartTime') }} <span class="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                inputmode="numeric"
-                maxlength="5"
-                pattern="^([01][0-9]|2[0-3]):[0-5][0-9]$"
-                placeholder="08:00"
-                class="form-control form-control-sm usr-input mono"
-                [(ngModel)]="model.shiftStartTime"
-                name="shiftStartTime"
-                dir="ltr"
-                required
-                [disabled]="saving"
-              />
-            </div>
-
-            <div class="col-6 col-md-3">
-              <label class="form-label field-label mb-1">
-                {{ t('shiftEndTime') }} <span class="text-danger">*</span>
-              </label>
-              <input
-                type="text"
-                inputmode="numeric"
-                maxlength="5"
-                pattern="^([01][0-9]|2[0-3]):[0-5][0-9]$"
-                placeholder="16:00"
-                class="form-control form-control-sm usr-input mono"
-                [(ngModel)]="model.shiftEndTime"
-                name="shiftEndTime"
-                dir="ltr"
-                required
-                [disabled]="saving"
-              />
-            </div>
-          </ng-container>
-
-          <div class="col-12" *ngIf="isEdit && !changePasswordMode">
-            <button
-              type="button"
-              class="btn btn-change-pwd"
-              (click)="toggleChangePassword()"
-              [disabled]="saving"
-            >
-              <i class="fa-solid fa-key"></i>
-              <span>{{ t('change_password') }}</span>
-            </button>
-          </div>
-
           <!-- Password -->
-          <div [class]="isEdit ? 'col-12 col-md-6' : 'col-12 col-md-4'" *ngIf="!isEdit || changePasswordMode">
-            <label class="form-label field-label mb-1 d-flex align-items-center justify-content-between">
-              <span>{{ t('password') }} <span class="text-danger">*</span></span>
+          <div class="col-12 col-sm-6 col-lg-3" *ngIf="!isEdit || changePasswordMode">
+            <label class="form-label field-label d-flex align-items-center justify-content-between">
+              <span class="d-inline-flex align-items-center gap-1">
+                <i class="fa-solid fa-lock field-icon"></i>
+                <span>{{ t('password') }} <span class="text-danger">*</span></span>
+              </span>
               <button
                 *ngIf="isEdit"
                 type="button"
@@ -181,7 +141,7 @@
                 {{ t('cancel_password_change') }}
               </button>
             </label>
-            <div class="input-group input-group-sm">
+            <div class="input-group input-group-sm usr-input-group">
               <input
                 [type]="showPassword ? 'text' : 'password'"
                 class="form-control usr-input"
@@ -197,15 +157,91 @@
                 (click)="showPassword = !showPassword"
                 [title]="showPassword ? t('hide_password') : t('show_password')"
               >
-                <i class="fa-regular" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
+                <i class="fa-solid" [ngClass]="showPassword ? 'fa-eye-slash' : 'fa-eye'"></i>
               </button>
             </div>
           </div>
 
+          <div class="col-12 col-sm-6 col-lg-3" *ngIf="isEdit && !changePasswordMode">
+            <button
+              type="button"
+              class="btn btn-change-pwd w-100 justify-content-center"
+              (click)="toggleChangePassword()"
+              [disabled]="saving"
+            >
+              <i class="fa-solid fa-key"></i>
+              <span>{{ t('change_password') }}</span>
+            </button>
+          </div>
+
+          <!-- Shift Start / End (Time Picker) -->
+          <ng-container *ngIf="isCashierRoleSelected()">
+            <div class="col-6 col-lg-3">
+              <label class="form-label field-label">
+                <i class="fa-solid fa-clock field-icon field-icon--emerald"></i>
+                <span>{{ t('shiftStartTime') }} <span class="text-danger">*</span></span>
+              </label>
+              <div class="input-group input-group-sm usr-input-group">
+                <input
+                  #shiftStartInput
+                  type="time"
+                  step="60"
+                  class="form-control form-control-sm usr-input usr-time-input mono"
+                  [(ngModel)]="model.shiftStartTime"
+                  name="shiftStartTime"
+                  dir="ltr"
+                  required
+                  [disabled]="saving"
+                />
+                <button
+                  type="button"
+                  class="btn btn-time-trigger"
+                  (click)="shiftStartInput.showPicker()"
+                  [disabled]="saving"
+                  [title]="t('shiftStartTime')"
+                >
+                  <i class="fa-solid fa-clock"></i>
+                </button>
+              </div>
+            </div>
+
+            <div class="col-6 col-lg-3">
+              <label class="form-label field-label">
+                <i class="fa-solid fa-clock-rotate-left field-icon field-icon--amber"></i>
+                <span>{{ t('shiftEndTime') }} <span class="text-danger">*</span></span>
+              </label>
+              <div class="input-group input-group-sm usr-input-group">
+                <input
+                  #shiftEndInput
+                  type="time"
+                  step="60"
+                  class="form-control form-control-sm usr-input usr-time-input mono"
+                  [(ngModel)]="model.shiftEndTime"
+                  name="shiftEndTime"
+                  dir="ltr"
+                  required
+                  [disabled]="saving"
+                />
+                <button
+                  type="button"
+                  class="btn btn-time-trigger"
+                  (click)="shiftEndInput.showPicker()"
+                  [disabled]="saving"
+                  [title]="t('shiftEndTime')"
+                >
+                  <i class="fa-solid fa-clock"></i>
+                </button>
+              </div>
+            </div>
+          </ng-container>
+
           <!-- Only for New User -->
           <ng-container *ngIf="!isEdit">
-            <div class="col-12 col-md-4">
-              <label class="form-label field-label mb-1">{{ t('phone') }}</label>
+            <div class="col-12 col-sm-6 col-lg-3">
+              <label class="form-label field-label">
+                <i class="fa-solid fa-phone field-icon"></i>
+                <span>{{ t('phone') }}</span>
+              </label>
               <input
                 type="text"
                 class="form-control form-control-sm usr-input mono"
@@ -216,8 +252,11 @@
                 [disabled]="saving"
               />
             </div>
-            <div class="col-12 col-md-4">
-              <label class="form-label field-label mb-1">{{ t('nationalId') }}</label>
+            <div class="col-12 col-sm-6 col-lg-3">
+              <label class="form-label field-label">
+                <i class="fa-solid fa-id-card field-icon"></i>
+                <span>{{ t('nationalId') }}</span>
+              </label>
               <input
                 type="text"
                 class="form-control form-control-sm usr-input mono"
@@ -231,14 +270,15 @@
           </ng-container>
         </div>
 
-        <div class="mt-3 pt-2 border-top d-flex align-items-center justify-content-end gap-2">
+        <div class="usr-form-footer mt-2 pt-2 d-flex align-items-center justify-content-end gap-2">
           <button
             class="btn btn-cancel-usr"
             type="button"
             (click)="cancel()"
             [disabled]="saving"
           >
-            {{ t('cancel') }}
+            <i class="fa-solid fa-xmark"></i>
+            <span>{{ t('cancel') }}</span>
           </button>
           <button
             class="btn btn-save-usr users-btn-save"

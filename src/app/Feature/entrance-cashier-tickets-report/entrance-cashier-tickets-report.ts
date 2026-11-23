@@ -241,12 +241,12 @@ export class EntranceCashierTicketsReport implements OnInit, OnChanges {
     tone: string;
   }> {
     return [
-      { key: 'totalEnteredTicketsCount', icon: 'bi-ticket-perforated', tone: 'blue' },
-      { key: 'insideParkTicketsCount', icon: 'bi-p-circle', tone: 'green' },
-      { key: 'outsideParkTicketsCount', icon: 'bi-box-arrow-right', tone: 'slate' },
-      { key: 'totalExceededTicketsCount', icon: 'bi-exclamation-triangle', tone: 'red' },
-      { key: 'insideParkExceededTicketsCount', icon: 'bi-exclamation-circle', tone: 'amber' },
-      { key: 'outsideParkExceededTicketsCount', icon: 'bi-exclamation-diamond', tone: 'red' },
+      { key: 'totalEnteredTicketsCount', icon: 'fa-solid fa-ticket', tone: 'blue' },
+      { key: 'insideParkTicketsCount', icon: 'fa-solid fa-square-parking', tone: 'green' },
+      { key: 'outsideParkTicketsCount', icon: 'fa-solid fa-right-from-bracket', tone: 'slate' },
+      { key: 'totalExceededTicketsCount', icon: 'fa-solid fa-triangle-exclamation', tone: 'red' },
+      { key: 'insideParkExceededTicketsCount', icon: 'fa-solid fa-circle-exclamation', tone: 'amber' },
+      { key: 'outsideParkExceededTicketsCount', icon: 'fa-solid fa-burst', tone: 'red' },
     ];
   }
 
@@ -256,15 +256,15 @@ export class EntranceCashierTicketsReport implements OnInit, OnChanges {
     tone: string;
   }> {
     return [
-      { key: 'insideParkTotalBasePrice', icon: 'bi-cash', tone: 'green' },
-      { key: 'outsideParkTotalBasePrice', icon: 'bi-cash-stack', tone: 'slate' },
-      { key: 'totalBasePrice', icon: 'bi-wallet2', tone: 'blue' },
-      { key: 'insideParkTotalExceedPrice', icon: 'bi-plus-circle', tone: 'amber' },
-      { key: 'outsideParkTotalExceedPrice', icon: 'bi-plus-square', tone: 'red' },
-      { key: 'totalExceedPrice', icon: 'bi-receipt-cutoff', tone: 'red' },
-      { key: 'insideParkTotalAmount', icon: 'bi-safe', tone: 'green' },
-      { key: 'outsideParkTotalAmount', icon: 'bi-bank', tone: 'slate' },
-      { key: 'totalAmount', icon: 'bi-coin', tone: 'blue' },
+      { key: 'insideParkTotalBasePrice', icon: 'fa-solid fa-money-bill-wave', tone: 'green' },
+      { key: 'outsideParkTotalBasePrice', icon: 'fa-solid fa-money-bills', tone: 'slate' },
+      { key: 'totalBasePrice', icon: 'fa-solid fa-wallet', tone: 'blue' },
+      { key: 'insideParkTotalExceedPrice', icon: 'fa-solid fa-circle-plus', tone: 'amber' },
+      { key: 'outsideParkTotalExceedPrice', icon: 'fa-solid fa-file-invoice-dollar', tone: 'red' },
+      { key: 'totalExceedPrice', icon: 'fa-solid fa-receipt', tone: 'red' },
+      { key: 'insideParkTotalAmount', icon: 'fa-solid fa-vault', tone: 'green' },
+      { key: 'outsideParkTotalAmount', icon: 'fa-solid fa-landmark', tone: 'slate' },
+      { key: 'totalAmount', icon: 'fa-solid fa-coins', tone: 'navy' },
     ];
   }
 

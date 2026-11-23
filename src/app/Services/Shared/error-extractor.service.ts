@@ -1,3 +1,4 @@
+import { HttpResponse } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 
 @Injectable({
@@ -29,10 +30,8 @@ export class ErrorExtractorService {
 
     const messages: string[] = [];
 
-    if (typeof raw.detail === 'string' && raw.detail.trim()) {
-      messages.push(raw.detail.trim());
-    }
-    const errors = raw.errors;
+    // 1) Extract detailed errors array / validation dictionary from ProblemDetails (BuildingBlock.Api)
+    const errors = raw.errors ?? raw.Errors;
     if (errors) {
       if (Array.isArray(errors)) {
         for (const e of errors) {
@@ -40,7 +39,15 @@ export class ErrorExtractorService {
           if (typeof e === 'string' && e.trim()) {
             messages.push(e.trim());
           } else if (typeof e === 'object') {
-            const m = e.message || e.description || e.error || e.title;
+            const m =
+              e.message ??
+              e.Message ??
+              e.description ??
+              e.Description ??
+              e.error ??
+              e.Error ??
+              e.title ??
+              e.Title;
             if (typeof m === 'string' && m.trim()) {
               messages.push(m.trim());
             }
@@ -55,16 +62,34 @@ export class ErrorExtractorService {
                 messages.push(msg.trim());
               }
             }
+          } else if (typeof fieldErrors === 'string' && fieldErrors.trim()) {
+            messages.push(fieldErrors.trim());
           }
         }
       }
+    }
+
+    // 2) Extract ProblemDetails.detail (primary.Message from BuildingBlock.Api)
+    const detail = raw.detail ?? raw.Detail;
+    if (typeof detail === 'string' && detail.trim()) {
+      messages.unshift(detail.trim());
     }
 
     if (messages.length > 0) {
       return Array.from(new Set(messages)).join('\n');
     }
 
-    const possibleKeys = ['message', 'Message', 'error', 'title', 'description'];
+    // 3) Fallback to top-level message/error/description/title
+    const possibleKeys = [
+      'message',
+      'Message',
+      'error',
+      'Error',
+      'description',
+      'Description',
+      'title',
+      'Title',
+    ];
     for (const key of possibleKeys) {
       const val = raw[key];
       if (typeof val === 'string' && val.trim()) {
@@ -76,24 +101,32 @@ export class ErrorExtractorService {
   }
 
   extractSuccessMessage(res: any, fallback?: string): string {
-    if (!res) return fallback || '';
+    if (res == null) return fallback || '';
 
-    if (typeof res === 'string') return res;
+    const payload = res instanceof HttpResponse ? res.body : res;
+    if (payload == null) return fallback || '';
 
-    // Check common keys
-    const possibleKeys = [
-      'message',
-      'Message',
-      'detail',
-      'Detail',
-      'description',
-      'Description',
-      'title',
-      'Title',
-    ];
-    for (const key of possibleKeys) {
-      if (typeof res[key] === 'string' && res[key].trim()) {
-        return res[key].trim();
+    if (typeof payload === 'string') {
+      const trimmed = payload.trim();
+      return trimmed || fallback || '';
+    }
+
+    if (typeof payload === 'object') {
+      const possibleKeys = [
+        'message',
+        'Message',
+        'detail',
+        'Detail',
+        'description',
+        'Description',
+        'title',
+        'Title',
+      ];
+      for (const key of possibleKeys) {
+        const val = (payload as any)[key];
+        if (typeof val === 'string' && val.trim()) {
+          return val.trim();
+        }
       }
     }
 

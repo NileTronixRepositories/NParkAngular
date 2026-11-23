@@ -64,7 +64,7 @@ interface Slot {
           searchById: 'بحث بالـID',
           searchExample: 'مثال: L1-A',
           searchHint: 'سيتم تظليل النتائج على الخريطة.',
-          slotId: 'Slot ID',
+          slotId: 'رقم الموقف',
           slotIdExample: 'مثال: L1-A2',
           status: 'الحالة',
           free: 'متاح',

@@ -1,1 +1,35 @@
-<div toastContainer class="toaster-host"></div>
+<div class="np-toast-stack" [attr.dir]="lang.dir()" aria-live="polite" aria-atomic="false">
+  <div
+    *ngFor="let item of toastService.toasts(); trackBy: trackById"
+    class="np-toast"
+    [ngClass]="['np-toast--' + item.tone, item.leaving ? 'np-toast--leaving' : '']"
+    [attr.role]="item.tone === 'error' ? 'alert' : 'status'"
+    (mouseenter)="toastService.pause(item.id)"
+    (mouseleave)="toastService.resume(item.id)"
+  >
+    <span class="np-toast__icon" aria-hidden="true">
+      <i [class]="iconClass(item.tone)"></i>
+    </span>
+
+    <div class="np-toast__content">
+      <div class="np-toast__title" *ngIf="item.title">{{ item.title }}</div>
+      <div class="np-toast__message">{{ item.message }}</div>
+    </div>
+
+    <button
+      type="button"
+      class="np-toast__close"
+      (click)="toastService.dismiss(item.id)"
+      [attr.aria-label]="lang.isRTL() ? 'إغلاق' : 'Close'"
+    >
+      <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+    </button>
+
+    <div class="np-toast__progress-track" aria-hidden="true">
+      <div
+        class="np-toast__progress-bar"
+        [style.animation-duration.ms]="item.duration"
+      ></div>
+    </div>
+  </div>
+</div>

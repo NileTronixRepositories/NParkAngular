@@ -51,9 +51,15 @@
   overflow-x: hidden;
 }
 
+@media (max-width: 991.98px) {
+  .gate-session-shell.sidebar-is-collapsed .app-content {
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 768px) {
   .gate-session-shell {
-    --gate-sidebar-width: 80px;
+    --gate-sidebar-width: 0px;
   }
 }
 

@@ -28,7 +28,10 @@ import { ToastServices } from '../../Services/Toster/toast-services';
 })
 export class SidebarComponent implements OnDestroy {
   @Input() collapsed = false;
+  @Input() isMobile = false;
+  @Input() mobileOpen = false;
   @Output() toggle = new EventEmitter<void>();
+  @Output() closeMobile = new EventEmitter<void>();
 
   private router = inject(Router);
   public i18n = inject(LanguageService);

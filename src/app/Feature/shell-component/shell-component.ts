@@ -72,18 +72,19 @@ export class ShellComponent implements OnDestroy {
   dir = computed(() => this.i18n.dir());
   isRTL = computed(() => this.i18n.isRTL());
 
-  // Sidebar collapse state
+  // Responsive viewport & sidebar state
   private viewportWidth = signal(typeof window !== 'undefined' ? window.innerWidth : 1440);
-  sidebarCollapsed = signal(this.viewportWidth() <= 1199);
+  isMobileViewport = computed(() => this.viewportWidth() < 992);
+  sidebarCollapsed = signal(this.viewportWidth() < 1200);
+  mobileSidebarOpen = signal(false);
   currentUrl = signal(this.router.url);
-  effectiveSidebarCollapsed = computed(
-    () =>
-      !this.isAdmin ||
-      this.sidebarCollapsed() ||
-      this.viewportWidth() <= 1199 ||
-      this.isExitRoute() ||
-      (this.isEntryRoute() && !this.isAdmin),
-  );
+
+  effectiveSidebarCollapsed = computed(() => {
+    // On mobile/tablet (< 992px), the drawer is always full-width when opened
+    if (this.isMobileViewport()) return false;
+    if (!this.isAdmin) return true;
+    return this.sidebarCollapsed();
+  });
 
   gateOpen = false;
   private sub?: Subscription;
@@ -93,6 +94,7 @@ export class ShellComponent implements OnDestroy {
       if (event instanceof NavigationEnd) {
         this.currentUrl.set(event.urlAfterRedirects);
         this.gateOpen = false;
+        this.mobileSidebarOpen.set(false);
       }
     });
   }
@@ -100,7 +102,18 @@ export class ShellComponent implements OnDestroy {
   @HostListener('window:resize')
   onWindowResize(): void {
     if (typeof window === 'undefined') return;
-    this.viewportWidth.set(window.innerWidth);
+    const width = window.innerWidth;
+    this.viewportWidth.set(width);
+    if (width >= 992 && this.mobileSidebarOpen()) {
+      this.mobileSidebarOpen.set(false);
+    }
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.mobileSidebarOpen()) {
+      this.mobileSidebarOpen.set(false);
+    }
   }
 
   // ===== Roles helpers =====
@@ -141,8 +154,16 @@ export class ShellComponent implements OnDestroy {
   }
 
   toggleSidebar() {
+    if (this.isMobileViewport()) {
+      this.mobileSidebarOpen.update((v) => !v);
+      return;
+    }
     if (!this.isAdmin) return;
     this.sidebarCollapsed.update((v) => !v);
+  }
+
+  closeMobileSidebar() {
+    this.mobileSidebarOpen.set(false);
   }
 
   switchLang() {

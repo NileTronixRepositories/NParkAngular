@@ -16,6 +16,8 @@ import {
   TicketCollectedNotification,
 } from '../../Domain/OverView/dashboard-notifications.model';
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
+import { ReportsService } from '../../Services/Reports/reports.service';
+import { ReportTicketsResponse } from '../../Domain/Reports/reports.model';
 import { TicketDto } from '../../Domain/tickets/tickets.model';
 import { FormsModule } from '@angular/forms';
 import { TicketDetailsModalBlockComponent } from '../Shared/ticket-details-modal-block-component/ticket-details-modal-block-component';
@@ -86,6 +88,7 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
     private readonly overviewServices: OverviewServices,
     private readonly dashboardHub: DashboardHubService,
     private readonly ticketsService: TicketsServices,
+    private readonly reportsService: ReportsService,
     private readonly overviewTour: OverviewTourService,
     private readonly errorExtractor: ErrorExtractorService,
     private readonly hostRef: ElementRef<HTMLElement>,
@@ -503,16 +506,45 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
     });
   }
 
-  private loadTodayTickets(): void {
-    this.overviewServices.getTicketsForEntryAdmin().subscribe({
-      next: (list) => this.todayEntryTickets.set(list ?? []),
-      error: (err) => console.error('Error loading today entry tickets', err),
-    });
+  private loadTodayTickets(type?: TicketsTodayTooltipType): void {
+    const from = this.selectedDashboardFrom;
+    const to = this.selectedDashboardTo;
 
-    this.overviewServices.getTicketsForExitAdmin().subscribe({
-      next: (list) => this.todayExitTickets.set(list ?? []),
-      error: (err) => console.error('Error loading today exit tickets', err),
+    this.reportsService.getReport(from, to).subscribe({
+      next: (rows) => {
+        const list = rows ?? [];
+
+        if (!type || type === 'entry') {
+          this.todayEntryTickets.set(list.map((r) => this.mapReportToAdminTicket(r, 'entry')));
+        }
+
+        if (!type || type === 'exit') {
+          const exited = list.filter((r) => !!r.exitDate);
+          this.todayExitTickets.set(exited.map((r) => this.mapReportToAdminTicket(r, 'exit')));
+        }
+      },
+      error: (err) => console.error('Error loading period tickets', err),
     });
+  }
+
+  private mapReportToAdminTicket(
+    row: ReportTicketsResponse,
+    mode: TicketsTodayTooltipType,
+  ): TicketAdminDto {
+    const infoParts = [
+      row.vehicleNumber?.trim(),
+      row.collectorName?.trim(),
+      row.ticketStatus?.trim(),
+    ].filter(Boolean);
+
+    return {
+      id: row.ticketId,
+      startDate: mode === 'exit' && row.exitDate ? row.exitDate : row.enterDate,
+      ticketNumber: row.ticketNumber || row.ticketId,
+      price: Number(row.price ?? 0) + Number(row.exceedPrice ?? 0),
+      isCollectedByCashier: !!row.collectorName?.trim(),
+      ticketInfo: infoParts.join(' · '),
+    };
   }
 
   private loadMembershipDetails(): void {
@@ -559,6 +591,7 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
     } else {
       this.activeModal.set('ticketsExit');
     }
+    this.loadTodayTickets(type);
   }
 
   // ===== Occupancy (click -> modal) =====

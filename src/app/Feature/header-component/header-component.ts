@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, inject } from '@angular/core';
+import { Component, EventEmitter, Input, Output, inject } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 
 import { AuthService } from '../../Services/Auth/auth-service';
@@ -13,6 +13,10 @@ import { LanguageService } from '../../Services/i18n/language-service';
   styleUrl: './header-component.css',
 })
 export class HeaderComponent {
+  @Input() showMenuToggle = false;
+  @Input() menuOpen = false;
+  @Output() toggleMenu = new EventEmitter<void>();
+
   public lang = inject(LanguageService);
   private readonly auth = inject(AuthService);
   private readonly router = inject(Router);
@@ -23,6 +27,10 @@ export class HeaderComponent {
 
   get logoutLabel(): string {
     return this.lang.current === 'ar' ? 'تسجيل الخروج' : 'Logout';
+  }
+
+  onToggleMenu(): void {
+    this.toggleMenu.emit();
   }
 
   switchLang(): void {

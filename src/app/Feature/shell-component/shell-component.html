@@ -3,16 +3,25 @@
   [attr.dir]="dir()"
   [class.gate-session-shell]="isEntryRoute() || isExitRoute()"
   [class.sidebar-is-collapsed]="effectiveSidebarCollapsed()"
+  [class.mobile-shell]="isMobileViewport()"
 >
   <!-- Sidebar -->
   <app-sidebar-component
     [collapsed]="effectiveSidebarCollapsed()"
+    [isMobile]="isMobileViewport()"
+    [mobileOpen]="mobileSidebarOpen()"
     (toggle)="toggleSidebar()"
+    (closeMobile)="closeMobileSidebar()"
   ></app-sidebar-component>
 
   <!-- Main Content -->
   <main class="app-content" [class.headerless]="!shouldShowHeader">
-    <app-header-component *ngIf="shouldShowHeader"></app-header-component>
+    <app-header-component
+      *ngIf="shouldShowHeader"
+      [showMenuToggle]="isMobileViewport()"
+      [menuOpen]="mobileSidebarOpen()"
+      (toggleMenu)="toggleSidebar()"
+    ></app-header-component>
     <div class="page-content">
       <router-outlet></router-outlet>
     </div>

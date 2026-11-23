@@ -1,13 +1,16 @@
-<div class="sidebar-backdrop" [class.show]="!collapsed" (click)="onToggle()"></div>
+<div class="sidebar-backdrop" [class.show]="isMobile && mobileOpen" (click)="closeMobile.emit()"></div>
 
 <aside
   class="app-sidebar"
-  [class.collapsed]="collapsed"
+  [attr.dir]="dir()"
+  [class.collapsed]="collapsed && !isMobile"
+  [class.mobile-drawer]="isMobile"
+  [class.mobile-open]="isMobile && mobileOpen"
   [class.gate-session]="showGateSessionActions"
 >
   <!-- Sidebar Header -->
   <div class="sidebar-header">
-    <a class="brand" routerLink="/" *ngIf="!collapsed" dir="ltr">
+    <a class="brand" routerLink="/" *ngIf="!collapsed || isMobile" dir="ltr">
       <img src="/assets/image/niletronix-icon.png" alt="Niletronix" class="brand-emblem" />
       <span class="brand-sep" aria-hidden="true"></span>
       <span class="brand-wordmark">
@@ -17,11 +20,25 @@
 
     <!-- Toggle Button -->
     <button
+      type="button"
       class="sidebar-toggle"
-      (click)="onToggle()"
-      [attr.aria-label]="collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+      (click)="isMobile ? closeMobile.emit() : onToggle()"
+      [attr.aria-label]="isMobile ? 'Close menu' : collapsed ? 'Expand sidebar' : 'Collapse sidebar'"
     >
-      <i class="fa-solid" [ngClass]="collapsed ? 'fa-chevron-right' : 'fa-chevron-left'"></i>
+      <i
+        class="fa-solid"
+        [ngClass]="
+          isMobile
+            ? 'fa-xmark'
+            : collapsed
+              ? isRTL()
+                ? 'fa-chevron-left'
+                : 'fa-chevron-right'
+              : isRTL()
+                ? 'fa-chevron-right'
+                : 'fa-chevron-left'
+        "
+      ></i>
     </button>
   </div>
 

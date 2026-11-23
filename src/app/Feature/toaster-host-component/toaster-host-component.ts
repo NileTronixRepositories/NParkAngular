@@ -1,19 +1,33 @@
-import { Component, ViewChild } from '@angular/core';
-import { ToastContainerDirective, ToastrService } from 'ngx-toastr';
+import { CommonModule } from '@angular/common';
+import { Component, inject } from '@angular/core';
+import { ToastItem, ToastServices, ToastTone } from '../../Services/Toster/toast-services';
+import { LanguageService } from '../../Services/i18n/language-service';
 
 @Component({
   selector: 'app-toaster-host-component',
-  imports: [],
+  standalone: true,
+  imports: [CommonModule],
   templateUrl: './toaster-host-component.html',
   styleUrl: './toaster-host-component.css',
 })
 export class ToasterHostComponent {
-  @ViewChild(ToastContainerDirective, { static: true })
-  toastContainer!: ToastContainerDirective;
+  readonly toastService = inject(ToastServices);
+  readonly lang = inject(LanguageService);
 
-  constructor(private toastr: ToastrService) {}
+  trackById(_index: number, item: ToastItem): number {
+    return item.id;
+  }
 
-  ngAfterViewInit(): void {
-    this.toastr.overlayContainer = this.toastContainer;
+  iconClass(tone: ToastTone): string {
+    switch (tone) {
+      case 'success':
+        return 'fa-solid fa-circle-check';
+      case 'error':
+        return 'fa-solid fa-circle-exclamation';
+      case 'warn':
+        return 'fa-solid fa-triangle-exclamation';
+      default:
+        return 'fa-solid fa-circle-info';
+    }
   }
 }

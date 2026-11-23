@@ -23,6 +23,38 @@
   gap: 1rem;
 }
 
+.header-start {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.header-menu-btn {
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #10243b;
+  font-size: 1rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease;
+}
+
+.header-menu-btn:hover {
+  background: #10243b;
+  border-color: #10243b;
+  color: #ffffff;
+}
+
 .navbar-brand {
   margin: 0;
   direction: ltr;

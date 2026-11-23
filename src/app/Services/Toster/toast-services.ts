@@ -1,22 +1,33 @@
-import { inject, Injectable } from '@angular/core';
-import { ToastrService } from 'ngx-toastr';
+import { inject, Injectable, signal } from '@angular/core';
 import { LanguageService, AppLang } from '../i18n/language-service';
 import { ErrorExtractorService } from '../Shared/error-extractor.service';
+
+export type ToastTone = 'success' | 'warn' | 'error' | 'info';
+
+export interface ToastItem {
+  id: number;
+  tone: ToastTone;
+  title: string;
+  message: string;
+  duration: number;
+  leaving?: boolean;
+}
 
 @Injectable({
   providedIn: 'root',
 })
 export class ToastServices {
-  private toastr = inject(ToastrService);
-  private lang = inject(LanguageService);
-  private errorExtractor = inject(ErrorExtractorService);
+  private readonly lang = inject(LanguageService);
+  private readonly errorExtractor = inject(ErrorExtractorService);
   private readonly handledErrors = new WeakSet<object>();
 
-  constructor() {}
+  private nextId = 1;
+  private readonly timers = new Map<number, ReturnType<typeof setTimeout>>();
+  private readonly remainingMs = new Map<number, number>();
+  private readonly startedAt = new Map<number, number>();
 
-  private currentLang(): AppLang {
-    return this.lang.current ?? 'ar';
-  }
+  private readonly _toasts = signal<ToastItem[]>([]);
+  readonly toasts = this._toasts.asReadonly();
 
   private readonly defaultTitles: Record<
     AppLang,
@@ -24,14 +35,16 @@ export class ToastServices {
       success: string;
       warn: string;
       error: string;
+      info: string;
       unexpected: string;
       unknown: string;
     }
   > = {
     ar: {
       success: 'تم بنجاح',
-      warn: 'تحذير',
+      warn: 'تنبيه',
       error: 'خطأ',
+      info: 'معلومة',
       unexpected: 'حدث خطأ غير متوقع',
       unknown: 'خطأ غير معروف',
     },
@@ -39,29 +52,106 @@ export class ToastServices {
       success: 'Success',
       warn: 'Warning',
       error: 'Error',
+      info: 'Info',
       unexpected: 'Unexpected error occurred',
       unknown: 'Unknown error',
     },
   };
 
+  private currentLang(): AppLang {
+    return this.lang.current ?? 'ar';
+  }
+
   // ================== BASIC TOASTS ==================
-  success(message: string, title?: string) {
+  success(message: string, title?: string, duration = 4000): void {
     const lang = this.currentLang();
-    this.toastr.success(message, title ?? this.defaultTitles[lang].success);
+    this.push('success', message, title ?? this.defaultTitles[lang].success, duration);
   }
 
-  warn(message: string, title?: string) {
+  warn(message: string, title?: string, duration = 4500): void {
     const lang = this.currentLang();
-    this.toastr.warning(message, title ?? this.defaultTitles[lang].warn);
+    this.push('warn', message, title ?? this.defaultTitles[lang].warn, duration);
   }
 
-  error(message: string, title?: string) {
+  error(message: string, title?: string, duration = 5000): void {
     const lang = this.currentLang();
-    this.toastr.error(message, title ?? this.defaultTitles[lang].error);
+    this.push('error', message, title ?? this.defaultTitles[lang].error, duration);
+  }
+
+  info(message: string, title?: string, duration = 4000): void {
+    const lang = this.currentLang();
+    this.push('info', message, title ?? this.defaultTitles[lang].info, duration);
+  }
+
+  dismiss(id: number): void {
+    this.clearTimer(id);
+    this.remainingMs.delete(id);
+    this.startedAt.delete(id);
+
+    this._toasts.update((list) =>
+      list.map((item) => (item.id === id ? { ...item, leaving: true } : item)),
+    );
+
+    setTimeout(() => {
+      this._toasts.update((list) => list.filter((item) => item.id !== id));
+    }, 220);
+  }
+
+  pause(id: number): void {
+    const timer = this.timers.get(id);
+    if (!timer) return;
+    clearTimeout(timer);
+    this.timers.delete(id);
+
+    const started = this.startedAt.get(id);
+    const currentRemaining = this.remainingMs.get(id) ?? 0;
+    if (started != null) {
+      const elapsed = Date.now() - started;
+      this.remainingMs.set(id, Math.max(400, currentRemaining - elapsed));
+    }
+  }
+
+  resume(id: number): void {
+    const remaining = this.remainingMs.get(id);
+    if (remaining == null || this.timers.has(id)) return;
+    this.scheduleDismiss(id, remaining);
+  }
+
+  private push(tone: ToastTone, rawMessage: string, title: string, duration: number): void {
+    const message = String(rawMessage ?? '').trim();
+    if (!message) return;
+
+    // Prevent exact duplicate active toasts
+    const exists = this._toasts().some(
+      (item) => !item.leaving && item.tone === tone && item.title === title && item.message === message,
+    );
+    if (exists) return;
+
+    const id = this.nextId++;
+    const item: ToastItem = { id, tone, title, message, duration };
+
+    this._toasts.update((list) => [item, ...list].slice(0, 5));
+    this.remainingMs.set(id, duration);
+    this.scheduleDismiss(id, duration);
+  }
+
+  private scheduleDismiss(id: number, ms: number): void {
+    this.clearTimer(id);
+    this.startedAt.set(id, Date.now());
+    const timer = setTimeout(() => this.dismiss(id), ms);
+    this.timers.set(id, timer);
+  }
+
+  private clearTimer(id: number): void {
+    const timer = this.timers.get(id);
+    if (timer) {
+      clearTimeout(timer);
+      this.timers.delete(id);
+    }
   }
 
   // ================== UNIFIED ERROR HANDLER ==================
-  fromProblem(err: any) {
+  fromProblem(err: any): void {
     const lang = this.currentLang();
     const t = this.defaultTitles[lang];
 
@@ -78,28 +168,40 @@ export class ToastServices {
     }
 
     const status = err?.status;
+    // Always prioritize the exact localized message returned by the backend server
+    const backendMessage = this.extractBackendMessage(err);
 
     if (status === 401) {
       this.warn(
-        lang === 'ar'
-          ? 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى.'
-          : 'Your session has expired. Please sign in again.',
+        backendMessage ||
+          (lang === 'ar'
+            ? 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى.'
+            : 'Your session has expired. Please sign in again.'),
       );
+      return;
+    }
+
+    if (backendMessage) {
+      this.error(backendMessage, t.error);
       return;
     }
 
     if (status === 403) {
       this.error(
-        lang === 'ar' ? 'ليس لديك صلاحية لتنفيذ هذا الإجراء' : 'You are not allowed to perform this action',
+        lang === 'ar'
+          ? 'ليس لديك صلاحية لتنفيذ هذا الإجراء'
+          : 'You are not allowed to perform this action',
         t.error,
       );
       return;
     }
 
-    const backendMessage = this.extractBackendMessage(err);
-
-    if (backendMessage) {
-      this.error(backendMessage, t.error);
+    if (status === 429) {
+      this.warn(
+        lang === 'ar'
+          ? 'تم تجاوز الحد المسموح من الطلبات، حاول لاحقاً'
+          : 'Too many requests. Please try again later.',
+      );
       return;
     }
 
@@ -128,7 +230,7 @@ export class ToastServices {
   }
 
   // ================== UNIFIED SUCCESS HANDLER ==================
-  fromSuccess(res: any, fallback?: string) {
+  fromSuccess(res: any, fallback?: string): void {
     const lang = this.currentLang();
     const t = this.defaultTitles[lang];
 

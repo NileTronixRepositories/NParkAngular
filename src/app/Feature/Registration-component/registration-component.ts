@@ -148,7 +148,7 @@ import { environment } from '../../Shared/environment/environment';
 
           // ===== misc =====
           loading: 'جاري التحميل…',
-          helpTour: 'Help Tour',
+          helpTour: 'جولة إرشادية',
         },
         en: {
           helpTour: 'Help Tour',

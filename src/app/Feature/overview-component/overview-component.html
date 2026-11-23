@@ -1181,26 +1181,49 @@
     (click)="$event.stopPropagation()"
   >
     <div class="data-modal__header">
-      <h5 class="data-modal__title">
+      <div class="data-modal__title-wrap">
         <ng-container [ngSwitch]="activeModal()">
-          <span *ngSwitchCase="'occupancy'">
-            {{ 'occupancy' | t }} – {{ 'inside' | t }}: {{ currentVehiclesInside() }}
+          <span *ngSwitchCase="'occupancy'" class="data-modal__icon data-modal__icon--teal" aria-hidden="true">
+            <i class="fa-solid fa-car"></i>
           </span>
-          <span *ngSwitchCase="'ticketsEntry'">{{ 'ticketsToday' | t }} – {{ 'entry' | t }}</span>
-          <span *ngSwitchCase="'ticketsExit'">{{ 'ticketsToday' | t }} – {{ 'exit' | t }}</span>
-          <span *ngSwitchCase="'membershipActive'">
-            {{ 'memberships' | t }} – {{ 'active' | t }}
+          <span *ngSwitchCase="'ticketsEntry'" class="data-modal__icon data-modal__icon--blue" aria-hidden="true">
+            <i class="fa-solid fa-arrow-right-to-bracket"></i>
           </span>
-          <span *ngSwitchCase="'membershipInactive'">
-            {{ 'memberships' | t }} – {{ 'inactive' | t }}
+          <span *ngSwitchCase="'ticketsExit'" class="data-modal__icon data-modal__icon--blue" aria-hidden="true">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
           </span>
-          <span *ngSwitchCase="'membershipExpiring'">
-            {{ 'memberships' | t }} – {{ 'expiringNext7Days' | t }}
+          <span *ngSwitchCase="'membershipActive'" class="data-modal__icon data-modal__icon--teal" aria-hidden="true">
+            <i class="fa-solid fa-id-card"></i>
+          </span>
+          <span *ngSwitchCase="'membershipInactive'" class="data-modal__icon data-modal__icon--slate" aria-hidden="true">
+            <i class="fa-solid fa-user-slash"></i>
+          </span>
+          <span *ngSwitchCase="'membershipExpiring'" class="data-modal__icon data-modal__icon--amber" aria-hidden="true">
+            <i class="fa-solid fa-hourglass-half"></i>
           </span>
         </ng-container>
-      </h5>
+
+        <h5 class="data-modal__title">
+          <ng-container [ngSwitch]="activeModal()">
+            <span *ngSwitchCase="'occupancy'">
+              {{ 'occupancy' | t }} – {{ 'inside' | t }}: {{ currentVehiclesInside() }}
+            </span>
+            <span *ngSwitchCase="'ticketsEntry'">{{ 'ticketsToday' | t }} – {{ 'entry' | t }}</span>
+            <span *ngSwitchCase="'ticketsExit'">{{ 'ticketsToday' | t }} – {{ 'exit' | t }}</span>
+            <span *ngSwitchCase="'membershipActive'">
+              {{ 'memberships' | t }} – {{ 'active' | t }}
+            </span>
+            <span *ngSwitchCase="'membershipInactive'">
+              {{ 'memberships' | t }} – {{ 'inactive' | t }}
+            </span>
+            <span *ngSwitchCase="'membershipExpiring'">
+              {{ 'memberships' | t }} – {{ 'expiringNext7Days' | t }}
+            </span>
+          </ng-container>
+        </h5>
+      </div>
       <button type="button" class="data-modal__close" (click)="closeModal()" aria-label="Close">
-        &times;
+        <i class="fa-solid fa-xmark" aria-hidden="true"></i>
       </button>
     </div>
 
@@ -1208,23 +1231,32 @@
       <ng-container [ngSwitch]="activeModal()">
         <!-- Occupancy -->
         <div *ngSwitchCase="'occupancy'">
-          <p class="data-modal__subtitle">
-            {{ lang.isRTL() ? 'التذاكر داخل الساحة حالياً' : 'Tickets currently inside the park' }}
-          </p>
+          <div class="data-modal__subtitle-bar">
+            <p class="data-modal__subtitle">
+              <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+              <span>{{ lang.isRTL() ? 'التذاكر داخل الساحة حالياً' : 'Tickets currently inside the park' }}</span>
+            </p>
+            <span class="data-modal__count-pill" dir="ltr">{{ ticketsInside().length }}</span>
+          </div>
 
           <ng-container *ngIf="ticketsInside().length > 0; else noData">
             <div class="data-modal__list">
-              <div class="data-modal__item" *ngFor="let t of ticketsInside()">
+              <div class="data-modal__item data-modal__item--teal" *ngFor="let t of ticketsInside()">
                 <div class="data-modal__item-main">
                   <span class="data-modal__ticket-number" dir="ltr">
+                    <i class="fa-solid fa-ticket data-modal__row-icon" aria-hidden="true"></i>
                     {{ t.ticketNumber || ('id' | t) + ': ' + t.id }}
                   </span>
-                  <span class="data-modal__ticket-meta" dir="ltr">
+                  <span class="data-modal__badge-pill" dir="ltr">
+                    <i class="fa-regular fa-clock" aria-hidden="true"></i>
                     {{ t.startDate | date: 'short' }}
                   </span>
                 </div>
                 <div class="data-modal__item-extra" *ngIf="t.ticketInfo">
-                  {{ t.ticketInfo }}
+                  <span class="data-modal__extra-chip">
+                    <i class="fa-solid fa-car-side" aria-hidden="true"></i>
+                    {{ t.ticketInfo }}
+                  </span>
                 </div>
               </div>
             </div>
@@ -1233,26 +1265,42 @@
 
         <!-- Today entry tickets -->
         <div *ngSwitchCase="'ticketsEntry'">
-          <p class="data-modal__subtitle">
-            {{ lang.isRTL() ? 'تذاكر الدخول الصادرة اليوم' : 'Entry tickets created today' }}
-          </p>
+          <div class="data-modal__subtitle-bar">
+            <p class="data-modal__subtitle">
+              <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+              <span>{{ lang.isRTL() ? 'تذاكر الدخول خلال الفترة المحددة' : 'Entry tickets in selected period' }}</span>
+            </p>
+            <span class="data-modal__count-pill" dir="ltr">{{ todayEntryTickets().length }}</span>
+          </div>
 
           <ng-container *ngIf="todayEntryTickets().length > 0; else noData">
             <div class="data-modal__list">
-              <div class="data-modal__item" *ngFor="let ticket of todayEntryTickets()">
+              <div class="data-modal__item data-modal__item--blue" *ngFor="let ticket of todayEntryTickets()">
                 <div class="data-modal__item-main">
                   <span class="data-modal__ticket-number" dir="ltr">
+                    <i class="fa-solid fa-ticket data-modal__row-icon" aria-hidden="true"></i>
                     {{ ticket.ticketNumber || ('id' | t) + ': ' + ticket.id }}
                   </span>
-                  <span class="data-modal__ticket-meta" dir="ltr">
-                    {{ ticket.startDate | date: 'shortTime' }}
+                  <span class="data-modal__badge-pill" dir="ltr">
+                    <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                    {{ ticket.startDate | date: 'short' }}
                   </span>
                 </div>
                 <div class="data-modal__item-extra">
-                  <span dir="ltr">{{ formatCurrency(ticket.price) }} {{ 'egp' | t }}</span>
-                  <span *ngIf="ticket.ticketInfo"> · {{ ticket.ticketInfo }}</span>
-                  <span *ngIf="ticket.isCollectedByCashier" class="text-success-ink">
-                    · {{ 'collected' | t }}
+                  <span class="data-modal__extra-chip data-modal__extra-chip--price" dir="ltr">
+                    <i class="fa-solid fa-coins" aria-hidden="true"></i>
+                    {{ formatCurrency(ticket.price) }} {{ 'egp' | t }}
+                  </span>
+                  <span class="data-modal__extra-chip" *ngIf="ticket.ticketInfo">
+                    <i class="fa-solid fa-circle-dot" aria-hidden="true"></i>
+                    {{ ticket.ticketInfo }}
+                  </span>
+                  <span
+                    *ngIf="ticket.isCollectedByCashier"
+                    class="data-modal__extra-chip data-modal__extra-chip--success"
+                  >
+                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                    {{ 'collected' | t }}
                   </span>
                 </div>
               </div>
@@ -1262,26 +1310,42 @@
 
         <!-- Today exit tickets -->
         <div *ngSwitchCase="'ticketsExit'">
-          <p class="data-modal__subtitle">
-            {{ lang.isRTL() ? 'تذاكر الخروج المحسوبة اليوم' : 'Exit tickets processed today' }}
-          </p>
+          <div class="data-modal__subtitle-bar">
+            <p class="data-modal__subtitle">
+              <i class="fa-solid fa-circle-info" aria-hidden="true"></i>
+              <span>{{ lang.isRTL() ? 'تذاكر الخروج خلال الفترة المحددة' : 'Exit tickets in selected period' }}</span>
+            </p>
+            <span class="data-modal__count-pill" dir="ltr">{{ todayExitTickets().length }}</span>
+          </div>
 
           <ng-container *ngIf="todayExitTickets().length > 0; else noData">
             <div class="data-modal__list">
-              <div class="data-modal__item" *ngFor="let ticket of todayExitTickets()">
+              <div class="data-modal__item data-modal__item--blue" *ngFor="let ticket of todayExitTickets()">
                 <div class="data-modal__item-main">
                   <span class="data-modal__ticket-number" dir="ltr">
+                    <i class="fa-solid fa-ticket data-modal__row-icon" aria-hidden="true"></i>
                     {{ ticket.ticketNumber || ('id' | t) + ': ' + ticket.id }}
                   </span>
-                  <span class="data-modal__ticket-meta" dir="ltr">
-                    {{ ticket.startDate | date: 'shortTime' }}
+                  <span class="data-modal__badge-pill" dir="ltr">
+                    <i class="fa-regular fa-clock" aria-hidden="true"></i>
+                    {{ ticket.startDate | date: 'short' }}
                   </span>
                 </div>
                 <div class="data-modal__item-extra">
-                  <span dir="ltr">{{ formatCurrency(ticket.price) }} {{ 'egp' | t }}</span>
-                  <span *ngIf="ticket.ticketInfo"> · {{ ticket.ticketInfo }}</span>
-                  <span *ngIf="ticket.isCollectedByCashier" class="text-success-ink">
-                    · {{ 'collected' | t }}
+                  <span class="data-modal__extra-chip data-modal__extra-chip--price" dir="ltr">
+                    <i class="fa-solid fa-coins" aria-hidden="true"></i>
+                    {{ formatCurrency(ticket.price) }} {{ 'egp' | t }}
+                  </span>
+                  <span class="data-modal__extra-chip" *ngIf="ticket.ticketInfo">
+                    <i class="fa-solid fa-circle-dot" aria-hidden="true"></i>
+                    {{ ticket.ticketInfo }}
+                  </span>
+                  <span
+                    *ngIf="ticket.isCollectedByCashier"
+                    class="data-modal__extra-chip data-modal__extra-chip--success"
+                  >
+                    <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+                    {{ 'collected' | t }}
                   </span>
                 </div>
               </div>
@@ -1291,23 +1355,36 @@
 
         <!-- Membership Active -->
         <div *ngSwitchCase="'membershipActive'">
-          <p class="data-modal__subtitle">
-            {{ lang.isRTL() ? 'الاشتراكات النشطة حالياً' : 'Currently active memberships' }}
-          </p>
+          <div class="data-modal__subtitle-bar">
+            <p class="data-modal__subtitle">
+              <i class="fa-solid fa-circle-check text-success-ink" aria-hidden="true"></i>
+              <span>{{ lang.isRTL() ? 'الاشتراكات النشطة حالياً' : 'Currently active memberships' }}</span>
+            </p>
+            <span class="data-modal__count-pill data-modal__count-pill--teal" dir="ltr">
+              {{ activeMemberships().length }}
+            </span>
+          </div>
 
           <ng-container *ngIf="activeMemberships().length > 0; else noData">
             <div class="data-modal__list">
-              <div class="data-modal__item" *ngFor="let m of activeMemberships()">
+              <div class="data-modal__item data-modal__item--teal" *ngFor="let m of activeMemberships()">
                 <div class="data-modal__item-main">
-                  <span class="data-modal__ticket-number">{{ m.name }}</span>
-                  <span class="data-modal__ticket-meta" dir="ltr">
+                  <span class="data-modal__ticket-number">
+                    <i class="fa-solid fa-user data-modal__row-icon" aria-hidden="true"></i>
+                    {{ m.name }}
+                  </span>
+                  <span class="data-modal__badge-pill" dir="ltr">
+                    <i class="fa-solid fa-car-side" aria-hidden="true"></i>
                     {{ m.vehicleNumber || m.cardNumber }}
                   </span>
                 </div>
                 <div class="data-modal__item-extra">
-                  <span>{{ m.pricingSchemeName }}</span>
-                  ·
-                  <span dir="ltr">
+                  <span class="data-modal__extra-chip">
+                    <i class="fa-solid fa-tag" aria-hidden="true"></i>
+                    {{ m.pricingSchemeName }}
+                  </span>
+                  <span class="data-modal__extra-chip" dir="ltr">
+                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
                     {{ m.createdAt | date: 'shortDate' }} → {{ m.endDate | date: 'shortDate' }}
                   </span>
                 </div>
@@ -1318,23 +1395,34 @@
 
         <!-- Membership Inactive -->
         <div *ngSwitchCase="'membershipInactive'">
-          <p class="data-modal__subtitle">
-            {{ lang.isRTL() ? 'الاشتراكات غير النشطة' : 'Inactive / expired memberships' }}
-          </p>
+          <div class="data-modal__subtitle-bar">
+            <p class="data-modal__subtitle">
+              <i class="fa-solid fa-user-slash" aria-hidden="true"></i>
+              <span>{{ lang.isRTL() ? 'الاشتراكات غير النشطة' : 'Inactive / expired memberships' }}</span>
+            </p>
+            <span class="data-modal__count-pill" dir="ltr">{{ inactiveMemberships().length }}</span>
+          </div>
 
           <ng-container *ngIf="inactiveMemberships().length > 0; else noData">
             <div class="data-modal__list">
-              <div class="data-modal__item" *ngFor="let m of inactiveMemberships()">
+              <div class="data-modal__item data-modal__item--slate" *ngFor="let m of inactiveMemberships()">
                 <div class="data-modal__item-main">
-                  <span class="data-modal__ticket-number">{{ m.name }}</span>
-                  <span class="data-modal__ticket-meta" dir="ltr">
+                  <span class="data-modal__ticket-number">
+                    <i class="fa-solid fa-user data-modal__row-icon" aria-hidden="true"></i>
+                    {{ m.name }}
+                  </span>
+                  <span class="data-modal__badge-pill" dir="ltr">
+                    <i class="fa-solid fa-car-side" aria-hidden="true"></i>
                     {{ m.vehicleNumber || m.cardNumber }}
                   </span>
                 </div>
                 <div class="data-modal__item-extra">
-                  <span>{{ m.pricingSchemeName }}</span>
-                  ·
-                  <span dir="ltr">
+                  <span class="data-modal__extra-chip">
+                    <i class="fa-solid fa-tag" aria-hidden="true"></i>
+                    {{ m.pricingSchemeName }}
+                  </span>
+                  <span class="data-modal__extra-chip" dir="ltr">
+                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
                     {{ m.createdAt | date: 'shortDate' }} → {{ m.endDate | date: 'shortDate' }}
                   </span>
                 </div>
@@ -1345,27 +1433,42 @@
 
         <!-- Membership Expiring -->
         <div *ngSwitchCase="'membershipExpiring'">
-          <p class="data-modal__subtitle">
-            {{
-              lang.isRTL()
-                ? 'الاشتراكات التي تنتهي خلال 7 أيام'
-                : 'Memberships expiring within 7 days'
-            }}
-          </p>
+          <div class="data-modal__subtitle-bar">
+            <p class="data-modal__subtitle">
+              <i class="fa-solid fa-triangle-exclamation text-warning-ink" aria-hidden="true"></i>
+              <span>
+                {{
+                  lang.isRTL()
+                    ? 'الاشتراكات التي تنتهي خلال 7 أيام'
+                    : 'Memberships expiring within 7 days'
+                }}
+              </span>
+            </p>
+            <span class="data-modal__count-pill data-modal__count-pill--amber" dir="ltr">
+              {{ expiringMemberships().length }}
+            </span>
+          </div>
 
           <ng-container *ngIf="expiringMemberships().length > 0; else noData">
             <div class="data-modal__list">
-              <div class="data-modal__item" *ngFor="let m of expiringMemberships()">
+              <div class="data-modal__item data-modal__item--amber" *ngFor="let m of expiringMemberships()">
                 <div class="data-modal__item-main">
-                  <span class="data-modal__ticket-number">{{ m.name }}</span>
-                  <span class="data-modal__ticket-meta" dir="ltr">
+                  <span class="data-modal__ticket-number">
+                    <i class="fa-solid fa-user data-modal__row-icon" aria-hidden="true"></i>
+                    {{ m.name }}
+                  </span>
+                  <span class="data-modal__badge-pill" dir="ltr">
+                    <i class="fa-solid fa-car-side" aria-hidden="true"></i>
                     {{ m.vehicleNumber || m.cardNumber }}
                   </span>
                 </div>
                 <div class="data-modal__item-extra">
-                  <span>{{ m.pricingSchemeName }}</span>
-                  ·
-                  <span dir="ltr">
+                  <span class="data-modal__extra-chip">
+                    <i class="fa-solid fa-tag" aria-hidden="true"></i>
+                    {{ m.pricingSchemeName }}
+                  </span>
+                  <span class="data-modal__extra-chip" dir="ltr">
+                    <i class="fa-regular fa-calendar" aria-hidden="true"></i>
                     {{ m.createdAt | date: 'shortDate' }} → {{ m.endDate | date: 'shortDate' }}
                   </span>
                 </div>
@@ -1377,7 +1480,10 @@
 
       <ng-template #noData>
         <div class="data-modal__empty">
-          {{ lang.isRTL() ? 'لا توجد بيانات متاحة' : 'No data available' }}
+          <span class="data-modal__empty-icon" aria-hidden="true">
+            <i class="fa-regular fa-folder-open"></i>
+          </span>
+          <span>{{ lang.isRTL() ? 'لا توجد بيانات متاحة' : 'No data available' }}</span>
         </div>
       </ng-template>
     </div>

@@ -499,7 +499,7 @@
   font-size: 0.88rem;
 }
 
-.embedded-report-header span {
+.embedded-report-header .min-w-0 span {
   display: block;
   color: #64748b;
   font-size: 0.74rem;
