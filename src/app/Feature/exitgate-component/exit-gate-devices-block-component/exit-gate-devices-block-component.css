@@ -383,50 +383,58 @@
   color: #ffffff;
 }
 
-/* === Cheerful Eye-Friendly Accents === */
-.gate-devices-card {
-  border-color: #dbeafe !important;
-  box-shadow: 0 4px 16px rgba(59, 130, 246, 0.06) !important;
+/* === Clean White SaaS Override === */
+:host {
+  height: 100%;
 }
 
-.gate-devices-card .card-header {
-  background: linear-gradient(135deg, #f0f5ff 0%, #f8fafc 100%) !important;
-  border-bottom-color: #dbeafe !important;
-}
-
-.card-header-icon {
-  background: #e0e7ff !important;
-  color: #4f46e5 !important;
-}
-
-.btn-np-navy {
-  background: linear-gradient(135deg, #10243b 0%, #1e40af 100%) !important;
-  border-color: #10243b !important;
-}
-
-/* === Compact Clean Layout & Vibrant Header Tint === */
 :host .gate-devices-card {
-  height: auto !important;
-  border-color: #c7d2fe !important;
+  height: 100% !important;
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04) !important;
+  overflow: hidden !important;
 }
 
 :host .gate-devices-card > .card-header {
-  background: linear-gradient(135deg, #eef2ff 0%, #f8fafc 100%) !important;
-  border-bottom: 1px solid #c7d2fe !important;
-  padding: 0.48rem 0.7rem !important;
+  background: #fafcff !important;
+  border-bottom: 1px solid #edf2f7 !important;
+  padding: 0.55rem 0.8rem !important;
 }
 
 :host .card-header-icon {
-  background: #e0e7ff !important;
-  color: #4f46e5 !important;
+  background: #f1f5f9 !important;
+  color: #10243b !important;
+  border-radius: 8px;
 }
 
 :host .card-body {
-  padding: 0.55rem !important;
+  padding: 0.65rem !important;
 }
 
-/* Clip card-header cleanly inside rounded border */
-:host .gate-devices-card {
-  overflow: hidden !important;
-  border-radius: 14px !important;
+:host .scanned-card-premium {
+  border-color: #e2e8f0 !important;
+  box-shadow: none !important;
+}
+
+:host .device-row {
+  padding: 0.5rem !important;
+  border-color: #e2e8f0 !important;
+  background: #fafcff !important;
+}
+
+:host .uploaded-images-card {
+  border-color: #e2e8f0 !important;
+  background: #fafcff !important;
+}
+
+:host .btn-np-navy {
+  background: #10243b !important;
+  border-color: #10243b !important;
+}
+
+:host .btn-np-navy:hover:not(:disabled) {
+  background: #0a1929 !important;
+  border-color: #0a1929 !important;
 }

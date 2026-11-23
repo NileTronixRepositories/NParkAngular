@@ -1,59 +1,65 @@
 <!-- Ticket Details Modal Overlay -->
-<div 
-  class="modal fade" 
-  [class.show]="show" 
-  [style.display]="show ? 'block' : 'none'" 
-  tabindex="-1" 
-  role="dialog" 
-  aria-hidden="true" 
+<div
+  class="modal fade"
+  [class.show]="show"
+  [style.display]="show ? 'block' : 'none'"
+  tabindex="-1"
+  role="dialog"
+  aria-hidden="true"
   (click)="onClose()"
 >
   <div class="modal-dialog modal-dialog-centered" role="document" (click)="$event.stopPropagation()">
     <div
-      class="modal-content ticket-summary-modal border-0 shadow-lg overflow-hidden"
+      class="modal-content ticket-summary-modal overflow-hidden"
       [attr.dir]="isRTL ? 'rtl' : 'ltr'"
     >
-      <!-- Header -->
-      <div class="modal-header details-header border-bottom-0 bg-primary text-white">
-        <h5 class="modal-title fw-bold m-0 d-flex align-items-center gap-2 min-w-0">
-          <i class="bi bi-ticket-detailed"></i>
-          <span class="text-truncate">{{ t('ticket_details') }}</span>
-        </h5>
+      <!-- Clean Header -->
+      <div class="modal-header details-header">
+        <div class="details-title-wrap">
+          <span class="details-title-icon" aria-hidden="true">
+            <i class="fa-solid fa-ticket"></i>
+          </span>
+          <h5 class="modal-title m-0 text-truncate">{{ t('ticket_details') }}</h5>
+        </div>
         <button
           type="button"
-          class="btn-close btn-close-white details-close"
+          class="details-close-btn"
           (click)="onClose()"
           aria-label="Close"
-        ></button>
+        >
+          <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+        </button>
       </div>
 
       <!-- Body -->
       <div class="modal-body" *ngIf="ticket">
         <div class="summary-shell">
+          <!-- Ticket Number + Status Row -->
           <div class="summary-main">
-            <div class="summary-label">{{ t('ticket_number') }}</div>
-            <div class="summary-ticket mono" dir="ltr">{{ ticket.ticketNumber || ticket.id }}</div>
-          </div>
+            <div class="min-w-0">
+              <div class="summary-label">{{ t('ticket_number') }}</div>
+              <div class="summary-ticket mono" dir="ltr">{{ ticket.ticketNumber || ticket.id }}</div>
+            </div>
 
-          <div class="summary-status">
             <span
               class="status-pill"
               [class.status-pill--success]="ticket.isCollectedByCashier"
               [class.status-pill--warning]="!ticket.isCollectedByCashier"
             >
               <i
-                class="bi"
-                [class.bi-check-circle]="ticket.isCollectedByCashier"
-                [class.bi-clock-history]="!ticket.isCollectedByCashier"
+                class="fa-solid"
+                [class.fa-circle-check]="ticket.isCollectedByCashier"
+                [class.fa-clock]="!ticket.isCollectedByCashier"
+                aria-hidden="true"
               ></i>
-              {{ ticket.isCollectedByCashier ? t('collected') : t('not_collected') }}
+              <span>{{ ticket.isCollectedByCashier ? t('collected') : t('not_collected') }}</span>
             </span>
           </div>
 
           <div class="summary-grid">
             <div class="summary-item">
               <div class="summary-item-label">
-                <i class="bi bi-calendar3 text-primary"></i>
+                <i class="fa-regular fa-calendar icon-muted"></i>
                 <span>{{ t('time') }}</span>
               </div>
               <div class="summary-item-value mono" dir="ltr">
@@ -63,17 +69,17 @@
 
             <div class="summary-item" *ngIf="ticket.price !== undefined">
               <div class="summary-item-label">
-                <i class="bi bi-currency-exchange text-success"></i>
+                <i class="fa-solid fa-coins icon-teal"></i>
                 <span>{{ t('price') }}</span>
               </div>
-              <div class="summary-item-value summary-price">
+              <div class="summary-item-value summary-price" dir="ltr">
                 {{ ticket.price | number: '1.0-2' }} {{ t('currency') }}
               </div>
             </div>
 
             <div class="summary-item" *ngIf="ticket.plate || ticket.plateNumber">
               <div class="summary-item-label">
-                <i class="bi bi-car-front-fill text-info"></i>
+                <i class="fa-solid fa-car-side icon-muted"></i>
                 <span>{{ t('plate') }}</span>
               </div>
               <div class="summary-item-value mono" dir="ltr">
@@ -83,7 +89,7 @@
 
             <div class="summary-item" *ngIf="ticket.gate">
               <div class="summary-item-label">
-                <i class="bi bi-door-open-fill text-secondary"></i>
+                <i class="fa-solid fa-door-open icon-muted"></i>
                 <span>{{ t('gate') }}</span>
               </div>
               <div class="summary-item-value">{{ ticket.gate }}</div>
@@ -91,7 +97,7 @@
 
             <div class="summary-item summary-item--wide" *ngIf="ticket.customerName">
               <div class="summary-item-label">
-                <i class="bi bi-person-fill text-primary"></i>
+                <i class="fa-solid fa-user icon-muted"></i>
                 <span>{{ t('customerName') }}</span>
               </div>
               <div class="summary-item-value">{{ ticket.customerName }}</div>
@@ -99,7 +105,7 @@
 
             <div class="summary-item" *ngIf="ticket.cardNumber">
               <div class="summary-item-label">
-                <i class="bi bi-credit-card-2-front-fill text-primary"></i>
+                <i class="fa-solid fa-id-card icon-muted"></i>
                 <span>{{ t('cardNumber') }}</span>
               </div>
               <div class="summary-item-value mono" dir="ltr">{{ ticket.cardNumber }}</div>
@@ -107,7 +113,7 @@
 
             <div class="summary-item" *ngIf="ticket.phone">
               <div class="summary-item-label">
-                <i class="bi bi-telephone-fill text-success"></i>
+                <i class="fa-solid fa-phone icon-muted"></i>
                 <span>{{ t('phone') }}</span>
               </div>
               <div class="summary-item-value mono" dir="ltr">{{ ticket.phone }}</div>
@@ -115,20 +121,13 @@
 
             <div class="summary-item summary-item--wide" *ngIf="ticket.info">
               <div class="summary-item-label">
-                <i class="bi bi-info-circle-fill text-warning"></i>
+                <i class="fa-solid fa-circle-info icon-amber"></i>
                 <span>{{ t('additional_info') }}</span>
               </div>
               <div class="summary-info">{{ ticket.info }}</div>
             </div>
           </div>
         </div>
-      </div>
-
-      <!-- Footer -->
-      <div class="modal-footer details-footer border-top-0 bg-light">
-        <button type="button" class="btn btn-secondary rounded-pill px-4 fw-bold" (click)="onClose()">
-          {{ t('close') }}
-        </button>
       </div>
     </div>
   </div>

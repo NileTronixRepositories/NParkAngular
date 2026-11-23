@@ -18,8 +18,9 @@
       </span>
     </a>
 
-    <!-- Toggle Button -->
+    <!-- Toggle Button (Admin on desktop, or close button on mobile drawer) -->
     <button
+      *ngIf="isMobile || isAdmin"
       type="button"
       class="sidebar-toggle"
       (click)="isMobile ? closeMobile.emit() : onToggle()"

@@ -472,11 +472,13 @@
    Refactored Inline Styles
    ========================== */
 .col-time {
-  width: 64px;
+  width: 88px;
+  text-align: center;
 }
 
 .col-fees {
-  width: 64px;
+  width: 68px;
+  text-align: end;
 }
 
 .col-fees-sm {
@@ -640,64 +642,147 @@
   color: #ffffff;
 }
 
-/* === Cheerful Eye-Friendly Accents === */
+/* === Clean White SaaS Override === */
+:host {
+  height: 100%;
+}
+
 :host .card.glass {
-  border-color: #cffafe !important;
-  box-shadow: 0 4px 16px rgba(8, 145, 178, 0.06) !important;
+  height: 100% !important;
+  border-radius: 14px !important;
+  border: 1px solid #e2e8f0 !important;
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  box-shadow: 0 2px 10px rgba(15, 23, 42, 0.04) !important;
+  display: flex;
+  flex-direction: column;
 }
 
 :host .card-header {
-  background: linear-gradient(135deg, #ecfeff 0%, #f8fafc 100%) !important;
-  border-bottom-color: #cffafe !important;
-}
-
-.card-header-icon {
-  background: #cffafe !important;
-  color: #0891b2 !important;
-}
-
-.date-pill {
-  background: linear-gradient(135deg, #10243b 0%, #1e3a5f 100%) !important;
-}
-
-:host .btn-collect-today {
-  background: linear-gradient(135deg, #059669 0%, #047857 100%) !important;
-  border-color: #059669 !important;
-}
-
-/* === Compact Clean Layout & Vibrant Header Tint === */
-:host .card.glass {
-  height: auto !important;
-  border-color: #a5f3fc !important;
-}
-
-:host .card-header {
-  background: linear-gradient(135deg, #cffafe 0%, #f0fdfa 100%) !important;
-  border-bottom: 1px solid #a5f3fc !important;
-  padding: 0.48rem 0.7rem !important;
+  background: #fafcff !important;
+  border-bottom: 1px solid #edf2f7 !important;
+  padding: 0.55rem 0.8rem !important;
 }
 
 :host .card-header-icon {
-  background: #a5f3fc !important;
-  color: #0891b2 !important;
+  background: #ecfdf5 !important;
+  color: #059669 !important;
+  border-radius: 8px;
+}
+
+:host .card-header h5 .card-header-icon i {
+  color: inherit !important;
+  font-size: 0.78rem !important;
+}
+
+:host .date-pill {
+  background: #f1f5f9 !important;
+  color: #334155 !important;
+  border: 1px solid #e2e8f0;
+  padding: 0.18rem 0.55rem;
+  font-size: 0.66rem;
+}
+
+:host .card-body {
+  flex: 1 1 auto;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
 }
 
 :host .table-responsive {
-  min-height: 110px !important;
-  max-height: 240px !important;
+  flex: 1 1 0;
+  min-height: 150px !important;
+  max-height: none !important;
+  overflow-y: auto;
+}
+
+:host .table {
+  font-size: 0.74rem;
+}
+
+:host .table-head th {
+  background: #fafcff;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.68rem;
+  padding: 0.45rem 0.6rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+:host tbody tr td {
+  padding: 0.48rem 0.6rem;
+  border-top: 1px solid #f1f5f9;
+}
+
+:host .exit-ticket-row:hover {
+  background: #f8fafc !important;
+}
+
+:host .ticket-name-text {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.75rem;
+}
+
+:host .ticket-cell-time {
+  text-align: center;
+  overflow: visible !important;
+  white-space: nowrap;
+}
+
+:host .ticket-cell-fees {
+  text-align: end;
+  white-space: nowrap;
+}
+
+:host .time-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.14rem 0.42rem;
+  border-radius: 6px;
+  background: #f1f5f9;
+  color: #475569;
+  font-size: 0.65rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+:host .fee-value {
+  font-weight: 800;
+  color: #047857;
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+:host .exit-table-footer {
+  margin-top: 0;
+  padding: 0.55rem 0.7rem;
+  background: #fafcff;
+  border-top: 1px solid #edf2f7;
 }
 
 :host .btn-collect-today {
-  min-height: 34px !important;
-  padding: 0.34rem 0.6rem !important;
-  font-size: 0.74rem !important;
+  min-height: 36px !important;
+  padding: 0.38rem 0.7rem !important;
+  font-size: 0.76rem !important;
+  background: #047857 !important;
+  border: 1px solid #047857 !important;
+  border-radius: 10px !important;
+  box-shadow: 0 2px 8px rgba(4, 120, 87, 0.16) !important;
+}
+
+:host .btn-collect-today:hover:not(:disabled) {
+  background: #065f46 !important;
+  border-color: #065f46 !important;
 }
 
 :host .footer-stat-total {
   border-color: #a7f3d0 !important;
   background: #ecfdf5 !important;
   color: #047857 !important;
-  padding: 0.18rem 0.5rem !important;
+  padding: 0.22rem 0.6rem !important;
+  border-radius: 999px;
 }
 
 :host .footer-stat-total strong {

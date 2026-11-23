@@ -24,13 +24,15 @@
         </thead>
 
         <tbody>
-          <tr *ngFor="let t of pageItems">
-            <td class="mono fw-semibold">
-              {{ t.info || t.plate || t.ticketNumber }}
+          <tr *ngFor="let t of pageItems" class="exit-ticket-row">
+            <td class="ticket-cell-name">
+              <span class="ticket-name-text">{{ t.info || t.plate || t.ticketNumber }}</span>
             </td>
-            <td>{{ t.time | date: 'shortTime' }}</td>
-            <td>
-              <span class="mono fw-bold">
+            <td class="ticket-cell-time">
+              <span class="time-chip mono" dir="ltr">{{ t.time | date: 'h:mm a' }}</span>
+            </td>
+            <td class="ticket-cell-fees">
+              <span class="fee-value mono" dir="ltr">
                 {{ t.price ?? 0 | number: '1.0-2' }}
               </span>
               <span *ngIf="t.isCollectedByCashier" class="badge bg-success ms-1">

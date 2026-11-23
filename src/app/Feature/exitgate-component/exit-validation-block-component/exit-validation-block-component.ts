@@ -45,9 +45,13 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
   @Input() focusTextNonce: number = 0;
   @Input() setTextNonce: number = 0;
   @Input() textValue: string = '';
+  @Input() calculatedFee: number | null = null;
+  @Input() awaitingCollection: boolean = false;
+  @Input() collectingAndExiting: boolean = false;
 
   @Output() validateText = new EventEmitter<string>();
   @Output() confirmExit = new EventEmitter<string>();
+  @Output() collectAndExit = new EventEmitter<string>();
 
   @ViewChild('manualTextArea') manualTextArea?: ElementRef<HTMLTextAreaElement>;
 
@@ -144,6 +148,13 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
     const ticketId = this.anyResult?.ticketId;
     if (ticketId) {
       this.confirmExit.emit(ticketId);
+    }
+  }
+
+  onCollectAndExit(): void {
+    const ticketId = this.anyResult?.ticketId;
+    if (ticketId && !this.collectingAndExiting && !this.openGateLoading && this.gateConnectionReady) {
+      this.collectAndExit.emit(ticketId);
     }
   }
 

@@ -1,73 +1,104 @@
-<div class="gate-selection-container container-fluid py-3" [attr.dir]="dir()">
-  <!-- Compact Header -->
-  <div class="text-center mb-3">
-    <h4 class="fw-bold text-primary m-0">
-      <i class="bi bi-geo-alt-fill me-1"></i>
-      {{ 'gateSelection' | t }}
-    </h4>
-    <small class="text-muted">{{ 'selectGate' | t }}</small>
-  </div>
+<div class="gate-stage" [attr.dir]="dir()">
+  <div class="gate-panel">
+    <!-- Header -->
+    <header class="gate-panel__header">
+      <span class="gate-panel__emblem" aria-hidden="true">
+        <i class="fa-solid fa-road-barrier"></i>
+      </span>
+      <div class="gate-panel__headings">
+        <h1 class="gate-panel__title">{{ 'gateSelection' | t }}</h1>
+        <p class="gate-panel__subtitle">{{ 'selectGate' | t }}</p>
+      </div>
+    </header>
 
-  <!-- Entry Gates Section -->
-  <div class="mb-3" *ngIf="entryGates.length > 0">
-    <h6 class="text-success fw-bold mb-2 d-flex align-items-center">
-      <i class="bi bi-arrow-right-circle me-1 small"></i>
-      <span class="small">{{ 'entryGates' | t }}</span>
-    </h6>
-    <div class="row g-2">
-      <div class="col-6 col-md-4 col-lg-3 col-xl-2" *ngFor="let gate of entryGates">
-        <div
-          class="gate-card-compact card cursor-pointer"
-          [class.border-success]="selectedGateId === gate.gateId && gateType === GateType.Entrance"
-          [class.bg-success-subtle]="
-            selectedGateId === gate.gateId && gateType === GateType.Entrance
-          "
-          (click)="selectGate(gate.gateId, GateType.Entrance)"
-        >
-          <div class="card-body text-center py-2 px-2">
-            <div class="gate-icon-compact mb-1">
-              <i class="bi bi-door-open text-success"></i>
-            </div>
-            <div class="gate-name-compact fw-semibold">{{ gate.gateName }}</div>
-            <span class="badge bg-success fs-8">{{ 'entry' | t }}</span>
-          </div>
+    <div class="gate-panel__body">
+      <!-- Entry Gates Section -->
+      <section class="gate-group" *ngIf="entryGates.length > 0">
+        <div class="gate-group__header">
+          <span class="gate-group__badge gate-group__badge--entry">
+            <i class="fa-solid fa-right-to-bracket" aria-hidden="true"></i>
+            <span>{{ 'entryGates' | t }}</span>
+          </span>
+          <span class="gate-group__count" dir="ltr">{{ entryGates.length }}</span>
         </div>
+
+        <div class="gate-cards">
+          <button
+            type="button"
+            class="gate-card gate-card--entry"
+            *ngFor="let gate of entryGates"
+            [class.is-selected]="selectedGateId === gate.gateId && gateType === GateType.Entrance"
+            (click)="selectGate(gate.gateId, GateType.Entrance)"
+          >
+            <span class="gate-card__icon" aria-hidden="true">
+              <i class="fa-solid fa-door-open"></i>
+            </span>
+
+            <div class="gate-card__info">
+              <span class="gate-card__name">{{ gate.gateName }}</span>
+              <span class="gate-card__pill gate-card__pill--entry">
+                <i class="fa-solid fa-circle-dot" aria-hidden="true"></i>
+                {{ 'entry' | t }}
+              </span>
+            </div>
+
+            <span class="gate-card__arrow" aria-hidden="true">
+              <i
+                class="fa-solid"
+                [ngClass]="lang.isRTL() ? 'fa-arrow-left' : 'fa-arrow-right'"
+              ></i>
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <!-- Exit Gates Section -->
+      <section class="gate-group" *ngIf="exitGates.length > 0">
+        <div class="gate-group__header">
+          <span class="gate-group__badge gate-group__badge--exit">
+            <i class="fa-solid fa-right-from-bracket" aria-hidden="true"></i>
+            <span>{{ 'exitGates' | t }}</span>
+          </span>
+          <span class="gate-group__count" dir="ltr">{{ exitGates.length }}</span>
+        </div>
+
+        <div class="gate-cards">
+          <button
+            type="button"
+            class="gate-card gate-card--exit"
+            *ngFor="let gate of exitGates"
+            [class.is-selected]="selectedGateId === gate.gateId && gateType === GateType.Exit"
+            (click)="selectGate(gate.gateId, GateType.Exit)"
+          >
+            <span class="gate-card__icon" aria-hidden="true">
+              <i class="fa-solid fa-door-closed"></i>
+            </span>
+
+            <div class="gate-card__info">
+              <span class="gate-card__name">{{ gate.gateName }}</span>
+              <span class="gate-card__pill gate-card__pill--exit">
+                <i class="fa-solid fa-circle-dot" aria-hidden="true"></i>
+                {{ 'exit' | t }}
+              </span>
+            </div>
+
+            <span class="gate-card__arrow" aria-hidden="true">
+              <i
+                class="fa-solid"
+                [ngClass]="lang.isRTL() ? 'fa-arrow-left' : 'fa-arrow-right'"
+              ></i>
+            </span>
+          </button>
+        </div>
+      </section>
+
+      <!-- No Gates Empty State -->
+      <div class="gate-empty" *ngIf="entryGates.length === 0 && exitGates.length === 0">
+        <span class="gate-empty__icon" aria-hidden="true">
+          <i class="fa-solid fa-triangle-exclamation"></i>
+        </span>
+        <p class="gate-empty__text">{{ 'noGates' | t }}</p>
       </div>
     </div>
-  </div>
-
-  <!-- Exit Gates Section -->
-  <div class="mb-3" *ngIf="exitGates.length > 0">
-    <h6 class="text-danger fw-bold mb-2 d-flex align-items-center">
-      <i class="bi bi-box-arrow-left me-1 small"></i>
-      <span class="small">{{ 'exitGates' | t }}</span>
-    </h6>
-    <div class="row g-2">
-      <div class="col-6 col-md-4 col-lg-3 col-xl-2" *ngFor="let gate of exitGates">
-        <div
-          class="gate-card-compact card cursor-pointer"
-          [class.border-danger]="selectedGateId === gate.gateId && gateType === GateType.Exit"
-          [class.bg-danger-subtle]="selectedGateId === gate.gateId && gateType === GateType.Exit"
-          (click)="selectGate(gate.gateId, GateType.Exit)"
-        >
-          <div class="card-body text-center py-2 px-2">
-            <div class="gate-icon-compact mb-1">
-              <i class="bi bi-door-closed text-danger"></i>
-            </div>
-            <div class="gate-name-compact fw-semibold">{{ gate.gateName }}</div>
-            <span class="badge bg-danger fs-8">{{ 'exit' | t }}</span>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- No Gates Message -->
-  <div
-    class="alert alert-warning alert-compact text-center py-2"
-    *ngIf="entryGates.length === 0 && exitGates.length === 0"
-  >
-    <i class="bi bi-exclamation-triangle me-1 small"></i>
-    <small>{{ 'noGates' | t }}</small>
   </div>
 </div>

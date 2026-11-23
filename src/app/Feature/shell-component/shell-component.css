@@ -32,7 +32,6 @@
 }
 
 .gate-session-shell {
-  --gate-sidebar-width: 85px;
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
@@ -40,8 +39,9 @@
 
 .gate-session-shell.sidebar-is-collapsed .app-content {
   flex: 1 1 0;
+  min-width: 0;
   width: auto;
-  max-width: calc(100% - var(--gate-sidebar-width));
+  max-width: 100%;
 }
 
 .gate-session-shell .page-content {
@@ -49,18 +49,6 @@
   width: 100%;
   max-width: 100%;
   overflow-x: hidden;
-}
-
-@media (max-width: 991.98px) {
-  .gate-session-shell.sidebar-is-collapsed .app-content {
-    max-width: 100%;
-  }
-}
-
-@media (max-width: 768px) {
-  .gate-session-shell {
-    --gate-sidebar-width: 0px;
-  }
 }
 
 .app-content.headerless .page-content {

@@ -49,6 +49,7 @@ export class ExitSanctionsBlockComponent implements OnInit, OnChanges, OnDestroy
   @Input() summary: CreateTicketExceedTransactionResponse | null = null;
   @Input() exitLoading = false;
   @Input() externalSearchText = '';
+  @Input() refreshNonce = 0;
 
   @Output() ticketSelected = new EventEmitter<SearchTicketResponse>();
   @Output() toggleSanction = new EventEmitter<string>();
@@ -107,6 +108,10 @@ export class ExitSanctionsBlockComponent implements OnInit, OnChanges, OnDestroy
   }
 
   ngOnChanges(changes: SimpleChanges): void {
+    if (changes['refreshNonce'] && !changes['refreshNonce'].firstChange) {
+      this.loadTickets();
+    }
+
     if (!changes['externalSearchText'] || changes['externalSearchText'].firstChange) return;
 
     const normalized = this.normalizeTicketReadText(this.externalSearchText);

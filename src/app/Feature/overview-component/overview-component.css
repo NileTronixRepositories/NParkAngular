@@ -234,18 +234,27 @@
   display: flex;
   align-items: center;
   height: 38px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.14);
+  border: 1px solid rgba(255, 255, 255, 0.28);
   border-radius: 10px;
-  padding-inline: 6px;
+  padding-inline: 8px;
   transition:
-    border-color 160ms ease,
-    background-color 160ms ease;
+    border-color 180ms ease,
+    background-color 180ms ease,
+    box-shadow 180ms ease;
+}
+
+.header-search-main:hover {
+  background: rgba(255, 255, 255, 0.2);
+  border-color: rgba(255, 255, 255, 0.42);
 }
 
 .header-search-main:focus-within {
-  background: rgba(255, 255, 255, 0.13);
-  border-color: rgba(255, 255, 255, 0.48);
+  background: #ffffff;
+  border-color: #ffffff;
+  box-shadow:
+    0 0 0 3px rgba(13, 148, 136, 0.35),
+    0 6px 18px rgba(0, 0, 0, 0.2);
 }
 
 .search-icon-btn,
@@ -255,19 +264,36 @@
   border: 0;
   border-radius: 7px;
   background: transparent;
-  color: rgba(226, 232, 240, 0.8);
+  color: #5eead4;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   font-size: 14px;
   cursor: pointer;
   flex-shrink: 0;
+  transition:
+    color 160ms ease,
+    background-color 160ms ease;
+}
+
+.header-search-main:focus-within .search-icon-btn {
+  color: #0d9488;
+}
+
+.header-search-main:focus-within .search-clear-btn {
+  color: #64748b;
 }
 
 .search-icon-btn:hover,
 .search-clear-btn:hover {
   color: #ffffff;
-  background: rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.header-search-main:focus-within .search-icon-btn:hover,
+.header-search-main:focus-within .search-clear-btn:hover {
+  color: #0f172a;
+  background: #f1f5f9;
 }
 
 .header-search-input {
@@ -279,12 +305,21 @@
   background: transparent;
   color: #ffffff;
   font-size: 13px;
-  font-weight: 500;
+  font-weight: 600;
   padding-inline: 6px;
 }
 
 .header-search-input::placeholder {
-  color: rgba(203, 213, 225, 0.72);
+  color: rgba(241, 245, 249, 0.86);
+  font-weight: 500;
+}
+
+.header-search-main:focus-within .header-search-input {
+  color: #0f172a;
+}
+
+.header-search-main:focus-within .header-search-input::placeholder {
+  color: #94a3b8;
 }
 
 .header-search-results {

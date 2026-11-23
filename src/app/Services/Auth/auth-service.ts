@@ -1,5 +1,6 @@
 import { inject, Injectable, Injector } from '@angular/core';
-import { HttpClient, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { HttpClient, HttpContext, HttpHeaders, HttpResponse } from '@angular/common/http';
+import { SKIP_ERROR_TOAST } from '../../interceptors/Auth/error.interceptor';
 import { Observable, catchError, of, tap } from 'rxjs';
 import {
   GateDevicePeripheral,
@@ -281,15 +282,18 @@ export class AuthService {
   // ================== LOGOUT ==================
   logout(): Observable<void> {
     const token = this.token;
+    const isAdmin = this.role === 'Admin';
+    const hasGate = !!this.getGateId();
 
-    if (!token) {
+    if (!token || (!isAdmin && !hasGate)) {
       this.clearUserData();
       return of(void 0);
     }
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    const context = new HttpContext().set(SKIP_ERROR_TOAST, true);
 
-    return this.http.post<void>(this.logoutEndpoint, {}, { headers }).pipe(
+    return this.http.post<void>(this.logoutEndpoint, {}, { headers, context }).pipe(
       catchError(() => of(void 0)),
       tap(() => this.clearUserData()),
     );

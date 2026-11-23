@@ -147,8 +147,12 @@
         [focusTextNonce]="focusValidationTextNonce"
         [setTextNonce]="setValidationTextNonce"
         [textValue]="validationTextValue"
+        [calculatedFee]="validationCalculatedFee"
+        [awaitingCollection]="validationAwaitingCollection"
+        [collectingAndExiting]="validationCollectingAndExiting"
         (validateText)="onValidateExitByText($event)"
         (confirmExit)="onConfirmValidationExit($event)"
+        (collectAndExit)="onCollectAndExitValidatedTicket($event)"
       ></app-exit-validation-block-component>
     </div>
 
@@ -166,6 +170,7 @@
         [summary]="ticketExceedTransaction"
         [exitLoading]="exitSelectedTicketLoading"
         [externalSearchText]="headerTicketSearchText"
+        [refreshNonce]="sanctionsTicketsRefreshNonce"
         (ticketSelected)="onExceedTicketSelected($event)"
         (toggleSanction)="onToggleSanction($event)"
         (registerExceed)="submitExceedForValidatedTicket()"

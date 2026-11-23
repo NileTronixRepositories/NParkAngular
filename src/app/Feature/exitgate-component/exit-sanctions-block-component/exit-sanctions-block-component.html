@@ -23,19 +23,32 @@
             [class.selected]="isSelectedTicket(ticket)"
             (click)="selectTicket(ticket)"
           >
-            <div class="ticket-result-line">
-              <span class="mono fw-bold ticket-code">{{ ticket.uniqueCode }}</span>
-              <span
-                class="badge ticket-type"
-                [class.badge-subscriber]="ticket.isSubscribe"
-                [class.badge-normal]="!ticket.isSubscribe"
-              >
-                {{ getTicketType(ticket) | t }}
+            <div class="ticket-row-top">
+              <div class="ticket-row-id">
+                <span class="mono fw-bold ticket-code">{{ ticket.uniqueCode }}</span>
+                <span
+                  class="badge ticket-type"
+                  [class.badge-subscriber]="ticket.isSubscribe"
+                  [class.badge-normal]="!ticket.isSubscribe"
+                >
+                  {{ getTicketType(ticket) | t }}
+                </span>
+              </div>
+              <span class="ticket-price">{{ ticket.price | number: '1.0-2' }} {{ 'egp' | t }}</span>
+            </div>
+            <div class="ticket-row-meta">
+              <span class="ticket-meta-chip" *ngIf="ticket.vehicleNumber">
+                <i class="fa-solid fa-car-side"></i>
+                <span>{{ ticket.vehicleNumber }}</span>
               </span>
-              <span class="ticket-date">{{ ticket.startDate | date: 'short' }}</span>
-              <span class="ticket-vehicle">{{ ticket.vehicleNumber || '-' }}</span>
-              <span class="ticket-card">{{ ticket.cardNumber || '-' }}</span>
-              <span class="ticket-price">{{ ticket.price | number: '1.2-2' }} {{ 'egp' | t }}</span>
+              <span class="ticket-meta-chip" *ngIf="ticket.cardNumber">
+                <i class="fa-regular fa-id-card"></i>
+                <span class="mono">{{ ticket.cardNumber }}</span>
+              </span>
+              <span class="ticket-meta-chip ticket-date ms-auto">
+                <i class="fa-regular fa-clock"></i>
+                <span dir="ltr">{{ ticket.startDate | date: 'dd/MM/yy, h:mm a' }}</span>
+              </span>
             </div>
           </button>
 
@@ -45,24 +58,26 @@
         </ng-container>
       </div>
 
-      <div class="d-flex align-items-center justify-content-between gap-2 mt-2">
-        <button
-          class="btn btn-outline-secondary btn-sm"
-          type="button"
-          (click)="prevPage()"
-          [disabled]="pageNumber <= 1 || isLoading"
-        >
-          {{ 'prev' | t }}
-        </button>
-        <div class="x-small text-muted fw-semibold">{{ 'page' | t }} {{ pageNumber }}</div>
-        <button
-          class="btn btn-outline-secondary btn-sm"
-          type="button"
-          (click)="nextPage()"
-          [disabled]="isLoading || tickets.length < pageSize"
-        >
-          {{ 'next' | t }}
-        </button>
+      <div class="sanctions-pager mt-2">
+        <div class="d-flex align-items-center gap-1">
+          <button
+            class="btn btn-outline-secondary btn-sm pager-btn"
+            type="button"
+            (click)="prevPage()"
+            [disabled]="pageNumber <= 1 || isLoading"
+          >
+            {{ 'prev' | t }}
+          </button>
+          <span class="pager-label">{{ 'page' | t }} {{ pageNumber }}</span>
+          <button
+            class="btn btn-outline-secondary btn-sm pager-btn"
+            type="button"
+            (click)="nextPage()"
+            [disabled]="isLoading || tickets.length < pageSize"
+          >
+            {{ 'next' | t }}
+          </button>
+        </div>
         <select
           class="form-select form-select-sm page-size"
           [ngModel]="pageSize"

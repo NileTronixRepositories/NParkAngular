@@ -24,7 +24,7 @@
           dir="ltr"
           [placeholder]="'scan_or_enter_exit_text_placeholder' | t"
         ></textarea>
-        <div class="invalid-feedback d-block x-small mt-1" *ngIf="textFieldError || validationError">
+        <div class="invalid-feedback d-block x-small mt-1" *ngIf="textFieldError || (validationError && !hasResult)">
           <i class="fa-solid fa-circle-exclamation me-1"></i>{{ textFieldError || validationError }}
         </div>
       </div>
@@ -60,66 +60,128 @@
     <!-- Result Card -->
     <div
       *ngIf="hasResult"
-      class="result-card p-2 rounded-3 border animate-fade-in"
-      [class.border-success]="isValid"
-      [class.bg-success-subtle]="isValid"
-      [class.border-danger]="!isValid"
-      [class.bg-danger-subtle]="!isValid"
+      class="result-card animate-fade-in"
+      [class.result-card--valid]="isValid"
+      [class.result-card--invalid]="!isValid"
     >
-      <div class="d-flex align-items-center gap-2 mb-2">
-        <i
-          class="fa-solid"
-          [class.fa-circle-check]="isValid"
-          [class.text-success]="isValid"
-          [class.fa-circle-xmark]="!isValid"
-          [class.text-danger]="!isValid"
-        ></i>
-        <h6 class="mb-0 fw-bold" [class.text-success]="isValid" [class.text-danger]="!isValid">
-          {{ isValid ? ('valid_for_exit' | t) : ('not_valid_for_exit' | t) }}
-        </h6>
-      </div>
-
-      <div class="row g-1 x-small">
-        <div class="col-6" *ngIf="anyResult.ticketNumber">
-          <div class="text-muted">{{ 'ticket_number' | t }}</div>
-          <div class="fw-bold mono">{{ anyResult.ticketNumber }}</div>
+      <div class="result-card-header">
+        <div class="result-status">
+          <span class="result-status-icon" aria-hidden="true">
+            <i
+              class="fa-solid"
+              [class.fa-circle-check]="isValid"
+              [class.fa-circle-xmark]="!isValid"
+            ></i>
+          </span>
+          <h6 class="mb-0 fw-bold result-status-title">
+            {{ isValid ? ('valid_for_exit' | t) : ('not_valid_for_exit' | t) }}
+          </h6>
         </div>
-        <div class="col-6" *ngIf="anyResult.vehicleNumber">
-          <div class="text-muted">{{ 'vehicle_number' | t }}</div>
-          <div class="fw-bold">{{ anyResult.vehicleNumber }}</div>
-        </div>
-        <div class="col-6" *ngIf="anyResult.cardNumber">
-          <div class="text-muted">{{ 'card_number' | t }}</div>
-          <div class="fw-bold mono">{{ anyResult.cardNumber }}</div>
-        </div>
-        <div class="col-6" *ngIf="anyResult.startDate">
-          <div class="text-muted">{{ 'start_date' | t }}</div>
-          <div class="fw-bold">{{ anyResult.startDate | date: 'short' }}</div>
-        </div>
-        <div class="col-6" *ngIf="anyResult.endDate">
-          <div class="text-muted">{{ 'end' | t }}</div>
-          <div class="fw-bold">{{ anyResult.endDate | date: 'short' }}</div>
-        </div>
-        <div class="col-6" *ngIf="anyResult.matchType">
-          <div class="text-muted">{{ 'match_type' | t }}</div>
-          <div class="fw-bold">{{ anyResult.matchType }}</div>
-        </div>
-      </div>
-
-      <div class="mt-2 x-small text-success fw-bold text-center" *ngIf="isValid">
-        <span *ngIf="openGateLoading">
-          <span class="spinner-border spinner-border-sm me-1"></span>{{ 'opening_gate' | t }}
-        </span>
-        <span *ngIf="!openGateLoading">
-          <i class="fa-solid fa-circle-check me-1"></i>{{ 'allowed_for_exit' | t }}
+        <span class="result-match-pill" *ngIf="anyResult.matchType">
+          {{ anyResult.matchType }}
         </span>
       </div>
 
-      <div
-        class="mt-2 x-small text-danger fw-bold text-center"
-        *ngIf="!isValid && !anyResult.ticketId"
-      >
-        <i class="fa-solid fa-circle-info me-1"></i>{{ 'no_matching_ticket' | t }}
+      <div class="result-card-body">
+        <div
+          class="result-meta-grid"
+          *ngIf="
+            anyResult.ticketNumber ||
+            anyResult.vehicleNumber ||
+            anyResult.cardNumber ||
+            anyResult.startDate ||
+            anyResult.endDate
+          "
+        >
+          <div class="result-meta-cell" *ngIf="anyResult.ticketNumber">
+            <span class="result-meta-label">
+              <i class="fa-solid fa-ticket"></i>
+              <span>{{ 'ticket_number' | t }}</span>
+            </span>
+            <span class="result-meta-value mono" dir="ltr">{{ anyResult.ticketNumber }}</span>
+          </div>
+
+          <div class="result-meta-cell" *ngIf="anyResult.vehicleNumber">
+            <span class="result-meta-label">
+              <i class="fa-solid fa-car-side"></i>
+              <span>{{ 'vehicle_number' | t }}</span>
+            </span>
+            <span class="result-meta-value">{{ anyResult.vehicleNumber }}</span>
+          </div>
+
+          <div class="result-meta-cell" *ngIf="anyResult.cardNumber">
+            <span class="result-meta-label">
+              <i class="fa-regular fa-id-card"></i>
+              <span>{{ 'card_number' | t }}</span>
+            </span>
+            <span class="result-meta-value mono" dir="ltr">{{ anyResult.cardNumber }}</span>
+          </div>
+
+          <div class="result-meta-cell result-meta-cell--full" *ngIf="anyResult.startDate">
+            <span class="result-meta-label">
+              <i class="fa-regular fa-clock"></i>
+              <span>{{ 'start_date' | t }}</span>
+            </span>
+            <span class="result-meta-value mono" dir="ltr">
+              {{ anyResult.startDate | date: 'dd/MM/yyyy - h:mm a' }}
+            </span>
+          </div>
+
+          <div class="result-meta-cell result-meta-cell--full" *ngIf="anyResult.endDate">
+            <span class="result-meta-label">
+              <i class="fa-solid fa-flag-checkered"></i>
+              <span>{{ 'end' | t }}</span>
+            </span>
+            <span class="result-meta-value mono" dir="ltr">
+              {{ anyResult.endDate | date: 'dd/MM/yyyy - h:mm a' }}
+            </span>
+          </div>
+        </div>
+
+        <div class="result-fee-banner" *ngIf="isValid && calculatedFee !== null">
+          <span class="result-fee-label">
+            <i class="fa-solid fa-coins"></i>
+            <span>{{ 'salary_total' | t }}</span>
+          </span>
+          <strong class="result-fee-amount mono" dir="ltr">
+            {{ calculatedFee | number: '1.0-2' }} {{ 'egp' | t }}
+          </strong>
+        </div>
+
+        <button
+          *ngIf="isValid && awaitingCollection"
+          type="button"
+          class="btn result-collect-btn w-100"
+          data-scanner-focus-stop="true"
+          [disabled]="collectingAndExiting || openGateLoading || !gateConnectionReady"
+          (click)="onCollectAndExit()"
+        >
+          <span
+            *ngIf="collectingAndExiting || openGateLoading"
+            class="spinner-border spinner-border-sm"
+          ></span>
+          <i
+            *ngIf="!collectingAndExiting && !openGateLoading"
+            class="fa-solid fa-money-bill-wave"
+          ></i>
+          <span>{{ 'collect_and_open_gate' | t }}</span>
+        </button>
+
+        <div class="result-reason result-reason--valid" *ngIf="isValid && !awaitingCollection">
+          <span *ngIf="openGateLoading" class="d-inline-flex align-items-center gap-2">
+            <span class="spinner-border spinner-border-sm"></span>
+            <span>{{ 'opening_gate' | t }}</span>
+          </span>
+          <span *ngIf="!openGateLoading" class="d-inline-flex align-items-center gap-2">
+            <i class="fa-solid fa-circle-check"></i>
+            <span>{{ 'allowed_for_exit' | t }}</span>
+          </span>
+        </div>
+
+        <div class="result-reason result-reason--invalid" *ngIf="!isValid">
+          <i class="fa-solid fa-circle-info"></i>
+          <span>{{ validationError || ('no_matching_ticket' | t) }}</span>
+        </div>
       </div>
     </div>
   </div>

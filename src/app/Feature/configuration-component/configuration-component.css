@@ -697,15 +697,29 @@
 }
 
 .btn-config-save {
-  background: linear-gradient(135deg, var(--cfg-emerald) 0%, var(--cfg-emerald-dark) 100%);
+  background: #059669;
+  border-color: #047857;
   color: #ffffff;
   padding-inline: 1.75rem;
-  box-shadow: 0 4px 12px rgba(5, 150, 105, 0.22);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.1);
 }
 
 .btn-config-save:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: 0 6px 16px rgba(5, 150, 105, 0.28);
+  background: #047857;
+  border-color: #065f46;
+  box-shadow: 0 3px 10px rgba(4, 120, 87, 0.22);
+}
+
+.btn-config-save:active:not(:disabled) {
+  background: #065f46;
+  border-color: #064e3b;
+  transform: scale(0.98);
+  box-shadow: none;
+}
+
+.btn-config-save:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(5, 150, 105, 0.28);
 }
 
 .btn-config-primary:disabled,

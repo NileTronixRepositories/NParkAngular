@@ -139,6 +139,9 @@ export const EXITGATE_I18N: I18nDict = <I18nDict>{
           // Confirm & print
           print: 'طباعة',
           confirm_and_collect: 'تأكيد التحصيل',
+          collect_and_open_gate: 'تأكيد التحصيل وفتح البوابة',
+          awaiting_exit_collection: 'في انتظار تحصيل الرسوم لفتح البوابة',
+          calculating_fee: 'جاري حساب الرسوم المستحقة...',
 
           // Errors
           exit_not_valid_msg: 'الخروج غير صالح لهذه التذكرة',
@@ -370,6 +373,9 @@ export const EXITGATE_I18N: I18nDict = <I18nDict>{
           // Confirm & print
           print: 'Print',
           confirm_and_collect: 'Confirm & collect',
+          collect_and_open_gate: 'Confirm Collection & Open Gate',
+          awaiting_exit_collection: 'Awaiting fee collection to open gate',
+          calculating_fee: 'Calculating due fee...',
 
           // Errors
           exit_not_valid_msg: 'Exit is not valid for this ticket',
