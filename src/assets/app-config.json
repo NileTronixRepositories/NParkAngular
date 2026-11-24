@@ -1,8 +1,8 @@
 {
-  "baseUrl": "http://192.168.1.8/api",
-  "hubUrl": "http://192.168.1.8/hubs/notifications",
-  "lprHubUrl": "http://192.168.1.8/hubs/lpr",
-  "scanHubUrl": "http://192.168.1.8:8003/hubs/scan",
+  "baseUrl": "http://192.168.1.40/api",
+  "hubUrl": "http://192.168.1.40/hubs/notifications",
+  "lprHubUrl": "http://192.168.1.40/hubs/lpr",
+  "scanHubUrl": "http://192.168.1.40:8003/hubs/scan",
   "nfcBaseUrl": "http://localhost:8003/api",
   "printBaseUrl": "http://localhost:9100/api",
   "qrPrinterName": "RONGTA 80mm Series Printer",
