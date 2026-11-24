@@ -1,8 +1,15 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { environment } from '../../Shared/environment/environment';
 import { GateDto } from '../../Domain/Auth/auth.models';
+import {
+  GateOperationResponse,
+  OpenGateRequest,
+  normalizeGateOperationResponse,
+} from '../../Domain/Gate/gate-operation.models';
+
+export type { GateOperationResponse, OpenGateRequest };
 
 export interface GateConnectionInfo {
   gateId: string;
@@ -20,12 +27,7 @@ export interface GateConnectionInfo {
   } | null;
 }
 
-export interface OpenGateResponse {
-  controllerId: string;
-  topic: string;
-  payload: string;
-  publishedAtUtc: string;
-}
+export type OpenGateResponse = GateOperationResponse;
 
 @Injectable({ providedIn: 'root' })
 export class GateServices {
@@ -90,7 +92,27 @@ export class GateServices {
     });
   }
 
-  openGate(controllerId: string): Observable<OpenGateResponse> {
-    return this.http.post<OpenGateResponse>(`${this.base}/Gate/open`, { controllerId });
+  openGateOperation(request: OpenGateRequest): Observable<HttpResponse<GateOperationResponse>> {
+    const body: Record<string, unknown> = {
+      controllerId: String(request.controllerId).trim(),
+      operationType: request.operationType,
+    };
+    if (request.ticketId) {
+      body['ticketId'] = request.ticketId;
+    }
+
+    return this.http
+      .post<any>(`${this.base}/Gate/open`, body, { observe: 'response' })
+      .pipe(
+        map((res) =>
+          res.clone({
+            body: res.body ? normalizeGateOperationResponse(res.body) : null,
+          }) as HttpResponse<GateOperationResponse>,
+        ),
+      );
+  }
+
+  openGate(request: OpenGateRequest): Observable<GateOperationResponse> {
+    return this.openGateOperation(request).pipe(map((res) => res.body!));
   }
 }

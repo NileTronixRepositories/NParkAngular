@@ -28,10 +28,26 @@ export class TicketExceedTransactionService {
     return this._rawHttp;
   }
 
+  generateIdempotencyKey(): string {
+    if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+      return crypto.randomUUID();
+    }
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+      const r = (Math.random() * 16) | 0;
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
+  }
+
   create(
     request: CreateTicketExceedTransactionRequest,
   ): Observable<CreateTicketExceedTransactionResponse> {
-    return this.http.post<CreateTicketExceedTransactionResponse>(`${this.base}/Create`, request).pipe(
+    const payload: CreateTicketExceedTransactionRequest = {
+      ticketId: request.ticketId,
+      sanctionIds: request.sanctionIds,
+      idempotencyKey: request.idempotencyKey || this.generateIdempotencyKey(),
+    };
+    return this.http.post<CreateTicketExceedTransactionResponse>(`${this.base}/Create`, payload).pipe(
       map((res) => this.normalizeResponse(res)),
     );
   }
@@ -101,19 +117,27 @@ export class TicketExceedTransactionService {
   }
 
   private normalizeResponse(res: any): CreateTicketExceedTransactionResponse {
+    const exceedAmount = Number(res?.exceedAmount ?? res?.ExceedAmount ?? 0);
     return {
       ticketExceedTransactionId:
         res?.ticketExceedTransactionId ?? res?.TicketExceedTransactionId ?? '',
       ticketId: res?.ticketId ?? res?.TicketId ?? '',
-      exceedAmount: Number(res?.exceedAmount ?? res?.ExceedAmount ?? 0),
+      exceedAmount,
+      exceedPrice: Number(res?.exceedPrice ?? res?.ExceedPrice ?? exceedAmount),
       ticketPrice: Number(res?.ticketPrice ?? res?.TicketPrice ?? 0),
       totalPriceAfterExceed: Number(
         res?.totalPriceAfterExceed ?? res?.TotalPriceAfterExceed ?? 0,
       ),
+      paidAmount: Number(res?.paidAmount ?? res?.PaidAmount ?? 0),
+      outstandingAmount: Number(res?.outstandingAmount ?? res?.OutstandingAmount ?? 0),
+      validExitDate: String(res?.validExitDate ?? res?.ValidExitDate ?? ''),
       gateId: res?.gateId ?? res?.GateId ?? '',
       userCollectId: res?.userCollectId ?? res?.UserCollectId ?? '',
       superVisorCollectorId: res?.superVisorCollectorId ?? res?.SuperVisorCollectorId ?? null,
       sanctionIds: res?.sanctionIds ?? res?.SanctionIds ?? [],
+      paymentStatus: String(res?.paymentStatus ?? res?.PaymentStatus ?? 'Confirmed'),
+      paymentConfirmedAtUtc:
+        res?.paymentConfirmedAtUtc ?? res?.PaymentConfirmedAtUtc ?? null,
       createdAt: res?.createdAt ?? res?.CreatedAt ?? '',
       qrCode: res?.qrCode ?? res?.QrCode ?? res?.qrCodeBase64 ?? res?.QrCodeBase64 ?? null,
       ticketInfo: res?.ticketInfo ?? res?.TicketInfo ?? '',

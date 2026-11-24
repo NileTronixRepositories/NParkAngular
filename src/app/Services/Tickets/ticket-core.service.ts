@@ -1,5 +1,5 @@
 import { Injectable, inject } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient, HttpParams, HttpResponse } from '@angular/common/http';
 import { Observable, of, map, catchError, throwError } from 'rxjs';
 
 import {
@@ -18,7 +18,13 @@ import {
   SearchTicketResponse,
   TicketDetailsFilterRequest,
   TicketDetailsItemDto,
+  normalizeEntryConfirmationStatus,
+  normalizeExitEligibility,
 } from '../../Domain/tickets/tickets.model';
+import {
+  GateOperationResponse,
+  normalizeGateOperationResponse,
+} from '../../Domain/Gate/gate-operation.models';
 import { PagedResult } from '../../Domain/PageResult/PagedResult';
 import { environment } from '../../Shared/environment/environment';
 
@@ -60,6 +66,19 @@ export class TicketCoreService {
   scanTicket(qrCode: string): Observable<any> {
     const body = { qrCode: qrCode.trim() };
     return this.http.post<any>(this.endpoint('ScanTicket'), body).pipe(
+      map((res) => {
+        if (!res) return res;
+        const eligibility = normalizeExitEligibility(res?.eligibility ?? res?.Eligibility, res);
+        return {
+          ...res,
+          validExitDate: res?.validExitDate ?? res?.ValidExitDate ?? eligibility?.validExitDate ?? null,
+          isValidForExit: res?.isValidForExit ?? res?.IsValidForExit ?? eligibility?.isValidForExit,
+          reasonCode: res?.reasonCode ?? res?.ReasonCode ?? eligibility?.reasonCode,
+          reasonMessage: res?.reasonMessage ?? res?.ReasonMessage ?? eligibility?.reasonMessage,
+          eligibility,
+          failureReasons: eligibility?.failureReasons ?? [],
+        };
+      }),
       catchError((err) => {
         this.logError('POST /Ticket/ScanTicket', err);
         return throwError(() => err);
@@ -113,9 +132,17 @@ export class TicketCoreService {
     );
   }
 
-  collect(id: number | string): Observable<boolean> {
-    const ticketId = String(id);
-    return this.http.post<any>(this.endpoint('CollectCashier'), { ticketId }).pipe(
+  collect(id: number | string, expectedBasePrice?: number): Observable<boolean> {
+    return this.collectCashier(String(id), expectedBasePrice);
+  }
+
+  collectCashier(ticketId: string, expectedBasePrice?: number): Observable<boolean> {
+    const body: Record<string, unknown> = { ticketId };
+    if (expectedBasePrice !== undefined && expectedBasePrice !== null && !Number.isNaN(expectedBasePrice)) {
+      body['expectedBasePrice'] = expectedBasePrice;
+    }
+
+    return this.http.post<any>(this.endpoint('CollectCashier'), body).pipe(
       map(() => true),
       catchError((err) => {
         this.logError('POST /Ticket/CollectCashier', err);
@@ -124,28 +151,23 @@ export class TicketCoreService {
     );
   }
 
-  collectCashier(ticketId: string): Observable<boolean> {
-    // Backend removed /Ticket/CollectCashier for entry cashier flow.
-    // Keep the wrapper only for legacy callers outside the entry AddTicket path.
-    return this.http.post<any>(this.endpoint('CollectCashier'), { ticketId }).pipe(
-      map(() => true),
-      catchError((err) => {
-        this.logError('POST /Ticket/CollectCashier', err);
-        return throwError(() => err);
-      }),
-    );
-  }
-
-  addExitTicket(ticketId: string): Observable<boolean> {
+  addExitTicket(ticketId: string): Observable<HttpResponse<GateOperationResponse>> {
     const body = { ticketId };
 
-    return this.http.post<any>(this.endpoint('ExitTicket'), body).pipe(
-      map((res) => this.isSuccessResponse(res)),
-      catchError((err) => {
-        this.logError('POST /Ticket/ExitTicket', err);
-        return throwError(() => err);
-      }),
-    );
+    return this.http
+      .post<any>(this.endpoint('ExitTicket'), body, { observe: 'response' })
+      .pipe(
+        map(
+          (res) =>
+            res.clone({
+              body: res.body ? normalizeGateOperationResponse(res.body) : null,
+            }) as HttpResponse<GateOperationResponse>,
+        ),
+        catchError((err) => {
+          this.logError('POST /Ticket/ExitTicket', err);
+          return throwError(() => err);
+        }),
+      );
   }
 
   private isSuccessResponse(res: any): boolean {
@@ -212,6 +234,9 @@ export class TicketCoreService {
 
     const displayId: string = r.ticketNumber ?? r.TicketNumber ?? r.id ?? r.Id ?? plate ?? '';
 
+    const rawEntryStatus = r.entryConfirmationStatus ?? r.EntryConfirmationStatus;
+    const rawEligibility = r.eligibility ?? r.Eligibility;
+
     return {
       id: internalId,
       ticketNumber: displayId,
@@ -225,6 +250,13 @@ export class TicketCoreService {
       customerName,
       phone,
       cardNumber,
+      entryConfirmationStatus:
+        rawEntryStatus !== undefined && rawEntryStatus !== null
+          ? normalizeEntryConfirmationStatus(rawEntryStatus)
+          : undefined,
+      entryConfirmedAtUtc: r.entryConfirmedAtUtc ?? r.EntryConfirmedAtUtc ?? null,
+      validExitDate: r.validExitDate ?? r.ValidExitDate ?? null,
+      eligibility: rawEligibility ? normalizeExitEligibility(rawEligibility) : null,
     };
   }
 
@@ -565,17 +597,18 @@ export class TicketCoreService {
     );
   }
 
-  // ========= Exit Validation (New) =========
+  // ========= Exit Validation (Unified Eligibility V2) =========
 
   validateExitByVehicleNumber(
     vehicleNumber: string,
   ): Observable<ValidateExitByVehicleNumberResponse> {
     const params = new HttpParams().set('vehicleNumber', vehicleNumber);
     return this.http
-      .get<ValidateExitByVehicleNumberResponse>(this.endpoint('validate-exit-by-vehicle-number'), {
+      .get<any>(this.endpoint('validate-exit-by-vehicle-number'), {
         params,
       })
       .pipe(
+        map((res) => this.normalizeVehicleValidationResponse(res)),
         catchError((err) => {
           this.logError('GET /Ticket/validate-exit-by-vehicle-number', err);
           return throwError(() => err);
@@ -585,13 +618,66 @@ export class TicketCoreService {
 
   validateExitByText(body: ValidateExitByTextRequest): Observable<ValidateExitByTextResponse> {
     return this.http
-      .post<ValidateExitByTextResponse>(this.endpoint('validate-exit-by-text'), body)
+      .post<any>(this.endpoint('validate-exit-by-text'), body)
       .pipe(
+        map((res) => this.normalizeTextValidationResponse(res)),
         catchError((err) => {
           this.logError('POST /Ticket/validate-exit-by-text', err);
           return throwError(() => err);
         }),
       );
+  }
+
+  private normalizeVehicleValidationResponse(res: any): ValidateExitByVehicleNumberResponse {
+    const eligibility = normalizeExitEligibility(res?.eligibility ?? res?.Eligibility, res);
+    return {
+      ticketId: res?.ticketId ?? res?.TicketId ?? null,
+      vehicleNumber: res?.vehicleNumber ?? res?.VehicleNumber ?? null,
+      ticketNumber: res?.ticketNumber ?? res?.TicketNumber ?? null,
+      cardNumber: res?.cardNumber ?? res?.CardNumber ?? null,
+      startDate: res?.startDate ?? res?.StartDate ?? null,
+      endDate: res?.endDate ?? res?.EndDate ?? null,
+      isValidForExit: !!(res?.isValidForExit ?? res?.IsValidForExit),
+      reasonCode: String(res?.reasonCode ?? res?.ReasonCode ?? eligibility?.reasonCode ?? ''),
+      reasonMessage: String(
+        res?.reasonMessage ?? res?.ReasonMessage ?? eligibility?.reasonMessage ?? '',
+      ),
+      validExitDate: res?.validExitDate ?? res?.ValidExitDate ?? eligibility?.validExitDate ?? null,
+      requiresBasePayment: !!(
+        res?.requiresBasePayment ??
+        res?.RequiresBasePayment ??
+        eligibility?.requiresBasePayment
+      ),
+      requiresOvernightPenalty: !!(
+        res?.requiresOvernightPenalty ??
+        res?.RequiresOvernightPenalty ??
+        eligibility?.requiresOvernightPenalty
+      ),
+      hasOutstandingSanctions: !!(
+        res?.hasOutstandingSanctions ??
+        res?.HasOutstandingSanctions ??
+        eligibility?.hasOutstandingSanctions
+      ),
+      outstandingAmount: Number(
+        res?.outstandingAmount ?? res?.OutstandingAmount ?? eligibility?.outstandingAmount ?? 0,
+      ),
+      existingOperationId:
+        res?.existingOperationId ??
+        res?.ExistingOperationId ??
+        eligibility?.existingOperationId ??
+        null,
+      eligibility,
+      failureReasons: eligibility?.failureReasons ?? [],
+    };
+  }
+
+  private normalizeTextValidationResponse(res: any): ValidateExitByTextResponse {
+    const base = this.normalizeVehicleValidationResponse(res);
+    return {
+      ...base,
+      inputText: String(res?.inputText ?? res?.InputText ?? ''),
+      matchType: res?.matchType ?? res?.MatchType ?? null,
+    };
   }
 
   // ========= Paginated Ticket Details =========

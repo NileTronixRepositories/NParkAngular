@@ -76,8 +76,6 @@ export class ExitSanctionsBlockComponent implements OnInit, OnChanges, OnDestroy
   get disableRegisterExceed(): boolean {
     return (
       this.registeringExceed ||
-      this.isExceedRegistered ||
-      this.isExceedAlreadyExists ||
       !this.selectedTicket ||
       this.selectedSanctionIds.length === 0
     );
@@ -178,7 +176,7 @@ export class ExitSanctionsBlockComponent implements OnInit, OnChanges, OnDestroy
   }
 
   onToggleSanction(id: string): void {
-    if (!id || this.registeringExceed || this.isExceedRegistered || this.isExceedAlreadyExists) {
+    if (!id || this.registeringExceed) {
       return;
     }
 

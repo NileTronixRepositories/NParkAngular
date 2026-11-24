@@ -13,7 +13,16 @@ import {
   ValidateExitByVehicleNumberResponse,
   ValidateExitByTextResponse,
   SearchTicketResponse,
+  ExitEligibility,
 } from '../../Domain/tickets/tickets.model';
+import {
+  GateOperationResponse,
+  isCompletedExitOperation,
+  isInFlightGateOperationStatus,
+  isUncertainGateOutcome,
+} from '../../Domain/Gate/gate-operation.models';
+import { GateOperationService } from '../../Services/Gate/gate-operation.service';
+import { GateOperationStoreService } from '../../Services/Gate/gate-operation-store.service';
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
 
 import { LanguageService } from '../../Services/i18n/language-service';
@@ -110,6 +119,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   private readonly ticketExceedTransactionSvc = inject(TicketExceedTransactionService);
   private readonly localPrint = inject(LocalPrintService);
   private readonly ticketPrint = inject(TicketPrintService);
+  private readonly gateOperationSvc = inject(GateOperationService);
+  private readonly gateOperationStore = inject(GateOperationStoreService);
   private readonly hubSubscriptions = new Subscription();
   private readonly localHealth = inject(LocalHealthService);
 
@@ -234,6 +245,9 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.validationCalculatedFee = null;
     this.validationAwaitingCollection = false;
     this.validationCollectingAndExiting = false;
+    this.currentExitEligibility = null;
+    this.salarySummary = null;
+    this.activeExitGateOperation = null;
   }
 
   // ====== Gate devices / state ======
@@ -341,6 +355,13 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   validationCalculatedFee: number | null = null;
   validationAwaitingCollection = false;
   validationCollectingAndExiting = false;
+  currentExitEligibility: ExitEligibility | null = null;
+  activeExitGateOperation: GateOperationResponse | null = null;
+  reconcilingGateOperation = false;
+  exceedTransactions: CreateTicketExceedTransactionResponse[] = [];
+  private readonly printedExceedTransactionIds = new Set<string>();
+  private readonly completedExitOperationIds = new Set<string>();
+  private lastValidatedInputText: string | null = null;
   lprMembershipLoading = false;
   lprSignalRConnected = false;
   lprSignalRError: string | null = null;
@@ -430,6 +451,53 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         this.handleLprVehicleDetected(event);
       }),
     );
+
+    this.hubSubscriptions.add(
+      this.lprSignalR.mqttCaptureDetected$.subscribe((event) => {
+        const controllerId = this.gatePeripheralFacade.controlId(this.gateConnectionInfo);
+        if (controllerId && event.deviceId && event.deviceId !== controllerId) return;
+        if (event.operationId) {
+          this.gateOperationStore.refreshOperation(event.operationId).subscribe((op) => {
+            if (op) this.applyExitGateOperation(op);
+          });
+        } else if (event.errorMessage) {
+          this.validationError = event.errorMessage;
+          this.showToast('warn', event.errorMessage);
+        }
+        this.cdr.markForCheck();
+      }),
+    );
+
+    this.hubSubscriptions.add(
+      this.gateOperationStore.operationUpdates$.subscribe((op) => {
+        if (op.operationType !== 'Exit') return;
+        const matchesActive =
+          this.activeExitGateOperation?.operationId === op.operationId ||
+          (this.textValidationResult?.ticketId &&
+            op.ticketId &&
+            String(this.textValidationResult.ticketId).toLowerCase() ===
+              String(op.ticketId).toLowerCase());
+        if (matchesActive) {
+          this.applyExitGateOperation(op);
+          this.cdr.markForCheck();
+        }
+      }),
+    );
+
+    const currentGateId = this.auth.getGateId();
+    if (currentGateId) {
+      this.hubSubscriptions.add(
+        this.gateOperationStore.recoverForGate(String(currentGateId)).subscribe((ops) => {
+          const activeExit = ops.find(
+            (o) => o.operationType === 'Exit' && isInFlightGateOperationStatus(o.status),
+          );
+          if (activeExit) {
+            this.activeExitGateOperation = activeExit;
+            this.cdr.markForCheck();
+          }
+        }),
+      );
+    }
 
     this.hubSubscriptions.add(
       timer(0, 5000)
@@ -802,7 +870,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   }
 
   onToggleSanction(id: string): void {
-    if (!id || this.registeringExceed || this.isExceedRegistered || this.isExceedAlreadyExists) {
+    if (!id || this.registeringExceed) {
       return;
     }
 
@@ -833,48 +901,39 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
   exitSelectedTicketAfterExceed(): void {
     const ticket = this.selectedTicketForExceed;
-    const controllerId = this.gatePeripheralFacade.controlId(this.gateConnectionInfo);
-
     if (!ticket?.id) {
       this.notify('warn', 'please_select_ticket');
       return;
     }
 
-    if (!this.isExceedRegistered) {
-      this.notify('warn', 'register_exceed');
-      return;
+    this.executeExitOperation(ticket.id);
+  }
+
+  private getExceedIdempotencyStorageKey(ticketId: string, sanctionIds: string[]): string {
+    const sorted = [...sanctionIds].sort().join(',');
+    return `npark_exceed_idem_${ticketId}_${sorted}`;
+  }
+
+  private getOrCreateExceedIdempotencyKey(ticketId: string, sanctionIds: string[]): string {
+    const storageKey = this.getExceedIdempotencyStorageKey(ticketId, sanctionIds);
+    try {
+      const existing = sessionStorage.getItem(storageKey);
+      if (existing) return existing;
+      const created = this.ticketExceedTransactionSvc.generateIdempotencyKey();
+      sessionStorage.setItem(storageKey, created);
+      return created;
+    } catch {
+      return this.ticketExceedTransactionSvc.generateIdempotencyKey();
     }
+  }
 
-    if (!controllerId) {
-      this.setFeedback('openGate', 'gate_connection_required', 'warn');
-      return;
+  private clearExceedIdempotencyKey(ticketId: string, sanctionIds: string[]): void {
+    const storageKey = this.getExceedIdempotencyStorageKey(ticketId, sanctionIds);
+    try {
+      sessionStorage.removeItem(storageKey);
+    } catch {
+      // Ignore storage errors
     }
-
-    this.exitSelectedTicketLoading = true;
-
-    this.svc.addExitTicket(ticket.id).subscribe({
-      next: (ok) => {
-        if (!ok) {
-          this.setFeedback('openGate', 'exitTicketAddFailed', 'error');
-          this.exitSelectedTicketLoading = false;
-          return;
-        }
-
-        this.upsertExitTicketRow(
-          ticket.id,
-          ticket.vehicleNumber || ticket.cardNumber || '',
-          ticket.uniqueCode || ticket.id,
-          this.totalPriceAfterExceed || ticket.price || 0,
-          false,
-        );
-        this.refreshSanctionsTickets(ticket.id);
-        this.openGateForSelectedTicket(controllerId);
-      },
-      error: (err) => {
-        this.handleError('addExitTicket (selected exceed ticket)', err);
-        this.exitSelectedTicketLoading = false;
-      },
-    });
   }
 
   private submitExceed(
@@ -897,33 +956,46 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const idempotencyKey = this.getOrCreateExceedIdempotencyKey(ticketId, uniqueSanctionIds);
     this.registeringExceed = true;
 
     this.ticketExceedTransactionSvc
       .create({
         ticketId,
         sanctionIds: uniqueSanctionIds,
+        idempotencyKey,
       })
       .subscribe({
         next: (response) => {
+          this.clearExceedIdempotencyKey(ticketId, uniqueSanctionIds);
           this.ticketExceedTransaction = response;
           this.exceedAmount = Number(response.exceedAmount ?? 0);
           this.totalPriceAfterExceed = Number(response.totalPriceAfterExceed ?? 0);
           this.isExceedRegistered = true;
-          if (
-            this.validationAwaitingCollection &&
-            this.textValidationResult?.ticketId &&
-            String(this.textValidationResult.ticketId).toLowerCase() ===
-              String(response.ticketId).toLowerCase()
-          ) {
-            this.validationCalculatedFee = this.totalPriceAfterExceed;
-          }
-          this.notify('success', 'exceed_registered_success');
-          this.printExceedQrTicket(response);
-          this.printExceedReceipt(response);
 
-          if (continueExitAfterSuccess) {
-            this.registerValidatedExitAndOpenGate();
+          // Track multiple independent sanction transactions by ticketExceedTransactionId
+          const txId = response.ticketExceedTransactionId;
+          if (txId && !this.exceedTransactions.some((t) => t.ticketExceedTransactionId === txId)) {
+            this.exceedTransactions = [response, ...this.exceedTransactions];
+          }
+
+          // Clear selected sanctions so cashier can register another independent sanction if needed
+          this.selectedSanctionIds = [];
+
+          this.notify('success', 'exceed_registered_success');
+
+          // Prevent duplicate original receipts on replayed idempotent responses
+          if (!txId || !this.printedExceedTransactionIds.has(txId)) {
+            if (txId) this.printedExceedTransactionIds.add(txId);
+            this.printExceedQrTicket(response);
+            this.printExceedReceipt(response);
+          }
+
+          // Revalidate eligibility after sanction payment (updates validExitDate, paidAmount, etc.)
+          if (this.lastValidatedInputText) {
+            this.revalidateCurrentTicketEligibility(this.lastValidatedInputText, continueExitAfterSuccess);
+          } else if (continueExitAfterSuccess) {
+            this.executeExitOperation(ticketId);
           }
         },
         error: (err) => {
@@ -1476,108 +1548,12 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.setValidationTextNonce++;
   }
 
+  // FE-09: Subscribers must exit using their existing active ticket issued at entry.
+  // Ticket creation at the exit gate is prohibited by the V2 backend contract.
   private handleLprMembershipVehicle(vehicleNumber: string): void {
     const normalized = this.normalizeExitScanText(vehicleNumber);
     if (!normalized) return;
-
-    const controllerId = this.gatePeripheralFacade.controlId(this.gateConnectionInfo);
-    if (!controllerId) {
-      this.setFeedback('openGate', 'gate_connection_required', 'warn');
-      this.focusValidationTextNonce++;
-      return;
-    }
-
-    this.lprMembershipLoading = true;
-    this.clearValidationFeedback();
-    this.validationMessage = this.t('searching');
-
-    this.svc.isMembership(normalized).subscribe({
-      next: (membership) => {
-        if (!membership?.isExist) {
-          this.setFeedback('validation', 'not_valid_for_exit', 'warn');
-          this.focusValidationTextNonce++;
-          return;
-        }
-
-        this.createMembershipExitTicketAndOpenGate(
-          normalized,
-          membership.cardNumber ??
-            (membership.summary as any)?.cardNumber ??
-            (membership.summary as any)?.CardNumber ??
-            undefined,
-          controllerId,
-        );
-      },
-      error: (err) => {
-        this.validationError = this.t('failed_to_validate');
-        this.handleError('IsMemberShip (exit LPR)', err);
-        this.focusValidationTextNonce++;
-      },
-      complete: () => {
-        this.lprMembershipLoading = false;
-      },
-    });
-  }
-
-  private createMembershipExitTicketAndOpenGate(
-    vehicleNumber: string,
-    cardNumber: string | undefined,
-    controllerId: string,
-  ): void {
-    if (this.addingExitTicket) return;
-
-    this.addingExitTicket = true;
-    this.validationMessage = this.t('allowed_for_exit');
-
-    this.svc
-      .addTicket({
-        isSubscriber: true,
-        vehicleNumber,
-        cardNumber,
-      })
-      .subscribe({
-        next: (res) => {
-          if (!this.isAddTicketSuccess(res)) {
-            this.setFeedback('openGate', 'exitTicketAddFailed', 'error');
-            this.focusValidationTextNonce++;
-            return;
-          }
-
-          if (res?.ticketId) {
-            this.upsertExitTicketRow(
-              res.ticketId,
-              res.vehicleNumber || vehicleNumber,
-              res.ticketInfo || res.ticketId,
-              res.price ?? 0,
-              true,
-            );
-          }
-          this.pendingValidationSource = 'validationText';
-          this.openGateForValidatedExit(controllerId);
-        },
-        error: (err) => {
-          this.validationOpenGateError = this.t('exitTicketAddFailed');
-          this.handleError('AddTicket (exit LPR membership)', err);
-          this.focusValidationTextNonce++;
-        },
-        complete: () => {
-          this.addingExitTicket = false;
-        },
-      });
-  }
-
-  private isAddTicketSuccess(res: any): boolean {
-    return !!(
-      res === true ||
-      res?.success ||
-      res?.Success ||
-      res?.isSuccess ||
-      res?.IsSuccess ||
-      res?.succeeded ||
-      res?.Succeeded ||
-      res?.ticketId ||
-      res?.TicketId
-    );
+    this.onValidateExitByText(normalized, 'validationText');
   }
 
   onValidateExitByVehicleNumber(vehicleNumber: string): void {
@@ -1653,24 +1629,11 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.vehicleValidationResult = null;
     this.lastValidationOpenGateResponse = null;
 
+    this.lastValidatedInputText = trimmed;
     this.validateExitByTextWithFallback(trimmed).subscribe({
       next: (res) => {
         this.textValidationLoading = false;
-        if (res.isValidForExit) {
-          this.textValidationResult = res;
-          this.evaluateValidatedTicketAndProceed(res);
-        } else {
-          const reason = this.getExitValidationBusinessMessage(res);
-          this.textValidationResult = res;
-          this.validationMessage = null;
-          this.validationError = reason;
-          if (res.ticketId && !res.endDate) {
-            this.syncValidatedTicketToSanctions(res, 0);
-          }
-          this.showToast('warn', reason);
-          this.focusValidationTextNonce++;
-          this.processPendingExitValidation();
-        }
+        this.handleExitValidationResult(res, true);
       },
       error: (err) => {
         this.validationError =
@@ -1681,6 +1644,116 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         this.textValidationLoading = false;
         this.focusValidationTextNonce++;
         this.processPendingExitValidation();
+      },
+    });
+  }
+
+  private revalidateCurrentTicketEligibility(
+    inputText: string,
+    autoExitIfEligible: boolean = false,
+  ): void {
+    if (!inputText) return;
+    this.textValidationLoading = true;
+    this.validateExitByTextWithFallback(inputText).subscribe({
+      next: (res) => {
+        this.textValidationLoading = false;
+        this.handleExitValidationResult(res, autoExitIfEligible);
+      },
+      error: (err) => {
+        this.textValidationLoading = false;
+        this.handleError('revalidateExitByText', err);
+      },
+    });
+  }
+
+  private handleExitValidationResult(
+    res: ValidateExitByTextResponse,
+    autoExitIfEligible: boolean,
+  ): void {
+    this.textValidationResult = res;
+    this.currentExitEligibility = res.eligibility ?? null;
+
+    // 1) Recover existing pending GateOperation if backend reports GateOperationPending
+    const existingOpId = res.existingOperationId ?? res.eligibility?.existingOperationId ?? null;
+    if (res.reasonCode === 'GateOperationPending' && existingOpId) {
+      this.validationError = this.getExitValidationBusinessMessage(res);
+      this.validationMessage = this.t('operation_already_pending');
+      this.gateOperationStore.refreshOperation(existingOpId).subscribe((op) => {
+        if (op) {
+          this.applyExitGateOperation(op);
+          if (isInFlightGateOperationStatus(op.status)) {
+            this.gateOperationStore.startPolling(op.operationId);
+          }
+          this.cdr.markForCheck();
+        }
+      });
+      return;
+    }
+
+    // 2) Eligible for exit → authorize ONE backend ExitTicket operation (no follow-up Gate/open!)
+    if (res.isValidForExit && res.ticketId) {
+      this.validationError = null;
+      this.validationAwaitingCollection = false;
+      if (autoExitIfEligible) {
+        this.executeExitOperation(res.ticketId);
+      } else {
+        this.validationMessage = this.t('allowed_for_exit');
+      }
+      return;
+    }
+
+    // 3) Not yet eligible → inspect unified eligibility reasons
+    const reason = this.getExitValidationBusinessMessage(res);
+    this.validationError = reason;
+    this.validationMessage = null;
+
+    if (res.ticketId && !res.endDate) {
+      this.syncValidatedTicketToSanctions(res, res.eligibility?.basePrice ?? 0);
+    }
+
+    // BasePaymentRequired → fetch fresh base fee quotation and wait for cashier confirmation
+    const requiresBase = !!(res.requiresBasePayment ?? res.eligibility?.requiresBasePayment);
+    if (requiresBase && res.ticketId) {
+      this.fetchBaseFeeQuotationForValidation(res.ticketId);
+      return;
+    }
+
+    this.validationAwaitingCollection = false;
+    this.showToast('warn', reason);
+    this.focusValidationTextNonce++;
+    this.processPendingExitValidation();
+  }
+
+  private fetchBaseFeeQuotationForValidation(ticketId: string): void {
+    this.textValidationLoading = true;
+    this.validationMessage = this.t('calculating_fee');
+
+    this.svc.calculateTicketSalary(ticketId, []).subscribe({
+      next: (summary) => {
+        this.textValidationLoading = false;
+        if (!summary) {
+          this.validationError = this.t('failed_to_validate');
+          return;
+        }
+        this.salarySummary = summary;
+        this.validationCalculatedFee = summary.basePrice;
+        this.validationAwaitingCollection = !summary.isCollectByCashier;
+        this.validationMessage = this.validationAwaitingCollection
+          ? this.t('awaiting_exit_collection')
+          : null;
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        this.textValidationLoading = false;
+        // Never turn a backend failure into a false zero-price quotation
+        this.salarySummary = null;
+        this.validationCalculatedFee = null;
+        this.validationAwaitingCollection = false;
+        this.handleError('calculateTicketSalary (validated exit)', err);
+        this.validationError = this.errorExtractor.extractErrorMessage(
+          err,
+          this.t('failed_to_validate'),
+        );
       },
     });
   }
@@ -1727,74 +1800,40 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     }, 0);
   }
 
-  private evaluateValidatedTicketAndProceed(res: ValidateExitByTextResponse): void {
-    if (!res.ticketId) {
-      this.setFeedback('openGate', 'no_matching_ticket', 'warn');
-      return;
-    }
-
-    this.textValidationLoading = true;
-    this.validationMessage = this.t('calculating_fee');
-
-    this.svc.calculateTicketSalary(res.ticketId, []).subscribe({
-      next: (summary) => {
-        this.textValidationLoading = false;
-        const totalSalary = Number(
-          summary?.totalSalary ?? (summary as any)?.TotalSalary ?? 0,
-        );
-        const isCollected = !!(
-          summary?.isCollectByCashier ?? (summary as any)?.IsCollectByCashier
-        );
-
-        this.validationCalculatedFee = totalSalary;
-
-        if (isCollected) {
-          this.validationAwaitingCollection = false;
-          this.setFeedback('validation', 'allowed_for_exit', 'success');
-          this.registerValidatedExitAndOpenGate(totalSalary);
-          return;
-        }
-
-        // Pay-at-Exit (PriceType.Exit): show due fee and wait for cashier confirmation
-        this.validationAwaitingCollection = true;
-        this.validationMessage = this.t('awaiting_exit_collection');
-        this.syncValidatedTicketToSanctions(res, totalSalary);
-        this.cdr.markForCheck();
-      },
-      error: (err) => {
-        this.textValidationLoading = false;
-        this.handleError('calculateTicketSalary (validated exit)', err);
-        this.validationError = this.errorExtractor.extractErrorMessage(
-          err,
-          this.t('failed_to_validate'),
-        );
-        this.focusValidationTextNonce++;
-        this.processPendingExitValidation();
-      },
-    });
-  }
-
   onCollectAndExitValidatedTicket(ticketId: string): void {
-    const controllerId = this.gatePeripheralFacade.controlId(this.gateConnectionInfo);
     if (!ticketId || this.validationCollectingAndExiting || this.addingExitTicket) return;
 
-    if (!controllerId) {
-      this.setFeedback('openGate', 'gate_connection_required', 'warn');
-      return;
-    }
+    // FE-07: Always pass the confirmed base parking fee (NEVER totalPrice or totalPriceAfterExceed)
+    const expectedBasePrice =
+      this.salarySummary?.basePrice ??
+      this.currentExitEligibility?.basePrice ??
+      this.validationCalculatedFee ??
+      undefined;
 
     this.validationCollectingAndExiting = true;
     this.validationOpenGateError = null;
 
-    this.svc.collectCashier(ticketId).subscribe({
+    this.svc.collectCashier(ticketId, expectedBasePrice).subscribe({
       next: () => {
         this.validationAwaitingCollection = false;
         this.validationCollectingAndExiting = false;
         this.notify('success', 'collectCashierOk');
-        this.registerValidatedExitAndOpenGate(this.validationCalculatedFee ?? 0);
+
+        // Revalidate eligibility before calling ExitTicket (do not bypass overnight/sanction rules!)
+        if (this.lastValidatedInputText) {
+          this.revalidateCurrentTicketEligibility(this.lastValidatedInputText, true);
+        } else {
+          this.executeExitOperation(ticketId);
+        }
       },
       error: (err) => {
         this.validationCollectingAndExiting = false;
+        const code = this.extractProblemCode(err);
+        if (code === 'BaseQuoteChanged' || code === 'BaseQuoteRequired') {
+          this.notify('warn', 'payment_amount_changed');
+          this.fetchBaseFeeQuotationForValidation(ticketId);
+          return;
+        }
         this.handleError('collectCashier (exit validation)', err);
         this.validationOpenGateError = this.errorExtractor.extractErrorMessage(
           err,
@@ -1804,54 +1843,35 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     });
   }
 
-  private registerValidatedExitAndOpenGate(collectedPrice: number = 0): void {
-    const result = this.textValidationResult || this.vehicleValidationResult;
-    const controllerId = this.gatePeripheralFacade.controlId(this.gateConnectionInfo);
-
-    if (
-      !result?.isValidForExit ||
-      !result.ticketId ||
-      !controllerId ||
-      this.addingExitTicket ||
-      this.validationOpenGateLoading
-    ) {
-      if (!result?.ticketId) {
-        this.setFeedback('openGate', 'no_matching_ticket', 'warn');
-      }
-      if (!controllerId) {
-        this.setFeedback('openGate', 'gate_connection_required', 'warn');
-      }
-      return;
-    }
+  /**
+   * FE-02: Single shared Exit GateOperation workflow.
+   * Calls POST /api/Ticket/ExitTicket once (no follow-up POST /api/Gate/open!)
+   * Handles HTTP 202 Pending and HTTP 200 Completed/Failed without optimistic exit rows.
+   */
+  private executeExitOperation(ticketId: string): void {
+    if (!ticketId || this.addingExitTicket) return;
 
     this.addingExitTicket = true;
     this.validationOpenGateError = null;
-    this.validationMessage = this.t('exitTicketAdded');
+    this.validationMessage = this.t('waiting_gate_confirmation');
 
-    this.svc.addExitTicket(result.ticketId).subscribe({
-      next: (ok) => {
-        if (!ok) {
+    this.svc.addExitTicket(ticketId).subscribe({
+      next: (httpRes) => {
+        const op = httpRes.body;
+        if (!op) {
           this.setFeedback('openGate', 'exitTicketAddFailed', 'error');
-          this.focusValidationTextNonce++;
           return;
         }
 
-        this.upsertExitTicketRow(
-          result.ticketId!,
-          result.vehicleNumber ||
-            result.cardNumber ||
-            (result as ValidateExitByTextResponse).inputText ||
-            '',
-          result.ticketNumber || result.ticketId!,
-          collectedPrice,
-          true,
+        const tracked = this.gateOperationStore.upsertOperation(op, true);
+        this.applyExitGateOperation(tracked, httpRes.status);
+      },
+      error: (err) => {
+        this.validationOpenGateError = this.errorExtractor.extractErrorMessage(
+          err,
+          this.t('exitTicketAddFailed'),
         );
-        this.refreshSanctionsTickets(result.ticketId);
-        this.openGateForValidatedExit(controllerId);
-      },
-      error: (err) => {
-        this.validationOpenGateError = this.t('exitTicketAddFailed');
-        this.handleError('addExitTicket (validated exit)', err);
+        this.handleError('ExitTicket', err);
         this.addingExitTicket = false;
         this.focusValidationTextNonce++;
         this.processPendingExitValidation();
@@ -1863,68 +1883,141 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     });
   }
 
-  private openGateForValidatedExit(controllerId: string): void {
-    this.validationOpenGateLoading = true;
-    this.validationOpenGateError = null;
-    this.lastValidationOpenGateResponse = null;
+  private applyExitGateOperation(op: GateOperationResponse, httpStatus?: number): void {
+    this.activeExitGateOperation = op;
+    this.lastValidationOpenGateResponse = op;
 
-    this.gateSvc.openGate(controllerId).subscribe({
-      next: (res) => {
-        this.lastValidationOpenGateResponse = res;
-        this.setFeedback('openGate', 'gate_opened_successfully', 'success');
-        if (this.pendingValidationSource === 'universal') {
-          this.universalInput = '';
-          this.lastSubmittedUniversalInput = '';
-        } else {
-          this.clearValidationTextNonce++;
-        }
-        this.focusValidationTextNonce++;
-      },
-      error: (err) => {
-        console.error('OpenGate error', err);
-        this.validationOpenGateLoading = false;
-        this.setFeedback('openGate', 'open_gate_failed', 'error');
-        this.focusValidationTextNonce++;
-        this.processPendingExitValidation();
-      },
-      complete: () => {
-        this.validationOpenGateLoading = false;
-        this.processPendingExitValidation();
-      },
-    });
-  }
-
-  private openGateForSelectedTicket(controllerId: string): void {
-    this.validationOpenGateLoading = true;
-    this.validationOpenGateError = null;
-    this.lastValidationOpenGateResponse = null;
-
-    this.gateSvc.openGate(controllerId).subscribe({
-      next: (res) => {
-        this.lastValidationOpenGateResponse = res;
-        this.setFeedback('openGate', 'gate_opened_successfully', 'success');
+    if (isCompletedExitOperation(op)) {
+      this.validationOpenGateError = null;
+      this.validationMessage = this.t('exit_completed');
+      this.exitTicketAdded = true;
+      if (!this.completedExitOperationIds.has(op.operationId)) {
+        this.completedExitOperationIds.add(op.operationId);
+        this.notify('success', 'exit_completed');
         this.reloadList();
-        this.selectedTicketForExceed = null;
-        this.resetExceedState(true);
+        this.refreshSanctionsTickets(op.ticketId);
+      }
+      if (this.pendingValidationSource === 'universal') {
+        this.universalInput = '';
+        this.lastSubmittedUniversalInput = '';
+      } else {
+        this.clearValidationTextNonce++;
+      }
+      this.focusValidationTextNonce++;
+      return;
+    }
+
+    if (httpStatus === 202 || isInFlightGateOperationStatus(op.status)) {
+      this.validationOpenGateError = null;
+      this.validationMessage =
+        op.status === 'Acknowledged'
+          ? this.t('completing_ticket_archive')
+          : this.t('waiting_gate_confirmation');
+      this.gateOperationStore.startPolling(op.operationId);
+      return;
+    }
+
+    if (op.status === 'Failed') {
+      this.setFeedback('openGate', 'gate_execution_failed', 'error');
+      return;
+    }
+
+    if (isUncertainGateOutcome(op.status)) {
+      this.validationMessage = null;
+      this.validationOpenGateError = this.t('gate_execution_unknown');
+      this.notify('warn', 'gate_execution_unknown');
+    }
+  }
+
+  onRetryExitGateOperation(operationId: string): void {
+    if (!operationId || this.validationOpenGateLoading) return;
+    this.validationOpenGateLoading = true;
+    this.gateOperationSvc.retryOperation(operationId).subscribe({
+      next: (httpRes) => {
+        if (httpRes.body) {
+          const tracked = this.gateOperationStore.upsertOperation(httpRes.body, true);
+          this.applyExitGateOperation(tracked, httpRes.status);
+        }
       },
       error: (err) => {
-        console.error('OpenGate error', err);
-        this.setFeedback('openGate', 'open_gate_failed', 'error');
+        this.handleError('retryExitGateOperation', err);
       },
       complete: () => {
         this.validationOpenGateLoading = false;
-        this.exitSelectedTicketLoading = false;
       },
     });
+  }
+
+  onRefreshExitGateOperation(operationId: string): void {
+    if (!operationId || this.validationOpenGateLoading) return;
+    this.validationOpenGateLoading = true;
+    this.gateOperationStore.refreshOperation(operationId).subscribe({
+      next: (op) => {
+        if (op) this.applyExitGateOperation(op);
+      },
+      complete: () => {
+        this.validationOpenGateLoading = false;
+      },
+    });
+  }
+
+  onReconcileExitGateOperation(payload: { operationId: string; evidence: string }): void {
+    if (!this.isSupervisor || !payload.operationId || !payload.evidence.trim()) return;
+    this.reconcilingGateOperation = true;
+    this.gateOperationSvc
+      .reconcileNonExecution(payload.operationId, payload.evidence)
+      .subscribe({
+        next: (op) => {
+          const tracked = this.gateOperationStore.upsertOperation(op, true);
+          this.applyExitGateOperation(tracked);
+          this.notify('success', 'save');
+        },
+        error: (err) => {
+          this.handleError('reconcileNonExecution', err);
+        },
+        complete: () => {
+          this.reconcilingGateOperation = false;
+        },
+      });
   }
 
   private getExitValidationBusinessMessage(
     res: ValidateExitByTextResponse | ValidateExitByVehicleNumberResponse,
   ): string {
-    if (!res.ticketId) return this.t('no_matching_ticket');
-    if (res.endDate) return this.t('ticket_already_exited_msg');
-    if (res.startDate && !this.isToday(res.startDate)) return this.t('ticket_not_valid_today_msg');
-    return this.t('not_valid_for_exit');
+    const code = res.reasonCode ?? res.eligibility?.reasonCode ?? '';
+    switch (code) {
+      case 'TicketNotFound':
+        return this.t('no_matching_ticket');
+      case 'TicketArchived':
+        return this.t('ticket_archived_msg');
+      case 'TicketAlreadyExited':
+        return this.t('ticket_already_exited_msg');
+      case 'AmbiguousTicket':
+        return this.t('ambiguous_ticket_msg');
+      case 'EntryNotConfirmed':
+        return this.t('entry_not_confirmed_msg');
+      case 'BasePaymentRequired':
+        return this.t('base_payment_required');
+      case 'OvernightPenaltyRequired':
+        return this.t('overnight_penalty_required');
+      case 'SanctionPaymentRequired':
+        return this.t('outstanding_sanctions');
+      case 'GateOperationPending':
+        return this.t('operation_already_pending');
+      case 'GateNotFound':
+      case 'InvalidExitGate':
+        return this.t('invalid_exit_gate_msg');
+      case 'InvalidExitDate':
+        return this.t('ticket_not_valid_today_msg');
+      case 'OvernightPenaltyConfigurationMissing':
+        return this.t('overnight_config_missing_msg');
+      default:
+        if (res.reasonMessage) return res.reasonMessage;
+        if (!res.ticketId) return this.t('no_matching_ticket');
+        if (res.endDate) return this.t('ticket_already_exited_msg');
+        if (res.startDate && !this.isToday(res.startDate)) return this.t('ticket_not_valid_today_msg');
+        return this.t('not_valid_for_exit');
+    }
   }
 
   private isToday(value: string): boolean {
@@ -2162,26 +2255,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   // success message when back 204
 
   addExitTicket(t: ScanTicketResponse): void {
-    if (this.addingExitTicket || !t?.id) return;
-
-    this.addingExitTicket = true;
-
-    this.svc.addExitTicket(String(t.id)).subscribe({
-      next: (ok) => {
-        if (ok) {
-          this.exitTicketAdded = true;
-
-          const price = this.currentTotalWithSanctions || t.price;
-          this.upsertExitTicketRow(t.id, t.ticketInfo || '', t.ticketNumber, price, false);
-        }
-      },
-      error: (err) => {
-        this.handleError('addExitTicket', err);
-      },
-      complete: () => {
-        this.addingExitTicket = false;
-      },
-    });
+    if (!t?.id) return;
+    this.executeExitOperation(String(t.id));
   }
 
   confirmExit(): void {
@@ -2197,105 +2272,24 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (this.exitTicketAdded) {
-      return;
-    }
-
-    const ticketId = this.scannedTicket.id;
-    this.collecting = true;
-
-    this.svc.addExitTicket(String(ticketId)).subscribe({
-      next: (ok) => {
-        if (ok) {
-          this.exitTicketAdded = true;
-          this.notify('success', 'exitTicketAdded');
-
-          const price = this.currentTotalWithSanctions || this.scannedTicket!.price;
-          this.upsertExitTicketRow(
-            ticketId,
-            this.scannedTicket!.ticketInfo || '',
-            this.scannedTicket!.ticketNumber,
-            price,
-            false,
-          );
-        } else {
-          this.notify('error', 'exitTicketAddFailed');
-        }
-      },
-      error: (err) => {
-        this.handleError('addExitTicket (confirmExit)', err);
-      },
-      complete: () => {
-        this.collecting = false;
-      },
-    });
+    this.executeExitOperation(String(this.scannedTicket.id));
   }
 
   allowExitWithoutCollect(): void {
-    if (!this.scannedTicket && !this.salarySummary) return;
-
-    this.exitProcessing = true;
-
-    if (this.scannedTicket) {
-      const ticketId = String(this.scannedTicket.id);
-
-      this.svc.addExitTicket(ticketId).subscribe({
-        next: (ok) => {
-          if (ok) {
-            const price = this.currentTotalWithSanctions || 0;
-            this.upsertExitTicketRow(
-              this.scannedTicket!.id,
-              this.scannedTicket!.ticketInfo || '',
-              this.scannedTicket!.ticketNumber,
-              price,
-              true,
-            );
-            this.resetScanState();
-          }
-        },
-        error: (err) => {
-          this.handleError('addExitTicket (allowExitWithoutCollect/QR)', err);
-          this.exitProcessing = false;
-        },
-        complete: () => {
-          this.exitProcessing = false;
-        },
-      });
-
-      return;
-    }
-
-    if (this.salarySummary?.ticketId) {
-      const ticketId = String(this.salarySummary.ticketId);
-
-      this.svc.addExitTicket(ticketId).subscribe({
-        next: (ok) => {
-          if (ok) {
-            const price = this.currentTotalWithSanctions || 0;
-            const plate = 'SUBSCRIBER';
-            this.upsertExitTicketRow(ticketId, plate, ticketId, price, true);
-            this.resetScanState();
-          }
-        },
-        error: (err) => {
-          this.handleError('addExitTicket (allowExitWithoutCollect/subscriber)', err);
-          this.exitProcessing = false;
-        },
-        complete: () => {
-          this.exitProcessing = false;
-        },
-      });
-    } else {
-      this.exitProcessing = false;
-    }
+    const ticketId = this.scannedTicket?.id
+      ? String(this.scannedTicket.id)
+      : this.salarySummary?.ticketId
+        ? String(this.salarySummary.ticketId)
+        : null;
+    if (!ticketId) return;
+    this.executeExitOperation(ticketId);
   }
 
   collect(t: TicketDetailsDto): void {
     this.collecting = true;
 
-    this.svc.collect(t.id).subscribe({
+    this.svc.collect(t.id, t.price).subscribe({
       next: () => {
-        this.upsertExitTicketRow(t.id, t.plate, t.id.toString(), t.totalPrice, false);
         this.notify('success', 'collectCashierOk');
         this.resetScanState();
       },
@@ -2320,9 +2314,9 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const expectedBasePrice = this.salarySummary.basePrice ?? this.salarySummary.totalSalary;
     this.cashierConfirming = true;
-    // success message when back 204
-    this.svc.collectCashier(ticketId).subscribe({
+    this.svc.collectCashier(ticketId, expectedBasePrice).subscribe({
       next: (ok) => {
         if (ok) {
           this.salarySummary = {

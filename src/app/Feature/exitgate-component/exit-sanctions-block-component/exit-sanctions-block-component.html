@@ -107,7 +107,7 @@
 
       <select
         class="form-select form-select-sm select-sanction"
-        [disabled]="registeringExceed || isExceedRegistered || isExceedAlreadyExists"
+        [disabled]="registeringExceed"
         (change)="onToggleSanction($any($event.target).value); $any($event.target).value = ''"
       >
         <option value="" selected disabled>{{ 'select_sanction_placeholder' | t }}</option>
@@ -127,7 +127,7 @@
           class="sanction-tag active d-inline-flex align-items-center gap-1 me-1 mb-1"
           *ngFor="let sanction of selectedSanctions"
           (click)="onToggleSanction(sanction.id)"
-          [disabled]="registeringExceed || isExceedRegistered || isExceedAlreadyExists"
+          [disabled]="registeringExceed"
         >
           <span class="tag-name">{{ sanction.name }}</span>
           <span class="tag-price">({{ sanction.amount | number: '1.2-2' }})</span>

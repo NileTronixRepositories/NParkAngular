@@ -475,3 +475,51 @@ textarea[dir='ltr'] {
   opacity: 0.65;
   cursor: not-allowed;
 }
+
+.result-finance-box {
+  padding: 0.45rem 0.6rem;
+  border-radius: 9px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  font-size: 0.7rem;
+}
+
+.result-finance-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: #475569;
+}
+
+.result-finance-row--overnight {
+  padding-top: 0.25rem;
+  border-top: 1px dashed #fecaca;
+  color: #b91c1c;
+  font-weight: 700;
+}
+
+.result-op-box {
+  padding: 0.5rem 0.6rem;
+  border-radius: 9px;
+  border: 1px solid #bae6fd;
+  background: #f0f9ff;
+}
+
+.result-op-box--completed {
+  border-color: #a7f3d0;
+  background: #ecfdf5;
+}
+
+.result-op-box--failed {
+  border-color: #fecaca;
+  background: #fef2f2;
+}
+
+.result-op-box--uncertain {
+  border-color: #fde68a;
+  background: #fffbeb;
+}

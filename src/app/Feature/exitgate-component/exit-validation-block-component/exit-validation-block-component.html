@@ -136,20 +136,45 @@
               {{ anyResult.endDate | date: 'dd/MM/yyyy - h:mm a' }}
             </span>
           </div>
+
+          <div class="result-meta-cell result-meta-cell--full" *ngIf="validExitDateValue">
+            <span class="result-meta-label">
+              <i class="fa-regular fa-calendar-check"></i>
+              <span>{{ 'valid_exit_date' | t }}</span>
+            </span>
+            <span class="result-meta-value mono" dir="ltr">{{ validExitDateValue }}</span>
+          </div>
         </div>
 
-        <div class="result-fee-banner" *ngIf="isValid && calculatedFee !== null">
-          <span class="result-fee-label">
-            <i class="fa-solid fa-coins"></i>
-            <span>{{ 'salary_total' | t }}</span>
-          </span>
-          <strong class="result-fee-amount mono" dir="ltr">
-            {{ calculatedFee | number: '1.0-2' }} {{ 'egp' | t }}
-          </strong>
+        <!-- V2 Financial Breakdown (Base, Sanctions, Paid, Outstanding, Prospective Overnight) -->
+        <div
+          class="result-finance-box"
+          *ngIf="eligibility || salaryBreakdown"
+        >
+          <div class="result-finance-row" *ngIf="baseFeeAmount !== null">
+            <span>{{ 'base_fee' | t }}</span>
+            <strong class="mono" dir="ltr">{{ baseFeeAmount | number: '1.0-2' }} {{ 'egp' | t }}</strong>
+          </div>
+          <div class="result-finance-row" *ngIf="exceedFeeAmount > 0">
+            <span>{{ 'registered_sanctions' | t }}</span>
+            <strong class="mono" dir="ltr">{{ exceedFeeAmount | number: '1.0-2' }} {{ 'egp' | t }}</strong>
+          </div>
+          <div class="result-finance-row" *ngIf="paidAmountValue > 0">
+            <span>{{ 'previously_paid' | t }}</span>
+            <strong class="mono text-success" dir="ltr">{{ paidAmountValue | number: '1.0-2' }} {{ 'egp' | t }}</strong>
+          </div>
+          <div class="result-finance-row" *ngIf="outstandingAmountValue > 0">
+            <span>{{ 'outstanding_balance' | t }}</span>
+            <strong class="mono text-danger" dir="ltr">{{ outstandingAmountValue | number: '1.0-2' }} {{ 'egp' | t }}</strong>
+          </div>
+          <div class="result-finance-row result-finance-row--overnight" *ngIf="requiredOvernightAmountValue > 0">
+            <span>{{ 'required_overnight_penalty' | t }}</span>
+            <strong class="mono text-danger" dir="ltr">{{ requiredOvernightAmountValue | number: '1.0-2' }} {{ 'egp' | t }}</strong>
+          </div>
         </div>
 
         <button
-          *ngIf="isValid && awaitingCollection"
+          *ngIf="awaitingCollection && anyResult?.ticketId"
           type="button"
           class="btn result-collect-btn w-100"
           data-scanner-focus-stop="true"
@@ -167,7 +192,88 @@
           <span>{{ 'collect_and_open_gate' | t }}</span>
         </button>
 
-        <div class="result-reason result-reason--valid" *ngIf="isValid && !awaitingCollection">
+        <!-- Active GateOperation Status & Recovery Actions -->
+        <div
+          class="result-op-box"
+          *ngIf="activeOperation as op"
+          [class.result-op-box--completed]="op.status === 'Completed'"
+          [class.result-op-box--failed]="op.status === 'Failed'"
+          [class.result-op-box--uncertain]="op.status === 'TimedOut' || op.status === 'Unknown'"
+          data-scanner-focus-stop="true"
+        >
+          <div class="d-flex align-items-center justify-content-between gap-2">
+            <span class="d-inline-flex align-items-center gap-2 fw-bold x-small">
+              <span
+                *ngIf="op.status === 'Pending' || op.status === 'Published' || op.status === 'Acknowledged'"
+                class="spinner-border spinner-border-sm"
+              ></span>
+              <i *ngIf="op.status === 'Completed'" class="fa-solid fa-circle-check text-success"></i>
+              <i *ngIf="op.status === 'Failed'" class="fa-solid fa-circle-xmark text-danger"></i>
+              <i *ngIf="op.status === 'TimedOut' || op.status === 'Unknown'" class="fa-solid fa-circle-question text-warning"></i>
+              <span>{{ operationStatusLabelKey | t }}</span>
+            </span>
+            <span class="badge bg-light text-dark border mono">{{ op.status }}</span>
+          </div>
+
+          <div class="d-flex flex-wrap gap-1 mt-2" *ngIf="op.status !== 'Completed'">
+            <button
+              type="button"
+              class="btn btn-outline-secondary btn-sm flex-grow-1"
+              (click)="onRefreshOperation()"
+              [disabled]="openGateLoading"
+            >
+              <i class="fa-solid fa-rotate me-1"></i>{{ 'refresh_operation' | t }}
+            </button>
+
+            <button
+              *ngIf="op.retryAllowed"
+              type="button"
+              class="btn btn-primary btn-sm flex-grow-1"
+              (click)="onRetryOperation()"
+              [disabled]="openGateLoading"
+            >
+              <i class="fa-solid fa-arrow-rotate-right me-1"></i>{{ 'retry_operation' | t }}
+            </button>
+
+            <button
+              *ngIf="op.requiresReconciliation && isSupervisor && !showReconcileBox"
+              type="button"
+              class="btn btn-outline-warning btn-sm w-100"
+              (click)="showReconcileBox = true"
+            >
+              <i class="fa-solid fa-user-shield me-1"></i>{{ 'reconcile_non_execution' | t }}
+            </button>
+          </div>
+
+          <div class="mt-2" *ngIf="showReconcileBox && op.requiresReconciliation && isSupervisor">
+            <textarea
+              class="form-control form-control-sm mb-1"
+              rows="2"
+              maxlength="500"
+              [(ngModel)]="reconcileEvidence"
+              [placeholder]="'reconcile_evidence_placeholder' | t"
+            ></textarea>
+            <div class="d-flex gap-1">
+              <button
+                type="button"
+                class="btn btn-warning btn-sm flex-grow-1 fw-bold"
+                [disabled]="!reconcileEvidence.trim() || reconcilingOperation"
+                (click)="onSubmitReconcile()"
+              >
+                {{ 'confirm' | t }}
+              </button>
+              <button
+                type="button"
+                class="btn btn-outline-secondary btn-sm"
+                (click)="showReconcileBox = false; reconcileEvidence = ''"
+              >
+                {{ 'cancel' | t }}
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="result-reason result-reason--valid" *ngIf="isValid && !awaitingCollection && !activeOperation">
           <span *ngIf="openGateLoading" class="d-inline-flex align-items-center gap-2">
             <span class="spinner-border spinner-border-sm"></span>
             <span>{{ 'opening_gate' | t }}</span>
@@ -178,9 +284,19 @@
           </span>
         </div>
 
-        <div class="result-reason result-reason--invalid" *ngIf="!isValid">
-          <i class="fa-solid fa-circle-info"></i>
-          <span>{{ validationError || ('no_matching_ticket' | t) }}</span>
+        <div class="result-reason result-reason--invalid" *ngIf="!isValid && !awaitingCollection">
+          <ng-container *ngIf="failureReasons.length > 1; else singleRejectionReason">
+            <div class="d-flex flex-column gap-1 w-100 text-start">
+              <div *ngFor="let f of failureReasons" class="d-flex align-items-center gap-2">
+                <i class="fa-solid fa-circle-info flex-shrink-0"></i>
+                <span>{{ f.message || f.code }}</span>
+              </div>
+            </div>
+          </ng-container>
+          <ng-template #singleRejectionReason>
+            <i class="fa-solid fa-circle-info"></i>
+            <span>{{ validationError || ('no_matching_ticket' | t) }}</span>
+          </ng-template>
         </div>
       </div>
     </div>

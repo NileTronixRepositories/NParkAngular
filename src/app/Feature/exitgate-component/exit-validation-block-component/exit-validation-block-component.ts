@@ -15,9 +15,13 @@ import {
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
+  CalculateSalaryResponse,
+  ExitEligibility,
+  ExitEligibilityFailure,
   ValidateExitByTextResponse,
   ValidateExitByVehicleNumberResponse,
 } from '../../../Domain/tickets/tickets.model';
+import { GateOperationResponse } from '../../../Domain/Gate/gate-operation.models';
 import { TranslatePipePipe } from '../../../Services/i18n/translate-pipe-pipe';
 import { I18N_DICT, I18nDict } from '../../../Services/i18n/i18n.tokens';
 import { LanguageService } from '../../../Services/i18n/language-service';
@@ -48,16 +52,26 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
   @Input() calculatedFee: number | null = null;
   @Input() awaitingCollection: boolean = false;
   @Input() collectingAndExiting: boolean = false;
+  @Input() eligibility: ExitEligibility | null = null;
+  @Input() salaryBreakdown: CalculateSalaryResponse | null = null;
+  @Input() activeOperation: GateOperationResponse | null = null;
+  @Input() isSupervisor: boolean = false;
+  @Input() reconcilingOperation: boolean = false;
 
   @Output() validateText = new EventEmitter<string>();
   @Output() confirmExit = new EventEmitter<string>();
   @Output() collectAndExit = new EventEmitter<string>();
+  @Output() retryOperation = new EventEmitter<string>();
+  @Output() refreshOperation = new EventEmitter<string>();
+  @Output() reconcileOperation = new EventEmitter<{ operationId: string; evidence: string }>();
 
   @ViewChild('manualTextArea') manualTextArea?: ElementRef<HTMLTextAreaElement>;
 
   manualText = '';
   submittedText = '';
   textFieldError: string | null = null;
+  showReconcileBox = false;
+  reconcileEvidence = '';
   private lastSubmittedText = '';
   private autoSubmitTimer?: ReturnType<typeof setTimeout>;
   private suppressScannerFocusUntil = 0;
@@ -142,6 +156,85 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
 
   get hasResult(): boolean {
     return !!this.anyResult;
+  }
+
+  get failureReasons(): ExitEligibilityFailure[] {
+    return this.eligibility?.failureReasons ?? this.anyResult?.failureReasons ?? [];
+  }
+
+  get baseFeeAmount(): number | null {
+    if (this.salaryBreakdown) return this.salaryBreakdown.basePrice;
+    if (this.eligibility) return this.eligibility.basePrice;
+    return this.calculatedFee;
+  }
+
+  get exceedFeeAmount(): number {
+    return this.salaryBreakdown?.exceedPrice ?? this.eligibility?.exceedPrice ?? 0;
+  }
+
+  get paidAmountValue(): number {
+    return this.salaryBreakdown?.paidAmount ?? this.eligibility?.paidAmount ?? 0;
+  }
+
+  get outstandingAmountValue(): number {
+    return this.salaryBreakdown?.outstandingAmount ?? this.eligibility?.outstandingAmount ?? 0;
+  }
+
+  get requiredOvernightAmountValue(): number {
+    return (
+      this.salaryBreakdown?.requiredOvernightAmount ??
+      this.eligibility?.requiredOvernightAmount ??
+      0
+    );
+  }
+
+  get validExitDateValue(): string | null {
+    return (
+      this.salaryBreakdown?.validExitDate ||
+      this.eligibility?.validExitDate ||
+      this.anyResult?.validExitDate ||
+      null
+    );
+  }
+
+  get operationStatusLabelKey(): string {
+    switch (this.activeOperation?.status) {
+      case 'Pending':
+      case 'Published':
+        return 'waiting_gate_confirmation';
+      case 'Acknowledged':
+        return 'completing_ticket_archive';
+      case 'Completed':
+        return 'exit_completed';
+      case 'Failed':
+        return 'gate_execution_failed';
+      case 'TimedOut':
+      case 'Unknown':
+        return 'gate_execution_unknown';
+      default:
+        return '';
+    }
+  }
+
+  onRetryOperation(): void {
+    if (this.activeOperation?.operationId) {
+      this.retryOperation.emit(this.activeOperation.operationId);
+    }
+  }
+
+  onRefreshOperation(): void {
+    if (this.activeOperation?.operationId) {
+      this.refreshOperation.emit(this.activeOperation.operationId);
+    }
+  }
+
+  onSubmitReconcile(): void {
+    const opId = this.activeOperation?.operationId;
+    const evidence = this.reconcileEvidence.trim();
+    if (!opId || !evidence || evidence.length > 500 || this.reconcilingOperation) return;
+    this.reconcileOperation.emit({ operationId: opId, evidence });
+    this.reconcileEvidence = '';
+    this.showReconcileBox = false;
   }
 
   onConfirm(): void {

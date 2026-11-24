@@ -1,18 +1,25 @@
 export interface CreateTicketExceedTransactionRequest {
   ticketId: string;
   sanctionIds: string[];
+  idempotencyKey: string;
 }
 
 export interface CreateTicketExceedTransactionResponse {
   ticketExceedTransactionId: string;
   ticketId: string;
   exceedAmount: number;
+  exceedPrice: number;
   ticketPrice: number;
   totalPriceAfterExceed: number;
+  paidAmount: number;
+  outstandingAmount: number;
+  validExitDate: string;
   gateId: string;
   userCollectId: string;
   superVisorCollectorId: string | null;
   sanctionIds: string[];
+  paymentStatus: string;
+  paymentConfirmedAtUtc: string | null;
   createdAt: string;
   qrCode: string | number[] | null;
   ticketInfo: string;

@@ -102,6 +102,11 @@ export interface DashboardDto {
   ticketEnterNotTodayButNotExitYet: number;
   exitTicketsCount: number;
 
+  ticketsIssuedInPeriod: number;
+  pendingEntryCount: number;
+  unresolvedExitCount: number;
+  acknowledgedExitAwaitingArchiveCount: number;
+
   currentVehiclesInside: number;
   activeTicketsCount: number;
   occupancyPercentage: number;
@@ -168,6 +173,11 @@ export interface DashboardApiResponse {
   ticketEnterToday?: number;
   ticketEnterNotTodayButNotExitYet?: number;
   exitTicketsCount?: number;
+
+  ticketsIssuedInPeriod?: number;
+  pendingEntryCount?: number;
+  unresolvedExitCount?: number;
+  acknowledgedExitAwaitingArchiveCount?: number;
 
   currentVehiclesInside?: number;
   activeTicketsCount?: number;

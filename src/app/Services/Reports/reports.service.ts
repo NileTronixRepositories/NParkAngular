@@ -86,10 +86,47 @@ export class ReportsService {
       );
   }
 
+  getSupervisorCurrentCollections(
+    supervisorId: string,
+    from: string,
+    to: string,
+  ): Observable<SupervisorCollectionsReportResponse> {
+    const params = new HttpParams().set('from', from).set('to', to);
+
+    return this.http
+      .get<any>(
+        `${this.baseUrl}/reports/supervisors/${encodeURIComponent(supervisorId)}/collections`,
+        { params },
+      )
+      .pipe(
+        map((report) => ({
+          ...report,
+          pendingExceedSummaryIsGlobal: !!(
+            report?.pendingExceedSummaryIsGlobal ??
+            report?.PendingExceedSummaryIsGlobal ??
+            report?.summary?.pendingExceedSummaryIsGlobal ??
+            true
+          ),
+          collectionTransactions: report?.collectionTransactions ?? [],
+          ticketCollectorsSummary: report?.ticketCollectorsSummary ?? [],
+          activeTicketCollections: report?.activeTicketCollections ?? [],
+          archivedTicketCollections: report?.archivedTicketCollections ?? [],
+          supervisorExceedCollections: report?.supervisorExceedCollections ?? [],
+          pendingExceedCollections: report?.pendingExceedCollections ?? [],
+        })),
+        catchError((err) => {
+          console.error('[ReportsService] getSupervisorCurrentCollections failed', err);
+          return throwError(() => err);
+        }),
+      );
+  }
+
   private normalizeSupervisorCollectionsReport(report: any): SupervisorCollectionsReportResponse {
     const transactions = Array.isArray(report?.transactions) ? report.transactions : [];
-    const enterTransactions = transactions.filter((item: any) =>
-      this.isTransactionType(item, 1, 'EnterTickets'),
+    const baseTicketTransactions = transactions.filter(
+      (item: any) =>
+        this.isTransactionType(item, 1, 'EnterTickets') ||
+        this.isTransactionType(item, 3, 'ExitTickets'),
     );
     const exceedTransactions = transactions.filter((item: any) =>
       this.isTransactionType(item, 2, 'ExceedTransactions'),
@@ -99,20 +136,35 @@ export class ReportsService {
     const archivedTicketCollections: SupervisorArchivedTicketCollection[] = [];
     const supervisorExceedCollections: SupervisorExceedCollection[] = [];
 
-    enterTransactions.forEach((transaction: any) => {
+    baseTicketTransactions.forEach((transaction: any) => {
       const tickets = this.transactionTickets(transaction);
       tickets.forEach((ticket: any) => {
         const source = this.string(ticket, 'source', 'Source').toLowerCase();
         const isArchive = source.includes('archive');
-        const baseTicket = {
-          ticketId: this.string(ticket, 'ticketIdSnapshot', 'ticketId', 'TicketIdSnapshot', 'TicketId'),
+        const itemId = this.string(ticket, 'itemId', 'ItemId');
+        const sourceRecordId = this.string(ticket, 'sourceRecordId', 'SourceRecordId');
+        const responsibleUserId =
+          this.value<string | null>(ticket, 'responsibleUserId', 'ResponsibleUserId') ?? null;
+        const baseTicket: SupervisorActiveTicketCollection = {
+          itemId: itemId || undefined,
+          sourceRecordId: sourceRecordId || undefined,
+          financialItemType: 'BaseTicketPayment',
+          ticketId: this.string(
+            ticket,
+            'ticketIdSnapshot',
+            'ticketId',
+            'TicketIdSnapshot',
+            'TicketId',
+          ),
           uniqueCode: this.string(ticket, 'ticketUniqueCode', 'uniqueCode', 'TicketUniqueCode'),
           startDate: this.string(ticket, 'ticketStartDate', 'startDate', 'TicketStartDate'),
           collectedDate: this.string(transaction, 'collectedAt', 'CollectedAt'),
           collectorName:
             this.value<string | null>(ticket, 'responsibleUserName', 'ResponsibleUserName') ??
-            this.value<string | null>(transaction, 'collectedByName', 'CollectedByName') ??
             null,
+          responsibleCashierId: responsibleUserId,
+          paymentGateId:
+            this.value<string | null>(ticket, 'paymentGateId', 'PaymentGateId') ?? null,
           collectionAmount: this.number(ticket, 'amountCollected', 'AmountCollected'),
           vehicleNumber:
             this.value<string | null>(ticket, 'vehicleNumber', 'VehicleNumber') ?? null,
@@ -138,16 +190,30 @@ export class ReportsService {
       const tickets = this.transactionTickets(transaction);
       tickets.forEach((ticket: any) => {
         const originalPrice = this.number(ticket, 'originalPrice', 'OriginalPrice');
-        const exceedAmount = this.number(ticket, 'exceedAmount', 'ExceedAmount', 'amountCollected');
+        const amountCollected = this.number(
+          ticket,
+          'amountCollected',
+          'AmountCollected',
+          'exceedAmount',
+          'ExceedAmount',
+        );
+        const itemId = this.string(ticket, 'itemId', 'ItemId');
+        const sourceRecordId = this.string(ticket, 'sourceRecordId', 'SourceRecordId');
         supervisorExceedCollections.push({
-          transactionId: this.string(ticket, 'itemId', 'ItemId') || this.string(transaction, 'transactionId', 'TransactionId'),
+          itemId: itemId || undefined,
+          sourceRecordId: sourceRecordId || undefined,
+          financialItemType: 'ExceedPayment',
+          transactionId:
+            sourceRecordId ||
+            itemId ||
+            this.string(transaction, 'transactionId', 'TransactionId'),
           ticketUniqueCode: this.string(ticket, 'ticketUniqueCode', 'TicketUniqueCode'),
           ticketStartDate: this.string(ticket, 'ticketStartDate', 'TicketStartDate'),
           ticketEndDate: this.value<string | null>(ticket, 'ticketEndDate', 'TicketEndDate') ?? null,
-          exceedAmount,
+          exceedAmount: amountCollected,
           ticketPrice: originalPrice,
           ticketOldExceedPrice: 0,
-          totalPriceAfterExceed: originalPrice + exceedAmount,
+          totalPriceAfterExceed: originalPrice + amountCollected,
           vehicleNumber:
             this.value<string | null>(ticket, 'vehicleNumber', 'VehicleNumber') ?? null,
           exceedCreatedByName:
@@ -175,6 +241,27 @@ export class ReportsService {
       totalAmountCollected: this.number(transaction, 'totalAmountCollected', 'TotalAmountCollected'),
     }));
 
+    const enterTicketsCount =
+      this.nullableNumber(report, 'totalEnterTicketsCollected', 'TotalEnterTicketsCollected') ?? 0;
+    const enterTicketsAmount =
+      this.nullableNumber(report, 'totalEnterTicketsAmount', 'TotalEnterTicketsAmount') ?? 0;
+    const exitTicketsCount =
+      this.nullableNumber(report, 'totalExitTicketsCollected', 'TotalExitTicketsCollected') ?? 0;
+    const exitTicketsAmount =
+      this.nullableNumber(report, 'totalExitTicketsAmount', 'TotalExitTicketsAmount') ?? 0;
+    const exceedCount =
+      this.nullableNumber(
+        report,
+        'totalExceedTransactionsCollected',
+        'TotalExceedTransactionsCollected',
+      ) ?? supervisorExceedCollections.length;
+    const exceedAmount =
+      this.nullableNumber(report, 'totalExceedAmount', 'TotalExceedAmount') ??
+      this.sumBy(supervisorExceedCollections, 'exceedAmount');
+    const totalAmountCollected =
+      this.nullableNumber(report, 'totalAmountCollected', 'TotalAmountCollected') ??
+      enterTicketsAmount + exitTicketsAmount + exceedAmount;
+
     return {
       supervisor: {
         supervisorId: this.string(report, 'supervisorId', 'SupervisorId'),
@@ -194,37 +281,30 @@ export class ReportsService {
           collectionTransactions.length,
         totalItemsCollected:
           this.nullableNumber(report, 'totalItemsCollected', 'TotalItemsCollected') ??
-          activeTicketCollections.length + supervisorExceedCollections.length,
-        totalAmountCollected:
-          this.nullableNumber(report, 'totalAmountCollected', 'TotalAmountCollected') ??
-          this.number(report, 'totalEnterTicketsAmount', 'TotalEnterTicketsAmount') +
-            this.number(report, 'totalExceedAmount', 'TotalExceedAmount'),
+          activeTicketCollections.length +
+            archivedTicketCollections.length +
+            supervisorExceedCollections.length,
+        totalAmountCollected,
+        totalEnterTicketsCollected: enterTicketsCount,
+        totalEnterTicketsAmount: enterTicketsAmount,
+        totalExitTicketsCollected: exitTicketsCount,
+        totalExitTicketsAmount: exitTicketsAmount,
         ticketCollectionsCount:
-          this.nullableNumber(report, 'totalEnterTicketsCollected', 'TotalEnterTicketsCollected') ??
+          enterTicketsCount + exitTicketsCount ||
           activeTicketCollections.length + archivedTicketCollections.length,
         activeTicketCollectionsCount: activeTicketCollections.length,
         archivedTicketCollectionsCount: archivedTicketCollections.length,
         activeTicketCollectionsAmount: this.sumBy(activeTicketCollections, 'collectionAmount'),
         archivedTicketCollectionsAmount: this.sumBy(archivedTicketCollections, 'collectionAmount'),
         ticketCollectionsAmount:
-          this.nullableNumber(report, 'totalEnterTicketsAmount', 'TotalEnterTicketsAmount') ??
+          enterTicketsAmount + exitTicketsAmount ||
           this.sumBy(activeTicketCollections, 'collectionAmount') +
             this.sumBy(archivedTicketCollections, 'collectionAmount'),
-        supervisorExceedCollectionsCount:
-          this.nullableNumber(
-            report,
-            'totalExceedTransactionsCollected',
-            'TotalExceedTransactionsCollected',
-          ) ?? supervisorExceedCollections.length,
-        supervisorExceedCollectionsAmount:
-          this.nullableNumber(report, 'totalExceedAmount', 'TotalExceedAmount') ??
-          this.sumBy(supervisorExceedCollections, 'exceedAmount'),
+        supervisorExceedCollectionsCount: exceedCount,
+        supervisorExceedCollectionsAmount: exceedAmount,
         pendingExceedCollectionsCount: 0,
         pendingExceedCollectionsAmount: 0,
-        grandTotalCollectionsAmount:
-          this.nullableNumber(report, 'totalAmountCollected', 'TotalAmountCollected') ??
-          this.number(report, 'totalEnterTicketsAmount', 'TotalEnterTicketsAmount') +
-            this.number(report, 'totalExceedAmount', 'TotalExceedAmount'),
+        grandTotalCollectionsAmount: totalAmountCollected,
       },
       collectionTransactions,
       ticketCollectorsSummary: this.buildSupervisorCollectorsSummary(transactions),
@@ -241,6 +321,7 @@ export class ReportsService {
     transactions.forEach((transaction) => {
       const isEnter = this.isTransactionType(transaction, 1, 'EnterTickets');
       const isExceed = this.isTransactionType(transaction, 2, 'ExceedTransactions');
+      const isExit = this.isTransactionType(transaction, 3, 'ExitTickets');
       const lines = this.transactionLines(transaction);
 
       lines.forEach((line) => {
@@ -256,9 +337,11 @@ export class ReportsService {
             responsibleUserId: key,
             responsibleUserName,
             enterTicketsCount: 0,
+            exitTicketsCount: 0,
             exceedTransactionsCount: 0,
             totalItemsCount: 0,
             enterTicketsAmount: 0,
+            exitTicketsAmount: 0,
             exceedAmount: 0,
             totalAmount: 0,
           } satisfies SupervisorTicketCollectorSummary);
@@ -266,6 +349,11 @@ export class ReportsService {
         if (isEnter) {
           row.enterTicketsCount += itemsCount;
           row.enterTicketsAmount += totalAmount;
+        }
+
+        if (isExit) {
+          row.exitTicketsCount = (row.exitTicketsCount ?? 0) + itemsCount;
+          row.exitTicketsAmount = (row.exitTicketsAmount ?? 0) + totalAmount;
         }
 
         if (isExceed) {

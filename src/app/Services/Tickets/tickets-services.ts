@@ -1,4 +1,5 @@
 import { Injectable, inject } from '@angular/core';
+import { HttpResponse } from '@angular/common/http';
 import { Observable, of, catchError, map, throwError } from 'rxjs';
 
 import {
@@ -18,7 +19,9 @@ import {
   SearchTicketResponse,
   TicketDetailsFilterRequest,
   TicketDetailsItemDto,
+  normalizeEntryConfirmationStatus,
 } from '../../Domain/tickets/tickets.model';
+import { GateOperationResponse } from '../../Domain/Gate/gate-operation.models';
 import { PagedResult } from '../../Domain/PageResult/PagedResult';
 
 import {
@@ -105,31 +108,16 @@ export class TicketsServices {
     });
 
     return this.core.addTicket(formData).pipe(
-      map((res: any) => {
-        if (!res) return null;
-        if (res === true) {
-          return {
-            success: true,
-            qrCode: '',
-            ticketId: '',
-            createdAt: new Date().toISOString(),
-            price: 0,
-          } as IssuedTicketResponse;
-        }
+      map((res: any): IssuedTicketResponse | null => {
+        if (!res || typeof res !== 'object') return null;
+
+        const ticketId = String(res.ticketId ?? res.TicketId ?? '').trim();
+        if (!ticketId) return null;
 
         return {
-          success: !!(
-            res.success ??
-            res.Success ??
-            res.isSuccess ??
-            res.IsSuccess ??
-            res.succeeded ??
-            res.Succeeded ??
-            res.ticketId ??
-            res.TicketId
-          ),
-          ticketId: res.ticketId ?? res.TicketId,
-          createdAt: res.createdAt ?? res.CreatedAt,
+          success: true,
+          ticketId,
+          createdAt: String(res.createdAt ?? res.CreatedAt ?? ''),
           price: Number(res.price ?? res.Price ?? 0),
           qrCode:
             res.qrCode ??
@@ -145,7 +133,12 @@ export class TicketsServices {
             '',
           ticketInfo: res.ticketInfo ?? res.TicketInfo,
           vehicleNumber: res.vehicleNumber ?? res.VehicleNumber,
-        } as IssuedTicketResponse;
+          validExitDate: String(res.validExitDate ?? res.ValidExitDate ?? ''),
+          entryConfirmationStatus: normalizeEntryConfirmationStatus(
+            res.entryConfirmationStatus ?? res.EntryConfirmationStatus ?? 'Pending',
+          ),
+          isCashierCollected: !!(res.isCashierCollected ?? res.IsCashierCollected),
+        };
       }),
       catchError((err) => {
         this.logError('addTicket', err);
@@ -174,15 +167,15 @@ export class TicketsServices {
 
   // --- Collect / Exit ---
 
-  collect(id: number | string): Observable<boolean> {
-    return this.core.collect(id);
+  collect(id: number | string, expectedBasePrice?: number): Observable<boolean> {
+    return this.core.collect(id, expectedBasePrice);
   }
 
-  collectCashier(ticketId: string): Observable<boolean> {
-    return this.core.collectCashier(ticketId);
+  collectCashier(ticketId: string, expectedBasePrice?: number): Observable<boolean> {
+    return this.core.collectCashier(ticketId, expectedBasePrice);
   }
 
-  addExitTicket(ticketId: string): Observable<boolean> {
+  addExitTicket(ticketId: string): Observable<HttpResponse<GateOperationResponse>> {
     return this.core.addExitTicket(ticketId);
   }
 

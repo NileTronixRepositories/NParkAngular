@@ -156,6 +156,12 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
   });
 
   currentVehiclesInside = computed(() => this.dashboard()?.currentVehiclesInside ?? 0);
+  ticketsIssuedInPeriod = computed(() => this.dashboard()?.ticketsIssuedInPeriod ?? 0);
+  pendingEntryCount = computed(() => this.dashboard()?.pendingEntryCount ?? 0);
+  unresolvedExitCount = computed(() => this.dashboard()?.unresolvedExitCount ?? 0);
+  acknowledgedExitAwaitingArchiveCount = computed(
+    () => this.dashboard()?.acknowledgedExitAwaitingArchiveCount ?? 0,
+  );
   estimatedFreeSlots = computed(() => this.dashboard()?.estimatedFreeSlots ?? 0);
   occupancyPercentage = computed(() => this.dashboard()?.occupancyPercentage ?? 0);
   totalCapacity = computed(() => this.currentVehiclesInside() + this.estimatedFreeSlots());
@@ -619,6 +625,12 @@ export class OverviewComponent implements OnInit, OnDestroy, AfterViewInit {
       this.hubSubscriptions.add(
         this.dashboardHub.ticketExited$.subscribe((notification) => {
           this.pushNotification('OUT', 'notif_out_title', this.buildOutMessage(notification));
+          this.loadDashboard();
+        }),
+      );
+
+      this.hubSubscriptions.add(
+        this.dashboardHub.gateOperationStatusChanged$.subscribe(() => {
           this.loadDashboard();
         }),
       );

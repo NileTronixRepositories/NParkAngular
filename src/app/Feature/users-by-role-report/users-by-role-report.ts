@@ -345,9 +345,8 @@ export class UsersByRoleReport implements OnInit, OnDestroy {
     this.selectedCashierReportUser = null;
   }
 
-  canOpenCollectionsReport(_user: UserByRoleResponse): boolean {
-    // Disabled until backend implements GET /api/reports/supervisors/{supervisorId}/collection-report
-    return false;
+  canOpenCollectionsReport(user: UserByRoleResponse): boolean {
+    return this.roleKey(user) === 'supervisor';
   }
 
   openCollectionsReport(user: UserByRoleResponse): void {

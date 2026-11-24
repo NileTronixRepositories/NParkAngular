@@ -26,7 +26,16 @@ import {
   MembershipCheckResponse,
   CardMembershipCheckResponse,
   AddTicketRequest,
+  EntryConfirmationStatus,
 } from '../../Domain/tickets/tickets.model';
+import {
+  GateOperationResponse,
+  isInFlightGateOperationStatus,
+  isUncertainGateOutcome,
+} from '../../Domain/Gate/gate-operation.models';
+import { GateOperationService } from '../../Services/Gate/gate-operation.service';
+import { GateOperationStoreService } from '../../Services/Gate/gate-operation-store.service';
+import { DashboardHubService } from '../../Services/OverView/dashboard-hub.service';
 
 import { TicketsServices } from '../../Services/Tickets/tickets-services';
 import { LanguageService, AppLang } from '../../Services/i18n/language-service';
@@ -130,6 +139,9 @@ export class TicketComponent implements OnInit, OnDestroy {
   private readonly router = inject(Router);
   private readonly registrationSvc = inject(Registrationservice);
   private readonly ticketPrint = inject(TicketPrintService);
+  private readonly gateOperationSvc = inject(GateOperationService);
+  private readonly gateOperationStore = inject(GateOperationStoreService);
+  private readonly dashboardHub = inject(DashboardHubService);
 
   startTour(): void {
     this.entryTour.startTour();
@@ -154,6 +166,9 @@ export class TicketComponent implements OnInit, OnDestroy {
   openGateLoading = false;
   openGateError: string | null = null;
   lastOpenGateResponse: OpenGateResponse | null = null;
+  lastIssuedValidExitDate: string | null = null;
+  lastIssuedEntryConfirmationStatus: EntryConfirmationStatus | null = null;
+  private confirmedEntryOperationIds = new Set<string>();
 
   // =======================
   // Manual inputs / card
@@ -626,6 +641,37 @@ export class TicketComponent implements OnInit, OnDestroy {
         });
       })
       .catch((err) => console.error('LPR SignalR (Entry) connection error', err));
+
+    this.dashboardHub
+      .start()
+      .catch((err) => console.error('DashboardHub (Entry) connection error', err));
+
+    this.hubSubscriptions.add(
+      this.gateOperationStore.operationUpdates$.subscribe((op) => {
+        this.handleEntryGateOperationUpdate(op);
+      }),
+    );
+
+    const currentGateId = this.auth.getGateId();
+    if (currentGateId) {
+      this.hubSubscriptions.add(
+        this.gateOperationStore
+          .recoverForGate(String(currentGateId))
+          .subscribe((ops) => {
+            const activeEntry = ops.find(
+              (o) => o.operationType === 'Entry' && isInFlightGateOperationStatus(o.status),
+            );
+            if (activeEntry) {
+              this.lastOpenGateResponse = activeEntry;
+              if (activeEntry.ticketId) {
+                this.lastIssuedTicketId = activeEntry.ticketId;
+                this.lastIssuedEntryConfirmationStatus = 'Pending';
+              }
+              this.cdr.markForCheck();
+            }
+          }),
+      );
+    }
 
     this.hubSubscriptions.add(
       this.scanHub.scan$.subscribe((msg) => {
@@ -1876,10 +1922,13 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.cardSummary = null;
     this.lastCheckedCardNumber = '';
 
-    this.lastIssuedTicketId = issued.ticketId ?? null;
+    this.lastIssuedTicketId = issued.ticketId;
     this.lastIssuedTicketInfo = issued.ticketInfo ?? null;
     this.lastIssuedPrice = issued.price ?? null;
     this.lastIssuedCreatedAt = issued.createdAt ?? null;
+    this.lastIssuedValidExitDate = issued.validExitDate ?? null;
+    this.lastIssuedEntryConfirmationStatus = issued.entryConfirmationStatus ?? 'Pending';
+    this._cashierCollected = !!issued.isCashierCollected;
 
     const fromResponse: string | undefined = (issued as any)?.vehicleNumber;
     if (fromResponse && fromResponse.trim().length > 0) {
@@ -1907,15 +1956,13 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   private finalizeIssuedTicketAfterCreate(addTicketSucceeded = false): void {
-    this._cashierCollected = true;
-
-    if (this.lastIssuedTicketId) {
+    if (this.lastIssuedTicketId && this._cashierCollected) {
       this.markTicketAsCashierCollected(this.lastIssuedTicketId);
     }
 
     this.toast.success(this.t('create_ticket'));
-    this.openGateAfterTicketCreate();
     this.printTicketDocuments();
+    this.openGateAfterTicketCreate();
 
     if (!this.currentIssuedQr && !addTicketSucceeded) {
       this.toast.error(this.t('qr_invalid_warning'));
@@ -1926,17 +1973,9 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   private isAddTicketSuccess(res: any): boolean {
-    return !!(
-      res === true ||
-      res?.success ||
-      res?.Success ||
-      res?.isSuccess ||
-      res?.IsSuccess ||
-      res?.succeeded ||
-      res?.Succeeded ||
-      res?.ticketId ||
-      res?.TicketId
-    );
+    if (!res || typeof res !== 'object') return false;
+    const ticketId = String(res.ticketId ?? res.TicketId ?? '').trim();
+    return ticketId.length > 0;
   }
 
   private handleAddTicketFailure(
@@ -1997,12 +2036,70 @@ export class TicketComponent implements OnInit, OnDestroy {
   }
 
   retryOpenGate(): void {
+    const current = this.lastOpenGateResponse;
+
+    // Never blindly repeat POST /api/Gate/open when an operation exists
+    if (current?.operationId) {
+      if (isInFlightGateOperationStatus(current.status)) {
+        this.openGateLoading = true;
+        this.gateOperationStore.refreshOperation(current.operationId).subscribe({
+          next: (refreshed) => {
+            if (refreshed) {
+              this.applyEntryGateOperation(refreshed);
+            }
+          },
+          complete: () => {
+            this.openGateLoading = false;
+          },
+        });
+        return;
+      }
+
+      if (current.retryAllowed) {
+        this.openGateLoading = true;
+        this.openGateError = null;
+        this.gateOperationSvc.retryOperation(current.operationId).subscribe({
+          next: (httpRes) => {
+            if (httpRes.body) {
+              const op = this.gateOperationStore.upsertOperation(httpRes.body, true);
+              this.applyEntryGateOperation(op, httpRes.status);
+            }
+          },
+          error: (err) => {
+            console.error('Retry GateOperation error', err);
+            this.openGateError = this.errorExtractor.extractErrorMessage(
+              err,
+              this.t('open_gate_failed'),
+            );
+            this.toast.error(this.openGateError);
+          },
+          complete: () => {
+            this.openGateLoading = false;
+          },
+        });
+        return;
+      }
+
+      if (current.requiresReconciliation || isUncertainGateOutcome(current.status)) {
+        const msg =
+          this.i18n.current === 'ar'
+            ? 'حالة تنفيذ أمر البوابة غير معروفة — تتطلب مراجعة المشرف'
+            : 'Gate execution outcome is unknown — supervisor reconciliation required';
+        this.openGateError = msg;
+        this.toast.warn(msg);
+        return;
+      }
+    }
+
+    // Only issue a fresh Entry GateOperation if there is no unresolved operation
     this.openGateAfterTicketCreate();
   }
 
   private openGateAfterTicketCreate(): void {
     const controllerId = this.gatePeripheralFacade.controlId(this.gateConnectionInfo);
-    if (!controllerId) {
+    const ticketId = this.lastIssuedTicketId ? String(this.lastIssuedTicketId).trim() : '';
+
+    if (!controllerId || !ticketId) {
       this.openGateError = this.t('open_gate_failed');
       this.toast.warn(this.t('open_gate_failed'));
       return;
@@ -2012,20 +2109,90 @@ export class TicketComponent implements OnInit, OnDestroy {
     this.openGateError = null;
     this.lastOpenGateResponse = null;
 
-    this.gateSvc.openGate(controllerId).subscribe({
-      next: (res) => {
-        this.lastOpenGateResponse = res;
-        this.toast.success(this.t('open_gate_success'));
-      },
-      error: (err) => {
-        console.error('OpenGate error', err);
-        this.openGateError = this.t('open_gate_failed');
-        this.toast.error(this.t('open_gate_failed'));
-      },
-      complete: () => {
-        this.openGateLoading = false;
-      },
-    });
+    this.gateOperationSvc
+      .openGate({
+        controllerId,
+        ticketId,
+        operationType: 'Entry',
+      })
+      .subscribe({
+        next: (httpRes) => {
+          if (httpRes.body) {
+            const op = this.gateOperationStore.upsertOperation(httpRes.body, true);
+            this.applyEntryGateOperation(op, httpRes.status);
+          }
+        },
+        error: (err) => {
+          console.error('OpenGate error', err);
+          // Retain original TicketId, payment, and QR — never re-issue ticket
+          this.openGateError = this.errorExtractor.extractErrorMessage(
+            err,
+            this.t('open_gate_failed'),
+          );
+          this.toast.error(this.openGateError);
+        },
+        complete: () => {
+          this.openGateLoading = false;
+        },
+      });
+  }
+
+  private handleEntryGateOperationUpdate(op: GateOperationResponse): void {
+    if (op.operationType !== 'Entry') return;
+
+    const matchesCurrentOp =
+      this.lastOpenGateResponse?.operationId &&
+      this.lastOpenGateResponse.operationId === op.operationId;
+    const matchesCurrentTicket =
+      this.lastIssuedTicketId &&
+      op.ticketId &&
+      String(this.lastIssuedTicketId).toLowerCase() === String(op.ticketId).toLowerCase();
+
+    if (!matchesCurrentOp && !matchesCurrentTicket) return;
+
+    this.applyEntryGateOperation(op);
+    this.cdr.markForCheck();
+  }
+
+  private applyEntryGateOperation(op: GateOperationResponse, httpStatus?: number): void {
+    this.lastOpenGateResponse = op;
+
+    if (op.status === 'Completed') {
+      this.openGateError = null;
+      this.lastIssuedEntryConfirmationStatus = 'Confirmed';
+      if (!this.confirmedEntryOperationIds.has(op.operationId)) {
+        this.confirmedEntryOperationIds.add(op.operationId);
+        this.toast.success(
+          this.i18n.current === 'ar' ? 'تم تأكيد الدخول بنجاح' : 'Entry confirmed',
+        );
+        this.loadEntryTicketsForCurrentMode();
+      }
+      return;
+    }
+
+    if (httpStatus === 202 || isInFlightGateOperationStatus(op.status)) {
+      this.openGateError = null;
+      this.lastIssuedEntryConfirmationStatus = 'Pending';
+      this.gateOperationStore.startPolling(op.operationId);
+      return;
+    }
+
+    if (op.status === 'Failed') {
+      this.openGateError =
+        this.i18n.current === 'ar'
+          ? 'فشل تنفيذ أمر فتح البوابة'
+          : 'Gate execution failed';
+      this.toast.error(this.openGateError);
+      return;
+    }
+
+    if (isUncertainGateOutcome(op.status)) {
+      this.openGateError =
+        this.i18n.current === 'ar'
+          ? 'حالة تنفيذ أمر البوابة غير معروفة'
+          : 'Gate execution outcome unknown';
+      this.toast.warn(this.openGateError);
+    }
   }
 
   // =======================

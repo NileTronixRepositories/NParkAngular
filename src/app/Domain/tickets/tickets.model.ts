@@ -36,10 +36,102 @@ export interface TicketDto {
   phone?: string | null;
   cardNumber?: string | null;
   plateNumber?: string;
+  entryConfirmationStatus?: EntryConfirmationStatus;
+  entryConfirmedAtUtc?: string | null;
+  validExitDate?: string | null;
+  eligibility?: ExitEligibility | null;
+}
+
+export type EntryConfirmationStatus = 'Legacy' | 'Pending' | 'Confirmed';
+
+export function normalizeEntryConfirmationStatus(raw: unknown): EntryConfirmationStatus {
+  if (raw === 0 || String(raw ?? '').trim().toLowerCase() === 'legacy') return 'Legacy';
+  if (raw === 1 || String(raw ?? '').trim().toLowerCase() === 'pending') return 'Pending';
+  if (raw === 2 || String(raw ?? '').trim().toLowerCase() === 'confirmed') return 'Confirmed';
+  return 'Legacy';
+}
+
+export interface ExitEligibilityFailure {
+  code: string;
+  message: string;
+}
+
+export interface ExitEligibility {
+  isValidForExit: boolean;
+  reasonCode: string;
+  reasonMessage: string;
+
+  validExitDate: string | null;
+
+  requiresBasePayment: boolean;
+  requiresOvernightPenalty: boolean;
+  hasOutstandingSanctions: boolean;
+
+  basePrice: number;
+  exceedPrice: number;
+  totalPrice: number;
+
+  paidAmount: number;
+  outstandingAmount: number;
+
+  requiredOvernightAmount: number;
+  requiredOvernightSanctionId?: string | null;
+
+  operationId: string | null;
+  existingOperationId: string | null;
+
+  failureReasons: ExitEligibilityFailure[];
+}
+
+export function normalizeExitEligibility(raw: any, fallback?: any): ExitEligibility | null {
+  const src = raw ?? fallback;
+  if (!src || typeof src !== 'object') return null;
+
+  const basePrice = Number(src.basePrice ?? src.BasePrice ?? 0);
+  const exceedPrice = Number(src.exceedPrice ?? src.ExceedPrice ?? 0);
+  const totalPrice = Number(src.totalPrice ?? src.TotalPrice ?? basePrice + exceedPrice);
+  const operationId = src.operationId ?? src.OperationId ?? src.existingOperationId ?? src.ExistingOperationId ?? null;
+  const rawFailures = src.failureReasons ?? src.FailureReasons;
+  const failureReasons: ExitEligibilityFailure[] = Array.isArray(rawFailures)
+    ? rawFailures.map((f: any) => ({
+        code: String(f?.code ?? f?.Code ?? ''),
+        message: String(f?.message ?? f?.Message ?? ''),
+      }))
+    : [];
+
+  return {
+    isValidForExit: !!(src.isValidForExit ?? src.IsValidForExit),
+    reasonCode: String(src.reasonCode ?? src.ReasonCode ?? ''),
+    reasonMessage: String(src.reasonMessage ?? src.ReasonMessage ?? ''),
+    validExitDate: src.validExitDate ?? src.ValidExitDate ?? null,
+    requiresBasePayment: !!(src.requiresBasePayment ?? src.RequiresBasePayment),
+    requiresOvernightPenalty: !!(src.requiresOvernightPenalty ?? src.RequiresOvernightPenalty),
+    hasOutstandingSanctions: !!(src.hasOutstandingSanctions ?? src.HasOutstandingSanctions),
+    basePrice,
+    exceedPrice,
+    totalPrice,
+    paidAmount: Number(src.paidAmount ?? src.PaidAmount ?? 0),
+    outstandingAmount: Number(src.outstandingAmount ?? src.OutstandingAmount ?? 0),
+    requiredOvernightAmount: Number(
+      src.requiredOvernightAmount ?? src.RequiredOvernightAmount ?? 0,
+    ),
+    requiredOvernightSanctionId:
+      src.requiredOvernightSanctionId ?? src.RequiredOvernightSanctionId ?? null,
+    operationId,
+    existingOperationId:
+      src.existingOperationId ?? src.ExistingOperationId ?? operationId,
+    failureReasons,
+  };
+}
+
+export enum TicketCollectionTransactionType {
+  EnterTickets = 1,
+  ExceedTransactions = 2,
+  ExitTickets = 3,
 }
 
 export interface IssuedTicketResponse {
-  success?: boolean;
+  success: boolean;
   qrCode: string | number[];
   ticketId: string;
   createdAt: string;
@@ -47,6 +139,10 @@ export interface IssuedTicketResponse {
 
   ticketInfo?: string;
   vehicleNumber?: string;
+
+  validExitDate: string;
+  entryConfirmationStatus: EntryConfirmationStatus;
+  isCashierCollected: boolean;
 }
 
 export interface TicketDetailsDto {
@@ -66,6 +162,12 @@ export interface ScanTicketResponse {
   price: number;
   isCollectedByCashier: boolean;
   ticketInfo: string;
+  validExitDate?: string | null;
+  isValidForExit?: boolean;
+  reasonCode?: string;
+  reasonMessage?: string;
+  eligibility?: ExitEligibility | null;
+  failureReasons?: ExitEligibilityFailure[];
 }
 
 /**
@@ -112,6 +214,7 @@ export interface TicketTableResponseDto {
 
 export interface CollectCashierRequest {
   ticketId: string;
+  expectedBasePrice?: number;
 }
 
 export interface ParkingCardSummaryDto {
@@ -236,9 +339,28 @@ export interface CollectEnterTicketsResponse {
 
 export interface CalculateSalaryResponse {
   ticketId: string;
-  totalSalary: number;
   enterDate: string;
+
+  /** Base parking fee only (V2 semantic change: does NOT include sanctions). */
+  totalSalary: number;
+
+  basePrice: number;
+  exceedPrice: number;
+  totalPrice: number;
+
+  paidAmount: number;
+  outstandingAmount: number;
+
+  quotedSanctions: number;
+  requiredOvernightAmount: number;
+
+  validExitDate: string;
+  reasonCode: string;
+
+  requiresOvernightPenalty: boolean;
+
   isExitValid: boolean;
+  isValidForExit: boolean;
   isCollectByCashier: boolean;
 }
 
@@ -250,6 +372,16 @@ export interface ValidateExitByVehicleNumberResponse {
   startDate: string | null;
   endDate: string | null;
   isValidForExit: boolean;
+  reasonCode?: string;
+  reasonMessage?: string;
+  validExitDate?: string | null;
+  requiresBasePayment?: boolean;
+  requiresOvernightPenalty?: boolean;
+  hasOutstandingSanctions?: boolean;
+  outstandingAmount?: number;
+  existingOperationId?: string | null;
+  eligibility?: ExitEligibility | null;
+  failureReasons?: ExitEligibilityFailure[];
 }
 
 export interface ValidateExitByTextRequest {
@@ -259,13 +391,23 @@ export interface ValidateExitByTextRequest {
 export interface ValidateExitByTextResponse {
   ticketId: string | null;
   inputText: string;
-  matchType: 'QrCode' | 'CardNumber' | 'VehicleNumber' | null;
+  matchType: 'QrCode' | 'QrCodeHex' | 'CardNumber' | 'VehicleNumber' | null;
   ticketNumber: string | null;
   cardNumber: string | null;
   vehicleNumber: string | null;
   startDate: string | null;
   endDate: string | null;
   isValidForExit: boolean;
+  reasonCode?: string;
+  reasonMessage?: string;
+  validExitDate?: string | null;
+  requiresBasePayment?: boolean;
+  requiresOvernightPenalty?: boolean;
+  hasOutstandingSanctions?: boolean;
+  outstandingAmount?: number;
+  existingOperationId?: string | null;
+  eligibility?: ExitEligibility | null;
+  failureReasons?: ExitEligibilityFailure[];
 }
 
 export interface TicketDetailsFilterRequest {

@@ -93,6 +93,13 @@ export class OverviewServices {
         'ticketEnterNotTodayButNotExitYet',
       ),
       exitTicketsCount: this.dashboardNumber(res, 'exitTicketsCount'),
+      ticketsIssuedInPeriod: this.dashboardNumber(res, 'ticketsIssuedInPeriod'),
+      pendingEntryCount: this.dashboardNumber(res, 'pendingEntryCount'),
+      unresolvedExitCount: this.dashboardNumber(res, 'unresolvedExitCount'),
+      acknowledgedExitAwaitingArchiveCount: this.dashboardNumber(
+        res,
+        'acknowledgedExitAwaitingArchiveCount',
+      ),
       currentVehiclesInside: this.dashboardNumber(res, 'currentVehiclesInside'),
       activeTicketsCount: this.dashboardNumber(res, 'activeTicketsCount'),
       occupancyPercentage: this.dashboardNumber(res, 'occupancyPercentage'),

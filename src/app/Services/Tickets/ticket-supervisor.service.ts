@@ -125,6 +125,42 @@ export class TicketSupervisorService {
       .pipe(map((res) => this.core.mapCollectEnterResponseToSummary(res)));
   }
 
+  collectDailyTicketsWithToken(token: string): Observable<CollectDailyTicketsResponse> {
+    return this.rawHttp
+      .post<any>(
+        `${this.ticketUrl}/CollectDailyTickets`,
+        {},
+        { headers: this.authHeaders(token) },
+      )
+      .pipe(
+        map((res): CollectDailyTicketsResponse => {
+          const details = res?.ticketCollectDetails ?? res?.TicketCollectDetails ?? [];
+          return {
+            transactionId: res?.transactionId ?? res?.TransactionId ?? null,
+            gateId: res?.gateId ?? res?.GateId ?? '',
+            gateName: res?.gateName ?? res?.GateName ?? null,
+            collectedBy: res?.collectedBy ?? res?.CollectedBy ?? null,
+            collectedName: res?.collectedName ?? res?.CollectedName ?? null,
+            date: res?.date ?? res?.Date ?? res?.collectedAt ?? res?.CollectedAt ?? '',
+            totalAmount: Number(res?.totalPriceCollected ?? res?.TotalPriceCollected ?? res?.totalAmount ?? 0),
+            totalPriceCollected: Number(res?.totalPriceCollected ?? res?.TotalPriceCollected ?? 0),
+            totalTicketsCollected: Number(
+              res?.totalTicketsCollected ?? res?.TotalTicketsCollected ?? details.length,
+            ),
+            ticketCollectDetails: Array.isArray(details)
+              ? details.map((d: any) => ({
+                  collectedAt: String(d?.collectedAt ?? d?.CollectedAt ?? ''),
+                  ticketNumber: String(d?.ticketNumber ?? d?.TicketNumber ?? ''),
+                  price: Number(d?.price ?? d?.Price ?? 0),
+                  responsibleUserId: d?.responsibleUserId ?? d?.ResponsibleUserId ?? null,
+                  responsibleUserName: d?.responsibleUserName ?? d?.ResponsibleUserName ?? null,
+                }))
+              : [],
+          };
+        }),
+      );
+  }
+
   collectDailyTicketsAsSupervisor(credentials: {
     userName: string;
     password: string;
@@ -147,7 +183,7 @@ export class TicketSupervisorService {
             throw new Error('No token returned from supervisor login');
           }
 
-          return this.collectEnterTicketsWithToken(authRes.token);
+          return this.collectDailyTicketsWithToken(authRes.token);
         }),
         catchError((err) => {
           this.logError('collectDailyTicketsAsSupervisor', err);

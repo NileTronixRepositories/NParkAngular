@@ -2,6 +2,10 @@ import { Injectable } from '@angular/core';
 import * as signalR from '@microsoft/signalr';
 import { Observable, Subject } from 'rxjs';
 import { environment } from '../../Shared/environment/environment';
+import {
+  GateOperationStatus,
+  normalizeGateOperationStatus,
+} from '../../Domain/Gate/gate-operation.models';
 
 export interface LprVehicleDetectedEvent {
   gateId: string;
@@ -11,6 +15,19 @@ export interface LprVehicleDetectedEvent {
 export interface MqttCaptureDetectedEvent {
   deviceId: string;
   captureId: boolean;
+
+  operationId?: string | null;
+  operationStatus?: GateOperationStatus | null;
+
+  ticketId?: string | null;
+
+  isValidForExit?: boolean;
+  ticketExited?: boolean;
+  gateOpened?: boolean;
+  workflowSucceeded?: boolean;
+
+  errorCode?: string | null;
+  errorMessage?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -42,9 +59,6 @@ export class LprSignalRService {
 
     this.startPromise = this.conn
       .start()
-      .then(() => {
-        console.log('LprSignalR: Connected');
-      })
       .catch((err) => {
         console.error('LprSignalR: Connection failed', err);
         throw err;
@@ -61,7 +75,6 @@ export class LprSignalRService {
 
     await this.conn.stop();
     this.conn = undefined;
-    console.log('LprSignalR: Stopped');
   }
 
   private registerHandlers(): void {
@@ -80,12 +93,27 @@ export class LprSignalRService {
 
     this.conn.off('mqttCaptureDetected');
     this.conn.on('mqttCaptureDetected', (payload: MqttCaptureDetectedEvent | any) => {
+      const rawStatus = payload?.operationStatus ?? payload?.OperationStatus;
       const event: MqttCaptureDetectedEvent = {
         deviceId: String(payload?.deviceId ?? payload?.DeviceId ?? '').trim(),
         captureId: this.toBoolean(payload?.captureId ?? payload?.CaptureId),
+        operationId: payload?.operationId ?? payload?.OperationId ?? null,
+        operationStatus: rawStatus != null ? normalizeGateOperationStatus(rawStatus) : null,
+        ticketId: payload?.ticketId ?? payload?.TicketId ?? null,
+        isValidForExit: this.toOptionalBoolean(
+          payload?.isValidForExit ?? payload?.IsValidForExit,
+        ),
+        ticketExited: this.toOptionalBoolean(payload?.ticketExited ?? payload?.TicketExited),
+        gateOpened: this.toOptionalBoolean(payload?.gateOpened ?? payload?.GateOpened),
+        workflowSucceeded: this.toOptionalBoolean(
+          payload?.workflowSucceeded ?? payload?.WorkflowSucceeded,
+        ),
+        errorCode: payload?.errorCode ?? payload?.ErrorCode ?? null,
+        errorMessage: payload?.errorMessage ?? payload?.ErrorMessage ?? null,
       };
 
-      if (!event.deviceId || !event.captureId) return;
+      if (!event.deviceId) return;
+      if (!event.captureId && !event.operationId && !event.errorCode) return;
       this.mqttCaptureDetectedSubject.next(event);
     });
   }
@@ -95,5 +123,10 @@ export class LprSignalRService {
     if (typeof value === 'number') return value === 1;
     if (typeof value === 'string') return value.trim().toLowerCase() === 'true';
     return false;
+  }
+
+  private toOptionalBoolean(value: unknown): boolean | undefined {
+    if (value === null || value === undefined) return undefined;
+    return this.toBoolean(value);
   }
 }

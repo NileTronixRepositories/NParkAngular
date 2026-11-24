@@ -98,10 +98,26 @@ export interface EntranceCashierTicketsReportResponse {
   outsideParkTickets: EntranceCashierOutsideTicket[];
 }
 
+export type FinancialItemType = 'BaseTicketPayment' | 'ExceedPayment';
+
+export interface FinancialCollectionItem {
+  itemId: string;
+  sourceRecordId: string;
+  financialItemType: FinancialItemType;
+  ticketIdSnapshot: string;
+  responsibleUserId: string | null;
+  responsibleUserName: string;
+  source: string;
+  originalPrice: number;
+  exceedAmount: number;
+  amountCollected: number;
+}
+
 export interface SupervisorCollectionsReportResponse {
   supervisor: SupervisorCollectionsReportSupervisor;
   period: SupervisorCollectionsReportPeriod;
   summary: SupervisorCollectionsReportSummary;
+  pendingExceedSummaryIsGlobal?: boolean;
   collectionTransactions: SupervisorCollectionTransaction[];
   ticketCollectorsSummary: SupervisorTicketCollectorSummary[];
   activeTicketCollections: SupervisorActiveTicketCollection[];
@@ -129,6 +145,10 @@ export interface SupervisorCollectionsReportSummary {
   totalItemsCollected: number;
   totalAmountCollected: number;
   ticketCollectionsCount: number;
+  totalEnterTicketsCollected?: number;
+  totalEnterTicketsAmount?: number;
+  totalExitTicketsCollected?: number;
+  totalExitTicketsAmount?: number;
   activeTicketCollectionsCount: number;
   archivedTicketCollectionsCount: number;
   activeTicketCollectionsAmount: number;
@@ -158,19 +178,26 @@ export interface SupervisorTicketCollectorSummary {
   responsibleUserId: string;
   responsibleUserName: string | null;
   enterTicketsCount: number;
+  exitTicketsCount?: number;
   exceedTransactionsCount: number;
   totalItemsCount: number;
   enterTicketsAmount: number;
+  exitTicketsAmount?: number;
   exceedAmount: number;
   totalAmount: number;
 }
 
 export interface SupervisorActiveTicketCollection {
+  itemId?: string;
+  sourceRecordId?: string;
+  financialItemType?: FinancialItemType;
   ticketId: string;
   uniqueCode: string;
   startDate: string;
   collectedDate: string;
   collectorName: string | null;
+  responsibleCashierId?: string | null;
+  paymentGateId?: string | null;
   collectionAmount: number;
   vehicleNumber: string | null;
   isSubscriber: boolean;
@@ -179,12 +206,17 @@ export interface SupervisorActiveTicketCollection {
 }
 
 export interface SupervisorArchivedTicketCollection {
+  itemId?: string;
+  sourceRecordId?: string;
+  financialItemType?: FinancialItemType;
   ticketId: string;
   uniqueCode: string;
   startDate: string;
   endDate: string | null;
   collectedDate: string;
   collectorName: string | null;
+  responsibleCashierId?: string | null;
+  paymentGateId?: string | null;
   collectionAmount: number;
   vehicleNumber: string | null;
   isSubscriber: boolean;
@@ -194,6 +226,9 @@ export interface SupervisorArchivedTicketCollection {
 }
 
 export interface SupervisorExceedCollection {
+  itemId?: string;
+  sourceRecordId?: string;
+  financialItemType?: FinancialItemType;
   transactionId: string;
   ticketUniqueCode: string;
   ticketStartDate: string;
