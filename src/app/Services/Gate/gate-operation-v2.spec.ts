@@ -4,6 +4,10 @@ import { HttpTestingController, provideHttpClientTesting } from '@angular/common
 import { GateOperationService } from './gate-operation.service';
 import {
   isCompletedExitOperation,
+  isFailedGateOperationStatus,
+  isTerminalGateOperationStatus,
+  isUncertainGateOutcome,
+  isUnresolvedGateOperationStatus,
   normalizeGateOperationResponse,
   shouldAcceptIncomingOperationState,
 } from '../../Domain/Gate/gate-operation.models';
@@ -70,17 +74,17 @@ describe('Financial Integrity V2 & GateOperation Integration', () => {
     expect(shouldAcceptIncomingOperationState(completed, stalePublished, true)).toBeTrue();
   });
 
-  it('handles HTTP 202 Pending and HTTP 200 Failed on POST /api/Ticket/ExitTicket', () => {
+  it('handles HTTP 202 Pending and HTTP 200 Failed on POST /api/Ticket/ExitTicket with requestId', () => {
     let status202 = 0;
     let body202: any = null;
-    ticketCoreSvc.addExitTicket('t-202').subscribe((res) => {
+    ticketCoreSvc.addExitTicket('t-202', 'req-exit-1').subscribe((res) => {
       status202 = res.status;
       body202 = res.body;
     });
 
     const req1 = httpMock.expectOne(`${environment.baseUrl}/Ticket/ExitTicket`);
     expect(req1.request.method).toBe('POST');
-    expect(req1.request.body).toEqual({ ticketId: 't-202' });
+    expect(req1.request.body).toEqual({ ticketId: 't-202', requestId: 'req-exit-1' });
     req1.flush(
       {
         operationId: 'op-202',
@@ -105,6 +109,9 @@ describe('Financial Integrity V2 & GateOperation Integration', () => {
       bodyFailed = res.body;
     });
     const req2 = httpMock.expectOne(`${environment.baseUrl}/Ticket/ExitTicket`);
+    expect(req2.request.body.ticketId).toBe('t-fail');
+    expect(typeof req2.request.body.requestId).toBe('string');
+    expect(req2.request.body.requestId.length).toBeGreaterThan(0);
     req2.flush(
       {
         operationId: 'op-fail',
@@ -123,6 +130,13 @@ describe('Financial Integrity V2 & GateOperation Integration', () => {
     expect(isCompletedExitOperation(bodyFailed)).toBeFalse();
   });
 
+  it('treats TimedOut as a terminal failed state that is no longer unresolved', () => {
+    expect(isTerminalGateOperationStatus('TimedOut')).toBeTrue();
+    expect(isFailedGateOperationStatus('TimedOut')).toBeTrue();
+    expect(isUnresolvedGateOperationStatus('TimedOut')).toBeFalse();
+    expect(isUncertainGateOutcome('TimedOut')).toBeFalse();
+  });
+
   it('sends expectedBasePrice to POST /api/Ticket/CollectCashier', () => {
     ticketCoreSvc.collectCashier('t-1', 20).subscribe();
     const req = httpMock.expectOne(`${environment.baseUrl}/Ticket/CollectCashier`);
@@ -130,12 +144,14 @@ describe('Financial Integrity V2 & GateOperation Integration', () => {
     req.flush(null, { status: 204, statusText: 'No Content' });
   });
 
-  it('sends idempotencyKey and preserves V2 fields on TicketExceedTransaction/Create', () => {
+  it('sends expectedAmount, expectedValidExitDate, and idempotencyKey on TicketExceedTransaction/Create', () => {
     let response: any = null;
     exceedSvc
       .create({
         ticketId: 't-1',
         sanctionIds: ['s-1'],
+        expectedAmount: 50,
+        expectedValidExitDate: '2026-11-25',
         idempotencyKey: 'idem-key-123',
       })
       .subscribe((res) => (response = res));
@@ -144,6 +160,8 @@ describe('Financial Integrity V2 & GateOperation Integration', () => {
     expect(req.request.body).toEqual({
       ticketId: 't-1',
       sanctionIds: ['s-1'],
+      expectedAmount: 50,
+      expectedValidExitDate: '2026-11-25',
       idempotencyKey: 'idem-key-123',
     });
     req.flush({
@@ -155,19 +173,19 @@ describe('Financial Integrity V2 & GateOperation Integration', () => {
       totalPriceAfterExceed: 120,
       paidAmount: 120,
       outstandingAmount: 0,
-      validExitDate: '2026-11-24',
+      validExitDate: '2026-11-25',
       paymentStatus: 'Confirmed',
       sanctionIds: ['s-1'],
     });
 
     expect(response.ticketExceedTransactionId).toBe('tx-99');
     expect(response.exceedPrice).toBe(100);
-    expect(response.validExitDate).toBe('2026-11-24');
+    expect(response.validExitDate).toBe('2026-11-25');
   });
 
-  it('calls POST /api/Gate/open with Entry operationType and TicketId', () => {
+  it('calls POST /api/Gate/open with Entry operationType, TicketId, and requestId', () => {
     gateOpSvc
-      .openGate({ controllerId: '1', operationType: 'Entry', ticketId: 't-1' })
+      .openGate({ controllerId: '1', operationType: 'Entry', ticketId: 't-1', requestId: 'req-open-1' })
       .subscribe();
 
     const req = httpMock.expectOne(`${environment.baseUrl}/Gate/open`);
@@ -175,6 +193,7 @@ describe('Financial Integrity V2 & GateOperation Integration', () => {
       controllerId: '1',
       operationType: 'Entry',
       ticketId: 't-1',
+      requestId: 'req-open-1',
     });
     req.flush(
       { operationId: 'op-1', status: 'Pending', operationType: 'Entry', commandId: '10' },

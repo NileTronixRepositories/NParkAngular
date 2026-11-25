@@ -6,6 +6,7 @@ import {
   GateOperationListFilter,
   GateOperationResponse,
   OpenGateRequest,
+  generateGateRequestId,
   normalizeGateOperationResponse,
 } from '../../Domain/Gate/gate-operation.models';
 
@@ -18,6 +19,7 @@ export class GateOperationService {
     const body: Record<string, unknown> = {
       controllerId: String(request.controllerId).trim(),
       operationType: request.operationType,
+      requestId: request.requestId?.trim() || generateGateRequestId(),
     };
     if (request.ticketId) {
       body['ticketId'] = request.ticketId;

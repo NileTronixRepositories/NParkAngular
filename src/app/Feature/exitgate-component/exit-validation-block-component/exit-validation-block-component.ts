@@ -56,22 +56,18 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
   @Input() salaryBreakdown: CalculateSalaryResponse | null = null;
   @Input() activeOperation: GateOperationResponse | null = null;
   @Input() isSupervisor: boolean = false;
-  @Input() reconcilingOperation: boolean = false;
 
   @Output() validateText = new EventEmitter<string>();
   @Output() confirmExit = new EventEmitter<string>();
   @Output() collectAndExit = new EventEmitter<string>();
   @Output() retryOperation = new EventEmitter<string>();
   @Output() refreshOperation = new EventEmitter<string>();
-  @Output() reconcileOperation = new EventEmitter<{ operationId: string; evidence: string }>();
 
   @ViewChild('manualTextArea') manualTextArea?: ElementRef<HTMLTextAreaElement>;
 
   manualText = '';
   submittedText = '';
   textFieldError: string | null = null;
-  showReconcileBox = false;
-  reconcileEvidence = '';
   private lastSubmittedText = '';
   private autoSubmitTimer?: ReturnType<typeof setTimeout>;
   private suppressScannerFocusUntil = 0;
@@ -209,6 +205,7 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
       case 'Failed':
         return 'gate_execution_failed';
       case 'TimedOut':
+        return 'gate_execution_timed_out';
       case 'Unknown':
         return 'gate_execution_unknown';
       default:
@@ -216,8 +213,17 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
     }
   }
 
+  get isTerminalFailedOperation(): boolean {
+    const status = this.activeOperation?.status;
+    return status === 'Failed' || status === 'TimedOut';
+  }
+
+  get canRetryNewExit(): boolean {
+    return this.isTerminalFailedOperation && !!(this.activeOperation?.ticketId || this.anyResult?.ticketId);
+  }
+
   onRetryOperation(): void {
-    if (this.activeOperation?.operationId) {
+    if (this.activeOperation?.operationId && !this.openGateLoading && this.gateConnectionReady) {
       this.retryOperation.emit(this.activeOperation.operationId);
     }
   }
@@ -226,15 +232,6 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
     if (this.activeOperation?.operationId) {
       this.refreshOperation.emit(this.activeOperation.operationId);
     }
-  }
-
-  onSubmitReconcile(): void {
-    const opId = this.activeOperation?.operationId;
-    const evidence = this.reconcileEvidence.trim();
-    if (!opId || !evidence || evidence.length > 500 || this.reconcilingOperation) return;
-    this.reconcileOperation.emit({ operationId: opId, evidence });
-    this.reconcileEvidence = '';
-    this.showReconcileBox = false;
   }
 
   onConfirm(): void {

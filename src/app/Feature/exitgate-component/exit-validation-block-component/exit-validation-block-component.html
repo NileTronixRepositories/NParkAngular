@@ -197,8 +197,8 @@
           class="result-op-box"
           *ngIf="activeOperation as op"
           [class.result-op-box--completed]="op.status === 'Completed'"
-          [class.result-op-box--failed]="op.status === 'Failed'"
-          [class.result-op-box--uncertain]="op.status === 'TimedOut' || op.status === 'Unknown'"
+          [class.result-op-box--failed]="op.status === 'Failed' || op.status === 'TimedOut'"
+          [class.result-op-box--uncertain]="op.status === 'Unknown'"
           data-scanner-focus-stop="true"
         >
           <div class="d-flex align-items-center justify-content-between gap-2">
@@ -209,7 +209,8 @@
               ></span>
               <i *ngIf="op.status === 'Completed'" class="fa-solid fa-circle-check text-success"></i>
               <i *ngIf="op.status === 'Failed'" class="fa-solid fa-circle-xmark text-danger"></i>
-              <i *ngIf="op.status === 'TimedOut' || op.status === 'Unknown'" class="fa-solid fa-circle-question text-warning"></i>
+              <i *ngIf="op.status === 'TimedOut'" class="fa-regular fa-clock text-danger"></i>
+              <i *ngIf="op.status === 'Unknown'" class="fa-solid fa-circle-question text-warning"></i>
               <span>{{ operationStatusLabelKey | t }}</span>
             </span>
             <span class="badge bg-light text-dark border mono">{{ op.status }}</span>
@@ -217,6 +218,7 @@
 
           <div class="d-flex flex-wrap gap-1 mt-2" *ngIf="op.status !== 'Completed'">
             <button
+              *ngIf="!isTerminalFailedOperation"
               type="button"
               class="btn btn-outline-secondary btn-sm flex-grow-1"
               (click)="onRefreshOperation()"
@@ -226,50 +228,14 @@
             </button>
 
             <button
-              *ngIf="op.retryAllowed"
+              *ngIf="canRetryNewExit"
               type="button"
               class="btn btn-primary btn-sm flex-grow-1"
               (click)="onRetryOperation()"
-              [disabled]="openGateLoading"
+              [disabled]="openGateLoading || !gateConnectionReady"
             >
               <i class="fa-solid fa-arrow-rotate-right me-1"></i>{{ 'retry_operation' | t }}
             </button>
-
-            <button
-              *ngIf="op.requiresReconciliation && isSupervisor && !showReconcileBox"
-              type="button"
-              class="btn btn-outline-warning btn-sm w-100"
-              (click)="showReconcileBox = true"
-            >
-              <i class="fa-solid fa-user-shield me-1"></i>{{ 'reconcile_non_execution' | t }}
-            </button>
-          </div>
-
-          <div class="mt-2" *ngIf="showReconcileBox && op.requiresReconciliation && isSupervisor">
-            <textarea
-              class="form-control form-control-sm mb-1"
-              rows="2"
-              maxlength="500"
-              [(ngModel)]="reconcileEvidence"
-              [placeholder]="'reconcile_evidence_placeholder' | t"
-            ></textarea>
-            <div class="d-flex gap-1">
-              <button
-                type="button"
-                class="btn btn-warning btn-sm flex-grow-1 fw-bold"
-                [disabled]="!reconcileEvidence.trim() || reconcilingOperation"
-                (click)="onSubmitReconcile()"
-              >
-                {{ 'confirm' | t }}
-              </button>
-              <button
-                type="button"
-                class="btn btn-outline-secondary btn-sm"
-                (click)="showReconcileBox = false; reconcileEvidence = ''"
-              >
-                {{ 'cancel' | t }}
-              </button>
-            </div>
           </div>
         </div>
 
@@ -298,6 +264,53 @@
             <span>{{ validationError || ('no_matching_ticket' | t) }}</span>
           </ng-template>
         </div>
+      </div>
+    </div>
+
+    <!-- Standalone Blocking GateOperation Recovery Box (visible even before scanning a ticket) -->
+    <div
+      class="result-op-box animate-fade-in"
+      *ngIf="!hasResult && activeOperation as op"
+      [class.result-op-box--completed]="op.status === 'Completed'"
+      [class.result-op-box--failed]="op.status === 'Failed' || op.status === 'TimedOut'"
+      [class.result-op-box--uncertain]="op.status === 'Unknown'"
+      data-scanner-focus-stop="true"
+    >
+      <div class="d-flex align-items-center justify-content-between gap-2">
+        <span class="d-inline-flex align-items-center gap-2 fw-bold x-small">
+          <span
+            *ngIf="op.status === 'Pending' || op.status === 'Published' || op.status === 'Acknowledged'"
+            class="spinner-border spinner-border-sm"
+          ></span>
+          <i *ngIf="op.status === 'Completed'" class="fa-solid fa-circle-check text-success"></i>
+          <i *ngIf="op.status === 'Failed'" class="fa-solid fa-circle-xmark text-danger"></i>
+          <i *ngIf="op.status === 'TimedOut'" class="fa-regular fa-clock text-danger"></i>
+          <i *ngIf="op.status === 'Unknown'" class="fa-solid fa-circle-question text-warning"></i>
+          <span>{{ operationStatusLabelKey | t }}</span>
+        </span>
+        <span class="badge bg-light text-dark border mono">{{ op.status }}</span>
+      </div>
+
+      <div class="d-flex flex-wrap gap-1 mt-2" *ngIf="op.status !== 'Completed'">
+        <button
+          *ngIf="!isTerminalFailedOperation"
+          type="button"
+          class="btn btn-outline-secondary btn-sm flex-grow-1"
+          (click)="onRefreshOperation()"
+          [disabled]="openGateLoading"
+        >
+          <i class="fa-solid fa-rotate me-1"></i>{{ 'refresh_operation' | t }}
+        </button>
+
+        <button
+          *ngIf="canRetryNewExit"
+          type="button"
+          class="btn btn-primary btn-sm flex-grow-1"
+          (click)="onRetryOperation()"
+          [disabled]="openGateLoading || !gateConnectionReady"
+        >
+          <i class="fa-solid fa-arrow-rotate-right me-1"></i>{{ 'retry_operation' | t }}
+        </button>
       </div>
     </div>
   </div>

@@ -13,6 +13,18 @@ export interface OpenGateRequest {
   controllerId: string;
   operationType: 'Entry' | 'Manual';
   ticketId?: string;
+  requestId?: string;
+}
+
+export function generateGateRequestId(): string {
+  if (typeof crypto !== 'undefined' && typeof crypto.randomUUID === 'function') {
+    return crypto.randomUUID();
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
 
 export interface GateOperationResponse {
@@ -95,8 +107,8 @@ const STATUS_PROGRESSION_RANK: Record<GateOperationStatus, number> = {
   Pending: 1,
   Published: 2,
   Acknowledged: 3,
-  TimedOut: 3,
   Unknown: 3,
+  TimedOut: 4,
   Failed: 4,
   Completed: 5,
 };
@@ -153,7 +165,11 @@ export function normalizeGateOperationResponse(raw: any): GateOperationResponse 
 }
 
 export function isTerminalGateOperationStatus(status: GateOperationStatus): boolean {
-  return status === 'Completed' || status === 'Failed';
+  return status === 'Completed' || status === 'Failed' || status === 'TimedOut';
+}
+
+export function isFailedGateOperationStatus(status: GateOperationStatus): boolean {
+  return status === 'Failed' || status === 'TimedOut';
 }
 
 export function isUnresolvedGateOperationStatus(status: GateOperationStatus): boolean {
@@ -161,7 +177,6 @@ export function isUnresolvedGateOperationStatus(status: GateOperationStatus): bo
     status === 'Pending' ||
     status === 'Published' ||
     status === 'Acknowledged' ||
-    status === 'TimedOut' ||
     status === 'Unknown'
   );
 }
@@ -171,7 +186,7 @@ export function isInFlightGateOperationStatus(status: GateOperationStatus): bool
 }
 
 export function isUncertainGateOutcome(status: GateOperationStatus): boolean {
-  return status === 'TimedOut' || status === 'Unknown';
+  return status === 'Unknown';
 }
 
 export function isCompletedExitOperation(op: GateOperationResponse | null | undefined): boolean {

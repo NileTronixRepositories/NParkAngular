@@ -175,8 +175,11 @@ export class TicketsServices {
     return this.core.collectCashier(ticketId, expectedBasePrice);
   }
 
-  addExitTicket(ticketId: string): Observable<HttpResponse<GateOperationResponse>> {
-    return this.core.addExitTicket(ticketId);
+  addExitTicket(
+    ticketId: string,
+    requestId?: string,
+  ): Observable<HttpResponse<GateOperationResponse>> {
+    return this.core.addExitTicket(ticketId, requestId);
   }
 
   // --- Card summary ---

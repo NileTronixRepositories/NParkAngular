@@ -23,6 +23,7 @@ import {
 } from '../../Domain/tickets/tickets.model';
 import {
   GateOperationResponse,
+  generateGateRequestId,
   normalizeGateOperationResponse,
 } from '../../Domain/Gate/gate-operation.models';
 import { PagedResult } from '../../Domain/PageResult/PagedResult';
@@ -151,8 +152,14 @@ export class TicketCoreService {
     );
   }
 
-  addExitTicket(ticketId: string): Observable<HttpResponse<GateOperationResponse>> {
-    const body = { ticketId };
+  addExitTicket(
+    ticketId: string,
+    requestId?: string,
+  ): Observable<HttpResponse<GateOperationResponse>> {
+    const body = {
+      ticketId,
+      requestId: requestId?.trim() || generateGateRequestId(),
+    };
 
     return this.http
       .post<any>(this.endpoint('ExitTicket'), body, { observe: 'response' })

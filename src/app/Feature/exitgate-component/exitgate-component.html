@@ -154,13 +154,11 @@
         [salaryBreakdown]="salarySummary"
         [activeOperation]="activeExitGateOperation"
         [isSupervisor]="isSupervisor"
-        [reconcilingOperation]="reconcilingGateOperation"
         (validateText)="onValidateExitByText($event)"
         (confirmExit)="onConfirmValidationExit($event)"
         (collectAndExit)="onCollectAndExitValidatedTicket($event)"
         (retryOperation)="onRetryExitGateOperation($event)"
         (refreshOperation)="onRefreshExitGateOperation($event)"
-        (reconcileOperation)="onReconcileExitGateOperation($event)"
       ></app-exit-validation-block-component>
     </div>
 

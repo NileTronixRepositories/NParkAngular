@@ -42,14 +42,26 @@ export class TicketExceedTransactionService {
   create(
     request: CreateTicketExceedTransactionRequest,
   ): Observable<CreateTicketExceedTransactionResponse> {
-    const payload: CreateTicketExceedTransactionRequest = {
+    const payload: Record<string, unknown> = {
       ticketId: request.ticketId,
       sanctionIds: request.sanctionIds,
+      expectedAmount: Number(request.expectedAmount),
       idempotencyKey: request.idempotencyKey || this.generateIdempotencyKey(),
     };
-    return this.http.post<CreateTicketExceedTransactionResponse>(`${this.base}/Create`, payload).pipe(
-      map((res) => this.normalizeResponse(res)),
-    );
+    const normalizedExitDate = this.normalizeDateOnly(request.expectedValidExitDate);
+    if (normalizedExitDate) {
+      payload['expectedValidExitDate'] = normalizedExitDate;
+    }
+    return this.http
+      .post<CreateTicketExceedTransactionResponse>(`${this.base}/Create`, payload)
+      .pipe(map((res) => this.normalizeResponse(res)));
+  }
+
+  private normalizeDateOnly(value: string | null | undefined): string | null {
+    const trimmed = String(value ?? '').trim();
+    if (!trimmed) return null;
+    const match = trimmed.match(/^(\d{4}-\d{2}-\d{2})/);
+    return match ? match[1] : trimmed;
   }
 
   collectExceedTransactions(): Observable<CollectExceedTransactionsResponse> {
@@ -125,9 +137,7 @@ export class TicketExceedTransactionService {
       exceedAmount,
       exceedPrice: Number(res?.exceedPrice ?? res?.ExceedPrice ?? exceedAmount),
       ticketPrice: Number(res?.ticketPrice ?? res?.TicketPrice ?? 0),
-      totalPriceAfterExceed: Number(
-        res?.totalPriceAfterExceed ?? res?.TotalPriceAfterExceed ?? 0,
-      ),
+      totalPriceAfterExceed: Number(res?.totalPriceAfterExceed ?? res?.TotalPriceAfterExceed ?? 0),
       paidAmount: Number(res?.paidAmount ?? res?.PaidAmount ?? 0),
       outstandingAmount: Number(res?.outstandingAmount ?? res?.OutstandingAmount ?? 0),
       validExitDate: String(res?.validExitDate ?? res?.ValidExitDate ?? ''),
@@ -136,8 +146,7 @@ export class TicketExceedTransactionService {
       superVisorCollectorId: res?.superVisorCollectorId ?? res?.SuperVisorCollectorId ?? null,
       sanctionIds: res?.sanctionIds ?? res?.SanctionIds ?? [],
       paymentStatus: String(res?.paymentStatus ?? res?.PaymentStatus ?? 'Confirmed'),
-      paymentConfirmedAtUtc:
-        res?.paymentConfirmedAtUtc ?? res?.PaymentConfirmedAtUtc ?? null,
+      paymentConfirmedAtUtc: res?.paymentConfirmedAtUtc ?? res?.PaymentConfirmedAtUtc ?? null,
       createdAt: res?.createdAt ?? res?.CreatedAt ?? '',
       qrCode: res?.qrCode ?? res?.QrCode ?? res?.qrCodeBase64 ?? res?.QrCodeBase64 ?? null,
       ticketInfo: res?.ticketInfo ?? res?.TicketInfo ?? '',
@@ -161,8 +170,7 @@ export class TicketExceedTransactionService {
       : [];
 
     return {
-      collectionTransactionId:
-        res?.collectionTransactionId ?? res?.CollectionTransactionId ?? '',
+      collectionTransactionId: res?.collectionTransactionId ?? res?.CollectionTransactionId ?? '',
       gateId: res?.gateId ?? res?.GateId ?? '',
       collectedBy: res?.collectedBy ?? res?.CollectedBy ?? '',
       collectedName: res?.collectedName ?? res?.CollectedName ?? '',
@@ -180,7 +188,10 @@ export class TicketExceedTransactionService {
     };
   }
 
-  private normalizeCollectDetail(item: any, lines: CollectExceedTransactionsResponse['lines']): CollectExceedTransactionDetail {
+  private normalizeCollectDetail(
+    item: any,
+    lines: CollectExceedTransactionsResponse['lines'],
+  ): CollectExceedTransactionDetail {
     const responsibleUserId = item?.responsibleUserId ?? item?.ResponsibleUserId ?? '';
     const responsibleUserName =
       item?.responsibleUserName ??
@@ -197,9 +208,7 @@ export class TicketExceedTransactionService {
       transactionCreatedAt: item?.transactionCreatedAt ?? item?.TransactionCreatedAt ?? '',
       supervisorCollectedAt: item?.supervisorCollectedAt ?? item?.SupervisorCollectedAt ?? '',
       ticketPrice: Number(item?.ticketPrice ?? item?.TicketPrice ?? 0),
-      ticketOldExceedPrice: Number(
-        item?.ticketOldExceedPrice ?? item?.TicketOldExceedPrice ?? 0,
-      ),
+      ticketOldExceedPrice: Number(item?.ticketOldExceedPrice ?? item?.TicketOldExceedPrice ?? 0),
       exceedAmount: Number(item?.exceedAmount ?? item?.ExceedAmount ?? 0),
       totalPriceAfterExceed: Number(
         item?.totalPriceAfterExceed ?? item?.TotalPriceAfterExceed ?? 0,

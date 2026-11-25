@@ -2,6 +2,8 @@ export interface CreateTicketExceedTransactionRequest {
   ticketId: string;
   sanctionIds: string[];
   idempotencyKey: string;
+  expectedAmount: number;
+  expectedValidExitDate?: string | null;
 }
 
 export interface CreateTicketExceedTransactionResponse {

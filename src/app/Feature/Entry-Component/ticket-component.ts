@@ -30,6 +30,8 @@ import {
 } from '../../Domain/tickets/tickets.model';
 import {
   GateOperationResponse,
+  generateGateRequestId,
+  isFailedGateOperationStatus,
   isInFlightGateOperationStatus,
   isUncertainGateOutcome,
 } from '../../Domain/Gate/gate-operation.models';
@@ -2038,60 +2040,23 @@ export class TicketComponent implements OnInit, OnDestroy {
   retryOpenGate(): void {
     const current = this.lastOpenGateResponse;
 
-    // Never blindly repeat POST /api/Gate/open when an operation exists
-    if (current?.operationId) {
-      if (isInFlightGateOperationStatus(current.status)) {
-        this.openGateLoading = true;
-        this.gateOperationStore.refreshOperation(current.operationId).subscribe({
-          next: (refreshed) => {
-            if (refreshed) {
-              this.applyEntryGateOperation(refreshed);
-            }
-          },
-          complete: () => {
-            this.openGateLoading = false;
-          },
-        });
-        return;
-      }
-
-      if (current.retryAllowed) {
-        this.openGateLoading = true;
-        this.openGateError = null;
-        this.gateOperationSvc.retryOperation(current.operationId).subscribe({
-          next: (httpRes) => {
-            if (httpRes.body) {
-              const op = this.gateOperationStore.upsertOperation(httpRes.body, true);
-              this.applyEntryGateOperation(op, httpRes.status);
-            }
-          },
-          error: (err) => {
-            console.error('Retry GateOperation error', err);
-            this.openGateError = this.errorExtractor.extractErrorMessage(
-              err,
-              this.t('open_gate_failed'),
-            );
-            this.toast.error(this.openGateError);
-          },
-          complete: () => {
-            this.openGateLoading = false;
-          },
-        });
-        return;
-      }
-
-      if (current.requiresReconciliation || isUncertainGateOutcome(current.status)) {
-        const msg =
-          this.i18n.current === 'ar'
-            ? 'حالة تنفيذ أمر البوابة غير معروفة — تتطلب مراجعة المشرف'
-            : 'Gate execution outcome is unknown — supervisor reconciliation required';
-        this.openGateError = msg;
-        this.toast.warn(msg);
-        return;
-      }
+    // If an operation is still in-flight, refresh its authoritative state instead of duplicating
+    if (current?.operationId && isInFlightGateOperationStatus(current.status)) {
+      this.openGateLoading = true;
+      this.gateOperationStore.refreshOperation(current.operationId).subscribe({
+        next: (refreshed) => {
+          if (refreshed) {
+            this.applyEntryGateOperation(refreshed);
+          }
+        },
+        complete: () => {
+          this.openGateLoading = false;
+        },
+      });
+      return;
     }
 
-    // Only issue a fresh Entry GateOperation if there is no unresolved operation
+    // Terminal failure / TimedOut (or no operation) issues a brand-new Gate/open request with a fresh requestId
     this.openGateAfterTicketCreate();
   }
 
@@ -2114,6 +2079,7 @@ export class TicketComponent implements OnInit, OnDestroy {
         controllerId,
         ticketId,
         operationType: 'Entry',
+        requestId: generateGateRequestId(),
       })
       .subscribe({
         next: (httpRes) => {
@@ -2177,11 +2143,17 @@ export class TicketComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (op.status === 'Failed') {
+    if (isFailedGateOperationStatus(op.status)) {
+      this.gateOperationStore.stopPolling(op.operationId);
+      this.openGateLoading = false;
       this.openGateError =
-        this.i18n.current === 'ar'
-          ? 'فشل تنفيذ أمر فتح البوابة'
-          : 'Gate execution failed';
+        op.status === 'TimedOut'
+          ? this.i18n.current === 'ar'
+            ? 'انتهت مهلة انتظار البوابة — يمكنك المحاولة مرة أخرى'
+            : 'Gate command timed out — you can try again'
+          : this.i18n.current === 'ar'
+            ? 'فشل تنفيذ أمر فتح البوابة'
+            : 'Gate execution failed';
       this.toast.error(this.openGateError);
       return;
     }

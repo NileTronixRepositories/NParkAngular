@@ -17,9 +17,12 @@ import {
 } from '../../Domain/tickets/tickets.model';
 import {
   GateOperationResponse,
+  generateGateRequestId,
   isCompletedExitOperation,
+  isFailedGateOperationStatus,
   isInFlightGateOperationStatus,
   isUncertainGateOutcome,
+  isUnresolvedGateOperationStatus,
 } from '../../Domain/Gate/gate-operation.models';
 import { GateOperationService } from '../../Services/Gate/gate-operation.service';
 import { GateOperationStoreService } from '../../Services/Gate/gate-operation-store.service';
@@ -357,7 +360,6 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   validationCollectingAndExiting = false;
   currentExitEligibility: ExitEligibility | null = null;
   activeExitGateOperation: GateOperationResponse | null = null;
-  reconcilingGateOperation = false;
   exceedTransactions: CreateTicketExceedTransactionResponse[] = [];
   private readonly printedExceedTransactionIds = new Set<string>();
   private readonly completedExitOperationIds = new Set<string>();
@@ -488,11 +490,11 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     if (currentGateId) {
       this.hubSubscriptions.add(
         this.gateOperationStore.recoverForGate(String(currentGateId)).subscribe((ops) => {
-          const activeExit = ops.find(
-            (o) => o.operationType === 'Exit' && isInFlightGateOperationStatus(o.status),
+          const blockingOp = ops.find(
+            (o) => o.operationType === 'Exit' && isUnresolvedGateOperationStatus(o.status),
           );
-          if (activeExit) {
-            this.activeExitGateOperation = activeExit;
+          if (blockingOp) {
+            this.activeExitGateOperation = blockingOp;
             this.cdr.markForCheck();
           }
         }),
@@ -726,7 +728,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   private handleTicketExceedError(err: any): void {
     const code = this.extractProblemCode(err);
 
-    if (err?.status === 409 || code === 'TicketExceedTransaction.AlreadyExists') {
+    if (
+      code === 'TicketExceedTransaction.AlreadyExists' ||
+      code === 'OvernightPenaltyAlreadyCovered'
+    ) {
       this.isExceedRegistered = false;
       this.isExceedAlreadyExists = true;
       this.ticketExceedTransaction = null;
@@ -909,13 +914,28 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.executeExitOperation(ticket.id);
   }
 
-  private getExceedIdempotencyStorageKey(ticketId: string, sanctionIds: string[]): string {
+  private getExceedIdempotencyStorageKey(
+    ticketId: string,
+    sanctionIds: string[],
+    expectedAmount: number,
+    expectedValidExitDate: string,
+  ): string {
     const sorted = [...sanctionIds].sort().join(',');
-    return `npark_exceed_idem_${ticketId}_${sorted}`;
+    return `npark_exceed_idem_${ticketId}_${sorted}_${expectedAmount.toFixed(2)}_${expectedValidExitDate}`;
   }
 
-  private getOrCreateExceedIdempotencyKey(ticketId: string, sanctionIds: string[]): string {
-    const storageKey = this.getExceedIdempotencyStorageKey(ticketId, sanctionIds);
+  private getOrCreateExceedIdempotencyKey(
+    ticketId: string,
+    sanctionIds: string[],
+    expectedAmount: number,
+    expectedValidExitDate: string,
+  ): string {
+    const storageKey = this.getExceedIdempotencyStorageKey(
+      ticketId,
+      sanctionIds,
+      expectedAmount,
+      expectedValidExitDate,
+    );
     try {
       const existing = sessionStorage.getItem(storageKey);
       if (existing) return existing;
@@ -927,13 +947,49 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     }
   }
 
-  private clearExceedIdempotencyKey(ticketId: string, sanctionIds: string[]): void {
-    const storageKey = this.getExceedIdempotencyStorageKey(ticketId, sanctionIds);
+  private clearExceedIdempotencyKey(
+    ticketId: string,
+    sanctionIds: string[],
+    expectedAmount: number,
+    expectedValidExitDate: string,
+  ): void {
+    const storageKey = this.getExceedIdempotencyStorageKey(
+      ticketId,
+      sanctionIds,
+      expectedAmount,
+      expectedValidExitDate,
+    );
     try {
       sessionStorage.removeItem(storageKey);
     } catch {
       // Ignore storage errors
     }
+  }
+
+  private formatLocalDateOnly(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private resolveExpectedValidExitDate(): string {
+    const today = this.formatLocalDateOnly(new Date());
+    const candidates = [
+      this.salarySummary?.validExitDate,
+      this.currentExitEligibility?.validExitDate,
+      this.textValidationResult?.validExitDate,
+      this.vehicleValidationResult?.validExitDate,
+    ];
+
+    for (const raw of candidates) {
+      const match = String(raw ?? '').trim().match(/^(\d{4}-\d{2}-\d{2})/);
+      if (match && match[1] > today) {
+        return match[1];
+      }
+    }
+
+    return today;
   }
 
   private submitExceed(
@@ -956,18 +1012,39 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const idempotencyKey = this.getOrCreateExceedIdempotencyKey(ticketId, uniqueSanctionIds);
+    const expectedAmount =
+      Math.round(
+        uniqueSanctionIds.reduce((sum, id) => {
+          const sanction = this.allSanctions.find((s) => s.id === id);
+          return sum + Number(sanction?.amount ?? 0);
+        }, 0) * 100,
+      ) / 100;
+    const expectedValidExitDate = this.resolveExpectedValidExitDate();
+    const idempotencyKey = this.getOrCreateExceedIdempotencyKey(
+      ticketId,
+      uniqueSanctionIds,
+      expectedAmount,
+      expectedValidExitDate,
+    );
     this.registeringExceed = true;
+    this.isExceedAlreadyExists = false;
 
     this.ticketExceedTransactionSvc
       .create({
         ticketId,
         sanctionIds: uniqueSanctionIds,
+        expectedAmount,
+        expectedValidExitDate,
         idempotencyKey,
       })
       .subscribe({
         next: (response) => {
-          this.clearExceedIdempotencyKey(ticketId, uniqueSanctionIds);
+          this.clearExceedIdempotencyKey(
+            ticketId,
+            uniqueSanctionIds,
+            expectedAmount,
+            expectedValidExitDate,
+          );
           this.ticketExceedTransaction = response;
           this.exceedAmount = Number(response.exceedAmount ?? 0);
           this.totalPriceAfterExceed = Number(response.totalPriceAfterExceed ?? 0);
@@ -999,6 +1076,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
           }
         },
         error: (err) => {
+          this.registeringExceed = false;
           this.handleTicketExceedError(err);
         },
         complete: () => {
@@ -1855,7 +1933,8 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     this.validationOpenGateError = null;
     this.validationMessage = this.t('waiting_gate_confirmation');
 
-    this.svc.addExitTicket(ticketId).subscribe({
+    const requestId = generateGateRequestId();
+    this.svc.addExitTicket(ticketId, requestId).subscribe({
       next: (httpRes) => {
         const op = httpRes.body;
         if (!op) {
@@ -1873,6 +1952,12 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         );
         this.handleError('ExitTicket', err);
         this.addingExitTicket = false;
+
+        const code = this.extractProblemCode(err);
+        if (err?.status === 409 && code === 'GateOperationPending') {
+          this.recoverBlockingGateOperation();
+        }
+
         this.focusValidationTextNonce++;
         this.processPendingExitValidation();
       },
@@ -1917,8 +2002,15 @@ export class ExitgateComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (op.status === 'Failed') {
-      this.setFeedback('openGate', 'gate_execution_failed', 'error');
+    if (isFailedGateOperationStatus(op.status)) {
+      this.gateOperationStore.stopPolling(op.operationId);
+      this.addingExitTicket = false;
+      this.validationOpenGateLoading = false;
+      this.exitSelectedTicketLoading = false;
+      this.validationMessage = null;
+      const errorKey =
+        op.status === 'TimedOut' ? 'gate_execution_timed_out' : 'gate_execution_failed';
+      this.setFeedback('openGate', errorKey, 'error');
       return;
     }
 
@@ -1929,23 +2021,39 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     }
   }
 
-  onRetryExitGateOperation(operationId: string): void {
-    if (!operationId || this.validationOpenGateLoading) return;
-    this.validationOpenGateLoading = true;
-    this.gateOperationSvc.retryOperation(operationId).subscribe({
-      next: (httpRes) => {
-        if (httpRes.body) {
-          const tracked = this.gateOperationStore.upsertOperation(httpRes.body, true);
-          this.applyExitGateOperation(tracked, httpRes.status);
-        }
-      },
-      error: (err) => {
-        this.handleError('retryExitGateOperation', err);
-      },
-      complete: () => {
-        this.validationOpenGateLoading = false;
-      },
+  private recoverBlockingGateOperation(): void {
+    const gateId = this.auth.getGateId();
+    const controllerId = this.gatePeripheralFacade.controlId(this.gateConnectionInfo);
+    if (!gateId) return;
+
+    this.gateOperationStore.recoverForGate(String(gateId), controllerId).subscribe((ops) => {
+      const blocking = ops.find((o) => isUnresolvedGateOperationStatus(o.status));
+      if (blocking) {
+        this.activeExitGateOperation = blocking;
+        this.lastValidationOpenGateResponse = blocking;
+        this.validationMessage = this.t('operation_already_pending');
+        this.cdr.markForCheck();
+      }
     });
+  }
+
+  onRetryExitGateOperation(_operationId: string): void {
+    if (this.addingExitTicket || this.validationOpenGateLoading) return;
+
+    const ticketId =
+      this.activeExitGateOperation?.ticketId ??
+      this.textValidationResult?.ticketId ??
+      this.vehicleValidationResult?.ticketId ??
+      this.selectedTicketForExceed?.id ??
+      null;
+
+    if (!ticketId) {
+      this.notify('warn', 'no_ticket_for_exit');
+      return;
+    }
+
+    // Terminal failure / TimedOut starts a brand-new exit request with a fresh requestId
+    this.executeExitOperation(String(ticketId));
   }
 
   onRefreshExitGateOperation(operationId: string): void {
@@ -1959,26 +2067,6 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         this.validationOpenGateLoading = false;
       },
     });
-  }
-
-  onReconcileExitGateOperation(payload: { operationId: string; evidence: string }): void {
-    if (!this.isSupervisor || !payload.operationId || !payload.evidence.trim()) return;
-    this.reconcilingGateOperation = true;
-    this.gateOperationSvc
-      .reconcileNonExecution(payload.operationId, payload.evidence)
-      .subscribe({
-        next: (op) => {
-          const tracked = this.gateOperationStore.upsertOperation(op, true);
-          this.applyExitGateOperation(tracked);
-          this.notify('success', 'save');
-        },
-        error: (err) => {
-          this.handleError('reconcileNonExecution', err);
-        },
-        complete: () => {
-          this.reconcilingGateOperation = false;
-        },
-      });
   }
 
   private getExitValidationBusinessMessage(
