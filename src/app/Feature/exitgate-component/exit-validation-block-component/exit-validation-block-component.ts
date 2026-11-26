@@ -194,16 +194,23 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
   }
 
   get operationStatusLabelKey(): string {
-    switch (this.activeOperation?.status) {
+    const op = this.activeOperation;
+    if (!op) return '';
+    const isSoftware = op.completionMode === 'Software';
+
+    switch (op.status) {
       case 'Pending':
       case 'Published':
-        return 'waiting_gate_confirmation';
+        return isSoftware ? 'waiting_gate_confirmation' : 'waiting_gate_confirmation_hardware';
       case 'Acknowledged':
         return 'completing_ticket_archive';
       case 'Completed':
         return 'exit_completed';
       case 'Failed':
-        return 'gate_execution_failed';
+        if (op.reasonCode === 'GateExitMqttDisabled') {
+          return 'gate_exit_mqtt_disabled';
+        }
+        return isSoftware ? 'open_gate_failed' : 'gate_execution_failed';
       case 'TimedOut':
         return 'gate_execution_timed_out';
       case 'Unknown':
@@ -219,7 +226,11 @@ export class ExitValidationBlockComponent implements OnChanges, AfterViewInit, O
   }
 
   get canRetryNewExit(): boolean {
-    return this.isTerminalFailedOperation && !!(this.activeOperation?.ticketId || this.anyResult?.ticketId);
+    const op = this.activeOperation;
+    if (!op) return false;
+    const isRetryableTerminal =
+      op.status === 'Failed' || op.status === 'TimedOut' || op.status === 'Unknown';
+    return isRetryableTerminal && !!(op.ticketId || this.anyResult?.ticketId);
   }
 
   onRetryOperation(): void {

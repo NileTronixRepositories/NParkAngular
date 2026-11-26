@@ -26,6 +26,9 @@ export interface MqttCaptureDetectedEvent {
   gateOpened?: boolean;
   workflowSucceeded?: boolean;
 
+  openGateTopic?: string;
+  openGatePayload?: string;
+
   errorCode?: string | null;
   errorMessage?: string | null;
 }
@@ -108,12 +111,14 @@ export class LprSignalRService {
         workflowSucceeded: this.toOptionalBoolean(
           payload?.workflowSucceeded ?? payload?.WorkflowSucceeded,
         ),
+        openGateTopic: String(payload?.openGateTopic ?? payload?.OpenGateTopic ?? ''),
+        openGatePayload: String(payload?.openGatePayload ?? payload?.OpenGatePayload ?? ''),
         errorCode: payload?.errorCode ?? payload?.ErrorCode ?? null,
         errorMessage: payload?.errorMessage ?? payload?.ErrorMessage ?? null,
       };
 
       if (!event.deviceId) return;
-      if (!event.captureId && !event.operationId && !event.errorCode) return;
+      if (!event.captureId && !event.operationId && !event.errorCode && !event.ticketExited) return;
       this.mqttCaptureDetectedSubject.next(event);
     });
   }

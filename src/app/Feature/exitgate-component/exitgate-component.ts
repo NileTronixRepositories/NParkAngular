@@ -21,6 +21,8 @@ import {
   isCompletedExitOperation,
   isFailedGateOperationStatus,
   isInFlightGateOperationStatus,
+  isSoftwareCompletionMode,
+  isTerminalGateOperationStatus,
   isUncertainGateOutcome,
   isUnresolvedGateOperationStatus,
 } from '../../Domain/Gate/gate-operation.models';
@@ -57,6 +59,7 @@ import { ScannerAttachmentService } from '../../Services/Gate/scanner-attachment
 import {
   LprSignalRService,
   LprVehicleDetectedEvent,
+  MqttCaptureDetectedEvent,
 } from '../../Services/Gate/lpr-signalr.service';
 import { SanctionService } from '../../Services/Sanction/sanction.service';
 import { SanctionDto } from '../../Domain/Sanction/sanction.models';
@@ -363,6 +366,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   exceedTransactions: CreateTicketExceedTransactionResponse[] = [];
   private readonly printedExceedTransactionIds = new Set<string>();
   private readonly completedExitOperationIds = new Set<string>();
+  private readonly completedExitTicketIds = new Set<string>();
   private lastValidatedInputText: string | null = null;
   lprMembershipLoading = false;
   lprSignalRConnected = false;
@@ -456,17 +460,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     this.hubSubscriptions.add(
       this.lprSignalR.mqttCaptureDetected$.subscribe((event) => {
-        const controllerId = this.gatePeripheralFacade.controlId(this.gateConnectionInfo);
-        if (controllerId && event.deviceId && event.deviceId !== controllerId) return;
-        if (event.operationId) {
-          this.gateOperationStore.refreshOperation(event.operationId).subscribe((op) => {
-            if (op) this.applyExitGateOperation(op);
-          });
-        } else if (event.errorMessage) {
-          this.validationError = event.errorMessage;
-          this.showToast('warn', event.errorMessage);
-        }
-        this.cdr.markForCheck();
+        this.handleMqttCaptureDetected(event);
       }),
     );
 
@@ -693,7 +687,7 @@ export class ExitgateComponent implements OnInit, OnDestroy {
         this.gateConnectionInfo = info;
         this.mergeGateConnectionIntoPeripheral(info);
         if (!this.gatePeripheralFacade.hasControlConnection(info)) {
-          this.gateConnectionError = this.t('gate_connection_required');
+          this.gateConnectionError = this.t('gate_controller_mapping_missing');
         }
 
         const cameraUrl = this.gatePeripheralFacade.cameraUrl(info);
@@ -802,6 +796,10 @@ export class ExitgateComponent implements OnInit, OnDestroy {
 
     this.hubSubscriptions.add(
       this.dashboardHub.ticketExited$.subscribe((n: TicketExitedNotification) => {
+        if (this.hasCompletedExitForTicket(n.ticketId)) {
+          return;
+        }
+        this.markCompletedExitTicket(n.ticketId);
         this.reloadList();
         this.refreshSanctionsTickets(n.ticketId);
         const msg = this.buildExitNotificationMessage(n);
@@ -1924,17 +1922,18 @@ export class ExitgateComponent implements OnInit, OnDestroy {
   /**
    * FE-02: Single shared Exit GateOperation workflow.
    * Calls POST /api/Ticket/ExitTicket once (no follow-up POST /api/Gate/open!)
-   * Handles HTTP 202 Pending and HTTP 200 Completed/Failed without optimistic exit rows.
+   * Handles HTTP 202 Pending (Hardware) and HTTP 200 Completed/Failed (Software or terminal)
+   * without optimistic exit rows.
    */
-  private executeExitOperation(ticketId: string): void {
+  private executeExitOperation(ticketId: string, requestId?: string): void {
     if (!ticketId || this.addingExitTicket) return;
 
     this.addingExitTicket = true;
     this.validationOpenGateError = null;
     this.validationMessage = this.t('waiting_gate_confirmation');
 
-    const requestId = generateGateRequestId();
-    this.svc.addExitTicket(ticketId, requestId).subscribe({
+    const effectiveRequestId = requestId?.trim() || generateGateRequestId();
+    this.svc.addExitTicket(ticketId, effectiveRequestId).subscribe({
       next: (httpRes) => {
         const op = httpRes.body;
         if (!op) {
@@ -1968,57 +1967,180 @@ export class ExitgateComponent implements OnInit, OnDestroy {
     });
   }
 
+  private handleMqttCaptureDetected(event: MqttCaptureDetectedEvent): void {
+    const controllerId = this.gatePeripheralFacade.controlId(this.gateConnectionInfo);
+    if (controllerId && event.deviceId && event.deviceId !== controllerId) return;
+
+    if (event.operationId) {
+      this.gateOperationStore.refreshOperation(event.operationId).subscribe((op) => {
+        if (op) {
+          this.applyExitGateOperation(op);
+        } else if (
+          event.ticketExited &&
+          event.operationStatus === 'Completed' &&
+          event.workflowSucceeded !== false
+        ) {
+          this.completeLogicalExitFromMqtt(event);
+        }
+        this.cdr.markForCheck();
+      });
+      return;
+    }
+
+    if (event.ticketExited && event.workflowSucceeded !== false) {
+      this.completeLogicalExitFromMqtt(event);
+      this.cdr.markForCheck();
+      return;
+    }
+
+    if (event.errorMessage) {
+      this.validationError = event.errorMessage;
+      this.showToast('warn', event.errorMessage);
+    }
+    this.cdr.markForCheck();
+  }
+
+  private completeLogicalExitFromMqtt(event: MqttCaptureDetectedEvent): void {
+    this.clearExitLoadingStates();
+    this.validationOpenGateError = null;
+    this.validationError = null;
+    this.validationMessage = this.t('exit_completed');
+    this.exitTicketAdded = true;
+
+    if (!this.hasRecordedCompletedExit(event.operationId, event.ticketId)) {
+      this.recordCompletedExit(event.operationId, event.ticketId);
+      this.notify('success', 'exit_completed');
+      this.reloadList();
+      this.refreshSanctionsTickets(event.ticketId);
+    }
+
+    this.resetExitInputForNextVehicle();
+  }
+
+  private clearExitLoadingStates(): void {
+    this.addingExitTicket = false;
+    this.validationOpenGateLoading = false;
+    this.exitSelectedTicketLoading = false;
+    this.validationCollectingAndExiting = false;
+  }
+
+  private resetExitInputForNextVehicle(): void {
+    if (this.pendingValidationSource === 'universal') {
+      this.universalInput = '';
+      this.lastSubmittedUniversalInput = '';
+    } else {
+      this.validationTextValue = '';
+      this.clearValidationTextNonce++;
+    }
+    this.focusValidationTextNonce++;
+  }
+
+  private normalizeExitTicketKey(ticketId: string | number | null | undefined): string | null {
+    if (ticketId === null || ticketId === undefined) return null;
+    const key = String(ticketId).trim().toLowerCase();
+    return key.length > 0 ? key : null;
+  }
+
+  private markCompletedExitTicket(ticketId: string | number | null | undefined): void {
+    const key = this.normalizeExitTicketKey(ticketId);
+    if (key) {
+      this.completedExitTicketIds.add(key);
+    }
+  }
+
+  private hasCompletedExitForTicket(ticketId: string | number | null | undefined): boolean {
+    const key = this.normalizeExitTicketKey(ticketId);
+    return !!key && this.completedExitTicketIds.has(key);
+  }
+
+  private hasRecordedCompletedExit(
+    operationId: string | null | undefined,
+    ticketId: string | number | null | undefined,
+  ): boolean {
+    if (operationId && this.completedExitOperationIds.has(operationId)) {
+      return true;
+    }
+    return this.hasCompletedExitForTicket(ticketId);
+  }
+
+  private recordCompletedExit(
+    operationId: string | null | undefined,
+    ticketId: string | number | null | undefined,
+  ): void {
+    if (operationId) {
+      this.completedExitOperationIds.add(operationId);
+    }
+    this.markCompletedExitTicket(ticketId);
+  }
+
   private applyExitGateOperation(op: GateOperationResponse, httpStatus?: number): void {
     this.activeExitGateOperation = op;
     this.lastValidationOpenGateResponse = op;
 
     if (isCompletedExitOperation(op)) {
+      this.gateOperationStore.stopPolling(op.operationId);
+      this.clearExitLoadingStates();
       this.validationOpenGateError = null;
+      this.validationError = null;
       this.validationMessage = this.t('exit_completed');
       this.exitTicketAdded = true;
-      if (!this.completedExitOperationIds.has(op.operationId)) {
-        this.completedExitOperationIds.add(op.operationId);
+
+      if (!this.hasRecordedCompletedExit(op.operationId, op.ticketId)) {
+        this.recordCompletedExit(op.operationId, op.ticketId);
         this.notify('success', 'exit_completed');
         this.reloadList();
         this.refreshSanctionsTickets(op.ticketId);
       }
-      if (this.pendingValidationSource === 'universal') {
-        this.universalInput = '';
-        this.lastSubmittedUniversalInput = '';
-      } else {
-        this.clearValidationTextNonce++;
-      }
-      this.focusValidationTextNonce++;
+
+      this.resetExitInputForNextVehicle();
       return;
     }
 
-    if (httpStatus === 202 || isInFlightGateOperationStatus(op.status)) {
+    if (
+      !isTerminalGateOperationStatus(op.status) &&
+      (httpStatus === 202 || isInFlightGateOperationStatus(op.status))
+    ) {
       this.validationOpenGateError = null;
       this.validationMessage =
         op.status === 'Acknowledged'
           ? this.t('completing_ticket_archive')
-          : this.t('waiting_gate_confirmation');
+          : isSoftwareCompletionMode(op)
+            ? this.t('waiting_gate_confirmation')
+            : this.t('waiting_gate_confirmation_hardware');
       this.gateOperationStore.startPolling(op.operationId);
       return;
     }
 
     if (isFailedGateOperationStatus(op.status)) {
       this.gateOperationStore.stopPolling(op.operationId);
-      this.addingExitTicket = false;
-      this.validationOpenGateLoading = false;
-      this.exitSelectedTicketLoading = false;
+      this.clearExitLoadingStates();
       this.validationMessage = null;
       const errorKey =
-        op.status === 'TimedOut' ? 'gate_execution_timed_out' : 'gate_execution_failed';
+        op.reasonCode === 'GateExitMqttDisabled'
+          ? 'gate_exit_mqtt_disabled'
+          : op.status === 'TimedOut'
+            ? 'gate_execution_timed_out'
+            : isSoftwareCompletionMode(op)
+              ? 'open_gate_failed'
+              : 'gate_execution_failed';
       this.setFeedback('openGate', errorKey, 'error');
       return;
     }
 
     if (isUncertainGateOutcome(op.status)) {
+      this.gateOperationStore.stopPolling(op.operationId);
+      this.clearExitLoadingStates();
       this.validationMessage = null;
       this.validationOpenGateError = this.t('gate_execution_unknown');
       this.notify('warn', 'gate_execution_unknown');
+      return;
     }
+
+    // Non-completed terminal state (e.g. Completed without ticketExited && archived)
+    this.gateOperationStore.stopPolling(op.operationId);
+    this.clearExitLoadingStates();
+    this.validationMessage = null;
+    this.setFeedback('openGate', 'open_gate_failed', 'error');
   }
 
   private recoverBlockingGateOperation(): void {

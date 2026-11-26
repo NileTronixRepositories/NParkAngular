@@ -105,6 +105,11 @@ export class GateOperationStoreService implements OnDestroy {
    */
   startPolling(operationId: string, intervalMs: number = 2000, maxAttempts: number = 20): void {
     if (!operationId) return;
+    const existing = this.operationsById.get(operationId);
+    if (existing && isTerminalGateOperationStatus(existing.status)) {
+      this.stopPolling(operationId);
+      return;
+    }
     this.stopPolling(operationId);
 
     let attempts = 0;
@@ -243,6 +248,7 @@ export class GateOperationStoreService implements OnDestroy {
         operationId: op.operationId,
         operationType: op.operationType,
         status: op.status,
+        completionMode: op.completionMode,
         updatedAtUtc: new Date().toISOString(),
       });
     }

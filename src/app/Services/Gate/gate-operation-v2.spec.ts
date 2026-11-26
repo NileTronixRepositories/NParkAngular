@@ -2,12 +2,16 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { GateOperationService } from './gate-operation.service';
+import { GateOperationStoreService } from './gate-operation-store.service';
 import {
   isCompletedExitOperation,
   isFailedGateOperationStatus,
+  isInFlightGateOperationStatus,
+  isSoftwareCompletionMode,
   isTerminalGateOperationStatus,
   isUncertainGateOutcome,
   isUnresolvedGateOperationStatus,
+  normalizeGateOperationCompletionMode,
   normalizeGateOperationResponse,
   shouldAcceptIncomingOperationState,
 } from '../../Domain/Gate/gate-operation.models';
@@ -207,5 +211,152 @@ describe('Financial Integrity V2 & GateOperation Integration', () => {
       error: (err) => (errorMsg = err.message),
     });
     expect(errorMsg).toContain('required');
+  });
+
+  it('normalizes Software completionMode with null ACK timestamps and empty topic/payload (T01-T03)', () => {
+    const op = normalizeGateOperationResponse({
+      operationId: 'op-sw-1',
+      ticketId: 't-sw-1',
+      gateId: 'g-1',
+      commandId: '123',
+      controllerId: 1,
+      operationType: 'Exit',
+      status: 'Completed',
+      completionMode: 'Software',
+      isAcknowledged: false,
+      ticketExited: true,
+      archived: true,
+      createdAtUtc: '2026-11-26T10:00:00Z',
+      publishedAtUtc: null,
+      acknowledgedAtUtc: null,
+      completedAtUtc: '2026-11-26T10:00:01Z',
+      ackStatusCode: null,
+      retryAllowed: false,
+      requiresReconciliation: false,
+      reasonCode: null,
+      topic: '',
+      payload: '',
+    });
+
+    expect(op.completionMode).toBe('Software');
+    expect(isSoftwareCompletionMode(op)).toBeTrue();
+    expect(op.isAcknowledged).toBeFalse();
+    expect(op.publishedAtUtc).toBeNull();
+    expect(op.acknowledgedAtUtc).toBeNull();
+    expect(op.ackStatusCode).toBeNull();
+    expect(op.topic).toBe('');
+    expect(op.payload).toBe('');
+    expect(isCompletedExitOperation(op)).toBeTrue();
+  });
+
+  it('supports PascalCase CompletionMode and defaults missing/invalid completionMode to Hardware (T18)', () => {
+    const pascalSoftware = normalizeGateOperationResponse({
+      OperationId: 'op-pascal',
+      OperationType: 'Exit',
+      Status: 'Completed',
+      CompletionMode: 'Software',
+      TicketExited: true,
+      Archived: true,
+    });
+    expect(pascalSoftware.completionMode).toBe('Software');
+
+    const legacyWithoutMode = normalizeGateOperationResponse({
+      operationId: 'op-legacy',
+      operationType: 'Exit',
+      status: 'Completed',
+      isAcknowledged: false,
+      ticketExited: true,
+      archived: true,
+    });
+    expect(legacyWithoutMode.completionMode).toBe('Hardware');
+    expect(isSoftwareCompletionMode(legacyWithoutMode)).toBeFalse();
+
+    expect(normalizeGateOperationCompletionMode(undefined)).toBe('Hardware');
+    expect(normalizeGateOperationCompletionMode(null)).toBe('Hardware');
+    expect(normalizeGateOperationCompletionMode('UnexpectedMode')).toBe('Hardware');
+    expect(normalizeGateOperationCompletionMode(1)).toBe('Software');
+    expect(normalizeGateOperationCompletionMode(0)).toBe('Hardware');
+  });
+
+  it('requires both ticketExited and archived for completed exit predicate', () => {
+    const missingExited = normalizeGateOperationResponse({
+      operationId: 'op-no-exit',
+      operationType: 'Exit',
+      status: 'Completed',
+      completionMode: 'Software',
+      ticketExited: false,
+      archived: true,
+    });
+    expect(isCompletedExitOperation(missingExited)).toBeFalse();
+
+    const missingArchived = normalizeGateOperationResponse({
+      operationId: 'op-no-archive',
+      operationType: 'Exit',
+      status: 'Completed',
+      completionMode: 'Software',
+      ticketExited: true,
+      archived: false,
+    });
+    expect(isCompletedExitOperation(missingArchived)).toBeFalse();
+  });
+
+  it('treats Unknown as a terminal non-polling status (T14)', () => {
+    expect(isTerminalGateOperationStatus('Unknown')).toBeTrue();
+    expect(isUnresolvedGateOperationStatus('Unknown')).toBeFalse();
+    expect(isInFlightGateOperationStatus('Unknown')).toBeFalse();
+    expect(isUncertainGateOutcome('Unknown')).toBeTrue();
+
+    const store = TestBed.inject(GateOperationStoreService);
+    const stopSpy = spyOn(store, 'stopPolling').and.callThrough();
+    const unknownOp = normalizeGateOperationResponse({
+      operationId: 'op-unknown',
+      operationType: 'Exit',
+      status: 'Unknown',
+      completionMode: 'Hardware',
+    });
+    store.upsertOperation(unknownOp, true);
+    expect(stopSpy).toHaveBeenCalledWith('op-unknown');
+
+    // Starting polling on an already-terminal operation must not schedule HTTP calls
+    store.startPolling('op-unknown', 10, 3);
+    httpMock.expectNone(`${environment.baseUrl}/Gate/operations/op-unknown`);
+  });
+
+  it('handles HTTP 200 Completed Software exit on POST /api/Ticket/ExitTicket (T01)', () => {
+    let status = 0;
+    let body: any = null;
+    ticketCoreSvc.addExitTicket('t-sw-200', 'req-sw-1').subscribe((res) => {
+      status = res.status;
+      body = res.body;
+    });
+
+    const req = httpMock.expectOne(`${environment.baseUrl}/Ticket/ExitTicket`);
+    expect(req.request.body).toEqual({ ticketId: 't-sw-200', requestId: 'req-sw-1' });
+    req.flush(
+      {
+        operationId: 'op-sw-200',
+        ticketId: 't-sw-200',
+        gateId: 'g-1',
+        commandId: '125',
+        controllerId: 1,
+        operationType: 'Exit',
+        status: 'Completed',
+        completionMode: 'Software',
+        isAcknowledged: false,
+        ticketExited: true,
+        archived: true,
+        publishedAtUtc: null,
+        acknowledgedAtUtc: null,
+        completedAtUtc: '2026-11-26T10:05:00Z',
+        ackStatusCode: null,
+        topic: '',
+        payload: '',
+      },
+      { status: 200, statusText: 'OK' },
+    );
+
+    expect(status).toBe(200);
+    expect(body.completionMode).toBe('Software');
+    expect(isCompletedExitOperation(body)).toBeTrue();
   });
 });

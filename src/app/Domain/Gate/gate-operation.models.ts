@@ -1,5 +1,7 @@
 export type GateOperationType = 'Entry' | 'Exit' | 'Manual';
 
+export type GateOperationCompletionMode = 'Hardware' | 'Software';
+
 export type GateOperationStatus =
   | 'Pending'
   | 'Published'
@@ -37,6 +39,7 @@ export interface GateOperationResponse {
 
   operationType: GateOperationType;
   status: GateOperationStatus;
+  completionMode: GateOperationCompletionMode;
 
   isAcknowledged: boolean;
   ticketExited: boolean;
@@ -74,6 +77,7 @@ export interface PersistedGateOperationRef {
   operationId: string;
   operationType: GateOperationType;
   status: GateOperationStatus;
+  completionMode?: GateOperationCompletionMode;
   updatedAtUtc: string;
 }
 
@@ -84,6 +88,13 @@ const OPERATION_TYPE_MAP: Record<string, GateOperationType> = {
   entry: 'Entry',
   exit: 'Exit',
   manual: 'Manual',
+};
+
+const COMPLETION_MODE_MAP: Record<string, GateOperationCompletionMode> = {
+  '0': 'Hardware',
+  '1': 'Software',
+  hardware: 'Hardware',
+  software: 'Software',
 };
 
 const OPERATION_STATUS_MAP: Record<string, GateOperationStatus> = {
@@ -107,7 +118,7 @@ const STATUS_PROGRESSION_RANK: Record<GateOperationStatus, number> = {
   Pending: 1,
   Published: 2,
   Acknowledged: 3,
-  Unknown: 3,
+  Unknown: 4,
   TimedOut: 4,
   Failed: 4,
   Completed: 5,
@@ -117,6 +128,12 @@ export function normalizeGateOperationType(raw: unknown): GateOperationType {
   if (raw == null) return 'Manual';
   const key = String(raw).trim().toLowerCase();
   return OPERATION_TYPE_MAP[key] ?? 'Manual';
+}
+
+export function normalizeGateOperationCompletionMode(raw: unknown): GateOperationCompletionMode {
+  if (raw == null) return 'Hardware';
+  const key = String(raw).trim().toLowerCase();
+  return COMPLETION_MODE_MAP[key] ?? 'Hardware';
 }
 
 export function normalizeGateOperationStatus(raw: unknown): GateOperationStatus {
@@ -140,6 +157,9 @@ export function normalizeGateOperationResponse(raw: any): GateOperationResponse 
 
     operationType: normalizeGateOperationType(raw?.operationType ?? raw?.OperationType),
     status: normalizeGateOperationStatus(raw?.status ?? raw?.Status),
+    completionMode: normalizeGateOperationCompletionMode(
+      raw?.completionMode ?? raw?.CompletionMode,
+    ),
 
     isAcknowledged: !!(raw?.isAcknowledged ?? raw?.IsAcknowledged),
     ticketExited: !!(raw?.ticketExited ?? raw?.TicketExited),
@@ -164,8 +184,19 @@ export function normalizeGateOperationResponse(raw: any): GateOperationResponse 
   };
 }
 
+export function isSoftwareCompletionMode(
+  op: Pick<GateOperationResponse, 'completionMode'> | null | undefined,
+): boolean {
+  return op?.completionMode === 'Software';
+}
+
 export function isTerminalGateOperationStatus(status: GateOperationStatus): boolean {
-  return status === 'Completed' || status === 'Failed' || status === 'TimedOut';
+  return (
+    status === 'Completed' ||
+    status === 'Failed' ||
+    status === 'TimedOut' ||
+    status === 'Unknown'
+  );
 }
 
 export function isFailedGateOperationStatus(status: GateOperationStatus): boolean {
@@ -173,12 +204,7 @@ export function isFailedGateOperationStatus(status: GateOperationStatus): boolea
 }
 
 export function isUnresolvedGateOperationStatus(status: GateOperationStatus): boolean {
-  return (
-    status === 'Pending' ||
-    status === 'Published' ||
-    status === 'Acknowledged' ||
-    status === 'Unknown'
-  );
+  return status === 'Pending' || status === 'Published' || status === 'Acknowledged';
 }
 
 export function isInFlightGateOperationStatus(status: GateOperationStatus): boolean {
@@ -190,7 +216,13 @@ export function isUncertainGateOutcome(status: GateOperationStatus): boolean {
 }
 
 export function isCompletedExitOperation(op: GateOperationResponse | null | undefined): boolean {
-  return !!op && op.operationType === 'Exit' && op.status === 'Completed' && op.archived;
+  return (
+    !!op &&
+    op.operationType === 'Exit' &&
+    op.status === 'Completed' &&
+    op.ticketExited &&
+    op.archived
+  );
 }
 
 export function isCompletedEntryOperation(op: GateOperationResponse | null | undefined): boolean {
